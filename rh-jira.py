@@ -3,6 +3,8 @@ import os
 import sys
 import json
 from pathlib import Path
+import tempfile
+import subprocess
 
 from providers import get_ai_provider
 from templates.template_loader import TemplateLoader
@@ -12,11 +14,14 @@ TEMPLATE_DIR = Path(os.getenv("TEMPLATE_DIR", "./templates"))
 
 # --- CLI Args ---
 dry_run = "--dry-run" in sys.argv
-if dry_run:
-    sys.argv.remove("--dry-run")
+edit_mode = "--edit" in sys.argv
+
+for flag in ("--dry-run", "--edit"):
+    if flag in sys.argv:
+        sys.argv.remove(flag)
 
 if len(sys.argv) < 3:
-    print('Usage: python rh-jira.py <issue_type> "Issue Summary" [--dry-run]')
+    print('Usage: python rh-jira.py <issue_type> "Issue Summary" [--dry-run] [--edit]')
     sys.exit(1)
 
 issue_type = sys.argv[1].lower()
@@ -32,10 +37,26 @@ except FileNotFoundError as e:
 
 # --- Prompt for Fields ---
 user_inputs = {}
-for field in fields:
-    user_inputs[field] = input(f"{field}: ")
 
-description = template_loader.render_description(user_inputs)
+if edit_mode:
+    # Pre-fill fields as commented placeholders
+    for field in fields:
+        user_inputs[field] = f"# {field}"
+
+    raw_description = template_loader.render_description(user_inputs)
+
+    # Open editor
+    editor = os.environ.get("EDITOR", "vim")
+    with tempfile.NamedTemporaryFile(mode="w+", suffix=".tmp", delete=False) as tmpfile:
+        tmpfile.write(raw_description)
+        tmpfile.flush()
+        subprocess.call([editor, tmpfile.name])
+        tmpfile.seek(0)
+        description = tmpfile.read()
+else:
+    for field in fields:
+        user_inputs[field] = input(f"{field}: ")
+    description = template_loader.render_description(user_inputs)
 
 # --- Clean up with AI ---
 ai_provider = get_ai_provider(os.getenv("AI_PROVIDER", "openai"))

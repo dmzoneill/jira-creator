@@ -1,0 +1,11 @@
+[requires]
+python_version = "3.13.2"
+
+[packages]
+requests = "*"
+gpt4all = "*"
+
+[dev-packages]
+pytest = "*"
+pytest-mock = "*"
+autopep8 = "*"

@@ -1,0 +1,59 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# pipenv
+# Pipfile.lock should be committed for apps
+# Pipfile is always committed
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+env/
+*.env
+
+# VS Code settings
+.vscode/
+
+# IDEs
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Testing / coverage
+.coverage
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+htmlcov/
+.pytest_cache/
+
+# Mypy / Pylint / Black
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# MacOS
+.DS_Store
+
+# Linux
+*.swp
+
+# GitHub Actions cache
+.github/workflows/__pycache__/
+
+# Logs
+*.log
+
+# System files
+Thumbs.db
+ehthumbs.db

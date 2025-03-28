@@ -17,6 +17,8 @@ env:
   AFFECTS_VERSION: aa-latest
   COMPONENT_NAME: analytics-hcc-service
   PRIORITY: Normal
+  JIRA_BOARD_ID: 21125
+  JPAT: your_jira_personal_access_token
 
 jobs:
   lint:

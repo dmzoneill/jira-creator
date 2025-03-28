@@ -277,7 +277,7 @@ class JiraCLI:
     def remove_sprint(self, args):
         try:
             self.jira.remove_from_sprint(args.issue_key)
-            print(f"✅ Removed from sprint")
+            print("✅ Removed from sprint")
         except Exception as e:
             print(f"❌ Failed to remove sprint: {e}")
 

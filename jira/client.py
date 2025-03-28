@@ -23,7 +23,7 @@ class JiraClient:
         path: str,
         json: Optional[Dict[str, Any]] = None,
         allow_204: bool = False,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         url = f"{self.jira_url}{path}"
         headers = {
             "Authorization": f"Bearer {self.jpat}",
@@ -33,7 +33,7 @@ class JiraClient:
         response = requests.request(method, url, headers=headers, json=json)
 
         if allow_204 and response.status_code == 204:
-            return None
+            return {}
 
         if response.status_code >= 400:
             raise Exception(f"JIRA API error ({response.status_code}): {response.text}")

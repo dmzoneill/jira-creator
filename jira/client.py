@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 from typing import Any, Dict, List, Optional
 
@@ -168,8 +167,7 @@ class JiraClient:
         if username := assignee or self.get_current_user():
             jql_parts.append(f'assignee="{username}"')
         jql = (
-            " AND ".join(jql_parts)
-            + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
+            " AND ".join(jql_parts) + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
         )
 
         params = {

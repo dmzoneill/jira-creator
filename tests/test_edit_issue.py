@@ -44,5 +44,6 @@ def cli(monkeypatch):
 
 
 def test_edit_issue_executes(monkeypatch, cli):
-    cli.edit_issue("FAKE-123")
+    cli.edit_issue(type("Args", (), {"issue_key": "FAKE-123", "no_ai": False})())
     cli.jira.update_description.assert_called_once()
+

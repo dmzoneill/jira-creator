@@ -28,102 +28,110 @@ class JiraCLI:
         import argcomplete
 
         prog_name = os.environ.get("CLI_NAME", os.path.basename(sys.argv[0]))
-
         parser = argparse.ArgumentParser(description="JIRA Issue Tool", prog=prog_name)
-
         subparsers = parser.add_subparsers(dest="command", required=True)
 
-        # Create
-        create_parser = subparsers.add_parser("create", help="Create a new issue")
-        create_parser.add_argument("type", help="Issue type (bug, story, epic, etc.)")
-        create_parser.add_argument("summary", help="Issue summary")
-        create_parser.add_argument(
-            "--edit", action="store_true", help="Use $EDITOR to fill in fields"
-        )
-        create_parser.add_argument(
-            "--dry-run", action="store_true", help="Print payload without sending"
-        )
-
-        # Change Type
-        change_parser = subparsers.add_parser("change-type", help="Change issue type")
-        change_parser.add_argument("issue_key")
-        change_parser.add_argument("new_type")
-
-        # Migrate
-        migrate_parser = subparsers.add_parser(
-            "migrate-to", help="Migrate issue to a new type"
-        )
-        migrate_parser.add_argument("new_type")
-        migrate_parser.add_argument("issue_key")
-
-        # Edit Issue
-        edit_parser = subparsers.add_parser(
-            "edit-issue", help="Edit an existing issue's description"
-        )
-        edit_parser.add_argument("issue_key")
-        edit_parser.add_argument("--no-ai", action="store_true", help="Skip AI cleanup")
-
+        self._register_subcommands(subparsers)
         argcomplete.autocomplete(parser)
         args = parser.parse_args()
+        self._dispatch_command(args)
 
-        if args.command == "change-type":
-            self.change_type(args.issue_key, args.new_type)
-        elif args.command == "migrate-to":
-            self.migrate_issue(args.issue_key, args.new_type)
-        elif args.command == "create":
-            self.create_issue(args.type, args.summary, args.edit, args.dry_run)
-        elif args.command == "edit-issue":
-            self.edit_issue(args.issue_key, no_ai=args.no_ai)
+    def _register_subcommands(self, subparsers):
+        def add(*args, **kwargs):
+            return subparsers.add_parser(*args, **kwargs)
 
-    def create_issue(self, issue_type, summary, edit_mode, dry_run):
+        create = add("create", help="Create a new issue")
+        create.add_argument("type")
+        create.add_argument("summary")
+        create.add_argument("--edit", action="store_true")
+        create.add_argument("--dry-run", action="store_true")
+
+        list_issues = add("list-issues", help="List assigned issues")
+        list_issues.add_argument("--project")
+        list_issues.add_argument("--component")
+        list_issues.add_argument("--user")
+
+        change_type = add("change-type", help="Change issue type")
+        change_type.add_argument("issue_key")
+        change_type.add_argument("new_type")
+
+        unassign = add("unassign", help="Unassign a user from an issue")
+        unassign.add_argument("issue_key")
+
+        migrate = add("migrate-to", help="Migrate issue to a new type")
+        migrate.add_argument("new_type")
+        migrate.add_argument("issue_key")
+
+        edit = add("edit-issue", help="Edit an issue's description")
+        edit.add_argument("issue_key")
+        edit.add_argument("--no-ai", action="store_true")
+
+        priority = add("set-priority", help="Set issue priority")
+        priority.add_argument("issue_key")
+        priority.add_argument("priority")
+
+        sprint = add("set-sprint", help="Set sprint by ID")
+        sprint.add_argument("issue_key")
+        sprint.add_argument("sprint_id")
+
+        remove = add("remove-sprint", help="Remove from sprint")
+        remove.add_argument("issue_key")
+
+        add_sprint = add("add-sprint", help="Add to sprint by name")
+        add_sprint.add_argument("issue_key")
+        add_sprint.add_argument("sprint_name")
+
+        status = add("set-status", help="Set issue status")
+        status.add_argument("issue_key")
+        status.add_argument("status")
+
+    def _dispatch_command(self, args):
         try:
-            template_loader = TemplateLoader(self.template_dir, issue_type)
-            fields = template_loader.get_fields()
+            getattr(self, args.command.replace("-", "_"))(args)
+        except Exception as e:
+            print(f"❌ Command failed: {e}")
+
+    def create(self, args):
+        try:
+            template = TemplateLoader(self.template_dir, args.type)
+            fields = template.get_fields()
         except FileNotFoundError as e:
             print(f"Error: {e}")
             sys.exit(1)
 
-        user_inputs = {}
+        inputs = (
+            {field: input(f"{field}: ") for field in fields}
+            if not args.edit
+            else {field: f"# {field}" for field in fields}
+        )
 
-        if edit_mode:
-            for field in fields:
-                user_inputs[field] = f"# {field}"
+        description = template.render_description(inputs)
 
-            raw_description = template_loader.render_description(user_inputs)
-            editor = os.environ.get("EDITOR", "vim")
+        if args.edit:
             with tempfile.NamedTemporaryFile(
                 mode="w+", suffix=".tmp", delete=False
-            ) as tmpfile:
-                tmpfile.write(raw_description)
-                tmpfile.flush()
-                subprocess.call([editor, tmpfile.name])
-                tmpfile.seek(0)
-                description = tmpfile.read()
-        else:
-            for field in fields:
-                user_inputs[field] = input(f"{field}: ")
-            description = template_loader.render_description(user_inputs)
+            ) as tmp:
+                tmp.write(description)
+                tmp.flush()
+                subprocess.call([os.environ.get("EDITOR", "vim"), tmp.name])
+                tmp.seek(0)
+                description = tmp.read()
 
-        # Choose prompt based on issue type
         try:
-            enum_type = JiraIssueType(issue_type.lower())
+            enum_type = JiraIssueType(args.type.lower())
             prompt = JiraPromptLibrary.get_prompt(enum_type)
         except ValueError:
-            print(
-                f"⚠️ Warning: Unknown issue type '{issue_type}'. Using default prompt."
-            )
+            print(f"⚠️ Unknown issue type '{args.type}'. Using default prompt.")
             prompt = self.default_prompt
 
         try:
             description = self.ai_provider.improve_text(prompt, description)
         except Exception as e:
-            print(
-                f"Warning: AI provider failed to clean up text. Using original. Error: {e}"
-            )
+            print(f"⚠️ AI cleanup failed. Using original text. Error: {e}")
 
-        payload = self.jira.build_payload(summary, description, issue_type)
+        payload = self.jira.build_payload(args.summary, description, args.type)
 
-        if dry_run:
+        if args.dry_run:
             print("📦 DRY RUN ENABLED")
             print("---- Description ----")
             print(description)
@@ -132,70 +140,160 @@ class JiraCLI:
             return
 
         try:
-            issue_key = self.jira.create_issue(payload)
-            print(f"✅ Issue created: {self.jira.jira_url}/browse/{issue_key}")
+            key = self.jira.create_issue(payload)
+            print(f"✅ Created: {self.jira.jira_url}/browse/{key}")
         except Exception as e:
             print(f"❌ Failed to create issue: {e}")
 
-    def change_type(self, issue_key, new_type):
+    def list_issues(self, args):
         try:
-            success = self.jira.change_issue_type(issue_key, new_type)
-            if success:
-                print(f"✅ Changed issue {issue_key} to type '{new_type}'")
-            else:
-                print(f"❌ Failed to change issue {issue_key}")
-        except Exception as e:
-            print(f"❌ Error changing issue type: {e}")
+            issues = self.jira.list_issues(args.project, args.component, args.user)
+            if not issues:
+                print("No issues found.")
+                return
 
-    def migrate_issue(self, old_key, new_type):
+            rows = []
+            for issue in issues:
+                f = issue["fields"]
+                sprints = f.get("customfield_12310940") or []
+                sprint = next(
+                    (
+                        s.split("=")[1]
+                        for s in sprints
+                        if "state=ACTIVE" in s and "name=" in s
+                    ),
+                    "—",
+                )
+                rows.append(
+                    (
+                        issue["key"],
+                        f["status"]["name"],
+                        f["assignee"]["displayName"] if f["assignee"] else "Unassigned",
+                        f.get("priority", {}).get("name", "—"),
+                        str(f.get("customfield_12310243", "—")),
+                        sprint,
+                        f["summary"],
+                    )
+                )
+
+            rows.sort(key=lambda r: (r[5], r[1]))
+            headers = [
+                "Key",
+                "Status",
+                "Assignee",
+                "Priority",
+                "Points",
+                "Sprint",
+                "Summary",
+            ]
+            widths = [
+                max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
+            ]
+            header_fmt = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
+            print(header_fmt)
+            print("-" * len(header_fmt))
+            for r in rows:
+                print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
+        except Exception as e:
+            print(f"❌ Failed to list issues: {e}")
+
+    def change_type(self, args):
         try:
-            new_key = self.jira.migrate_issue(old_key, new_type)
+            if self.jira.change_issue_type(args.issue_key, args.new_type):
+                print(f"✅ Changed {args.issue_key} to '{args.new_type}'")
+            else:
+                print(f"❌ Change failed for {args.issue_key}")
+        except Exception as e:
+            print(f"❌ Error: {e}")
+
+    def migrate_to(self, args):
+        try:
+            new_key = self.jira.migrate_issue(args.issue_key, args.new_type)
             print(
-                f"✅ Migrated {old_key} to {new_type.upper()} → {self.jira.jira_url}/browse/{new_key}"
+                f"✅ Migrated {args.issue_key} to {new_key}: {self.jira.jira_url}/browse/{new_key}"
             )
         except Exception as e:
-            print(f"❌ Failed to migrate issue: {e}")
+            print(f"❌ Migration failed: {e}")
 
-    def edit_issue(self, issue_key, no_ai=False):
+    def edit_issue(self, args):
         try:
-            original = self.jira.get_description(issue_key)
+            original = self.jira.get_description(args.issue_key)
+            with tempfile.NamedTemporaryFile(
+                mode="w+", suffix=".md", delete=False
+            ) as tmp:
+                tmp.write(original or "")
+                tmp.flush()
+                subprocess.call([os.environ.get("EDITOR", "vim"), tmp.name])
+                tmp.seek(0)
+                edited = tmp.read()
         except Exception as e:
-            print(f"❌ Failed to fetch description: {e}")
+            print(f"❌ Failed to fetch/edit: {e}")
             return
 
-        # Open in editor
-        editor = os.environ.get("EDITOR", "vim")
-        with tempfile.NamedTemporaryFile(
-            mode="w+", suffix=".md", delete=False
-        ) as tmpfile:
-            tmpfile.write(original or "")
-            tmpfile.flush()
-            subprocess.call([editor, tmpfile.name])
-            tmpfile.seek(0)
-            edited = tmpfile.read()
-
-        # Choose prompt dynamically
         try:
-            issue_type = self.jira.get_issue_type(issue_key)
-            enum_type = JiraIssueType(issue_type.lower())
-            prompt = JiraPromptLibrary.get_prompt(enum_type)
+            prompt = JiraPromptLibrary.get_prompt(
+                JiraIssueType(self.jira.get_issue_type(args.issue_key).lower())
+            )
         except Exception:
             prompt = self.default_prompt
 
-        if not no_ai:
-            try:
-                cleaned = self.ai_provider.improve_text(prompt, edited)
-            except Exception as e:
-                print(f"⚠️ AI cleanup failed, using raw edited version. Error: {e}")
-                cleaned = edited
-        else:
-            cleaned = edited
-
+        cleaned = edited if args.no_ai else self._try_cleanup(prompt, edited)
         try:
-            self.jira.update_description(issue_key, cleaned)
-            print(f"✅ Description updated for {issue_key}")
+            self.jira.update_description(args.issue_key, cleaned)
+            print(f"✅ Updated {args.issue_key}")
         except Exception as e:
-            print(f"❌ Failed to update issue: {e}")
+            print(f"❌ Update failed: {e}")
+
+    def _try_cleanup(self, prompt, text):
+        try:
+            return self.ai_provider.improve_text(prompt, text)
+        except Exception as e:
+            print(f"⚠️ AI cleanup failed: {e}")
+            return text
+
+    def unassign(self, args):
+        success = self.jira.unassign_issue(args.issue_key)
+        print(
+            f"✅ Unassigned {args.issue_key}"
+            if success
+            else f"❌ Could not unassign {args.issue_key}"
+        )
+
+    def set_priority(self, args):
+        try:
+            self.jira.set_priority(args.issue_key, args.priority)
+            print(f"✅ Priority set to '{args.priority}'")
+        except Exception as e:
+            print(f"❌ Failed to set priority: {e}")
+
+    def set_sprint(self, args):
+        try:
+            sid = int(args.sprint_id) if args.sprint_id.isdigit() else None
+            self.jira.set_sprint(args.issue_key, sid)
+            print(f"✅ Sprint updated for {args.issue_key}")
+        except Exception as e:
+            print(f"❌ Failed to set sprint: {e}")
+
+    def remove_sprint(self, args):
+        try:
+            self.jira.remove_from_sprint(args.issue_key)
+            print(f"✅ Removed from sprint")
+        except Exception as e:
+            print(f"❌ Failed to remove sprint: {e}")
+
+    def add_sprint(self, args):
+        try:
+            self.jira.add_to_sprint_by_name(args.issue_key, args.sprint_name)
+            print(f"✅ Added to sprint '{args.sprint_name}'")
+        except Exception as e:
+            print(f"❌ {e}")
+
+    def set_status(self, args):
+        try:
+            self.jira.set_status(args.issue_key, args.status)
+            print(f"✅ Status set to '{args.status}'")
+        except Exception as e:
+            print(f"❌ Failed to update status: {e}")
 
 
 if __name__ == "__main__":

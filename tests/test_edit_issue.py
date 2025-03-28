@@ -1,4 +1,4 @@
-
+from rh_jira import JiraCLI
 import tempfile
 import pytest
 from unittest.mock import patch, MagicMock
@@ -9,8 +9,6 @@ from pathlib import Path
 
 # Add project root to PYTHONPATH
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from rh_jira import JiraCLI
 
 
 @pytest.fixture

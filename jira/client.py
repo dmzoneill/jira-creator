@@ -14,7 +14,18 @@ class JiraClient:
         self.epic_field = os.getenv("JIRA_EPIC_NAME_FIELD", "customfield_12311141")
         self.board_id = os.getenv("JIRA_BOARD_ID")
 
-        if not all([self.jira_url, self.project_key, self.jpat]):
+        if not all(
+            [
+                self.jira_url,
+                self.project_key,
+                self.affects_version,
+                self.component_name,
+                self.priority,
+                self.jpat,
+                self.epic_field,
+                self.board_id,
+            ]
+        ):
             raise EnvironmentError(
                 "Missing required JIRA configuration in environment variables."
             )

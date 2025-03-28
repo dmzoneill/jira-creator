@@ -2,8 +2,6 @@
 import os
 import sys
 import json
-import argcomplete
-import argparse
 import tempfile
 import subprocess
 from pathlib import Path
@@ -26,6 +24,9 @@ class JiraCLI:
         )
 
     def run(self):
+        import argparse
+        import argcomplete
+
         prog_name = os.environ.get("CLI_NAME", os.path.basename(sys.argv[0]))
 
         parser = argparse.ArgumentParser(description="JIRA Issue Tool", prog=prog_name)

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 
 class TemplateLoader:
@@ -7,8 +8,8 @@ class TemplateLoader:
         if not self.template_path.exists():
             err = f"Template file not found: {self.template_path}"
             raise FileNotFoundError(err)
-        self.fields = []
-        self.template_lines = []
+        self.fields: List[str] = []
+        self.template_lines: List[str] = []
         self._load_template()
 
     def _load_template(self):

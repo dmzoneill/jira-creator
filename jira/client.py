@@ -1,5 +1,6 @@
 import os
 import requests
+from typing import Any, Dict, Optional
 
 
 class JiraClient:
@@ -16,7 +17,9 @@ class JiraClient:
                 "Missing required JIRA configuration in environment variables."
             )
 
-    def _request(self, method: str, path: str, json=None, allow_204=False):
+    def _request(
+        self, method: str, path: str, json: Optional[Dict[str, Any]] = None, allow_204: bool = False
+    ) -> Optional[Dict[str, Any]]:
         url = f"{self.jira_url}{path}"
         headers = {
             "Authorization": f"Bearer {self.jpat}",
@@ -33,8 +36,8 @@ class JiraClient:
 
         return response.json()
 
-    def build_payload(self, summary: str, description: str, issue_type: str) -> dict:
-        fields = {
+    def build_payload(self, summary: str, description: str, issue_type: str) -> Dict[str, Any]:
+        fields: Dict[str, Any] = {
             "project": {"key": self.project_key},
             "summary": summary,
             "description": description,
@@ -54,22 +57,22 @@ class JiraClient:
         issue = self._request("GET", f"/rest/api/2/issue/{issue_key}")
         return issue["fields"].get("description", "")
 
-    def update_description(self, issue_key: str, new_description: str):
+    def update_description(self, issue_key: str, new_description: str) -> None:
         payload = {"fields": {"description": new_description}}
-        self._request(
-            "PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True
-        )
+        self._request("PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True)
 
-    def create_issue(self, payload: dict) -> str:
+    def create_issue(self, payload: Dict[str, Any]) -> str:
         data = self._request("POST", "/rest/api/2/issue/", json=payload)
-        return data.get("key")
+        return data.get("key", "")
 
     def change_issue_type(self, issue_key: str, new_type: str) -> bool:
         try:
             issue_data = self._request("GET", f"/rest/api/2/issue/{issue_key}")
             is_subtask = issue_data["fields"]["issuetype"]["subtask"]
 
-            payload = {"fields": {"issuetype": {"name": new_type.capitalize()}}}
+            payload: Dict[str, Any] = {
+                "fields": {"issuetype": {"name": new_type.capitalize()}}
+            }
 
             if is_subtask:
                 payload["update"] = {"parent": [{"remove": {}}]}
@@ -78,7 +81,6 @@ class JiraClient:
                 "PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True
             )
             return True
-
         except Exception as e:
             print(f"❌ Failed to change issue type: {e}")
             return False
@@ -90,7 +92,7 @@ class JiraClient:
         summary = fields.get("summary", f"Migrated from {old_key}")
         description = fields.get("description", f"Migrated from {old_key}")
 
-        payload = {
+        payload: Dict[str, Any] = {
             "fields": {
                 "project": {"key": self.project_key},
                 "summary": summary,
@@ -113,7 +115,7 @@ class JiraClient:
             "transitions"
         ]
 
-        transition_id = None
+        transition_id: Optional[str] = None
         for t in transitions:
             if t["name"].lower() in ["done", "closed", "cancelled"]:
                 transition_id = t["id"]
@@ -124,9 +126,7 @@ class JiraClient:
         if transition_id:
             transition_payload = {"transition": {"id": transition_id}}
             self._request(
-                "POST",
-                f"/rest/api/2/issue/{old_key}/transitions",
-                json=transition_payload,
+                "POST", f"/rest/api/2/issue/{old_key}/transitions", json=transition_payload
             )
 
         return new_key

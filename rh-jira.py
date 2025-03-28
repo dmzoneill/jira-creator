@@ -11,6 +11,7 @@ from pathlib import Path
 from providers import get_ai_provider
 from templates.template_loader import TemplateLoader
 from jira.client import JiraClient
+from jira_prompts import JiraPromptLibrary, JiraIssueType
 
 
 class JiraCLI:
@@ -18,14 +19,16 @@ class JiraCLI:
         self.template_dir = Path(os.getenv("TEMPLATE_DIR", "./templates"))
         self.jira = JiraClient()
         self.ai_provider = get_ai_provider(os.getenv("AI_PROVIDER", "openai"))
+        self.default_prompt = (
+            "As a professional Principal Software Engineer, you write acute, well-defined Jira issues "
+            "with a strong focus on clear descriptions, definitions of done, acceptance criteria, and supporting details. "
+            "If standard Jira sections are missing, add them. Improve clarity, fix grammar and spelling, and maintain structure."
+        )
 
     def run(self):
         prog_name = os.environ.get("CLI_NAME", os.path.basename(sys.argv[0]))
 
-        parser = argparse.ArgumentParser(
-            description="JIRA Issue Tool",
-            prog=prog_name
-        )
+        parser = argparse.ArgumentParser(description="JIRA Issue Tool", prog=prog_name)
 
         subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -100,10 +103,13 @@ class JiraCLI:
                 user_inputs[field] = input(f"{field}: ")
             description = template_loader.render_description(user_inputs)
 
-        prompt = (
-            "Keep the format and headings of this text, just fix spelling errors, grammatical issues, "
-            "and improve the readability of sentences by providing more clarity."
-        )
+        # Choose prompt based on issue type
+        try:
+            enum_type = JiraIssueType(issue_type.lower())
+            prompt = JiraPromptLibrary.get_prompt(enum_type)
+        except ValueError:
+            print(f"⚠️ Warning: Unknown issue type '{issue_type}'. Using default prompt.")
+            prompt = self.default_prompt
 
         try:
             description = self.ai_provider.improve_text(prompt, description)
@@ -165,11 +171,15 @@ class JiraCLI:
             tmpfile.seek(0)
             edited = tmpfile.read()
 
+        # Choose prompt dynamically
+        try:
+            issue_type = self.jira.get_issue_type(issue_key)
+            enum_type = JiraIssueType(issue_type.lower())
+            prompt = JiraPromptLibrary.get_prompt(enum_type)
+        except Exception:
+            prompt = self.default_prompt
+
         if not no_ai:
-            prompt = (
-                "Keep the format and headings of this text, just fix spelling errors, grammatical issues, "
-                "and improve the readability of sentences by providing more clarity."
-            )
             try:
                 cleaned = self.ai_provider.improve_text(prompt, edited)
             except Exception as e:

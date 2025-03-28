@@ -27,14 +27,19 @@ def test_script_dry_run(monkeypatch):
             "FIELD|Title\nTEMPLATE|Description\nBug Title: {{Title}}"
         )
 
-        # Write a dummy script file to point to the correct template dir
         script_path = Path("rh-jira.py")
         if not script_path.exists():
             return  # skip if script file not found
 
-        # Run the script with dry-run mode
         result = subprocess.run(
-            ["python", str(script_path), "bug", "Example bug summary", "--dry-run"],
+            [
+                "python",
+                str(script_path),
+                "create",
+                "bug",
+                "Example bug summary",
+                "--dry-run",
+            ],
             input="My test bug\n",
             capture_output=True,
             text=True,

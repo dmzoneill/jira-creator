@@ -108,7 +108,9 @@ class JiraCLI:
             enum_type = JiraIssueType(issue_type.lower())
             prompt = JiraPromptLibrary.get_prompt(enum_type)
         except ValueError:
-            print(f"⚠️ Warning: Unknown issue type '{issue_type}'. Using default prompt.")
+            print(
+                f"⚠️ Warning: Unknown issue type '{issue_type}'. Using default prompt."
+            )
             prompt = self.default_prompt
 
         try:

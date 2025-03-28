@@ -18,7 +18,11 @@ class JiraClient:
             )
 
     def _request(
-        self, method: str, path: str, json: Optional[Dict[str, Any]] = None, allow_204: bool = False
+        self,
+        method: str,
+        path: str,
+        json: Optional[Dict[str, Any]] = None,
+        allow_204: bool = False,
     ) -> Optional[Dict[str, Any]]:
         url = f"{self.jira_url}{path}"
         headers = {
@@ -36,7 +40,9 @@ class JiraClient:
 
         return response.json()
 
-    def build_payload(self, summary: str, description: str, issue_type: str) -> Dict[str, Any]:
+    def build_payload(
+        self, summary: str, description: str, issue_type: str
+    ) -> Dict[str, Any]:
         fields: Dict[str, Any] = {
             "project": {"key": self.project_key},
             "summary": summary,
@@ -59,7 +65,9 @@ class JiraClient:
 
     def update_description(self, issue_key: str, new_description: str) -> None:
         payload = {"fields": {"description": new_description}}
-        self._request("PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True)
+        self._request(
+            "PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True
+        )
 
     def create_issue(self, payload: Dict[str, Any]) -> str:
         data = self._request("POST", "/rest/api/2/issue/", json=payload)
@@ -126,7 +134,9 @@ class JiraClient:
         if transition_id:
             transition_payload = {"transition": {"id": transition_id}}
             self._request(
-                "POST", f"/rest/api/2/issue/{old_key}/transitions", json=transition_payload
+                "POST",
+                f"/rest/api/2/issue/{old_key}/transitions",
+                json=transition_payload,
             )
 
         return new_key

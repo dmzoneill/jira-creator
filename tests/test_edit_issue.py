@@ -1,11 +1,10 @@
-from rh_jira import JiraCLI
-import tempfile
-import pytest
-from unittest.mock import patch, MagicMock
-
-
 import sys
+import tempfile
 from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+from rh_jira import JiraCLI
 
 # Add project root to PYTHONPATH
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))

@@ -41,7 +41,7 @@ jobs:
         run: pipenv run black . --check
 
       - name: Run flake8 (ignore line length and unused imports)
-        run: pipenv run flake8 . --ignore=E501,F401
+        run: pipenv run flake8 . --ignore=E501,F401,W503
 
   test:
     runs-on: ubuntu-latest

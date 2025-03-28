@@ -19,6 +19,7 @@ env:
   PRIORITY: Normal
   JIRA_BOARD_ID: 21125
   JPAT: your_jira_personal_access_token
+  JIRA_EPIC_NAME_FIELD: customfield_12311141
 
 jobs:
   lint:

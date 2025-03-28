@@ -1,8 +1,8 @@
 # jira-creator
 
-[![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/test.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions)
-[![Lint Status](https://github.com/dmzoneill/jira-creator/actions/workflows/lint.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions)
-[![Python Version](https://img.shields.io/pypi/pyversions/jira-creator.svg)](https://pypi.org/project/jira-creator/)
+[![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml)
+[![CI](https://github.com/dmzoneill/jira-creator/actions/workflows/ci.yaml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/ci.yaml)
+![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 [![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/commits/main)
 

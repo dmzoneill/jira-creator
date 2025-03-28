@@ -34,7 +34,8 @@ test-watch:
 .PHONY: lint
 lint:
 	$(PIPENV) run black . --check
-	$(PIPENV) run flake8 . --ignore=E501,F401
+	$(PIPENV) run flake8 . --ignore=E501,F401,W503
+
 
 .PHONY: format
 format:

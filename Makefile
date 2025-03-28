@@ -41,6 +41,17 @@ format:
 	pipenv run autopep8 . --recursive --in-place --aggressive --aggressive
 	pipenv run black .
 
+# Run tests with coverage
+coverage:
+	pipenv run coverage run -m pytest
+	pipenv run coverage report -m
+	pipenv run coverage html
+	@echo "📂 Coverage report: open htmlcov/index.html"
+
+# Clean up coverage artifacts
+clean-coverage:
+	rm -rf .coverage htmlcov
+
 # --- Clean ---
 .PHONY: clean
 clean:

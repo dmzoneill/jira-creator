@@ -7,6 +7,7 @@ gpt4all = "*"
 argcomplete = "*"
 
 [dev-packages]
+coverage = "*"
 pytest = "*"
 pytest-mock = "*"
 autopep8 = "*"

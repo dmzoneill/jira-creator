@@ -1,5 +1,11 @@
 # jira-creator
 
+[![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/test.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions)
+[![Lint Status](https://github.com/dmzoneill/jira-creator/actions/workflows/lint.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions)
+[![Python Version](https://img.shields.io/pypi/pyversions/jira-creator.svg)](https://pypi.org/project/jira-creator/)
+[![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/blob/main/LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/commits/main)
+
 Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates and optional AI-enhanced descriptions.
 
 ---
@@ -200,3 +206,9 @@ jira-creator/
 ├── tests/
 └── Pipfile
 ```
+
+---
+
+## 📜 License
+
+This project is licensed under the [MIT License](./LICENSE).

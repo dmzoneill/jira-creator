@@ -6,7 +6,7 @@ Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardi
 
 ## ⚡ Quick Start (Under 30 Seconds)
 
-### 1. Create your config file:
+### 1. Create your config file and autocomplete setup:
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -19,6 +19,9 @@ export PROJECT_KEY="AAP"
 export AFFECTS_VERSION="aa-latest"
 export COMPONENT_NAME="analytics-hcc-service"
 export PRIORITY="Normal"
+
+# Enable autocomplete
+eval "$(register-python-argcomplete rh-issue)"
 EOF
 
 source ~/.bashrc.d/jira.sh
@@ -107,19 +110,9 @@ export AI_PROVIDER=noop
 
 ---
 
-## 🚀 Full Usage
-
-```bash
-rh-issue bug "Fix login crash"
-rh-issue epic "Prepare Q2 milestone" --dry-run
-```
-
----
-
 ## 🔧 Dev Setup
 
 ```bash
-pip install pipenv
 pipenv install --dev
 ```
 
@@ -128,6 +121,12 @@ pipenv install --dev
 ```bash
 make test
 make lint
+```
+
+To automatically fix formatting issues:
+
+```bash
+make format
 ```
 
 ---
@@ -153,3 +152,52 @@ jira-creator/
 ├── tests/
 └── Pipfile
 ```
+---
+
+## 🧪 Usage & Examples
+
+### 🆕 Create Issues
+
+```bash
+rh-issue create bug "Fix login crash"
+rh-issue create story "Refactor onboarding flow"
+rh-issue create epic "Unify frontend UI" --edit
+rh-issue create spike "Evaluate GraphQL support" --dry-run
+```
+
+Use `--edit` to fill the issue description using your `$EDITOR`  
+Use `--dry-run` to print the payload without sending it to JIRA
+
+---
+
+### 🔁 Change Issue Type
+
+```bash
+rh-issue change-type AAP-12345 story
+```
+
+Converts an issue (e.g. sub-task) into another type (e.g. story). If it is a sub-task, the parent field is removed automatically.
+
+---
+
+### 🔁 Migrate Issue
+
+```bash
+rh-issue migrate-to story AAP-54321
+```
+
+Copies the issue, creates a new one as a different type, adds a backlink comment to the old one, and closes the old issue.
+
+---
+
+### ✏️ Edit Issue Description
+
+```bash
+rh-issue edit-issue AAP-98765
+rh-issue edit-issue AAP-98765 --no-ai
+```
+
+- Fetches the description
+- Opens it in your editor (`$EDITOR`)
+- Applies AI cleanup (unless `--no-ai` is used)
+- Updates the JIRA issue

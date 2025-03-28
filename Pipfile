@@ -4,6 +4,7 @@ python_version = "3.13.2"
 [packages]
 requests = "*"
 gpt4all = "*"
+argcomplete = "*"
 
 [dev-packages]
 pytest = "*"

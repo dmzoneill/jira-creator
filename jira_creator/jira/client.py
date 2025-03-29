@@ -272,8 +272,29 @@ class JiraClient:
         print(f"✅ Changed status of {issue_key} to '{target_status}'")
 
     def vote_story_points(self, issue_key: str, points: int) -> None:
-        field = os.getenv("JIRA_STORY_POINT_FIELD", "customfield_10016")
+        try:
+            issue = self._request("GET", f"/rest/api/2/issue/{issue_key}")
+            issue_id = issue["id"]
+        except Exception as e:
+            print(f"❌ Failed to fetch issue ID for {issue_key}: {e}")
+            return
+
+        payload = {"issueId": issue_id, "vote": points}
+
+        try:
+            self._request(
+                "PUT",
+                "/rest/eausm/latest/planningPoker/vote",
+                json=payload,
+            )
+            print(f"✅ Voted {points} story points on issue {issue_key}")
+        except Exception as e:
+            print(f"❌ Failed to vote on story points: {e}")
+
+    def set_story_points(self, issue_key: str, points: int) -> None:
+        field = os.getenv("JIRA_STORY_POINT_FIELD", "customfield_12310243")
         payload = {"fields": {field: points}}
         self._request(
             "PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True
         )
+

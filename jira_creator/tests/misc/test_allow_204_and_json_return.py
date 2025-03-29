@@ -8,9 +8,6 @@ def test_request_allow_204(monkeypatch):
         status_code = 204
         text = ""
 
-        def json(self):
-            return {}
-
     monkeypatch.setattr("requests.request", lambda *a, **k: Response())
     result = client._request("GET", "/fake", allow_204=True)
     assert result == {}

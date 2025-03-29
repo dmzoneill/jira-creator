@@ -67,7 +67,7 @@ jobs:
       - name: Run tests with coverage
         run: | 
           pipenv run coverage erase
-          PYTHONPATH=. COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest tests
+          PYTHONPATH=. COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest jira_creator/tests
           pipenv run coverage combine
           pipenv run coverage report -m --fail-under=99
 

@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 from jira.client import JiraClient
-from jira.jira_prompts import JiraPromptLibrary, JiraIssueType
+from jira.jira_prompts import JiraIssueType, JiraPromptLibrary
 from providers import get_ai_provider
 from templates.template_loader import TemplateLoader
 

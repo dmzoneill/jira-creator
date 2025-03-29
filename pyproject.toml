@@ -4,7 +4,7 @@ version = "0.0.15"
 description = "CLI and tools to automate JIRA issue creation"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE" }
+license = "Apache"
 authors = [
   { name = "David O Neill", email = "dmz.oneill@gmail.com" }
 ]

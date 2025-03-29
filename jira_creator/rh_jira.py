@@ -25,8 +25,9 @@ class JiraCLI:
         self.comment_prompt = JiraPromptLibrary.get_prompt("comment")
 
     def run(self):
-        import argcomplete
         import argparse
+
+        import argcomplete
 
         prog_name = os.environ.get("CLI_NAME", os.path.basename(sys.argv[0]))
         parser = argparse.ArgumentParser(description="JIRA Issue Tool", prog=prog_name)

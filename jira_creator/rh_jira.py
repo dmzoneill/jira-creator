@@ -48,7 +48,7 @@ class JiraCLI:
         create.add_argument("--edit", action="store_true")
         create.add_argument("--dry-run", action="store_true")
 
-        list_issues = add("list", "List assigned issues", aliases=["ls"])
+        list_issues = add("list", "List assigned issues")
         list_issues.add_argument("--project")
         list_issues.add_argument("--component")
         list_issues.add_argument("--user")
@@ -65,22 +65,22 @@ class JiraCLI:
         edit.add_argument("issue_key")
         edit.add_argument("--no-ai", action="store_true")
 
-        set_priority = add("set-priority", "Set issue priority", aliases=["priority"])
+        set_priority = add("set-priority", "Set issue priority")
         set_priority.add_argument("issue_key")
         set_priority.add_argument("priority")
 
-        set_status = add("set-status", "Set issue status", aliases=["status"])
+        set_status = add("set-status", "Set issue status")
         set_status.add_argument("issue_key")
         set_status.add_argument("status")
 
         add_sprint = add(
-            "add-sprint", "Add issue to sprint by name", aliases=["sprint-add"]
+            "add-sprint", "Add issue to sprint by name"
         )
         add_sprint.add_argument("issue_key")
         add_sprint.add_argument("sprint_name")
 
         remove_sprint = add(
-            "remove-sprint", "Remove issue from its sprint", aliases=["sprint-remove"]
+            "remove-sprint", "Remove issue from its sprint"
         )
         remove_sprint.add_argument("issue_key")
 

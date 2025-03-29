@@ -36,8 +36,8 @@ test-setup:
 	echo "JIRA_BOARD_ID=21125" >> $$GITHUB_ENV
 
 .PHONY: test
-test:
-	PYTHONPATH=. pipenv run pytest tests
+test: coverage
+	echo Running coverage
 
 .PHONY: test-watch
 test-watch:

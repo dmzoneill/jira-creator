@@ -14,5 +14,8 @@ dependencies = []
 jira-creator = "jira_creator.rh_jira:main"
 
 [build-system]
-requires = ["setuptools>=77.0.0"]
+requires = [
+  "setuptools>=78.0.0",
+  "packaging>=24.2"
+]
 build-backend = "setuptools.build_meta"

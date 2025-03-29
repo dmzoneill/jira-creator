@@ -15,7 +15,7 @@ entry_points = {
 
 setup_kwargs = {
     "name": "jira-creator",
-    "version": "0.0.17",
+    "version": "0.0.18",
     "description": "Jira console app",
     "long_description": "",
     "author": "David O Neill",

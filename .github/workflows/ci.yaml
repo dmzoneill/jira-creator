@@ -47,6 +47,8 @@ jobs:
       JIRA_BOARD_ID: 21125
       JPAT: dummy_token_for_ci
       JIRA_EPIC_NAME_FIELD: customfield_12311141
+      OPENAI_API_KEY: doesnt_matter
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

@@ -1,6 +1,7 @@
+from typing import Any, Dict, List, Optional
+
 import os
 import requests
-from typing import Any, Dict, List, Optional
 
 
 class JiraClient:

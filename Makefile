@@ -1,4 +1,10 @@
 # --- Variables ---
+deb_package_name := $(shell cat control | grep Package | sed 's/Package: //')
+rpm_package_name := $(shell cat jira-creator.spec | grep Name | cut -d: -f 2 | tr -d ' ')
+package_version := $(shell cat control | grep Version | sed 's/Version: //')
+DEB_FILENAME := $(deb_package_name)_$(package_version).deb
+RPM_FILENAME := $(rpm_package_name)-$(package_version)
+
 PYTHON ?= python
 PIPENV ?= pipenv
 SCRIPT := rh-jira.py
@@ -73,14 +79,58 @@ clean-coverage:
 # --- Clean ---
 .PHONY: clean
 clean:
-	find . -type d -name "__pycache__" -exec rm -r {} +
-	find . -type f -name "*.pyc" -delete
-	find . -type f -name ".coverage" -delete
-	find . -type f -name "coverage.xml" -delete
-	find . -type d -name ".pytest_cache" -exec rm -rf {} +
-	find . -type d -name "htmlcov" -exec rm -rf {} +
-	find . -type d -name "jira_creator.egg-info" -exec rm -rf {} +
-	find . -type d -name "dist" -exec rm -rf {} +
+	- find . -type d -name "__pycache__" -exec rm -r {} +
+	- find . -type f -name "*.pyc" -delete
+	- find . -type f -name ".coverage" -delete
+	- find . -type f -name "coverage.xml" -delete
+	- find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	- find . -type d -name "htmlcov" -exec rm -rf {} +
+	- find . -type d -name "jira_creator.egg-info" -exec rm -rf {} +
+	- find . -type d -name "dist" -exec rm -rf {} +
+	- rm -rvf log.log
+	- rm -rvf d_fake_seeder/log.log
+	- rm -rvf dist
+	- rm -rvf .pytest_cache
+	- find . -type d -iname __pycache__ -exec rm -rf {} \;
+	- rm -rvf debbuild
+	- rm -rvf rpmbuild
+	- rm -rvf *.deb
+	- rm -rvf *.rpm
+
+rpm: clean
+	- sudo dnf install -y rpm-build rpmlint python3-setuptools python3-setuptools
+	rm -rvf ./rpmbuild
+	mkdir -p ./rpmbuild/BUILD ./rpmbuild/BUILDROOT ./rpmbuild/RPMS ./rpmbuild/SOURCES ./rpmbuild/SPECS ./rpmbuild/SRPMS
+	cp -r jira-creator.spec ./rpmbuild/SPECS/
+	cp -r jira_creator/images ./rpmbuild/SOURCE/
+	cp -r jira_creator/lib ./rpmbuild/SOURCE/
+	cp -r jira_creator/ui ./rpmbuild/SOURCE/
+	cp -r jira_creator/dfakeseeder.py ./rpmbuild/SOURCE/
+	cp -r jira_creator/dfakeseeder.desktop ./rpmbuild/SOURCE/
+	tar -czvf rpmbuild/SOURCES/$(RPM_FILENAME).tar.gz jira_creator/ 
+	rpmbuild --define "_topdir `pwd`/rpmbuild" -v -ba ./rpmbuild/SPECS/jira-creator.spec
+
+rpm-install: rpm
+	sudo dnf install rpmbuild/RPMS/<architecture>/python-example-1.0-1.<architecture>.rpm
+	rpmlint
+
+deb: clean
+	sudo apt-get install dpkg dpkg-dev fakeroot
+	sudo rm -rvf ./debbuild
+	mkdir -vp ./debbuild/DEBIAN
+	cp control ./debbuild/DEBIAN
+	mkdir -vp ./debbuild/opt/jira-creator
+	cp -r jira_creator/rh_jira.py ./debbuild/opt/
+	touch ./debbuild/DEBIAN/postinst
+
+	sudo chown -R root:root debbuild
+	fakeroot dpkg-deb --build debbuild $(DEB_FILENAME)
+
+	dpkg -c $(DEB_FILENAME)
+	dpkg -I $(DEB_FILENAME)
+
+deb-install: deb	
+	sudo dpkg -i $(DEB_FILENAME)
 
 # --- Help ---
 .PHONY: help

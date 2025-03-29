@@ -73,15 +73,11 @@ class JiraCLI:
         set_status.add_argument("issue_key")
         set_status.add_argument("status")
 
-        add_sprint = add(
-            "add-sprint", "Add issue to sprint by name"
-        )
+        add_sprint = add("add-sprint", "Add issue to sprint by name")
         add_sprint.add_argument("issue_key")
         add_sprint.add_argument("sprint_name")
 
-        remove_sprint = add(
-            "remove-sprint", "Remove issue from its sprint"
-        )
+        remove_sprint = add("remove-sprint", "Remove issue from its sprint")
         remove_sprint.add_argument("issue_key")
 
         unassign = add("unassign", "Unassign a user from an issue")

@@ -79,6 +79,8 @@ clean:
 	find . -type f -name "coverage.xml" -delete
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name "htmlcov" -exec rm -rf {} +
+	find . -type d -name "jira_creator.egg-info" -exec rm -rf {} +
+	find . -type d -name "dist" -exec rm -rf {} +
 
 # --- Help ---
 .PHONY: help

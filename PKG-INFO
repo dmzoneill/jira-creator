@@ -1,7 +1,7 @@
 Metadata-Version: 2.3
 Name: jira-creator
 Version: 0.0.24
-Summary: Python gtk fake seeder
+Summary: Jira cli tool
 Home-page: https://github.com/dmzoneill/jira-creator
 Author: David O Neill
 Author-email: dmz.oneill@gmail.com
@@ -14,5 +14,5 @@ Description-Content-Type: text/markdown
 
 
 
-# DFakeSeeder fake seeder
+# Jira creator cli tool
 Jira Creator

@@ -193,21 +193,6 @@ make format  # auto-fix formatting
 
 ---
 
-## 📁 Project Structure
-
-```bash
-jira-creator/
-├── rh-jira.py
-├── rh-issue-wrapper.sh
-├── templates/
-├── providers/
-├── jira/
-├── tests/
-└── Pipfile
-```
-
----
-
 ## 📜 License
 
 This project is licensed under the [Apache License](./LICENSE).

@@ -22,6 +22,19 @@ dry-run:
 	$(PIPENV) run $(PYTHON) $(SCRIPT) bug "Dry run summary" --dry-run
 
 # --- Tests ---
+
+.PHONY: test-setup
+test-setup:
+	echo "JPAT=NOT_A_SECRET" >> $$GITHUB_ENV
+	echo "AI_PROVIDER=openai" >> $$GITHUB_ENV
+	echo "JIRA_URL=https://issues.redhat.com" >> $$GITHUB_ENV
+	echo "PROJECT_KEY=AAP" >> $$GITHUB_ENV
+	echo "AFFECTS_VERSION=aa-latest" >> $$GITHUB_ENV
+	echo "COMPONENT_NAME=analytics-hcc-service" >> $$GITHUB_ENV
+	echo "PRIORITY=Normal" >> $$GITHUB_ENV
+	echo "OPENAI_API_KEY=NOT_A_SECRET" >> $$GITHUB_ENV
+	echo "JIRA_BOARD_ID=21125" >> $$GITHUB_ENV
+
 .PHONY: test
 test:
 	PYTHONPATH=. pipenv run pytest tests

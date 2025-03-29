@@ -38,8 +38,8 @@ source ~/.bashrc.d/jira.sh
 ### 2. Link the CLI wrapper
 
 ```bash
-chmod +x rh-issue-wrapper.sh
-sudo ln -s $(pwd)/rh-issue-wrapper.sh /usr/local/bin/rh-issue
+chmod +x jira_creator/rh-issue-wrapper.sh
+sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
 
 ---

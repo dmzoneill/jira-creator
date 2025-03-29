@@ -1,17 +1,13 @@
 from jira.client import JiraClient
 
 
-
 def test_set_story_points(monkeypatch):
     called = {}
 
     def fake_request(method, path, json=None, allow_204=False, **kwargs):
-        called.update({
-            "method": method,
-            "path": path,
-            "json": json,
-            "allow_204": allow_204
-        })
+        called.update(
+            {"method": method, "path": path, "json": json, "allow_204": allow_204}
+        )
         return {}
 
     monkeypatch.setenv("JIRA_STORY_POINT_FIELD", "customfield_99999")

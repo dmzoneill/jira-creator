@@ -34,6 +34,7 @@ def test_set_story_points_failure(monkeypatch, cli, capsys):
     captured = capsys.readouterr()
     assert "❌ Failed to set story points" in captured.out
 
+
 def test_set_story_points_value_error(capsys):
     cli = JiraCLI()
 

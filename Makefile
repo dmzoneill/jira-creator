@@ -59,7 +59,7 @@ format:
 .PHONY: coverage
 coverage:
 	pipenv run coverage erase
-	PYTHONPATH=. COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest tests
+	PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest jira_creator/tests
 	pipenv run coverage combine
 	pipenv run coverage report -m --fail-under=99
 	pipenv run coverage html
@@ -78,6 +78,7 @@ clean:
 	find . -type f -name ".coverage" -delete
 	find . -type f -name "coverage.xml" -delete
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	find . -type d -name "htmlcov" -exec rm -rf {} +
 
 # --- Help ---
 .PHONY: help

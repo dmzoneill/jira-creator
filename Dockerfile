@@ -3,7 +3,7 @@ FROM fedora:41
 
 # Install necessary packages
 RUN dnf update -y && \
-    dnf install -y python3 python3-pip python3-gobject gtk4 xauth mesa-libGL mesa-dri-drivers which python3-pipenv
+    dnf install -y python3 python3-pip python3-gobject gtk4 xauth mesa-libGL mesa-dri-drivers which pipenv
 RUN dnf clean all -y
 
 # Set user and group IDs

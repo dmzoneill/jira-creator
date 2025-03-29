@@ -102,11 +102,7 @@ rpm: clean
 	rm -rvf ./rpmbuild
 	mkdir -p ./rpmbuild/BUILD ./rpmbuild/BUILDROOT ./rpmbuild/RPMS ./rpmbuild/SOURCES ./rpmbuild/SPECS ./rpmbuild/SRPMS
 	cp -r jira-creator.spec ./rpmbuild/SPECS/
-	cp -r jira_creator/images ./rpmbuild/SOURCE/
-	cp -r jira_creator/lib ./rpmbuild/SOURCE/
-	cp -r jira_creator/ui ./rpmbuild/SOURCE/
-	cp -r jira_creator/dfakeseeder.py ./rpmbuild/SOURCE/
-	cp -r jira_creator/dfakeseeder.desktop ./rpmbuild/SOURCE/
+	cp -r jira_creator/rh_jira.py ./rpmbuild/SOURCE/
 	tar -czvf rpmbuild/SOURCES/$(RPM_FILENAME).tar.gz jira_creator/ 
 	rpmbuild --define "_topdir `pwd`/rpmbuild" -v -ba ./rpmbuild/SPECS/jira-creator.spec
 

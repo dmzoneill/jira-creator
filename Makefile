@@ -100,7 +100,7 @@ clean:
 rpm: clean
 	- sudo dnf install -y rpm-build rpmlint python3-setuptools python3-setuptools
 	rm -rvf ./rpmbuild
-	mkdir -p ./rpmbuild/BUILD ./rpmbuild/BUILDROOT ./rpmbuild/RPMS ./rpmbuild/SOURCES ./rpmbuild/SPECS ./rpmbuild/SRPMS
+	mkdir -p ./rpmbuild/BUILD ./rpmbuild/BUILDROOT ./rpmbuild/RPMS ./rpmbuild/SOURCES ./rpmbuild/SPECS ./rpmbuild/SRPMS ./rpmbuild/SOURCE
 	cp -r jira-creator.spec ./rpmbuild/SPECS/
 	cp -r jira_creator/rh_jira.py ./rpmbuild/SOURCE/
 	tar -czvf rpmbuild/SOURCES/$(RPM_FILENAME).tar.gz jira_creator/ 
@@ -118,6 +118,7 @@ deb: clean
 	mkdir -vp ./debbuild/opt/jira-creator
 	cp -r jira_creator/rh_jira.py ./debbuild/opt/
 	touch ./debbuild/DEBIAN/postinst
+	chmod 755 ./debbuild/DEBIAN/postinst
 
 	sudo chown -R root:root debbuild
 	fakeroot dpkg-deb --build debbuild $(DEB_FILENAME)

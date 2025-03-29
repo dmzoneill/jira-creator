@@ -42,12 +42,16 @@ format:
 	pipenv run autopep8 . --recursive --in-place --aggressive --aggressive
 	pipenv run black .
 
-# Run tests with coverage
+# Run tests with coverage, including subprocess tracking
+.PHONY: coverage
 coverage:
-	pipenv run coverage run -m pytest
-	pipenv run coverage report -m
+	pipenv run coverage erase
+	PYTHONPATH=. COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest tests
+	pipenv run coverage combine
+	pipenv run coverage report -m --fail-under=99
 	pipenv run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
+
 
 # Clean up coverage artifacts
 clean-coverage:
@@ -58,6 +62,9 @@ clean-coverage:
 clean:
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	find . -type f -name "*.pyc" -delete
+	find . -type f -name ".coverage" -delete
+	find . -type f -name "coverage.xml" -delete
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 
 # --- Help ---
 .PHONY: help

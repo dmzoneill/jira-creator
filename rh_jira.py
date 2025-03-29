@@ -9,7 +9,7 @@ from pathlib import Path
 from providers import get_ai_provider
 from templates.template_loader import TemplateLoader
 from jira.client import JiraClient
-from jira_prompts import JiraPromptLibrary, JiraIssueType
+from jira.jira_prompts import JiraPromptLibrary, JiraIssueType
 
 
 class JiraCLI:
@@ -17,11 +17,8 @@ class JiraCLI:
         self.template_dir = Path(os.getenv("TEMPLATE_DIR", "./templates"))
         self.jira = JiraClient()
         self.ai_provider = get_ai_provider(os.getenv("AI_PROVIDER", "openai"))
-        self.default_prompt = (
-            "As a professional Principal Software Engineer, you write acute, well-defined Jira issues "
-            "with a strong focus on clear descriptions, definitions of done, acceptance criteria, and supporting details. "
-            "If standard Jira sections are missing, add them. Improve clarity, fix grammar and spelling, and maintain structure."
-        )
+        self.default_prompt = JiraPromptLibrary.get_prompt("default")
+        self.comment_prompt = JiraPromptLibrary.get_prompt("comment")
 
     def run(self):
         import argparse
@@ -37,59 +34,98 @@ class JiraCLI:
         self._dispatch_command(args)
 
     def _register_subcommands(self, subparsers):
-        def add(*args, **kwargs):
-            return subparsers.add_parser(*args, **kwargs)
+        def add(name, help_text, aliases=None):
+            return subparsers.add_parser(name, help=help_text, aliases=aliases or [])
 
-        create = add("create", help="Create a new issue")
+        create = add("create", "Create a new issue")
         create.add_argument("type")
         create.add_argument("summary")
         create.add_argument("--edit", action="store_true")
         create.add_argument("--dry-run", action="store_true")
 
-        list_issues = add("list-issues", help="List assigned issues")
+        list_issues = add("list", "List assigned issues", aliases=["ls"])
         list_issues.add_argument("--project")
         list_issues.add_argument("--component")
         list_issues.add_argument("--user")
 
-        change_type = add("change-type", help="Change issue type")
+        change_type = add("change", "Change issue type")
         change_type.add_argument("issue_key")
         change_type.add_argument("new_type")
 
-        unassign = add("unassign", help="Unassign a user from an issue")
-        unassign.add_argument("issue_key")
-
-        migrate = add("migrate-to", help="Migrate issue to a new type")
-        migrate.add_argument("new_type")
+        migrate = add("migrate", "Migrate issue to a new type")
         migrate.add_argument("issue_key")
+        migrate.add_argument("new_type")
 
-        edit = add("edit-issue", help="Edit an issue's description")
+        edit = add("edit", "Edit an issue's description")
         edit.add_argument("issue_key")
         edit.add_argument("--no-ai", action="store_true")
 
-        priority = add("set-priority", help="Set issue priority")
-        priority.add_argument("issue_key")
-        priority.add_argument("priority")
+        set_priority = add("set-priority", "Set issue priority", aliases=["priority"])
+        set_priority.add_argument("issue_key")
+        set_priority.add_argument("priority")
 
-        sprint = add("set-sprint", help="Set sprint by ID")
-        sprint.add_argument("issue_key")
-        sprint.add_argument("sprint_id")
+        set_status = add("set-status", "Set issue status", aliases=["status"])
+        set_status.add_argument("issue_key")
+        set_status.add_argument("status")
 
-        remove = add("remove-sprint", help="Remove from sprint")
-        remove.add_argument("issue_key")
-
-        add_sprint = add("add-sprint", help="Add to sprint by name")
+        add_sprint = add(
+            "add-sprint", "Add issue to sprint by name", aliases=["sprint-add"]
+        )
         add_sprint.add_argument("issue_key")
         add_sprint.add_argument("sprint_name")
 
-        status = add("set-status", help="Set issue status")
-        status.add_argument("issue_key")
-        status.add_argument("status")
+        remove_sprint = add(
+            "remove-sprint", "Remove issue from its sprint", aliases=["sprint-remove"]
+        )
+        remove_sprint.add_argument("issue_key")
+
+        unassign = add("unassign", "Unassign a user from an issue")
+        unassign.add_argument("issue_key")
+
+        comment = add("add-comment", "Add a comment to an issue")
+        comment.add_argument("issue_key")
+        comment.add_argument(
+            "--text", help="Comment text (optional, otherwise opens $EDITOR)"
+        )
+
+        vote = add("vote-story-points", "Vote on story points")
+        vote.add_argument("issue_key")
+        vote.add_argument("points", help="Story point estimate (integer)")
 
     def _dispatch_command(self, args):
         try:
             getattr(self, args.command.replace("-", "_"))(args)
         except Exception as e:
             print(f"❌ Command failed: {e}")
+
+    def add_comment(self, args):
+        if args.text:
+            comment = args.text
+        else:
+            with tempfile.NamedTemporaryFile(
+                mode="w+", suffix=".md", delete=False
+            ) as tmp:
+                tmp.write("# Enter comment below\n")
+                tmp.flush()
+                subprocess.call([os.environ.get("EDITOR", "vim"), tmp.name])
+                tmp.seek(0)
+                comment = tmp.read()
+
+        if not comment.strip():
+            print("⚠️ No comment provided. Skipping.")
+            return
+
+        try:
+            cleaned = self.ai_provider.improve_text(self.default_prompt, comment)
+        except Exception as e:
+            print(f"⚠️ AI cleanup failed. Using raw comment. Error: {e}")
+            cleaned = comment
+
+        try:
+            self.jira.add_comment(args.issue_key, cleaned)
+            print(f"✅ Comment added to {args.issue_key}")
+        except Exception as e:
+            print(f"❌ Failed to add comment: {e}")
 
     def create(self, args):
         try:
@@ -145,7 +181,7 @@ class JiraCLI:
         except Exception as e:
             print(f"❌ Failed to create issue: {e}")
 
-    def list_issues(self, args):
+    def list(self, args):
         try:
             issues = self.jira.list_issues(args.project, args.component, args.user)
             if not issues:
@@ -206,7 +242,7 @@ class JiraCLI:
         except Exception as e:
             print(f"❌ Error: {e}")
 
-    def migrate_to(self, args):
+    def migrate(self, args):
         try:
             new_key = self.jira.migrate_issue(args.issue_key, args.new_type)
             print(
@@ -266,14 +302,6 @@ class JiraCLI:
         except Exception as e:
             print(f"❌ Failed to set priority: {e}")
 
-    def set_sprint(self, args):
-        try:
-            sid = int(args.sprint_id) if args.sprint_id.isdigit() else None
-            self.jira.set_sprint(args.issue_key, sid)
-            print(f"✅ Sprint updated for {args.issue_key}")
-        except Exception as e:
-            print(f"❌ Failed to set sprint: {e}")
-
     def remove_sprint(self, args):
         try:
             self.jira.remove_from_sprint(args.issue_key)
@@ -294,6 +322,19 @@ class JiraCLI:
             print(f"✅ Status set to '{args.status}'")
         except Exception as e:
             print(f"❌ Failed to update status: {e}")
+
+    def vote_story_points(self, args):
+        try:
+            points = int(args.points)
+        except ValueError:
+            print("❌ Points must be an integer.")
+            return
+
+        try:
+            self.jira.vote_story_points(args.issue_key, points)
+            print(f"✅ Voted {points} points on {args.issue_key}")
+        except Exception as e:
+            print(f"❌ Failed to vote on story points: {e}")
 
 
 if __name__ == "__main__":

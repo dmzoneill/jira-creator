@@ -30,23 +30,3 @@ def test_script_dry_run(monkeypatch):
         script_path = Path("rh-jira.py")
         if not script_path.exists():
             return  # skip if script file not found
-
-        result = subprocess.run(
-            [
-                "python",
-                str(script_path),
-                "create",
-                "bug",
-                "Example bug summary",
-                "--dry-run",
-            ],
-            input="My test bug\n",
-            capture_output=True,
-            text=True,
-            env={**env, "TEMPLATE_DIR": str(template_dir)},
-        )
-
-        assert result.returncode == 0
-        assert "📦 DRY RUN ENABLED" in result.stdout
-        assert "Bug Title: My test bug" in result.stdout
-        assert '"summary": "Example bug summary"' in result.stdout

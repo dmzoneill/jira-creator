@@ -63,7 +63,11 @@ jobs:
         run: pipenv install --dev
 
       - name: Run tests with coverage
-        run: pipenv run coverage run -m pytest
+        run: | 
+          pipenv run coverage erase
+          PYTHONPATH=. COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest tests
+          pipenv run coverage combine
+          pipenv run coverage report -m --fail-under=99
 
       - name: Report coverage
         run: pipenv run coverage report -m --fail-under=90

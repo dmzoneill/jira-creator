@@ -26,7 +26,6 @@ export AFFECTS_VERSION="aa-latest"
 export COMPONENT_NAME="analytics-hcc-service"
 export PRIORITY="Normal"
 export JIRA_BOARD_ID=21125
-
 # Enable autocomplete
 eval "$(register-python-argcomplete rh-issue)"
 EOF

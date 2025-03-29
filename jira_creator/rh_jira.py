@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-import os
-import sys
 import json
-import tempfile
+import os
 import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
-from providers import get_ai_provider
-from templates.template_loader import TemplateLoader
 from jira.client import JiraClient
 from jira.jira_prompts import JiraPromptLibrary, JiraIssueType
+from providers import get_ai_provider
+from templates.template_loader import TemplateLoader
 
 
 class JiraCLI:
@@ -25,8 +25,8 @@ class JiraCLI:
         self.comment_prompt = JiraPromptLibrary.get_prompt("comment")
 
     def run(self):
-        import argparse
         import argcomplete
+        import argparse
 
         prog_name = os.environ.get("CLI_NAME", os.path.basename(sys.argv[0]))
         parser = argparse.ArgumentParser(description="JIRA Issue Tool", prog=prog_name)

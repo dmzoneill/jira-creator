@@ -97,6 +97,11 @@ class JiraCLI:
         vote.add_argument("issue_key")
         vote.add_argument("points", help="Story point estimate (integer)")
 
+        set_points = add("set-story-points", "Set story points directly")
+        set_points.add_argument("issue_key")
+        set_points.add_argument("points", help="Story point estimate (integer)")
+
+
     def _dispatch_command(self, args):
         try:
             getattr(self, args.command.replace("-", "_"))(args)
@@ -340,6 +345,19 @@ class JiraCLI:
             print(f"✅ Voted {points} points on {args.issue_key}")
         except Exception as e:
             print(f"❌ Failed to vote on story points: {e}")
+
+    def set_story_points(self, args):
+        try:
+            points = int(args.points)
+        except ValueError:
+            print("❌ Points must be an integer.")
+            return
+
+        try:
+            self.jira.set_story_points(args.issue_key, points)
+            print(f"✅ Set {points} story points on {args.issue_key}")
+        except Exception as e:
+            print(f"❌ Failed to set story points: {e}")
 
 
 if __name__ == "__main__":

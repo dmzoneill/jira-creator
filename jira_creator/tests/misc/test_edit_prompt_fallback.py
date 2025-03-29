@@ -15,18 +15,6 @@ def test_edit_prompt_fallback(monkeypatch):
         def __init__(self):
             self.name = "temp.md"
 
-        def write(self, content):
-            pass
-
-        def flush(self):
-            pass
-
-        def seek(self, n):
-            pass
-
-        def read(self):
-            return "edited"
-
     monkeypatch.setattr("tempfile.NamedTemporaryFile", lambda *a, **kw: DummyTempFile())
 
     class Args:

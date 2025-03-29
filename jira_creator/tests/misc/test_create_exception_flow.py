@@ -12,11 +12,7 @@ def test_create_exception(monkeypatch, capsys):
     )
 
     class DummyTemplate:
-        def get_fields(self):
-            return ["f"]
-
-        def render_description(self, i):
-            return "desc"
+        pass
 
     monkeypatch.setattr(
         "templates.template_loader.TemplateLoader", lambda *a, **k: DummyTemplate()

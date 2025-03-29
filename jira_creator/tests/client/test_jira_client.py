@@ -1,4 +1,3 @@
-import os
 import pytest
 from jira.client import JiraClient
 

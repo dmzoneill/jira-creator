@@ -12,7 +12,7 @@ Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardi
 
 ## ⚡ Quick Start (Under 30 Seconds)
 
-### 1. Create your config file and enable autocomplete:
+### 1. Create your config file and enable autocomplete
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -26,6 +26,7 @@ export AFFECTS_VERSION="aa-latest"
 export COMPONENT_NAME="analytics-hcc-service"
 export PRIORITY="Normal"
 export JIRA_BOARD_ID=21125
+
 # Enable autocomplete
 eval "$(register-python-argcomplete rh-issue)"
 EOF
@@ -35,7 +36,7 @@ source ~/.bashrc.d/jira.sh
 
 ---
 
-### 2. Link the CLI wrapper:
+### 2. Link the CLI wrapper
 
 ```bash
 chmod +x rh-issue-wrapper.sh
@@ -44,7 +45,7 @@ sudo ln -s $(pwd)/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 
 ---
 
-### 3. Run it:
+### 3. Run it
 
 ```bash
 rh-issue create story "Improve onboarding experience"
@@ -195,7 +196,7 @@ make format  # auto-fix formatting
 
 ## 📁 Project Structure
 
-```
+```bash
 jira-creator/
 ├── rh-jira.py
 ├── rh-issue-wrapper.sh

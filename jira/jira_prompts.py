@@ -18,12 +18,26 @@ BASE_PROMPT = (
     "Follow this structure:\n\n"
 )
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
+TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "../templates")
 
 
 class JiraPromptLibrary:
     @staticmethod
     def get_prompt(issue_type: JiraIssueType) -> str:
+        if issue_type == "default":
+            return (
+                "As a professional Principal Software Engineer, you write acute, well-defined Jira issues "
+                "with a strong focus on clear descriptions, definitions of done, acceptance criteria, and supporting details. "
+                "If standard Jira sections are missing, add them. Improve clarity, fix grammar and spelling, and maintain structure."
+            )
+
+        if issue_type == "comment":
+            return (
+                "As a professional Principal Software Engineer, you write great comments on jira issues. "
+                "As you are just writing comments, whilst being clear you dont need to heavily structure the messages. "
+                "Improve clarity, fix grammar and spelling, and maintain structure."
+            )
+
         template_path = os.path.join(TEMPLATE_DIR, f"{issue_type.value}.tmpl")
         if not os.path.exists(template_path):
             raise FileNotFoundError(f"Template not found: {template_path}")

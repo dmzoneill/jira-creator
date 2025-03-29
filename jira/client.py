@@ -147,9 +147,18 @@ class JiraClient:
 
         return new_key
 
+    def add_comment(self, issue_key: str, comment: str) -> None:
+        path = f"/rest/api/2/issue/{issue_key}/comment"
+        payload = {"body": comment}
+        self._request("POST", path, json=payload)
+
     def get_current_user(self) -> str:
         user = self._request("GET", "/rest/api/2/myself")
         return user.get("name") or user.get("accountId")
+
+    def get_issue_type(self, issue_key: str) -> str:
+        issue = self._request("GET", f"/rest/api/2/issue/{issue_key}")
+        return issue["fields"]["issuetype"]["name"]
 
     def unassign_issue(self, issue_key: str) -> bool:
         try:
@@ -218,17 +227,6 @@ class JiraClient:
         except Exception as e:
             print(f"❌ Failed to remove from sprint: {e}")
 
-    def add_to_sprint(self, issue_key: str, sprint_id: int) -> None:
-        try:
-            self._request(
-                "POST",
-                f"/rest/agile/1.0/sprint/{sprint_id}/issue",
-                json={"issues": [issue_key]},
-            )
-            print(f"✅ Added {issue_key} to sprint ID {sprint_id}")
-        except Exception as e:
-            raise Exception(f"❌ Failed to add issue to sprint: {e}")
-
     def add_to_sprint_by_name(self, issue_key: str, sprint_name: str) -> None:
         if not self.board_id:
             raise Exception("❌ JIRA_BOARD_ID not set in environment")
@@ -272,3 +270,10 @@ class JiraClient:
             json={"transition": {"id": transition_id}},
         )
         print(f"✅ Changed status of {issue_key} to '{target_status}'")
+
+    def vote_story_points(self, issue_key: str, points: int) -> None:
+        field = os.getenv("JIRA_STORY_POINT_FIELD", "customfield_10016")
+        payload = {"fields": {field: points}}
+        self._request(
+            "PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True
+        )

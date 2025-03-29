@@ -1,0 +1,12 @@
+[run]
+branch = False
+source = .
+parallel = True
+concurrency = thread
+
+[report]
+show_missing = True
+include = *
+omit =
+    */.venv/*
+    */virtualenv/*

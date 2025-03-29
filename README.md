@@ -48,7 +48,7 @@ sudo ln -s $(pwd)/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ### 3. Run it:
 
 ```bash
-rh-issue story "Improve onboarding experience"
+rh-issue create story "Improve onboarding experience"
 ```
 
 ---
@@ -69,20 +69,20 @@ Use `--edit` to use your `$EDITOR`, and `--dry-run` to print the payload without
 ### 🔁 Change Issue Type
 
 ```bash
-rh-issue change-type AAP-12345 story
+rh-issue change AAP-12345 story
 ```
 
 ### 🔁 Migrate Issue
 
 ```bash
-rh-issue migrate-to story AAP-54321
+rh-issue migrate AAP-54321 story
 ```
 
 ### ✏️ Edit Description
 
 ```bash
-rh-issue edit-issue AAP-98765
-rh-issue edit-issue AAP-98765 --no-ai
+rh-issue edit AAP-98765
+rh-issue edit AAP-98765 --no-ai
 ```
 
 ### 🧍 Unassign Issue
@@ -94,8 +94,8 @@ rh-issue unassign AAP-12345
 ### 📋 List Issues
 
 ```bash
-rh-issue list-issues
-rh-issue list-issues --project AAP --component api --user jdoe
+rh-issue list
+rh-issue list --project AAP --component api --user jdoe
 ```
 
 ### 🏷️ Set Priority
@@ -211,4 +211,4 @@ jira-creator/
 
 ## 📜 License
 
-This project is licensed under the [MIT License](./LICENSE).
+This project is licensed under the [Apache License](./LICENSE).

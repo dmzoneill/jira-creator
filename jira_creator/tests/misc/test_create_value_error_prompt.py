@@ -16,7 +16,9 @@ def test_create_value_error_prompt(monkeypatch):
             return "Rendered description"
 
     monkeypatch.setattr("builtins.input", lambda x: "value")
-    monkeypatch.setattr("jira_creator.rh_jira.TemplateLoader", lambda *a, **k: DummyTemplate())
+    monkeypatch.setattr(
+        "jira_creator.rh_jira.TemplateLoader", lambda *a, **k: DummyTemplate()
+    )
 
     # simulate unknown issue type causing ValueError
     monkeypatch.setattr(

@@ -14,7 +14,11 @@ from jira.jira_prompts import JiraPromptLibrary, JiraIssueType
 
 class JiraCLI:
     def __init__(self):
-        self.template_dir = Path(os.getenv("TEMPLATE_DIR", os.path.join(os.path.dirname(__file__) + "/templates")))
+        self.template_dir = Path(
+            os.getenv(
+                "TEMPLATE_DIR", os.path.join(os.path.dirname(__file__) + "/templates")
+            )
+        )
         self.jira = JiraClient()
         self.ai_provider = get_ai_provider(os.getenv("AI_PROVIDER", "openai"))
         self.default_prompt = JiraPromptLibrary.get_prompt("default")

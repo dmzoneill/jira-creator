@@ -101,7 +101,6 @@ class JiraCLI:
         set_points.add_argument("issue_key")
         set_points.add_argument("points", help="Story point estimate (integer)")
 
-
     def _dispatch_command(self, args):
         try:
             getattr(self, args.command.replace("-", "_"))(args)

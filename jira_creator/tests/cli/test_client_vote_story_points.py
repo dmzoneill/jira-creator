@@ -2,9 +2,11 @@ import pytest
 from unittest.mock import patch, MagicMock
 from jira.client import JiraClient
 
+
 @pytest.fixture
 def client():
     return JiraClient()
+
 
 @patch("jira.client.requests.request")
 def test_vote_story_points_success(mock_request, client):
@@ -24,6 +26,7 @@ def test_vote_story_points_success(mock_request, client):
 
     client.vote_story_points("ISSUE-123", 3)
     assert mock_request.call_count == 2
+
 
 @patch("jira.client.requests.request")
 def test_vote_story_points_failure(mock_request, client, capsys):

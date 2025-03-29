@@ -297,4 +297,3 @@ class JiraClient:
         self._request(
             "PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True
         )
-

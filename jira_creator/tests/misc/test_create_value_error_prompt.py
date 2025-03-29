@@ -1,5 +1,5 @@
-from jira_creator.rh_jira import JiraCLI
 from jira import jira_prompts
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_create_value_error_prompt(monkeypatch):

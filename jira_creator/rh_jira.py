@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -223,7 +224,13 @@ class JiraCLI:
 
     def list(self, args):
         try:
-            issues = self.jira.list_issues(args.project, args.component, args.user)
+            # Pass additional filtering arguments to list_issues
+            issues = self.jira.list_issues(
+                project=args.project,
+                component=args.component,
+                assignee=args.user,
+            )
+
             if not issues:
                 print("No issues found.")
                 return
@@ -231,15 +238,42 @@ class JiraCLI:
             rows = []
             for issue in issues:
                 f = issue["fields"]
+
+                # Extract sprint information from customfield_12310940
                 sprints = f.get("customfield_12310940") or []
+
+                # Use regex to extract sprint name where the state is ACTIVE
                 sprint = next(
                     (
-                        s.split("=")[1]
+                        re.search(r"name=([^,]+)", s).group(1)
                         for s in sprints
                         if "state=ACTIVE" in s and "name=" in s
                     ),
                     "—",
                 )
+
+                # Filter based on the provided CLI arguments like status, summary, blocked, etc.
+                if (
+                    args.status
+                    and args.status.lower()
+                    not in f.get("status", {}).get("name", "").lower()
+                ):
+                    continue
+                if (
+                    args.summary
+                    and args.summary.lower() not in f.get("summary", "").lower()
+                ):
+                    continue
+                if args.blocked and "True" != f.get("customfield_12316543", {}).get(
+                    "value"
+                ):
+                    continue
+                if args.unblocked and "True" == f.get("customfield_12316543", {}).get(
+                    "value"
+                ):
+                    continue
+
+                # Append the issue data to rows
                 rows.append(
                     (
                         issue["key"],
@@ -252,7 +286,10 @@ class JiraCLI:
                     )
                 )
 
+            # Sort the issues by sprint name and status
             rows.sort(key=lambda r: (r[5], r[1]))
+
+            # Define headers and calculate column widths
             headers = [
                 "Key",
                 "Status",
@@ -265,11 +302,16 @@ class JiraCLI:
             widths = [
                 max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
             ]
+
+            # Format and print the headers
             header_fmt = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
             print(header_fmt)
             print("-" * len(header_fmt))
+
+            # Print rows
             for r in rows:
                 print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
+
         except Exception as e:
             print(f"❌ Failed to list issues: {e}")
 
@@ -403,31 +445,47 @@ class JiraCLI:
         except Exception as e:
             print(f"❌ Failed to unblock {args.issue_key}: {e}")
 
+    def validate_issue(self, fields):
+        """
+        This function validates the fields of a Jira issue and returns a list of problems.
+        """
+        problems = []
+
+        # Check for missing summary
+        if not fields.get("summary"):
+            problems.append("❌ Missing summary")
+        # Check for missing description
+        if not fields.get("description"):
+            problems.append("❌ Missing description")
+        # Check for missing priority
+        if not fields.get("priority"):
+            problems.append("❌ Priority not set")
+        # Skip story points check for "New", "Refinement", "Bug", or "Epic"
+        issue_type = fields.get("issuetype", {}).get("name")
+        if issue_type not in ["Bug", "Epic"] and fields.get("status", {}).get(
+            "name"
+        ) not in ["New", "Refinement"]:
+            if fields.get("customfield_12310243") in [None, ""]:
+                problems.append("❌ Story points not assigned")
+        # Check for blocked issues missing a reason
+        if fields.get("customfield_12316543", {}).get("value") == "True":
+            reason = fields.get("customfield_12316544")
+            if not reason:
+                problems.append("❌ Issue is blocked but has no blocked reason")
+        # Check for issues marked as "In Progress" but unassigned
+        if fields.get("status", {}).get("name") == "In Progress" and not fields.get(
+            "assignee"
+        ):
+            problems.append("❌ Issue is In Progress but unassigned")
+
+        return problems
+
     def lint(self, args):
         try:
             issue = self.jira._request("GET", f"/rest/api/2/issue/{args.issue_key}")
             fields = issue["fields"]
 
-            problems = []
-
-            if not fields.get("summary"):
-                problems.append("❌ Missing summary")
-            if not fields.get("description"):
-                problems.append("❌ Missing description")
-            if not fields.get("priority"):
-                problems.append("❌ Priority not set")
-            if fields.get("customfield_12310243") in [None, ""]:
-                problems.append("❌ Story points not assigned")
-
-            if fields.get("customfield_12316543", {}).get("value") == "True":
-                reason = fields.get("customfield_12316544")
-                if not reason:
-                    problems.append("❌ Issue is blocked but has no blocked reason")
-
-            if fields.get("status", {}).get("name") == "In Progress" and not fields.get(
-                "assignee"
-            ):
-                problems.append("❌ Issue is In Progress but unassigned")
+            problems = self.validate_issue(fields)  # Use the shared validation function
 
             if problems:
                 print(f"⚠️ Lint issues found in {args.issue_key}:")
@@ -453,24 +511,10 @@ class JiraCLI:
                 key = issue["key"]
                 full_issue = self.jira._request("GET", f"/rest/api/2/issue/{key}")
                 fields = full_issue["fields"]
-                problems = []
 
-                if not fields.get("summary"):
-                    problems.append("❌ Missing summary")
-                if not fields.get("description"):
-                    problems.append("❌ Missing description")
-                if not fields.get("priority"):
-                    problems.append("❌ Priority not set")
-                if fields.get("customfield_12310243") in [None, ""]:
-                    problems.append("❌ Story points not assigned")
-                if fields.get("customfield_12316543", {}).get("value") == "True":
-                    reason = fields.get("customfield_12316544")
-                    if not reason:
-                        problems.append("❌ Issue is blocked but has no blocked reason")
-                if fields.get("status", {}).get(
-                    "name"
-                ) == "In Progress" and not fields.get("assignee"):
-                    problems.append("❌ Issue is In Progress but unassigned")
+                problems = self.validate_issue(
+                    fields
+                )  # Use the shared validation function
 
                 if problems:
                     failures[key] = problems
@@ -534,6 +578,80 @@ class JiraCLI:
 
         except Exception as e:
             print(f"❌ Failed to list blocked issues: {e}")
+
+    def search(self, args):
+        try:
+            # Get the JQL query from the arguments
+            jql = args.jql
+            # Use the search_issues method to fetch the issues based on the JQL query
+            issues = self.jira.search_issues(jql)
+
+            # If issues is None or empty, handle it
+            if issues is None:
+                print("❌ No issues found. The search returned None.")
+                return
+            if not issues:
+                print("No issues found for the given JQL.")
+                return
+
+            rows = []
+            for issue in issues:
+                f = issue["fields"]
+
+                # Extract sprint information from customfield_12310940
+                sprints = f.get("customfield_12310940") or []
+
+                # Use regex to extract sprint name where the state is ACTIVE
+                sprint = next(
+                    (
+                        re.search(r"name=([^,]+)", s).group(1)
+                        for s in sprints
+                        if "state=ACTIVE" in s and "name=" in s
+                    ),
+                    "—",
+                )
+
+                # Append the issue data to rows
+                rows.append(
+                    (
+                        issue["key"],
+                        f["status"]["name"],
+                        f["assignee"]["displayName"] if f["assignee"] else "Unassigned",
+                        f.get("priority", {}).get("name", "—"),
+                        str(f.get("customfield_12310243", "—")),
+                        sprint,
+                        f["summary"],
+                    )
+                )
+
+            # Sort the issues by sprint name and status
+            rows.sort(key=lambda r: (r[5], r[1]))
+
+            # Define headers and calculate column widths
+            headers = [
+                "Key",
+                "Status",
+                "Assignee",
+                "Priority",
+                "Points",
+                "Sprint",
+                "Summary",
+            ]
+            widths = [
+                max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
+            ]
+
+            # Format and print the headers
+            header_fmt = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
+            print(header_fmt)
+            print("-" * len(header_fmt))
+
+            # Print rows
+            for r in rows:
+                print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
+
+        except Exception as e:
+            print(f"❌ Failed to search issues: {e}")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 import os
+import re
 import requests
 
 
@@ -179,6 +180,11 @@ class JiraClient:
         project: Optional[str] = None,
         component: Optional[str] = None,
         assignee: Optional[str] = None,
+        status: Optional[str] = None,
+        summary: Optional[str] = None,
+        show_reason: Optional[bool] = False,
+        blocked: Optional[bool] = False,
+        unblocked: Optional[bool] = False,
     ) -> List[Dict[str, Any]]:
         jql_parts = []
         if project := project or self.project_key:
@@ -187,6 +193,18 @@ class JiraClient:
             jql_parts.append(f'component="{component}"')
         if username := assignee or self.get_current_user():
             jql_parts.append(f'assignee="{username}"')
+
+        if status:
+            jql_parts.append(f'status="{status}"')
+        if summary:
+            jql_parts.append(f'summary~"{summary}"')
+        if blocked:
+            jql_parts.append(
+                'customfield_12316543="True"'
+            )  # Assuming this field stores blocking status
+        if unblocked:
+            jql_parts.append('customfield_12316543!="True"')
+
         jql = (
             " AND ".join(jql_parts)
             + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
@@ -194,12 +212,48 @@ class JiraClient:
 
         params = {
             "jql": jql,
-            "fields": "summary,status,assignee,priority,customfield_12310243,customfield_12310940",
+            "fields": "summary,status,assignee,priority,customfield_12310243,customfield_12310940,customfield_12316543",  # Additional fields
             "maxResults": 200,
         }
-        return self._request("GET", "/rest/api/2/search", params=params).get(
+        issues = self._request("GET", "/rest/api/2/search", params=params).get(
             "issues", []
         )
+
+        # Regex patterns to independently capture 'name' and 'state'
+        name_regex = r"name\s*=\s*([^,]+)"
+        state_regex = r"state\s*=\s*([A-Za-z]+)"
+
+        for issue in issues:
+            # Extract the sprints from customfield_12310940 (could be empty or None)
+            sprints = issue.get("fields", {}).get("customfield_12310940", [])
+
+            # Ensure 'sprints' is always a list (in case it's None)
+            if sprints is None:
+                sprints = []
+
+            active_sprint = None
+            for sprint_str in sprints:
+                # Apply the name regex to extract sprint name
+                name_match = re.search(name_regex, sprint_str)
+                sprint_name = None
+                if name_match:
+                    sprint_name = name_match.group(1)
+
+                # Apply the state regex to extract sprint state
+                state_match = re.search(state_regex, sprint_str)
+                sprint_state = None
+                if state_match:
+                    sprint_state = state_match.group(1)  # Extract sprint state
+
+                # If the sprint state is ACTIVE, assign the sprint name
+                if sprint_state == "ACTIVE" and sprint_name:
+                    active_sprint = sprint_name
+                    break
+
+            # Assign the parsed sprint name or 'No active sprint' if not found
+            issue["sprint"] = active_sprint if active_sprint else "No active sprint"
+
+        return issues
 
     def set_priority(self, issue_key: str, priority: str) -> None:
         self._request(
@@ -357,3 +411,57 @@ class JiraClient:
                     }
                 )
         return blocked_issues
+
+    def search_issues(self, jql: str) -> List[Dict[str, Any]]:
+        params = {
+            "jql": jql,
+            "fields": "summary,status,assignee,priority,customfield_12310243,customfield_12310940,customfield_12316543",
+            "maxResults": 200,
+        }
+        issues = self._request("GET", "/rest/api/2/search", params=params).get(
+            "issues", []
+        )
+
+        # Regex patterns to independently capture 'name' and 'state'
+        name_regex = r"name\s*=\s*([^,]+)"
+        state_regex = r"state\s*=\s*([A-Za-z]+)"
+
+        for issue in issues:
+            sprints = issue.get("fields", {}).get("customfield_12310940", [])
+
+            # If no sprints data, mark as 'No active sprint'
+            if not sprints:
+                issue["fields"]["sprint"] = "No active sprint"
+                continue  # Skip further processing if no sprints
+
+            active_sprint = None
+            for sprint_str in sprints:
+                # Debugging: Print raw sprint string
+                print(f"Debug: Parsing sprint_str: {sprint_str}")
+
+                # Apply the name regex to extract sprint name
+                name_match = re.search(name_regex, sprint_str)
+                sprint_name = None
+                if name_match:
+                    sprint_name = name_match.group(1)  # Extract sprint name
+                    print(f"Debug: Matched sprint name: {sprint_name}")
+
+                # Apply the state regex to extract sprint state
+                state_match = re.search(state_regex, sprint_str)
+                sprint_state = None
+                if state_match:
+                    sprint_state = state_match.group(1)  # Extract sprint state
+                    print(f"Debug: Matched sprint state: {sprint_state}")
+
+                # If the sprint state is ACTIVE, assign the sprint name
+                if sprint_state == "ACTIVE" and sprint_name:
+                    active_sprint = sprint_name
+                    print(f"Debug: Active sprint set to: {active_sprint}")
+                    break
+
+            # Assign the parsed sprint name or 'No active sprint' if not found
+            issue["fields"]["sprint"] = (
+                active_sprint if active_sprint else "No active sprint"
+            )
+
+        return issues

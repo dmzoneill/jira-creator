@@ -1,8 +1,9 @@
 from jira.client import JiraClient
+from unittest.mock import MagicMock
 
 
-def test_vote_story_points(monkeypatch):
+def test_vote_story_points():
     client = JiraClient()
-    monkeypatch.setattr(client, "_request", lambda *a, **kw: {"status": "ok"})
-    monkeypatch.setenv("JIRA_STORY_POINT_FIELD", "customfield_99999")
+    client._request = MagicMock(return_value={"status": "ok"})
+
     client.vote_story_points("AAP-100", 3)

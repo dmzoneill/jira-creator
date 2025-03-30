@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 def test_add_sprint(monkeypatch):
     cli = JiraCLI()
-    monkeypatch.setattr(cli.jira, "add_to_sprint_by_name", MagicMock())
+    cli.jira.add_to_sprint_by_name = MagicMock()
 
     class Args:
         issue_key = "AAP-1"
@@ -16,7 +16,7 @@ def test_add_sprint(monkeypatch):
 
 def test_remove_sprint(monkeypatch):
     cli = JiraCLI()
-    monkeypatch.setattr(cli.jira, "remove_from_sprint", MagicMock())
+    cli.jira.remove_from_sprint = MagicMock()
 
     class Args:
         issue_key = "AAP-1"

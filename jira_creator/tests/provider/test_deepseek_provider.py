@@ -1,6 +1,4 @@
-import os
 import pytest
-import requests
 from unittest.mock import patch, MagicMock
 from providers.deepseek_provider import DeepSeekProvider
 

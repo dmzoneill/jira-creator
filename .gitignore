@@ -67,3 +67,10 @@ coverage.xml
 # build
 jira_creator.egg-info/
 dist/
+
+# Super-Linter config files (downloaded via Makefile)
+.eslintrc.json
+.htmlhintrc
+.jscpd.json
+.ruby-lint.yml
+.stylelintrc.json

@@ -1,4 +1,3 @@
-import builtins
 from providers import get_ai_provider
 from providers.noop_provider import NoAIProvider
 

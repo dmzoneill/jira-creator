@@ -1,13 +1,13 @@
 from jira.client import JiraClient
-import requests
+from unittest.mock import patch
 
 
-def test_empty_text_response(monkeypatch):
+def test_empty_text_response():
     class MockResponse:
         status_code = 200
-        text = "  "
+        text = "  "  # Only whitespace
 
-    monkeypatch.setattr(requests, "request", lambda *a, **k: MockResponse())
-    c = JiraClient()
-    result = c._request("GET", "/x")
-    assert result == {}
+    with patch("requests.request", return_value=MockResponse()):
+        client = JiraClient()
+        result = client._request("GET", "/x")
+        assert result == {}

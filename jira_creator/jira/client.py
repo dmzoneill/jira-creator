@@ -48,8 +48,8 @@ class JiraClient:
             method, url, headers=headers, json=json, params=params
         )
 
-        if allow_204 and response.status_code == 204:
-            return {}
+        # if allow_204 and response.status_code == 204:
+        #     return {}
         if response.status_code >= 400:
             raise Exception(f"JIRA API error ({response.status_code}): {response.text}")
         if not response.text.strip():
@@ -298,3 +298,60 @@ class JiraClient:
         self._request(
             "PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True
         )
+
+    def block_issue(self, issue_key: str, reason: str) -> None:
+        blocked_field = os.getenv("JIRA_BLOCKED_FIELD", "customfield_12316543")
+        reason_field = os.getenv("JIRA_BLOCKED_REASON_FIELD", "customfield_12316544")
+
+        payload = {
+            "fields": {
+                blocked_field: {"value": "True"},  # ✅ string, not Python True
+                reason_field: reason,
+            }
+        }
+
+        self._request(
+            "PUT",
+            f"/rest/api/2/issue/{issue_key}",
+            json=payload,
+            allow_204=True,
+        )
+
+    def unblock_issue(self, issue_key: str) -> None:
+        blocked_field = os.getenv("JIRA_BLOCKED_FIELD", "customfield_12316543")
+        reason_field = os.getenv("JIRA_BLOCKED_REASON_FIELD", "customfield_12316544")
+
+        payload = {
+            "fields": {
+                blocked_field: {"value": "False"},
+                reason_field: "",  # Clear reason
+            }
+        }
+
+        self._request(
+            "PUT",
+            f"/rest/api/2/issue/{issue_key}",
+            json=payload,
+            allow_204=True,
+        )
+
+    def blocked(self, project=None, component=None, user=None):
+        issues = self.list_issues(project=project, component=component, user=user)
+
+        blocked_issues = []
+        for issue in issues:
+            fields = issue["fields"]
+            is_blocked = fields.get("customfield_12316543", {}).get("value") == "True"
+            if is_blocked:
+                blocked_issues.append({
+                    "key": issue["key"],
+                    "status": fields["status"]["name"],
+                    "assignee": (
+                        fields["assignee"]["displayName"]
+                        if fields["assignee"]
+                        else "Unassigned"
+                    ),
+                    "reason": fields.get("customfield_12316544", "(no reason)"),
+                    "summary": fields["summary"],
+                })
+        return blocked_issues

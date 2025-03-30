@@ -1,5 +1,4 @@
 from jira_creator.rh_jira import JiraCLI
-import types
 
 
 def test_register_subcommands_does_not_crash():

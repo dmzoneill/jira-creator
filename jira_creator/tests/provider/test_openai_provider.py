@@ -1,4 +1,3 @@
-import json
 import pytest
 import requests
 from unittest.mock import patch, MagicMock
@@ -17,19 +16,18 @@ def test_openai_provider_improve_text(monkeypatch):
         },
     )()
 
-    monkeypatch.setattr(requests, "post", lambda *args, **kwargs: mock_response)
+    requests.post = lambda *args, **kwargs: mock_response
     provider = OpenAIProvider()
     result = provider.improve_text("fix this", "some bad text")
     assert result == "Cleaned up text"
 
 
 def test_openai_provider_raises_without_api_key(monkeypatch):
+    # Mocking the environment variable being None or missing
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-    with pytest.raises(EnvironmentError) as exc_info:
-        OpenAIProvider()
-
-    assert str(exc_info.value) == "OPENAI_API_KEY not set in environment."
+    with pytest.raises(EnvironmentError, match="OPENAI_API_KEY not set in environment."):
+        OpenAIProvider()  # This should raise an EnvironmentError
 
 
 def test_improve_text_raises_on_api_failure(monkeypatch):

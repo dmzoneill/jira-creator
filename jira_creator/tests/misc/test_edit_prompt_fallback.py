@@ -2,21 +2,22 @@ from unittest.mock import MagicMock, patch
 from jira_creator.rh_jira import JiraCLI
 
 
-def test_edit_prompt_fallback(monkeypatch):
+def test_edit_prompt_fallback():
     cli = JiraCLI()
-    monkeypatch.setattr(cli.jira, "get_description", lambda k: "")
-    monkeypatch.setattr(
-        cli.jira, "get_issue_type", lambda k: (_ for _ in ()).throw(Exception("fail"))
-    )
-    monkeypatch.setattr(cli.jira, "update_description", lambda k, v: None)
-    monkeypatch.setattr("subprocess.call", lambda cmd: 0)
 
+    # Mock JiraClient methods
+    cli.jira.get_description = MagicMock(return_value="")
+    cli.jira.get_issue_type = MagicMock(side_effect=Exception("fail"))
+    cli.jira.update_description = MagicMock(return_value=None)
+
+    # Create a dummy temporary file class
     class DummyTempFile:
-        def __init__(self):
-            self.name = "temp.md"
+        pass
 
-    monkeypatch.setattr("tempfile.NamedTemporaryFile", lambda *a, **kw: DummyTempFile())
+    # Patch the tempfile.NamedTemporaryFile method
+    cli.jira._tempfile = DummyTempFile
 
+    # Create Args object and run the edit_issue method
     class Args:
         issue_key = "AAP-1"
         no_ai = True
@@ -24,7 +25,7 @@ def test_edit_prompt_fallback(monkeypatch):
     cli.edit_issue(Args())
 
 
-def test_edit_issue_prompt_fallback(monkeypatch):
+def test_edit_issue_prompt_fallback():
     cli = JiraCLI()
     cli.jira = MagicMock()
     cli.default_prompt = "fallback prompt"
@@ -33,20 +34,20 @@ def test_edit_issue_prompt_fallback(monkeypatch):
     cli.jira.get_description.return_value = "original text"
     cli.jira.get_issue_type.return_value = "unknown"
 
+    # Create Args mock
     args = MagicMock()
     args.issue_key = "JIRA-123"
 
     # Mock editor interaction
-    monkeypatch.setenv("EDITOR", "true")  # prevent actual editor from launching
-    monkeypatch.setattr("tempfile.NamedTemporaryFile", MagicMock())
-    mock_tempfile = cli.edit_issue.__globals__[
-        "tempfile"
-    ].NamedTemporaryFile.return_value.__enter__.return_value
+    mock_tempfile = MagicMock()
     mock_tempfile.name = "/fake/file.md"
     mock_tempfile.read.return_value = "edited content"
+    
+    # Mock the tempfile object to return our mock
+    cli.jira._tempfile = mock_tempfile
 
     # Simulate prompt failure
-    with patch("rh_jira.JiraPromptLibrary.get_prompt", side_effect=Exception("💥")):
+    with patch("jira_creator.rh_jira.JiraPromptLibrary.get_prompt", side_effect=Exception("💥")):
         cli.edit_issue(args)
 
     # Check that fallback prompt was used

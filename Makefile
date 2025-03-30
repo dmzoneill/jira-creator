@@ -5,6 +5,13 @@ package_version := $(shell cat control | grep Version | sed 's/Version: //')
 DEB_FILENAME := $(deb_package_name)_$(package_version).deb
 RPM_FILENAME := $(rpm_package_name)-$(package_version)
 
+SUPER_LINTER_CONFIGS = \
+  .eslintrc.json \
+  .htmlhintrc \
+  .jscpd.json \
+  .ruby-lint.yml \
+  .stylelintrc.json
+
 PYTHON ?= python
 PIPENV ?= pipenv
 SCRIPT := rh-jira.py
@@ -129,6 +136,25 @@ deb: clean
 deb-install: deb	
 	sudo dpkg -i $(DEB_FILENAME)
 
+super-lint: $(SUPER_LINTER_CONFIGS)
+	docker run --rm -e RUN_LOCAL=true -v $$(pwd):/tmp/lint github/super-linter:latest
+
+.eslintrc.json:
+	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.eslintrc.json
+
+.htmlhintrc:
+	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.htmlhintrc
+
+.jscpd.json:
+	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.jscpd.json
+
+.ruby-lint.yml:
+	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.ruby-lint.yml
+
+.stylelintrc.json:
+	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.stylelintrc.json
+
+
 # --- Help ---
 .PHONY: help
 help:
@@ -138,6 +164,8 @@ help:
 	@echo "  make run         - Run the script"
 	@echo "  make dry-run     - Run script in dry-run mode"
 	@echo "  make test        - Run all unit tests"
+	@echo "  make coverage    - Run coverage"
 	@echo "  make lint        - Run format checks"
+	@echo "  make super-lint  - Run super linter for more extensive lint"
 	@echo "  make format      - Auto-format code"
 	@echo "  make clean       - Remove __pycache__ and *.pyc files"

@@ -137,7 +137,7 @@ deb-install: deb
 	sudo dpkg -i $(DEB_FILENAME)
 
 super-lint: $(SUPER_LINTER_CONFIGS)
-	docker run --rm -e RUN_LOCAL=true -v $$(pwd):/tmp/lint github/super-linter:latest
+	docker run --rm -e SUPER_LINTER_LINTER=error -e LINTER_OUTPUT=error -e RUN_LOCAL=true -v $$(pwd):/tmp/lint github/super-linter:latest  --quiet
 
 .eslintrc.json:
 	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.eslintrc.json

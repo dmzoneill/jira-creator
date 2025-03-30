@@ -1,7 +1,8 @@
-import pytest
 import os
-from jira.client import JiraClient
 from unittest.mock import patch
+
+import pytest
+from jira.client import JiraClient
 
 
 def test_build_payload_with_patch_dict():

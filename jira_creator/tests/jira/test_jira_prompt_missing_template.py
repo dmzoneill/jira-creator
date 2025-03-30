@@ -1,6 +1,7 @@
 import os
+
 import pytest
-from jira.jira_prompts import JiraPromptLibrary, JiraIssueType
+from jira.jira_prompts import JiraIssueType, JiraPromptLibrary
 
 
 def test_get_prompt_missing_template(monkeypatch):

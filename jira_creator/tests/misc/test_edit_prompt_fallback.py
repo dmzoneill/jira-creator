@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+
 from jira_creator.rh_jira import JiraCLI
 
 

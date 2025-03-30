@@ -1,6 +1,7 @@
-from jira.client import JiraClient
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+from jira.client import JiraClient
 
 
 def test_status_transition_missing():

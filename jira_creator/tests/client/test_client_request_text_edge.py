@@ -1,5 +1,6 @@
-from jira.client import JiraClient
 from unittest.mock import patch
+
+from jira.client import JiraClient
 
 
 def test_empty_text_response():

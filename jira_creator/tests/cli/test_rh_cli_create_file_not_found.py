@@ -1,6 +1,8 @@
-import pytest
-from jira_creator.rh_jira import JiraCLI
 from unittest.mock import MagicMock, patch
+
+import pytest
+
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_create_file_not_found():
@@ -65,7 +67,7 @@ def test_create_ai_exception_handling(capsys):
         # Mock input function to avoid blocking the test
         with patch("builtins.input", return_value="test_input"):
             # Mock subprocess.call to avoid external editor
-            with patch("subprocess.call") as mock_subprocess:
+            with patch("subprocess.call") as _:
                 # Mock JiraIssueType and get_prompt methods to avoid slow processing
                 with (
                     patch("jira_creator.rh_jira.JiraIssueType") as MockJiraIssueType,
@@ -149,7 +151,7 @@ def test_create(capsys):
                     summary = "Test summary"
 
                 # Mock subprocess.call to avoid opening external editors
-                with patch("subprocess.call") as mock_subprocess:
+                with patch("subprocess.call") as _:
                     cli.create(Args)
 
                 # Capture the printed output

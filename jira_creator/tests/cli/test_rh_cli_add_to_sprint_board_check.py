@@ -1,5 +1,5 @@
-from jira.client import JiraClient
 import pytest
+from jira.client import JiraClient
 
 
 def test_add_to_sprint_board_id_check():

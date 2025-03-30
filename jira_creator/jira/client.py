@@ -1,7 +1,7 @@
-from typing import Any, Dict, List, Optional
-
 import os
 import re
+from typing import Any, Dict, List, Optional
+
 import requests
 
 
@@ -49,8 +49,6 @@ class JiraClient:
             method, url, headers=headers, json=json, params=params
         )
 
-        # if allow_204 and response.status_code == 204:
-        #     return {}
         if response.status_code >= 400:
             raise Exception(f"JIRA API error ({response.status_code}): {response.text}")
         if not response.text.strip():

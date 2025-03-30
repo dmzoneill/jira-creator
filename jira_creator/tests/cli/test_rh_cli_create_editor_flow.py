@@ -1,7 +1,8 @@
-from jira_creator.rh_jira import JiraCLI
-from unittest.mock import MagicMock
-import tempfile
 import os
+import tempfile
+from unittest.mock import MagicMock
+
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_create_editor():

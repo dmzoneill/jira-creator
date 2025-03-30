@@ -13,7 +13,7 @@ SUPER_LINTER_CONFIGS = \
   .stylelintrc.json
 
 PYTHON ?= python
-PIPENV ?= pipenv
+PIPENV ?= PIPENV_VERBOSITY=-1 pipenv
 SCRIPT := rh-jira.py
 
 # --- Setup & Install ---
@@ -65,17 +65,17 @@ lint:
 
 .PHONY: format
 format:
-	pipenv run autopep8 . --recursive --in-place --aggressive --aggressive
-	pipenv run black .
+	$(PIPENV) run autopep8 . --recursive --in-place --aggressive --aggressive
+	$(PIPENV) run black .
 
 # Run tests with coverage, including subprocess tracking
 .PHONY: coverage
 coverage:
-	pipenv run coverage erase
-	PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest jira_creator/tests
-	pipenv run coverage combine
-	pipenv run coverage report -m --fail-under=99
-	pipenv run coverage html
+	$(PIPENV) run coverage erase
+	PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest jira_creator/tests
+	$(PIPENV) run coverage combine
+	$(PIPENV) run coverage report -m --fail-under=99
+	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
 
 

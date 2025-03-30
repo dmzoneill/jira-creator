@@ -14,5 +14,5 @@ def test_set_story_points():
         "PUT",
         "/rest/api/2/issue/AAP-123",
         json={"fields": {"customfield_12310243": 8}},  # Correct field name here
-        allow_204=True
+        allow_204=True,
     )

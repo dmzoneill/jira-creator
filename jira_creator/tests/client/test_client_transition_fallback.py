@@ -21,6 +21,6 @@ def test_migrate_fallback_transition():
     client.jira_url = "http://localhost"
 
     result = client.migrate_issue("AAP-1", "task")
-    
+
     assert result == "AAP-2"
     assert transitions_called

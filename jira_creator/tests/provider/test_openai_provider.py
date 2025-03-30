@@ -26,7 +26,9 @@ def test_openai_provider_raises_without_api_key(monkeypatch):
     # Mocking the environment variable being None or missing
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-    with pytest.raises(EnvironmentError, match="OPENAI_API_KEY not set in environment."):
+    with pytest.raises(
+        EnvironmentError, match="OPENAI_API_KEY not set in environment."
+    ):
         OpenAIProvider()  # This should raise an EnvironmentError
 
 

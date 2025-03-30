@@ -42,12 +42,14 @@ def test_edit_issue_prompt_fallback():
     mock_tempfile = MagicMock()
     mock_tempfile.name = "/fake/file.md"
     mock_tempfile.read.return_value = "edited content"
-    
+
     # Mock the tempfile object to return our mock
     cli.jira._tempfile = mock_tempfile
 
     # Simulate prompt failure
-    with patch("jira_creator.rh_jira.JiraPromptLibrary.get_prompt", side_effect=Exception("💥")):
+    with patch(
+        "jira_creator.rh_jira.JiraPromptLibrary.get_prompt", side_effect=Exception("💥")
+    ):
         cli.edit_issue(args)
 
     # Check that fallback prompt was used

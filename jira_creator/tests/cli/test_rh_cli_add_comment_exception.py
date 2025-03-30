@@ -7,7 +7,7 @@ def test_add_comment_exception(capsys):
 
     # Mock the add_comment method to raise an exception
     cli.jira.add_comment = MagicMock(side_effect=Exception("fail"))
-    
+
     # Mock the improve_text method
     cli.ai_provider.improve_text = MagicMock(return_value="text")
 

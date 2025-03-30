@@ -22,6 +22,5 @@ def test_block_issue_calls_expected_fields(client):
                 "customfield_12316544": "Waiting for dependency",
             }
         },
-        allow_204=True  # Add 'allow_204' to match the actual call
+        allow_204=True,  # Add 'allow_204' to match the actual call
     )
-

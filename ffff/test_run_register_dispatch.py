@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 from jira_creator.rh_jira import JiraCLI
 
+
 def test_run_register_dispatch():
     cli = JiraCLI()
 
@@ -23,7 +24,9 @@ def test_run_register_dispatch():
     # Mock argparse.ArgumentParser to use the DummyParser
     cli._parser = MagicMock()
     cli._parser.add_subparsers = MagicMock(return_value=DummyParser())
-    cli._parser.parse_args = MagicMock(return_value=type("Args", (), {"command": "create"}))
+    cli._parser.parse_args = MagicMock(
+        return_value=type("Args", (), {"command": "create"})
+    )
 
     # Run the CLI
     cli.run()

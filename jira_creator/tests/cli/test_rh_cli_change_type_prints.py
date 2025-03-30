@@ -19,4 +19,3 @@ def test_change_type_prints(capsys):
     out = capsys.readouterr().out
     # Correct the expected output to match the actual printed output
     assert "✅ Changed AAP-123 to 'story'" in out
-

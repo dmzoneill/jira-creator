@@ -14,7 +14,7 @@ def test_request_allow_204():
     with MagicMock() as mock_request:
         mock_request.return_value = mock_response
         client._request = mock_request
-        
+
         result = client._request("GET", "/fake", allow_204=True)
         assert result == {}
 

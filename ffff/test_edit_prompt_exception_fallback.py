@@ -1,13 +1,18 @@
 from jira_creator.rh_jira import JiraCLI
 from unittest.mock import MagicMock
 
+
 def test_edit_prompt_exception_fallback():
     cli = JiraCLI()
 
     # Mock JiraClient methods
     cli.jira.get_description = MagicMock(return_value="desc")
-    cli.jira.get_issue_type = MagicMock(side_effect=Exception("fail"))  # Mock to raise exception
-    cli.jira.update_description = MagicMock(return_value=None)  # Mock update_description
+    cli.jira.get_issue_type = MagicMock(
+        side_effect=Exception("fail")
+    )  # Mock to raise exception
+    cli.jira.update_description = MagicMock(
+        return_value=None
+    )  # Mock update_description
 
     # Mock AI provider
     cli.ai_provider.improve_text = MagicMock(return_value="desc")

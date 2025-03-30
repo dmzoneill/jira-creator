@@ -4,6 +4,7 @@ from pathlib import Path
 import tempfile
 from unittest.mock import MagicMock
 
+
 def test_script_dry_run():
     # Set up environment
     env = os.environ.copy()
@@ -34,12 +35,24 @@ def test_script_dry_run():
 
         # Call the script (you can use the mock here if you want to check the call)
         subprocess.run(
-            ["python3", str(script_path), "--dry-run", "--template", str(template_path)],
+            [
+                "python3",
+                str(script_path),
+                "--dry-run",
+                "--template",
+                str(template_path),
+            ],
             env=env,
         )
 
         # Check if subprocess.run was called as expected
         subprocess.run.assert_called_once_with(
-            ["python3", str(script_path), "--dry-run", "--template", str(template_path)],
+            [
+                "python3",
+                str(script_path),
+                "--dry-run",
+                "--template",
+                str(template_path),
+            ],
             env=env,
         )

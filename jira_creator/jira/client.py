@@ -343,15 +343,17 @@ class JiraClient:
             fields = issue["fields"]
             is_blocked = fields.get("customfield_12316543", {}).get("value") == "True"
             if is_blocked:
-                blocked_issues.append({
-                    "key": issue["key"],
-                    "status": fields["status"]["name"],
-                    "assignee": (
-                        fields["assignee"]["displayName"]
-                        if fields["assignee"]
-                        else "Unassigned"
-                    ),
-                    "reason": fields.get("customfield_12316544", "(no reason)"),
-                    "summary": fields["summary"],
-                })
+                blocked_issues.append(
+                    {
+                        "key": issue["key"],
+                        "status": fields["status"]["name"],
+                        "assignee": (
+                            fields["assignee"]["displayName"]
+                            if fields["assignee"]
+                            else "Unassigned"
+                        ),
+                        "reason": fields.get("customfield_12316544", "(no reason)"),
+                        "summary": fields["summary"],
+                    }
+                )
         return blocked_issues

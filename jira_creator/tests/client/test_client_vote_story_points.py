@@ -1,5 +1,4 @@
 from unittest.mock import patch, MagicMock
-
 import pytest
 from jira.client import JiraClient
 
@@ -26,6 +25,8 @@ def test_vote_story_points_success(mock_request, client):
     mock_request.side_effect = [mock_issue_response, mock_vote_response]
 
     client.vote_story_points("ISSUE-123", 3)
+
+    # Assert the request was made twice
     assert mock_request.call_count == 2
 
 

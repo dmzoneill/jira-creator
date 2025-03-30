@@ -1,7 +1,8 @@
 from jira.client import JiraClient
+from unittest.mock import MagicMock
 
 
-def test_migrate_no_transitions(monkeypatch):
+def test_migrate_no_transitions():
     client = JiraClient()
 
     def mock_request(method, path, **kwargs):
@@ -12,7 +13,8 @@ def test_migrate_no_transitions(monkeypatch):
         elif path.startswith("/rest/api/2/issue/"):
             return {"key": "AAP-2"}
 
-    monkeypatch.setattr(client, "_request", mock_request)
-    monkeypatch.setattr(client, "jira_url", "http://fake")
+    client._request = MagicMock(side_effect=mock_request)
+    client.jira_url = "http://fake"
+
     new_key = client.migrate_issue("AAP-1", "story")
     assert new_key == "AAP-2"

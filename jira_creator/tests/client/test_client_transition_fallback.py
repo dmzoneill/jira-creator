@@ -1,7 +1,8 @@
 from jira.client import JiraClient
+from unittest.mock import MagicMock
 
 
-def test_migrate_fallback_transition(monkeypatch):
+def test_migrate_fallback_transition():
     client = JiraClient()
     transitions_called = []
 
@@ -16,8 +17,10 @@ def test_migrate_fallback_transition(monkeypatch):
         elif method == "POST":
             return {"key": "AAP-2"}
 
-    monkeypatch.setattr(client, "_request", mock_request)
-    monkeypatch.setattr(client, "jira_url", "http://localhost")
+    client._request = MagicMock(side_effect=mock_request)
+    client.jira_url = "http://localhost"
+
     result = client.migrate_issue("AAP-1", "task")
+    
     assert result == "AAP-2"
     assert transitions_called

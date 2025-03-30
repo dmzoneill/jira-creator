@@ -11,7 +11,7 @@ def cli():
 
 def test_set_story_points_success(monkeypatch, cli):
     mock_set_story_points = MagicMock()
-    monkeypatch.setattr(cli, "jira", MagicMock(set_story_points=mock_set_story_points))
+    cli.jira = MagicMock(set_story_points=mock_set_story_points)
 
     class Args:
         issue_key = "AAP-12345"
@@ -25,7 +25,7 @@ def test_set_story_points_failure(monkeypatch, cli, capsys):
     def boom(issue_key, points):
         raise Exception("fake failure")
 
-    monkeypatch.setattr(cli, "jira", MagicMock(set_story_points=boom))
+    cli.jira = MagicMock(set_story_points=boom)
 
     class Args:
         issue_key = "AAP-12345"

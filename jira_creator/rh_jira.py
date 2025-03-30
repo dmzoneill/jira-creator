@@ -52,6 +52,22 @@ class JiraCLI:
         list_issues.add_argument("--project")
         list_issues.add_argument("--component")
         list_issues.add_argument("--user")
+        list_issues.add_argument(
+            "--blocked", action="store_true", help="Show only blocked issues"
+        )
+        list_issues.add_argument(
+            "--unblocked", action="store_true", help="Show only unblocked issues"
+        )
+        list_issues.add_argument("--status", help="Filter by JIRA status")
+        list_issues.add_argument("--summary", help="Filter by summary text")
+        list_issues.add_argument(
+            "--show-reason",
+            action="store_true",
+            help="Show blocked reason field in listing",
+        )
+
+        search = add("search", "Search issues via JQL")
+        search.add_argument("jql", help="JIRA Query Language expression")
 
         change_type = add("change", "Change issue type")
         change_type.add_argument("issue_key")
@@ -96,6 +112,25 @@ class JiraCLI:
         set_points = add("set-story-points", "Set story points directly")
         set_points.add_argument("issue_key")
         set_points.add_argument("points", help="Story point estimate (integer)")
+
+        block = add("block", "Mark an issue as blocked")
+        block.add_argument("issue_key")
+        block.add_argument("reason", help="Reason the issue is blocked")
+
+        unblock = add("unblock", "Mark an issue as unblocked")
+        unblock.add_argument("issue_key")
+
+        blocked = add("blocked", "List blocked issues")
+        blocked.add_argument("--user", help="Filter by assignee (username)")
+        blocked.add_argument("--project", help="Optional project key")
+        blocked.add_argument("--component", help="Optional component")
+
+        lint = add("lint", "Lint an issue for quality")
+        lint.add_argument("issue_key")
+
+        lint_all = add("lint-all", "Lint all issues assigned to you")
+        lint_all.add_argument("--project", help="Project key override")
+        lint_all.add_argument("--component", help="Component filter")
 
     def _dispatch_command(self, args):
         try:
@@ -353,6 +388,152 @@ class JiraCLI:
             print(f"✅ Set {points} story points on {args.issue_key}")
         except Exception as e:
             print(f"❌ Failed to set story points: {e}")
+
+    def block(self, args):
+        try:
+            self.jira.block_issue(args.issue_key, args.reason)
+            print(f"✅ {args.issue_key} marked as blocked: {args.reason}")
+        except Exception as e:
+            print(f"❌ Failed to mark {args.issue_key} as blocked: {e}")
+
+    def unblock(self, args):
+        try:
+            self.jira.unblock_issue(args.issue_key)
+            print(f"✅ {args.issue_key} marked as unblocked")
+        except Exception as e:
+            print(f"❌ Failed to unblock {args.issue_key}: {e}")
+
+    def lint(self, args):
+        try:
+            issue = self.jira._request("GET", f"/rest/api/2/issue/{args.issue_key}")
+            fields = issue["fields"]
+
+            problems = []
+
+            if not fields.get("summary"):
+                problems.append("❌ Missing summary")
+            if not fields.get("description"):
+                problems.append("❌ Missing description")
+            if not fields.get("priority"):
+                problems.append("❌ Priority not set")
+            if fields.get("customfield_12310243") in [None, ""]:
+                problems.append("❌ Story points not assigned")
+
+            if fields.get("customfield_12316543", {}).get("value") == "True":
+                reason = fields.get("customfield_12316544")
+                if not reason:
+                    problems.append("❌ Issue is blocked but has no blocked reason")
+
+            if fields.get("status", {}).get("name") == "In Progress" and not fields.get(
+                "assignee"
+            ):
+                problems.append("❌ Issue is In Progress but unassigned")
+
+            if problems:
+                print(f"⚠️ Lint issues found in {args.issue_key}:")
+                for p in problems:
+                    print(f" - {p}")
+            else:
+                print(f"✅ {args.issue_key} passed all lint checks")
+
+        except Exception as e:
+            print(f"❌ Failed to lint issue {args.issue_key}: {e}")
+
+    def lint_all(self, args):
+        try:
+            issues = self.jira.list_issues(args.project, args.component)
+
+            if not issues:
+                print("✅ No issues assigned to you.")
+                return
+
+            failures = {}
+
+            for issue in issues:
+                key = issue["key"]
+                full_issue = self.jira._request("GET", f"/rest/api/2/issue/{key}")
+                fields = full_issue["fields"]
+                problems = []
+
+                if not fields.get("summary"):
+                    problems.append("❌ Missing summary")
+                if not fields.get("description"):
+                    problems.append("❌ Missing description")
+                if not fields.get("priority"):
+                    problems.append("❌ Priority not set")
+                if fields.get("customfield_12310243") in [None, ""]:
+                    problems.append("❌ Story points not assigned")
+                if fields.get("customfield_12316543", {}).get("value") == "True":
+                    reason = fields.get("customfield_12316544")
+                    if not reason:
+                        problems.append("❌ Issue is blocked but has no blocked reason")
+                if fields.get("status", {}).get(
+                    "name"
+                ) == "In Progress" and not fields.get("assignee"):
+                    problems.append("❌ Issue is In Progress but unassigned")
+
+                if problems:
+                    failures[key] = problems
+
+            if not failures:
+                print("✅ All issues passed lint checks!")
+            else:
+                print("⚠️ Issues with lint problems:")
+                for key, problems in failures.items():
+                    print(f"\n🔍 {key}")
+                    for p in problems:
+                        print(f" - {p}")
+
+        except Exception as e:
+            print(f"❌ Failed to lint issues: {e}")
+
+    def blocked(self, args):
+        try:
+            issues = self.jira.list_issues(
+                project=args.project,
+                component=args.component,
+                user=args.user or self.jira.get_current_user(),
+            )
+
+            if not issues:
+                print("✅ No issues found.")
+                return
+
+            blocked_issues = []
+            for issue in issues:
+                fields = issue["fields"]
+                is_blocked = (
+                    fields.get("customfield_12316543", {}).get("value") == "True"
+                )
+                if is_blocked:
+                    blocked_issues.append(
+                        {
+                            "key": issue["key"],
+                            "status": fields["status"]["name"],
+                            "assignee": (
+                                fields["assignee"]["displayName"]
+                                if fields["assignee"]
+                                else "Unassigned"
+                            ),
+                            "reason": fields.get("customfield_12316544", "(no reason)"),
+                            "summary": fields["summary"],
+                        }
+                    )
+
+            if not blocked_issues:
+                print("✅ No blocked issues found.")
+                return
+
+            print("🔒 Blocked issues:")
+            print("-" * 80)
+            for i in blocked_issues:
+                print(f"{i['key']} [{i['status']}] — {i['assignee']}")
+                print(f"  🔸 Reason: {i['reason']}")
+                print(f"  📄 {i['summary']}")
+                print("-" * 80)
+
+        except Exception as e:
+            print(f"❌ Failed to list blocked issues: {e}")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ from jira_creator.rh_jira import JiraCLI
 
 def test_unassign_success(monkeypatch, capsys):
     cli = JiraCLI()
-    monkeypatch.setattr(cli.jira, "unassign_issue", lambda k: True)
+    cli.jira.unassign_issue = lambda k: True
 
     class Args:
         issue_key = "AAP-42"
@@ -15,7 +15,7 @@ def test_unassign_success(monkeypatch, capsys):
 
 def test_unassign_failure(monkeypatch, capsys):
     cli = JiraCLI()
-    monkeypatch.setattr(cli.jira, "unassign_issue", lambda k: False)
+    cli.jira.unassign_issue = lambda k: False
 
     class Args:
         issue_key = "AAP-42"

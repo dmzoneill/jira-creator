@@ -1,17 +1,17 @@
-import os
 from jira_creator.rh_jira import JiraCLI
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch  # Add patch here
 
 
-def test_create_dry_run(monkeypatch):
+def test_create_dry_run():
     cli = JiraCLI()
-    monkeypatch.setattr("builtins.input", lambda _: "Test field")
-    monkeypatch.setattr(cli, "jira", MagicMock())
-    monkeypatch.setattr(cli, "ai_provider", MagicMock())
-    monkeypatch.setattr(
-        cli.jira, "build_payload", lambda s, d, t: {"fields": {"summary": s}}
-    )
-    monkeypatch.setattr(cli.jira, "create_issue", lambda payload: "AAP-123")
+    cli.jira = MagicMock()
+    cli.ai_provider = MagicMock()
+
+    # Mock method: build_payload returns a payload with summary
+    cli.jira.build_payload = lambda s, d, t: {"fields": {"summary": s}}
+
+    # Mock create_issue to just return a fake issue key
+    cli.jira.create_issue = lambda payload: "AAP-123"
 
     class Args:
         type = "story"
@@ -19,4 +19,7 @@ def test_create_dry_run(monkeypatch):
         edit = False
         dry_run = True
 
-    cli.create(Args())
+    # Mock input to avoid blocking
+    with patch("builtins.input", return_value="Test"):
+        cli.create(Args())
+

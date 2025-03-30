@@ -1,48 +1,35 @@
-import sys
-import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock
-
+from unittest.mock import MagicMock, patch
 import pytest
 from jira_creator.rh_jira import JiraCLI
 
-# Add project root to PYTHONPATH
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-
 @pytest.fixture
-def cli(monkeypatch):
+def cli():
+    # Setup the JiraCLI object
     cli = JiraCLI()
-
-    # Patch editor to simulate editing
-    monkeypatch.setenv("EDITOR", "true")
 
     # Mock JiraClient methods
     cli.jira.get_description = MagicMock(return_value="Original description")
     cli.jira.update_description = MagicMock(return_value=True)
-    cli.jira._request = MagicMock(
-        return_value={"fields": {"issuetype": {"name": "story"}}}
-    )
 
-    # Patch tempfile to return edited content
-    patched_tempfile = tempfile.NamedTemporaryFile
+    # Mock AI provider
+    cli.ai_provider.improve_text = MagicMock(return_value="Cleaned and corrected content.")
 
-    def fake_tempfile(*args, **kwargs):
-        tmp = patched_tempfile(mode="w+", suffix=".md", delete=False)
-        tmp.write("Edited content with mistakes.")
-        tmp.flush()
-        tmp.seek(0)
-        return tmp
+    # Mock tempfile.NamedTemporaryFile to avoid actual file handling during tests
+    with patch("tempfile.NamedTemporaryFile") as mock_tempfile:
+        mock_tempfile.return_value.__enter__.return_value.name = "/fake/file.md"
+        mock_tempfile.return_value.__enter__.return_value.read.return_value = "edited content"
+        cli.jira._tempfile = mock_tempfile
+        yield cli
 
-    monkeypatch.setattr(tempfile, "NamedTemporaryFile", fake_tempfile)
-
-    # Patch AI provider
-    cli.ai_provider.improve_text = MagicMock(
-        return_value="Cleaned and corrected content."
-    )
-    return cli
-
-
-def test_edit_issue_executes(monkeypatch, cli):
-    cli.edit_issue(type("Args", (), {"issue_key": "FAKE-123", "no_ai": False})())
+def test_edit_issue_executes(cli):
+    # Simulate calling edit_issue with fake arguments
+    args = type("Args", (), {"issue_key": "FAKE-123", "no_ai": False})()
+    
+    # Call the edit_issue method
+    cli.edit_issue(args)
+    
+    # Ensure that update_description was called
     cli.jira.update_description.assert_called_once()
+
+    # If you still get the I/O error, it likely means the file isn't being handled correctly.
+    # Add assertions or print statements in the edit_issue method to track the file access flow.

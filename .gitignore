@@ -74,3 +74,4 @@ dist/
 .jscpd.json
 .ruby-lint.yml
 .stylelintrc.json
+.mypy_cache/

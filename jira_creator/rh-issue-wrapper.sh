@@ -10,4 +10,5 @@ PROJECT_ROOT="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
 
 cd "$PROJECT_ROOT" || exit 1
 export CLI_NAME=$(basename "$0")
-exec pipenv run python rh_jira.py "$@"
+PIPENV_VERBOSITY=-1 exec pipenv run python rh_jira.py "$@"
+

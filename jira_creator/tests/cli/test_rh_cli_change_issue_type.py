@@ -9,7 +9,9 @@ def test_change_issue_type():
     # Mock the request method
     mock_request = MagicMock()
     # First call: GET request to fetch issue details
-    mock_request.side_effect = lambda method, path, **kwargs: {"fields": {"issuetype": {"subtask": True}}} if method == "GET" else {}
+    mock_request.side_effect = lambda method, path, **kwargs: (
+        {"fields": {"issuetype": {"subtask": True}}} if method == "GET" else {}
+    )
 
     # Assign the mocked _request method to the client
     client._request = mock_request
@@ -25,10 +27,10 @@ def test_change_issue_type():
         "PUT",
         "/rest/api/2/issue/AAP-1",
         json={
-            'fields': {'issuetype': {'name': 'Story'}},
-            'update': {'parent': [{'remove': {}}]}
+            "fields": {"issuetype": {"name": "Story"}},
+            "update": {"parent": [{"remove": {}}]},
         },
-        allow_204=True
+        allow_204=True,
     )
 
 
@@ -47,6 +49,6 @@ def test_change_type_else_block():
         with patch("builtins.print") as mock_print:
             # Call the change_type method
             cli.change_type(Args())
-            
+
             # Ensure that print was called with the correct "❌ Change failed" message
             mock_print.assert_called_with("❌ Change failed for FAKE-123")

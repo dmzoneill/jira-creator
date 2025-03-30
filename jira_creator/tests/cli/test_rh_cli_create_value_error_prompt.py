@@ -9,26 +9,26 @@ def test_create_value_error_prompt():
 
     # Mock create_issue to return a fake issue key
     cli.jira.create_issue = MagicMock(return_value="AAP-123")
-    
+
     # Mock the improve_text method to return the text unchanged
     cli.ai_provider.improve_text = MagicMock(side_effect=lambda p, t: t)
-    
+
     # Mock TemplateLoader to return a DummyTemplate instance
     class DummyTemplate:
         pass
-    
+
     cli.jira.TemplateLoader = MagicMock(return_value=DummyTemplate())
-    
+
     # Simulate unknown issue type causing ValueError in the JiraIssueType method
     jira_prompts.JiraIssueType = MagicMock(side_effect=ValueError("unknown type"))
-    
+
     # Create a dummy Args class to simulate the input
     class Args:
         type = "unknown"
         summary = "Some summary"
         edit = False
         dry_run = True
-    
+
     # Catch the SystemExit triggered by sys.exit(1) when FileNotFoundError occurs
     with pytest.raises(SystemExit) as excinfo:
         cli.create(Args())

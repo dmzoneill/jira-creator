@@ -8,10 +8,12 @@ def test_add_to_sprint_by_name_success():
     client = JiraClient()
 
     # Mock the _request method to simulate sprint lookup and assignment
-    client._request = MagicMock(side_effect=[
-        {"values": [{"id": 88, "name": "Sprint 42"}]},  # Sprint lookup
-        {},  # Assignment
-    ])
+    client._request = MagicMock(
+        side_effect=[
+            {"values": [{"id": 88, "name": "Sprint 42"}]},  # Sprint lookup
+            {},  # Assignment
+        ]
+    )
 
     # Call the add_to_sprint_by_name method
     client.add_to_sprint_by_name("AAP-1", "Sprint 42")

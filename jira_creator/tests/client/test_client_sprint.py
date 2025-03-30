@@ -12,7 +12,7 @@ def test_set_sprint():
         "PUT",
         "/rest/api/2/issue/AAP-123",
         json={"fields": {"customfield_12310940": ["42"]}},
-        allow_204=True  # Don't forget to account for allow_204 if it's part of the request
+        allow_204=True,  # Don't forget to account for allow_204 if it's part of the request
     )
 
 
@@ -27,4 +27,3 @@ def test_remove_from_sprint():
         "/rest/agile/1.0/backlog/issue",
         json={"issues": ["AAP-123"]},  # Matching the actual call
     )
-

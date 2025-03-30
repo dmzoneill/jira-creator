@@ -14,5 +14,5 @@ def test_set_priority():
         "PUT",
         "/rest/api/2/issue/AAP-123",
         json={"fields": {"priority": {"name": "High"}}},
-        allow_204=True  # Include allow_204 in the expected call
+        allow_204=True,  # Include allow_204 in the expected call
     )

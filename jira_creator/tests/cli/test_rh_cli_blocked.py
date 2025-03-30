@@ -67,7 +67,7 @@ def test_blocked_none_blocked(capsys):
                 "assignee": {"displayName": "Alex"},
                 "customfield_12316543": {"value": "False"},
                 "customfield_12316544": "",
-            }
+            },
         }
     ]
 

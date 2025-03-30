@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from jira_creator.rh_jira import JiraCLI
 
+
 def test_create_exception(capsys):
     cli = JiraCLI()
 
@@ -12,7 +13,7 @@ def test_create_exception(capsys):
     # Mock the TemplateLoader class directly with MagicMock
     class DummyTemplate:
         pass
-    
+
     cli.template_loader = MagicMock(return_value=DummyTemplate())
 
     # Set up the arguments for the CLI command
@@ -24,7 +25,7 @@ def test_create_exception(capsys):
 
     # Mock input() using MagicMock to simulate user input
     mock_input = MagicMock(return_value="mocked input")
-    
+
     # Mock the input directly on the cli object
     cli.input = mock_input
 

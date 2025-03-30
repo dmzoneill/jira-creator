@@ -5,14 +5,17 @@ from unittest.mock import patch
 
 
 def test_build_payload_with_patch_dict():
-    with patch.dict(os.environ, {
-        "JIRA_URL": "https://example.atlassian.net",
-        "PROJECT_KEY": "XYZ",
-        "AFFECTS_VERSION": "v1.2.3",
-        "COMPONENT_NAME": "backend",
-        "PRIORITY": "High",
-        "JPAT": "dummy-token"
-    }):
+    with patch.dict(
+        os.environ,
+        {
+            "JIRA_URL": "https://example.atlassian.net",
+            "PROJECT_KEY": "XYZ",
+            "AFFECTS_VERSION": "v1.2.3",
+            "COMPONENT_NAME": "backend",
+            "PRIORITY": "High",
+            "JPAT": "dummy-token",
+        },
+    ):
         client = JiraClient()
         summary = "Fix login issue"
         description = "Steps to reproduce..."

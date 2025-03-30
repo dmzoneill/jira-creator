@@ -2,10 +2,11 @@ from unittest.mock import MagicMock
 import pytest
 from jira.client import JiraClient
 
+
 def test_build_payload_epic():
     # Create an instance of JiraClient
     client = JiraClient()
-    
+
     # Mock values for the test
     client.epic_field = "customfield_12345"  # Example epic field
     client.project_key = "PROJ"
@@ -15,19 +16,18 @@ def test_build_payload_epic():
 
     # Call build_payload with "epic" as issue_type
     result = client.build_payload(
-        summary="Epic Summary", 
-        description="Epic Description", 
-        issue_type="epic"
+        summary="Epic Summary", description="Epic Description", issue_type="epic"
     )
 
     # Check if the epic field is present in the fields
     assert client.epic_field in result["fields"]
     assert result["fields"][client.epic_field] == "Epic Summary"
 
+
 def test_build_payload_non_epic():
     # Create an instance of JiraClient
     client = JiraClient()
-    
+
     # Mock values for the test
     client.epic_field = "customfield_12345"  # Example epic field
     client.project_key = "PROJ"
@@ -37,9 +37,7 @@ def test_build_payload_non_epic():
 
     # Call build_payload with a non-"epic" issue_type
     result = client.build_payload(
-        summary="Story Summary", 
-        description="Story Description", 
-        issue_type="story"
+        summary="Story Summary", description="Story Description", issue_type="story"
     )
 
     # Check if the epic field is not present in the fields

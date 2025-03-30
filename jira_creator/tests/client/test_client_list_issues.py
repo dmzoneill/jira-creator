@@ -1,5 +1,6 @@
-from jira.client import JiraClient
 from unittest.mock import MagicMock
+
+from jira.client import JiraClient
 
 
 def test_list_issues():

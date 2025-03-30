@@ -1,6 +1,7 @@
+from unittest.mock import patch
+
 import pytest
 from jira.client import JiraClient
-from unittest.mock import patch
 
 
 def test_request_raises_on_400():

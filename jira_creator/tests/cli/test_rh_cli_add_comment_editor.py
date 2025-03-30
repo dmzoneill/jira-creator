@@ -1,7 +1,8 @@
 import os
-from jira_creator.rh_jira import JiraCLI
 import tempfile
 from unittest.mock import MagicMock, patch
+
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_add_comment_editor():

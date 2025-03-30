@@ -1,6 +1,5 @@
 import pytest
 from templates.template_loader import TemplateLoader
-from pathlib import Path
 
 
 def test_template_loader_parses_fields(tmp_path):

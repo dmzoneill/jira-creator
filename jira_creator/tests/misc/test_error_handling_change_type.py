@@ -1,6 +1,7 @@
-from jira.client import JiraClient
 from unittest.mock import MagicMock
+
 import pytest
+from jira.client import JiraClient
 
 
 def test_change_issue_type_fails():

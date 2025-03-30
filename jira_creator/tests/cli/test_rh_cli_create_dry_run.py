@@ -1,5 +1,6 @@
-from jira_creator.rh_jira import JiraCLI
 from unittest.mock import MagicMock, patch  # Add patch here
+
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_create_dry_run():

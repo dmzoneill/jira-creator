@@ -1,6 +1,8 @@
-from jira.client import JiraClient
-from jira_creator.rh_jira import JiraCLI
 from unittest.mock import MagicMock, patch
+
+from jira.client import JiraClient
+
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_change_issue_type():

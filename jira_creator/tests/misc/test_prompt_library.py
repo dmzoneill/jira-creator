@@ -1,4 +1,4 @@
-from jira.jira_prompts import JiraPromptLibrary, JiraIssueType
+from jira.jira_prompts import JiraIssueType, JiraPromptLibrary
 
 
 def test_prompt_exists_for_all_types():

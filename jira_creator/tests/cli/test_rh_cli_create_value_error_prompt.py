@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from jira_creator.rh_jira import JiraCLI
+
+import pytest
+
 from jira_creator.jira import jira_prompts
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_create_value_error_prompt():

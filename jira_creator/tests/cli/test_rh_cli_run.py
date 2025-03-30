@@ -1,8 +1,10 @@
-import pytest
-from unittest.mock import MagicMock, patch
-from jira_creator.rh_jira import JiraCLI
-import sys
 import os
+import sys
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_run():

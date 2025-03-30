@@ -1,5 +1,6 @@
-from jira_creator.rh_jira import JiraCLI
 from unittest.mock import MagicMock
+
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_unblock_command_success(monkeypatch, capsys):

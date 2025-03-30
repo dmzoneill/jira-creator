@@ -1,7 +1,7 @@
 import os
 import subprocess
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from unittest.mock import MagicMock
 
 

@@ -1,5 +1,6 @@
-from jira_creator.rh_jira import JiraCLI
 from unittest.mock import MagicMock
+
+from jira_creator.rh_jira import JiraCLI
 
 
 def test_add_comment_blank(capsys):

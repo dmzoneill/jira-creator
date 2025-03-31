@@ -67,6 +67,11 @@ class JiraCLI:
         create.add_argument("summary")
         create.add_argument("--edit", action="store_true")
         create.add_argument("--dry-run", action="store_true")
+        create.add_argument(
+            "--lint",
+            action="store_true",
+            help="Run interactive linting on the description after AI cleanup",
+        )
 
         list_issues = add("list-issues", "List assigned issues")
         list_issues.add_argument("--project")
@@ -100,6 +105,11 @@ class JiraCLI:
         edit = add("edit-issue", "Edit an issue's description")
         edit.add_argument("issue_key")
         edit.add_argument("--no-ai", action="store_true")
+        edit.add_argument(
+            "--lint",
+            action="store_true",
+            help="Run interactive linting on the description after AI cleanup",
+        )
 
         set_priority = add("set-priority", "Set issue priority")
         set_priority.add_argument("issue_key")
@@ -221,10 +231,10 @@ class JiraCLI:
         return validate_issue.handle(fields, self.ai_provider)
 
     def lint(self, args):
-        lint.handle(self.jira, args)
+        lint.handle(self.jira, self.ai_provider, args)
 
     def lint_all(self, args):
-        lint_all.handle(self.jira, args)
+        lint_all.handle(self.jira, self.ai_provider, args)
 
     def blocked(self, args):
         blocked.handle(self.jira, args)

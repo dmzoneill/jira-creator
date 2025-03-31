@@ -2,6 +2,7 @@ import os
 import subprocess
 import tempfile
 
+from commands.validate_issue import handle as validate
 from jira.jira_prompts import JiraIssueType, JiraPromptLibrary
 
 
@@ -26,6 +27,39 @@ def handle(jira, ai_provider, default_prompt, try_cleanup_fn, args):
         prompt = default_prompt
 
     cleaned = edited if args.no_ai else try_cleanup_fn(ai_provider, prompt, edited)
+
+    if args.lint:
+
+        while True:
+            fields = {"description": cleaned}
+            problems = validate(fields, ai_provider)
+            description_problems = [
+                p for p in problems if p.startswith("❌ Description:")
+            ]
+
+            if not description_problems:
+                break
+
+            print("\n⚠️ Description Lint Issues:")
+            for p in description_problems:
+                print(f" - {p}")
+
+            print(
+                "\n📝 Please provide more information given the problems stated above:"
+            )
+            user_answers = input("> ").strip()
+
+            prompt = (
+                "Incorporate these additional details into the below Jira description.\n"
+                f"Details to incorporate: {user_answers}\n"
+                "Original description:\n"
+                f"{cleaned}"
+            )
+
+            cleaned = ai_provider.improve_text(prompt, cleaned)
+
+        print("\n🤖 Final description:\n")
+        print(cleaned)
 
     try:
         jira.update_description(args.issue_key, cleaned)

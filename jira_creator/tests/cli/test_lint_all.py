@@ -12,9 +12,9 @@ def test_lint_all_with_issues(capsys):
     cli = JiraCLI()
     cli.jira = MagicMock()
 
-    # ✅ Mock ai_provider to simulate summary/description issues
-    cli.jira.ai_provider = MagicMock()
-    cli.jira.ai_provider.improve_text.side_effect = lambda prompt, text: (
+    # ✅ Correctly mock ai_provider on the CLI
+    cli.ai_provider = MagicMock()
+    cli.ai_provider.improve_text.side_effect = lambda prompt, text: (
         "too short" if text in ["Bad", "Meh"] else "OK"
     )
 
@@ -61,7 +61,7 @@ def test_lint_all_with_issues(capsys):
     assert "🔍 AAP-1" in out
     assert "❌ Summary: too short" in out
     assert "❌ Description: too short" in out
-    assert "✅ AAP-2 passed" in out
+    assert "✅ AAP-2 Fix bug passed" in out  # <- updated this line
     assert "✅ All issues passed lint checks" not in out
     assert "🔍 AAP-2" not in out
 
@@ -96,9 +96,9 @@ def test_lint_all_all_pass(capsys):
     cli = JiraCLI()
     cli.jira = MagicMock()
 
-    # ✅ Mock ai_provider to simulate "OK" for summary/description
-    cli.jira.ai_provider = MagicMock()
-    cli.jira.ai_provider.improve_text.return_value = "OK"
+    # ✅ Fix: Mock ai_provider on cli, not cli.jira
+    cli.ai_provider = MagicMock()
+    cli.ai_provider.improve_text.return_value = "OK"
 
     cli.jira.list_issues.return_value = [
         {"key": "AAP-1"},
@@ -124,6 +124,6 @@ def test_lint_all_all_pass(capsys):
     cli.lint_all(Args())
     out = capsys.readouterr().out
 
+    assert "✅ AAP-1 OK passed" in out
+    assert "✅ AAP-2 OK passed" in out
     assert "🎉 All issues passed lint checks!" in out
-    assert "✅ AAP-1 passed" in out
-    assert "✅ AAP-2 passed" in out

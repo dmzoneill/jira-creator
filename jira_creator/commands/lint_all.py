@@ -1,7 +1,7 @@
 from commands.validate_issue import handle as validate
 
 
-def handle(jira, args):
+def handle(jira, ai_provider, args):
     try:
         issues = jira.list_issues(args.project, args.component)
 
@@ -15,20 +15,21 @@ def handle(jira, args):
             key = issue["key"]
             full_issue = jira._request("GET", f"/rest/api/2/issue/{key}")
             fields = full_issue["fields"]
-            problems = validate(fields, jira.ai_provider)
+            summary = fields["summary"]
+            problems = validate(fields, ai_provider)
 
             if problems:
-                failures[key] = problems
-                print(f"❌ {key} failed lint checks")
+                failures[key] = (summary, problems)
+                print(f"❌ {key} {summary} failed lint checks")
             else:
-                print(f"✅ {key} passed")
+                print(f"✅ {key} {summary} passed")
 
         if not failures:
             print("\n🎉 All issues passed lint checks!")
         else:
             print("\n⚠️ Issues with lint problems:")
-            for key, problems in failures.items():
-                print(f"\n🔍 {key}")
+            for key, (summary, problems) in failures.items():
+                print(f"\n🔍 {key} - {summary}")
                 for p in problems:
                     print(f" - {p}")
 

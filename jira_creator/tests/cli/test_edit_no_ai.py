@@ -17,6 +17,7 @@ def test_edit_no_ai(monkeypatch):
         class Args:
             issue_key = "AAP-123"
             no_ai = True
+            lint = False  # ✅ Add this to fix the error
 
         cli.edit_issue(Args())
         cli.jira.update_description.assert_called_once()

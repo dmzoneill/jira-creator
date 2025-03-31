@@ -22,6 +22,7 @@ def test_edit_prompt_fallback():
     class Args:
         issue_key = "AAP-1"
         no_ai = True
+        lint = False  # ✅ Add this to fix the error
 
     cli.edit_issue(Args())
 

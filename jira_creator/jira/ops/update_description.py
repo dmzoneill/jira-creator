@@ -3,5 +3,4 @@ def update_description(request_fn, issue_key, new_description):
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
         json={"fields": {"description": new_description}},
-        allow_204=True,
     )

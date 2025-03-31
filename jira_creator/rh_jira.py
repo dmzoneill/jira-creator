@@ -7,6 +7,7 @@ from commands import (
     _try_cleanup,
     add_comment,
     add_sprint,
+    assign,
     block,
     blocked,
     change_type,
@@ -115,6 +116,10 @@ class JiraCLI:
         remove_sprint = add("remove-sprint", "Remove issue from its sprint")
         remove_sprint.add_argument("issue_key")
 
+        assign = add("assign", "Assign a user to an issue")
+        assign.add_argument("issue_key")
+        assign.add_argument("assignee")
+
         unassign = add("unassign", "Unassign a user from an issue")
         unassign.add_argument("issue_key")
 
@@ -184,6 +189,9 @@ class JiraCLI:
 
     def unassign(self, args):
         unassign.handle(self.jira, args)
+
+    def assign(self, args):
+        assign.handle(self.jira, args)
 
     def set_priority(self, args):
         set_priority.handle(self.jira, args)

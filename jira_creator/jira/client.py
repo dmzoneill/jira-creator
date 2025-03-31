@@ -6,6 +6,7 @@ import requests
 from .ops import (
     add_comment,
     add_to_sprint_by_name,
+    assign_issue,
     block_issue,
     blocked,
     build_payload,
@@ -120,6 +121,9 @@ class JiraClient:
     def unassign_issue(self, issue_key):
         return unassign_issue(self._request, issue_key)
 
+    def assign_issue(self, issue_key, assignee):
+        return assign_issue(self._request, issue_key, assignee)
+
     def list_issues(
         self,
         project=None,
@@ -156,9 +160,7 @@ class JiraClient:
         remove_from_sprint(self._request, issue_key)
 
     def add_to_sprint_by_name(self, issue_key, sprint_name):
-        add_to_sprint_by_name(
-            self._request, self.board_id, issue_key, sprint_name
-        )
+        add_to_sprint_by_name(self._request, self.board_id, issue_key, sprint_name)
 
     def set_status(self, issue_key, target_status):
         set_status(self._request, issue_key, target_status)

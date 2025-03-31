@@ -16,5 +16,4 @@ def unblock_issue(request_fn, issue_key):
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
         json=payload,
-        allow_204=True,
     )

@@ -3,8 +3,7 @@ def unassign_issue(request_fn, issue_key):
         request_fn(
             "PUT",
             f"/rest/api/2/issue/{issue_key}",
-            json={"fields": {"assignee": None}},
-            allow_204=True,
+            json={"fields": {"assignee": None}}
         )
         return True
     except Exception as e:

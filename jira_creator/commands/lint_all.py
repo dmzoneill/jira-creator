@@ -15,15 +15,18 @@ def handle(jira, args):
             key = issue["key"]
             full_issue = jira._request("GET", f"/rest/api/2/issue/{key}")
             fields = full_issue["fields"]
-            problems = validate(fields)
+            problems = validate(fields, jira.ai_provider)
 
             if problems:
                 failures[key] = problems
+                print(f"❌ {key} failed lint checks")
+            else:
+                print(f"✅ {key} passed")
 
         if not failures:
-            print("✅ All issues passed lint checks!")
+            print("\n🎉 All issues passed lint checks!")
         else:
-            print("⚠️ Issues with lint problems:")
+            print("\n⚠️ Issues with lint problems:")
             for key, problems in failures.items():
                 print(f"\n🔍 {key}")
                 for p in problems:

@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from jira_creator.rh_jira import JiraCLI
 
@@ -10,4 +10,4 @@ def test_validate_issue_delegation(mock_handle):
 
     cli.validate_issue(fields)
 
-    mock_handle.assert_called_once_with(fields)
+    mock_handle.assert_called_once_with(fields, ANY)

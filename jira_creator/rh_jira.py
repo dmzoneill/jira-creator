@@ -218,7 +218,7 @@ class JiraCLI:
         unblock.handle(self.jira, args)
 
     def validate_issue(self, fields):
-        return validate_issue.handle(fields)
+        return validate_issue.handle(fields, self.ai_provider)
 
     def lint(self, args):
         lint.handle(self.jira, args)

@@ -31,6 +31,7 @@ def test_edit_issue_update_exception(mock_tmpfile, mock_subprocess, capsys):
     class Args:
         issue_key = "AAP-5"
         no_ai = False
+        lint = False  # ✅ Add this to fix the error
 
     cli.edit_issue(Args())
 

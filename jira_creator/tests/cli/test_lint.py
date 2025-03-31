@@ -7,15 +7,15 @@ def test_lint_command_flags_errors(capsys):
     cli = JiraCLI()
     cli.jira = MagicMock()
 
-    # ✅ Mock ai_provider
-    cli.jira.ai_provider = MagicMock()
-    cli.jira.ai_provider.improve_text.side_effect = lambda prompt, text: (
+    # ✅ Fix: Mock ai_provider on cli directly
+    cli.ai_provider = MagicMock()
+    cli.ai_provider.improve_text.side_effect = lambda prompt, text: (
         "too short" if text in ["Bad", "Meh"] else "OK"
     )
 
     fake_issue = {
         "fields": {
-            "summary": "Bad",  # Not empty to trigger AI logic
+            "summary": "Bad",
             "description": "Meh",
             "priority": None,
             "customfield_12310243": None,
@@ -47,9 +47,9 @@ def test_lint_command_success(capsys):
     cli = JiraCLI()
     cli.jira = MagicMock()
 
-    # ✅ Add ai_provider mock
-    cli.jira.ai_provider = MagicMock()
-    cli.jira.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
+    # ✅ Fix: Mock ai_provider on cli directly
+    cli.ai_provider = MagicMock()
+    cli.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
 
     clean_issue = {
         "fields": {
@@ -78,9 +78,9 @@ def test_lint_command_exception(capsys):
     cli = JiraCLI()
     cli.jira = MagicMock()
 
-    # ✅ Add ai_provider mock
-    cli.jira.ai_provider = MagicMock()
-    cli.jira.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
+    # ✅ Fix: Mock ai_provider on cli directly
+    cli.ai_provider = MagicMock()
+    cli.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
 
     cli.jira._request.side_effect = Exception("Simulated fetch failure")
 

@@ -18,6 +18,7 @@ def test_edit_with_ai(monkeypatch):
         class Args:
             issue_key = "AAP-999"
             no_ai = False
+            lint = False  # ✅ Add this to fix the error
 
         cli.edit_issue(Args())
         cli.jira.update_description.assert_called_once_with("AAP-999", "cleaned text")

@@ -37,6 +37,6 @@ def cli():
 
 
 def test_edit_issue_executes(cli):
-    args = type("Args", (), {"issue_key": "FAKE-123", "no_ai": False})()
+    args = type("Args", (), {"issue_key": "FAKE-123", "no_ai": False, "lint": False})()
     cli.edit_issue(args)
     cli.jira.update_description.assert_called_once()

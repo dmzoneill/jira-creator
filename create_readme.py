@@ -83,7 +83,7 @@ def generate_readme(cli_script, output_readme):
     prompt = f"""
     You are a helpful assistant that helps generate detailed documentation.
 
-    Here is a template for the README of a CLI tool:
+    Here is a template for the README of a command-line tool:
 
     # jira-creator
 
@@ -122,7 +122,7 @@ def generate_readme(cli_script, output_readme):
 
     ---
 
-    ### 2. Link the CLI wrapper
+    ### 2. Link the command-line tool wrapper
 
     ```bash
     chmod +x jira_creator/rh-issue-wrapper.sh

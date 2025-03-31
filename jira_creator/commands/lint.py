@@ -6,7 +6,7 @@ def handle(jira, args):
         issue = jira._request("GET", f"/rest/api/2/issue/{args.issue_key}")
         fields = issue["fields"]
 
-        problems = validate(fields)
+        problems = validate(fields, jira.ai_provider)
 
         if problems:
             print(f"⚠️ Lint issues found in {args.issue_key}:")

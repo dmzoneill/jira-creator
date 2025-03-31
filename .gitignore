@@ -63,6 +63,7 @@ ehthumbs.db
 .pytest_cache
 htmlcov/
 coverage.xml
+.coverage*
 
 # build
 jira_creator.egg-info/

@@ -88,7 +88,7 @@ clean-coverage:
 clean:
 	- find . -type d -name "__pycache__" -exec rm -r {} +
 	- find . -type f -name "*.pyc" -delete
-	- find . -type f -name ".coverage" -delete
+	- find . -type f -name ".coverage*" -delete
 	- find . -type f -name "coverage.xml" -delete
 	- find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	- find . -type d -name "htmlcov" -exec rm -rf {} +

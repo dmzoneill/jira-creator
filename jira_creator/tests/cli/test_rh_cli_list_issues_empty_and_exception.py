@@ -14,7 +14,7 @@ def test_list_issues_empty(capsys):
         component = None
         user = None
 
-    cli.list(Args())
+    cli.list_issues(Args())
     out = capsys.readouterr().out
     assert "No issues found." in out
 
@@ -30,6 +30,6 @@ def test_list_issues_fail(capsys):
         component = None
         user = None
 
-    cli.list(Args())
+    cli.list_issues(Args())
     out = capsys.readouterr().out
     assert "❌ Failed to list issues" in out

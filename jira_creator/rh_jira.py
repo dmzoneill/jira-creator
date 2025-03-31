@@ -1,16 +1,34 @@
 #!/usr/bin/env python3
-import json
 import os
-import re
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
+from commands import (
+    _try_cleanup,
+    add_comment,
+    add_sprint,
+    block,
+    blocked,
+    change_type,
+    create_issue,
+    edit_issue,
+    lint,
+    lint_all,
+    list_issues,
+    migrate,
+    remove_sprint,
+    search,
+    set_priority,
+    set_status,
+    set_story_points,
+    unassign,
+    unblock,
+    validate_issue,
+    vote_story_points,
+)
 from jira.client import JiraClient
-from jira.jira_prompts import JiraIssueType, JiraPromptLibrary
+from jira.jira_prompts import JiraPromptLibrary
 from providers import get_ai_provider
-from templates.template_loader import TemplateLoader
 
 
 class JiraCLI:
@@ -43,13 +61,13 @@ class JiraCLI:
         def add(name, help_text, aliases=None):
             return subparsers.add_parser(name, help=help_text, aliases=aliases or [])
 
-        create = add("create", "Create a new issue")
+        create = add("create-issue", "Create a new issue")
         create.add_argument("type")
         create.add_argument("summary")
         create.add_argument("--edit", action="store_true")
         create.add_argument("--dry-run", action="store_true")
 
-        list_issues = add("list", "List assigned issues")
+        list_issues = add("list-issues", "List assigned issues")
         list_issues.add_argument("--project")
         list_issues.add_argument("--component")
         list_issues.add_argument("--user")
@@ -78,7 +96,7 @@ class JiraCLI:
         migrate.add_argument("issue_key")
         migrate.add_argument("new_type")
 
-        edit = add("edit", "Edit an issue's description")
+        edit = add("edit-issue", "Edit an issue's description")
         edit.add_argument("issue_key")
         edit.add_argument("--no-ai", action="store_true")
 
@@ -140,518 +158,71 @@ class JiraCLI:
             print(f"❌ Command failed: {e}")
 
     def add_comment(self, args):
-        if args.text:
-            comment = args.text
-        else:
-            with tempfile.NamedTemporaryFile(
-                mode="w+", suffix=".md", delete=False
-            ) as tmp:
-                tmp.write("# Enter comment below\n")
-                tmp.flush()
-                subprocess.call([os.environ.get("EDITOR", "vim"), tmp.name])
-                tmp.seek(0)
-                comment = tmp.read()
+        add_comment.handle(self.jira, self.ai_provider, self.default_prompt, args)
 
-        if not comment.strip():
-            print("⚠️ No comment provided. Skipping.")
-            return
-
-        try:
-            cleaned = self.ai_provider.improve_text(self.default_prompt, comment)
-        except Exception as e:
-            print(f"⚠️ AI cleanup failed. Using raw comment. Error: {e}")
-            cleaned = comment
-
-        try:
-            self.jira.add_comment(args.issue_key, cleaned)
-            print(f"✅ Comment added to {args.issue_key}")
-        except Exception as e:
-            print(f"❌ Failed to add comment: {e}")
-
-    def create(self, args):
-        try:
-            template = TemplateLoader(self.template_dir, args.type)
-            fields = template.get_fields()
-        except FileNotFoundError as e:
-            print(f"Error: {e}")
-            sys.exit(1)
-
-        inputs = (
-            {field: input(f"{field}: ") for field in fields}
-            if not args.edit
-            else {field: f"# {field}" for field in fields}
+    def create_issue(self, args):
+        create_issue.handle(
+            self.jira, self.ai_provider, self.default_prompt, self.template_dir, args
         )
 
-        description = template.render_description(inputs)
-
-        if args.edit:
-            with tempfile.NamedTemporaryFile(
-                mode="w+", suffix=".tmp", delete=False
-            ) as tmp:
-                tmp.write(description)
-                tmp.flush()
-                subprocess.call([os.environ.get("EDITOR", "vim"), tmp.name])
-                tmp.seek(0)
-                description = tmp.read()
-
-        try:
-            enum_type = JiraIssueType(args.type.lower())
-            prompt = JiraPromptLibrary.get_prompt(enum_type)
-        except ValueError:
-            print(f"⚠️ Unknown issue type '{args.type}'. Using default prompt.")
-            prompt = self.default_prompt
-
-        try:
-            description = self.ai_provider.improve_text(prompt, description)
-        except Exception as e:
-            print(f"⚠️ AI cleanup failed. Using original text. Error: {e}")
-
-        payload = self.jira.build_payload(args.summary, description, args.type)
-
-        if args.dry_run:
-            print("📦 DRY RUN ENABLED")
-            print("---- Description ----")
-            print(description)
-            print("---- Payload ----")
-            print(json.dumps(payload, indent=2))
-            return
-
-        try:
-            key = self.jira.create_issue(payload)
-            print(f"✅ Created: {self.jira.jira_url}/browse/{key}")
-        except Exception as e:
-            print(f"❌ Failed to create issue: {e}")
-
-    def list(self, args):
-        try:
-            # Pass additional filtering arguments to list_issues
-            issues = self.jira.list_issues(
-                project=args.project,
-                component=args.component,
-                assignee=args.user,
-            )
-
-            if not issues:
-                print("No issues found.")
-                return
-
-            rows = []
-            for issue in issues:
-                f = issue["fields"]
-
-                # Extract sprint information from customfield_12310940
-                sprints = f.get("customfield_12310940") or []
-
-                # Use regex to extract sprint name where the state is ACTIVE
-                sprint = next(
-                    (
-                        re.search(r"name=([^,]+)", s).group(1)
-                        for s in sprints
-                        if "state=ACTIVE" in s and "name=" in s
-                    ),
-                    "—",
-                )
-
-                # Filter based on the provided CLI arguments like status, summary, blocked, etc.
-                if (
-                    args.status
-                    and args.status.lower()
-                    not in f.get("status", {}).get("name", "").lower()
-                ):
-                    continue
-                if (
-                    args.summary
-                    and args.summary.lower() not in f.get("summary", "").lower()
-                ):
-                    continue
-                if args.blocked and "True" != f.get("customfield_12316543", {}).get(
-                    "value"
-                ):
-                    continue
-                if args.unblocked and "True" == f.get("customfield_12316543", {}).get(
-                    "value"
-                ):
-                    continue
-
-                # Append the issue data to rows
-                rows.append(
-                    (
-                        issue["key"],
-                        f["status"]["name"],
-                        f["assignee"]["displayName"] if f["assignee"] else "Unassigned",
-                        f.get("priority", {}).get("name", "—"),
-                        str(f.get("customfield_12310243", "—")),
-                        sprint,
-                        f["summary"],
-                    )
-                )
-
-            # Sort the issues by sprint name and status
-            rows.sort(key=lambda r: (r[5], r[1]))
-
-            # Define headers and calculate column widths
-            headers = [
-                "Key",
-                "Status",
-                "Assignee",
-                "Priority",
-                "Points",
-                "Sprint",
-                "Summary",
-            ]
-            widths = [
-                max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
-            ]
-
-            # Format and print the headers
-            header_fmt = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
-            print(header_fmt)
-            print("-" * len(header_fmt))
-
-            # Print rows
-            for r in rows:
-                print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
-
-        except Exception as e:
-            print(f"❌ Failed to list issues: {e}")
+    def list_issues(self, args):
+        list_issues.handle(self.jira, args)
 
     def change_type(self, args):
-        try:
-            if self.jira.change_issue_type(args.issue_key, args.new_type):
-                print(f"✅ Changed {args.issue_key} to '{args.new_type}'")
-            else:
-                print(f"❌ Change failed for {args.issue_key}")
-        except Exception as e:
-            print(f"❌ Error: {e}")
+        change_type.handle(self.jira, args)
 
     def migrate(self, args):
-        try:
-            new_key = self.jira.migrate_issue(args.issue_key, args.new_type)
-            print(
-                f"✅ Migrated {args.issue_key} to {new_key}: {self.jira.jira_url}/browse/{new_key}"
-            )
-        except Exception as e:
-            print(f"❌ Migration failed: {e}")
+        migrate.handle(self.jira, args)
 
     def edit_issue(self, args):
-        try:
-            original = self.jira.get_description(args.issue_key)
-            with tempfile.NamedTemporaryFile(
-                mode="w+", suffix=".md", delete=False
-            ) as tmp:
-                tmp.write(original or "")
-                tmp.flush()
-                subprocess.call([os.environ.get("EDITOR", "vim"), tmp.name])
-                tmp.seek(0)
-                edited = tmp.read()
-        except Exception as e:
-            print(f"❌ Failed to fetch/edit: {e}")
-            return
-
-        try:
-            prompt = JiraPromptLibrary.get_prompt(
-                JiraIssueType(self.jira.get_issue_type(args.issue_key).lower())
-            )
-        except Exception:
-            prompt = self.default_prompt
-
-        cleaned = edited if args.no_ai else self._try_cleanup(prompt, edited)
-        try:
-            self.jira.update_description(args.issue_key, cleaned)
-            print(f"✅ Updated {args.issue_key}")
-        except Exception as e:
-            print(f"❌ Update failed: {e}")
-
-    def _try_cleanup(self, prompt, text):
-        try:
-            return self.ai_provider.improve_text(prompt, text)
-        except Exception as e:
-            print(f"⚠️ AI cleanup failed: {e}")
-            return text
-
-    def unassign(self, args):
-        success = self.jira.unassign_issue(args.issue_key)
-        print(
-            f"✅ Unassigned {args.issue_key}"
-            if success
-            else f"❌ Could not unassign {args.issue_key}"
+        edit_issue.handle(
+            self.jira, self.ai_provider, self.default_prompt, _try_cleanup.handle, args
         )
 
+    def _try_cleanup(self, prompt, text):
+        return _try_cleanup.handle(self.ai_provider, prompt, text)
+
+    def unassign(self, args):
+        unassign.handle(self.jira, args)
+
     def set_priority(self, args):
-        try:
-            self.jira.set_priority(args.issue_key, args.priority)
-            print(f"✅ Priority set to '{args.priority}'")
-        except Exception as e:
-            print(f"❌ Failed to set priority: {e}")
+        set_priority.handle(self.jira, args)
 
     def remove_sprint(self, args):
-        try:
-            self.jira.remove_from_sprint(args.issue_key)
-            print("✅ Removed from sprint")
-        except Exception as e:
-            print(f"❌ Failed to remove sprint: {e}")
+        remove_sprint.handle(self.jira, args)
 
     def add_sprint(self, args):
-        try:
-            self.jira.add_to_sprint_by_name(args.issue_key, args.sprint_name)
-            print(f"✅ Added to sprint '{args.sprint_name}'")
-        except Exception as e:
-            print(f"❌ {e}")
+        add_sprint.handle(self.jira, args)
 
     def set_status(self, args):
-        try:
-            self.jira.set_status(args.issue_key, args.status)
-            print(f"✅ Status set to '{args.status}'")
-        except Exception as e:
-            print(f"❌ Failed to update status: {e}")
+        set_status.handle(self.jira, args)
 
     def vote_story_points(self, args):
-        try:
-            points = int(args.points)
-        except ValueError:
-            print("❌ Points must be an integer.")
-            return
-
-        try:
-            self.jira.vote_story_points(args.issue_key, points)
-            print(f"✅ Voted {points} points on {args.issue_key}")
-        except Exception as e:
-            print(f"❌ Failed to vote on story points: {e}")
+        vote_story_points.handle(self.jira, args)
 
     def set_story_points(self, args):
-        try:
-            points = int(args.points)
-        except ValueError:
-            print("❌ Points must be an integer.")
-            return
-
-        try:
-            self.jira.set_story_points(args.issue_key, points)
-            print(f"✅ Set {points} story points on {args.issue_key}")
-        except Exception as e:
-            print(f"❌ Failed to set story points: {e}")
+        set_story_points.handle(self.jira, args)
 
     def block(self, args):
-        try:
-            self.jira.block_issue(args.issue_key, args.reason)
-            print(f"✅ {args.issue_key} marked as blocked: {args.reason}")
-        except Exception as e:
-            print(f"❌ Failed to mark {args.issue_key} as blocked: {e}")
+        block.handle(self.jira, args)
 
     def unblock(self, args):
-        try:
-            self.jira.unblock_issue(args.issue_key)
-            print(f"✅ {args.issue_key} marked as unblocked")
-        except Exception as e:
-            print(f"❌ Failed to unblock {args.issue_key}: {e}")
+        unblock.handle(self.jira, args)
 
     def validate_issue(self, fields):
-        """
-        This function validates the fields of a Jira issue and returns a list of problems.
-        """
-        problems = []
-
-        # Check for missing summary
-        if not fields.get("summary"):
-            problems.append("❌ Missing summary")
-        # Check for missing description
-        if not fields.get("description"):
-            problems.append("❌ Missing description")
-        # Check for missing priority
-        if not fields.get("priority"):
-            problems.append("❌ Priority not set")
-        # Skip story points check for "New", "Refinement", "Bug", or "Epic"
-        issue_type = fields.get("issuetype", {}).get("name")
-        if issue_type not in ["Bug", "Epic"] and fields.get("status", {}).get(
-            "name"
-        ) not in ["New", "Refinement"]:
-            if fields.get("customfield_12310243") in [None, ""]:
-                problems.append("❌ Story points not assigned")
-        # Check for blocked issues missing a reason
-        if fields.get("customfield_12316543", {}).get("value") == "True":
-            reason = fields.get("customfield_12316544")
-            if not reason:
-                problems.append("❌ Issue is blocked but has no blocked reason")
-        # Check for issues marked as "In Progress" but unassigned
-        if fields.get("status", {}).get("name") == "In Progress" and not fields.get(
-            "assignee"
-        ):
-            problems.append("❌ Issue is In Progress but unassigned")
-
-        return problems
+        return validate_issue.handle(fields)
 
     def lint(self, args):
-        try:
-            issue = self.jira._request("GET", f"/rest/api/2/issue/{args.issue_key}")
-            fields = issue["fields"]
-
-            problems = self.validate_issue(fields)  # Use the shared validation function
-
-            if problems:
-                print(f"⚠️ Lint issues found in {args.issue_key}:")
-                for p in problems:
-                    print(f" - {p}")
-            else:
-                print(f"✅ {args.issue_key} passed all lint checks")
-
-        except Exception as e:
-            print(f"❌ Failed to lint issue {args.issue_key}: {e}")
+        lint.handle(self.jira, args)
 
     def lint_all(self, args):
-        try:
-            issues = self.jira.list_issues(args.project, args.component)
-
-            if not issues:
-                print("✅ No issues assigned to you.")
-                return
-
-            failures = {}
-
-            for issue in issues:
-                key = issue["key"]
-                full_issue = self.jira._request("GET", f"/rest/api/2/issue/{key}")
-                fields = full_issue["fields"]
-
-                problems = self.validate_issue(
-                    fields
-                )  # Use the shared validation function
-
-                if problems:
-                    failures[key] = problems
-
-            if not failures:
-                print("✅ All issues passed lint checks!")
-            else:
-                print("⚠️ Issues with lint problems:")
-                for key, problems in failures.items():
-                    print(f"\n🔍 {key}")
-                    for p in problems:
-                        print(f" - {p}")
-
-        except Exception as e:
-            print(f"❌ Failed to lint issues: {e}")
+        lint_all.handle(self.jira, args)
 
     def blocked(self, args):
-        try:
-            issues = self.jira.list_issues(
-                project=args.project,
-                component=args.component,
-                user=args.user or self.jira.get_current_user(),
-            )
-
-            if not issues:
-                print("✅ No issues found.")
-                return
-
-            blocked_issues = []
-            for issue in issues:
-                fields = issue["fields"]
-                is_blocked = (
-                    fields.get("customfield_12316543", {}).get("value") == "True"
-                )
-                if is_blocked:
-                    blocked_issues.append(
-                        {
-                            "key": issue["key"],
-                            "status": fields["status"]["name"],
-                            "assignee": (
-                                fields["assignee"]["displayName"]
-                                if fields["assignee"]
-                                else "Unassigned"
-                            ),
-                            "reason": fields.get("customfield_12316544", "(no reason)"),
-                            "summary": fields["summary"],
-                        }
-                    )
-
-            if not blocked_issues:
-                print("✅ No blocked issues found.")
-                return
-
-            print("🔒 Blocked issues:")
-            print("-" * 80)
-            for i in blocked_issues:
-                print(f"{i['key']} [{i['status']}] — {i['assignee']}")
-                print(f"  🔸 Reason: {i['reason']}")
-                print(f"  📄 {i['summary']}")
-                print("-" * 80)
-
-        except Exception as e:
-            print(f"❌ Failed to list blocked issues: {e}")
+        blocked.handle(self.jira, args)
 
     def search(self, args):
-        try:
-            # Get the JQL query from the arguments
-            jql = args.jql
-            # Use the search_issues method to fetch the issues based on the JQL query
-            issues = self.jira.search_issues(jql)
-
-            # If issues is None or empty, handle it
-            if issues is None:
-                print("❌ No issues found. The search returned None.")
-                return
-            if not issues:
-                print("No issues found for the given JQL.")
-                return
-
-            rows = []
-            for issue in issues:
-                f = issue["fields"]
-
-                # Extract sprint information from customfield_12310940
-                sprints = f.get("customfield_12310940") or []
-
-                # Use regex to extract sprint name where the state is ACTIVE
-                sprint = next(
-                    (
-                        re.search(r"name=([^,]+)", s).group(1)
-                        for s in sprints
-                        if "state=ACTIVE" in s and "name=" in s
-                    ),
-                    "—",
-                )
-
-                # Append the issue data to rows
-                rows.append(
-                    (
-                        issue["key"],
-                        f["status"]["name"],
-                        f["assignee"]["displayName"] if f["assignee"] else "Unassigned",
-                        f.get("priority", {}).get("name", "—"),
-                        str(f.get("customfield_12310243", "—")),
-                        sprint,
-                        f["summary"],
-                    )
-                )
-
-            # Sort the issues by sprint name and status
-            rows.sort(key=lambda r: (r[5], r[1]))
-
-            # Define headers and calculate column widths
-            headers = [
-                "Key",
-                "Status",
-                "Assignee",
-                "Priority",
-                "Points",
-                "Sprint",
-                "Summary",
-            ]
-            widths = [
-                max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
-            ]
-
-            # Format and print the headers
-            header_fmt = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
-            print(header_fmt)
-            print("-" * len(header_fmt))
-
-            # Print rows
-            for r in rows:
-                print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
-
-        except Exception as e:
-            print(f"❌ Failed to search issues: {e}")
+        search.handle(self.jira, args)
 
 
 if __name__ == "__main__":

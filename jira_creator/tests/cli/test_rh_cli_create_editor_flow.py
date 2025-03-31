@@ -26,7 +26,7 @@ def test_create_editor():
         dry_run = False
 
     # Call the create method
-    cli.create(Args())
+    cli.create_issue(Args())
 
     # Cleanup the temp file after the test
     os.remove(tf.name)

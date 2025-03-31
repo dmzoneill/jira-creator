@@ -155,7 +155,7 @@ def test_list_with_summary_filter(capsys):
     )
 
     # Run the list method with the summary filter
-    cli.list(args)
+    cli.list_issues(args)
 
     captured = capsys.readouterr()
 
@@ -214,7 +214,7 @@ def test_list_with_blocked_filter(capsys):
     )
 
     # Run the list method with the blocked filter
-    cli.list(args)
+    cli.list_issues(args)
 
     captured = capsys.readouterr()
 
@@ -273,7 +273,7 @@ def test_list_with_unblocked_filter(capsys):
     )
 
     # Run the list method with the unblocked filter
-    cli.list(args)
+    cli.list_issues(args)
 
     captured = capsys.readouterr()
 

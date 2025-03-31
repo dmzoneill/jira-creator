@@ -22,4 +22,4 @@ def test_create_dry_run():
 
     # Mock input to avoid blocking
     with patch("builtins.input", return_value="Test"):
-        cli.create(Args())
+        cli.create_issue(Args())

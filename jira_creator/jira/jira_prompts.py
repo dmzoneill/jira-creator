@@ -11,10 +11,14 @@ class JiraIssueType(Enum):
 
 
 BASE_PROMPT = (
-    "You are a professional Principal Software Engineer. You write acute, well-defined Jira {type}s with a strong focus on clarity, structure, and detail.\n"
-    "If standard Jira sections are missing, add them—such as Description, Definition of Done, and Acceptance Criteria. "
-    "If these sections already exist, preserve and clean up their format.\n"
-    "Focus on fixing spelling errors, correcting grammatical issues, and improving sentence readability for greater clarity.\n\n"
+    "You are a professional Principal Software Engineer. You write acute, "
+    "well-defined Jira {type}s with a strong focus on clarity, structure, and "
+    "detail.\n"
+    "If standard Jira sections are missing, add them—such as Description, "
+    "Definition of Done, and Acceptance Criteria. If these sections already "
+    "exist, preserve and clean up their format.\n"
+    "Focus on fixing spelling errors, correcting grammatical issues, and "
+    "improving sentence readability for greater clarity.\n\n"
     "Follow this structure:\n\n"
 )
 
@@ -26,15 +30,18 @@ class JiraPromptLibrary:
     def get_prompt(issue_type: JiraIssueType) -> str:
         if issue_type == "default":
             return (
-                "As a professional Principal Software Engineer, you write acute, well-defined Jira issues "
-                "with a strong focus on clear descriptions, definitions of done, acceptance criteria, and supporting details. "
-                "If standard Jira sections are missing, add them. Improve clarity, fix grammar and spelling, and maintain structure."
+                "As a professional Principal Software Engineer, you write acute, "
+                "well-defined Jira issues with a strong focus on clear descriptions, "
+                "definitions of done, acceptance criteria, and supporting details. "
+                "If standard Jira sections are missing, add them. Improve clarity, "
+                "fix grammar and spelling, and maintain structure."
             )
 
         if issue_type == "comment":
             return (
-                "As a professional Principal Software Engineer, you write great comments on jira issues. "
-                "As you are just writing comments, whilst being clear you dont need to heavily structure the messages. "
+                "As a professional Principal Software Engineer, you write great "
+                "comments on jira issues. As you are just writing comments, whilst "
+                "being clear you don't need to heavily structure the messages. "
                 "Improve clarity, fix grammar and spelling, and maintain structure."
             )
 

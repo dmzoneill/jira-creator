@@ -50,3 +50,14 @@ def test_vote_story_points_failure(mock_request, client, capsys):
 
     captured = capsys.readouterr()
     assert "❌ Failed to vote on story points: JIRA API error (400):" in captured.out
+
+
+@patch("jira.client.requests.request")
+def test_vote_story_points_fetch_issue_id_failure(mock_request, client, capsys):
+    # Simulate the first request (GET issue) raising an exception
+    mock_request.side_effect = Exception("network error")
+
+    client.vote_story_points("ISSUE-123", 3)
+
+    captured = capsys.readouterr()
+    assert "❌ Failed to fetch issue ID for ISSUE-123: network error" in captured.out

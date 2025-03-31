@@ -1,12 +1,11 @@
-import os
+from unittest.mock import patch
 
 import pytest
 from jira.jira_prompts import JiraIssueType, JiraPromptLibrary
 
 
-def test_get_prompt_missing_template(monkeypatch):
-    monkeypatch.setattr("os.path.exists", lambda path: False)
-
+@patch("os.path.exists", return_value=False)
+def test_get_prompt_missing_template(mock_exists):
     with pytest.raises(FileNotFoundError) as excinfo:
         JiraPromptLibrary.get_prompt(JiraIssueType("story"))
 

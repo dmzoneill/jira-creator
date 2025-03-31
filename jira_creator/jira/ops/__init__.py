@@ -1,5 +1,6 @@
 from .add_comment import add_comment
 from .add_to_sprint_by_name import add_to_sprint_by_name
+from .assign_issue import assign_issue
 from .block_issue import block_issue
 from .blocked import blocked
 from .build_payload import build_payload

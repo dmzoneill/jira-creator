@@ -15,6 +15,5 @@ def block_issue(request_fn, issue_key, reason):
     request_fn(
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
-        json=payload,
-        allow_204=True,
+        json=payload
     )

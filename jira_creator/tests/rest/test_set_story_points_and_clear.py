@@ -14,6 +14,5 @@ def test_set_story_points():
     client._request.assert_called_once_with(
         "PUT",
         "/rest/api/2/issue/AAP-123",
-        json={"fields": {"customfield_12310243": 8}},  # Correct field name here
-        allow_204=True,
+        json={"fields": {"customfield_12310243": 8}},
     )

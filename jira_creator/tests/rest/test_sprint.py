@@ -13,7 +13,6 @@ def test_set_sprint():
         "PUT",
         "/rest/api/2/issue/AAP-123",
         json={"fields": {"customfield_12310940": ["42"]}},
-        allow_204=True,  # Don't forget to account for allow_204 if it's part of the request
     )
 
 

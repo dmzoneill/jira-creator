@@ -9,5 +9,4 @@ def set_story_points(request_fn, issue_key, points):
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
         json=payload,
-        allow_204=True,
     )

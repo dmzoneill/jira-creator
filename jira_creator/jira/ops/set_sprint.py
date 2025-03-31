@@ -7,5 +7,4 @@ def set_sprint(request_fn, issue_key, sprint_id):
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
         json=payload,
-        allow_204=True,
     )

@@ -7,7 +7,7 @@ def change_issue_type(request_fn, issue_key, new_type):
             payload["update"] = {"parent": [{"remove": {}}]}
 
         request_fn(
-            "PUT", f"/rest/api/2/issue/{issue_key}", json=payload, allow_204=True
+            "PUT", f"/rest/api/2/issue/{issue_key}", json=payload
         )
         return True
     except Exception as e:

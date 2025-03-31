@@ -32,7 +32,6 @@ def test_change_issue_type():
             "fields": {"issuetype": {"name": "Story"}},
             "update": {"parent": [{"remove": {}}]},
         },
-        allow_204=True,
     )
 
 

@@ -13,7 +13,7 @@ SUPER_LINTER_CONFIGS = \
   .stylelintrc.json
 
 PYTHON ?= python
-PIPENV ?= PIPENV_VERBOSITY=-1 pipenv
+PIPENV ?= PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv
 SCRIPT := rh-jira.py
 
 # --- Setup & Install ---
@@ -29,6 +29,11 @@ setup: install
 .PHONY: run
 run:
 	$(PIPENV) run $(PYTHON) $(SCRIPT)
+
+# --- Create new readme ---
+.PHONY: readme
+readme:
+	python3 create_readme.py
 
 .PHONY: dry-run
 dry-run:
@@ -72,8 +77,8 @@ format:
 .PHONY: coverage
 coverage:
 	$(PIPENV) run coverage erase
-	PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv run coverage run -m pytest jira_creator/tests
-	$(PIPENV) run coverage combine
+	$(PIPENV) run coverage run -m pytest jira_creator/tests
+	- $(PIPENV) run coverage combine
 	$(PIPENV) run coverage report -m --fail-under=99
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"

@@ -114,7 +114,7 @@ def generate_readme(cli_script, output_readme):
     export JIRA_BOARD_ID=21125
 
     # Enable autocomplete
-    eval "$(register-python-argcomplete rh-issue)"
+    eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira.py/rh-issue/')"
     EOF
 
     source ~/.bashrc.d/jira.sh

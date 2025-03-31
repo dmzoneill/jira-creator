@@ -1,19 +1,17 @@
 # jira-creator
 
-[![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
-[![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/blob/main/LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/commits/main)
+![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)
+![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)
+![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)
 
-A command-line interface (CLI) tool to create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates and optional AI-enhanced descriptions.
+A CLI tool for creating JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates and optional AI-enhanced descriptions.
 
 ---
 
-## ⚡ Quick Start (Under 30 Seconds)
+## 🚀 Quick Start (Under 30 Seconds)
 
-### 1. 🛠️ Configuration and Autocomplete Setup
-
-Create an environment variables file to store your JIRA settings. We enable autocomplete for improved command-line interaction.
+### 1️⃣ Create a Config File and Enable Autocomplete
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -29,42 +27,38 @@ export PRIORITY="Normal"
 export JIRA_BOARD_ID=21125
 
 # Enable autocomplete
-eval "$(register-python-argcomplete rh-issue)"
+eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira.py/rh-issue/')"
 EOF
 
 source ~/.bashrc.d/jira.sh
 ```
 
----
+This block of code creates a new configuration file and sets environment variables for the JIRA Personal Access Token, the AI provider, the OpenAI API key, and other necessary variables. The last command activates autocomplete.
 
-### 2. 📡 CLI Wrapper Linking
-
-Link the CLI wrapper for easier access:
+### 2️⃣ Link the CLI Wrapper
 
 ```bash
 chmod +x jira_creator/rh-issue-wrapper.sh
 sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
 
----
+This command makes the wrapper script executable and creates a symbolic link to it, allowing you to run the script from any location.
 
-### 3. 🏃‍♂️ Run the Tool
-
-Run the tool with a command to create an issue:
+### 3️⃣ Run JIRA Creator
 
 ```bash
 rh-issue create story "Improve onboarding experience"
 ```
 
+This command creates a new JIRA story with the title "Improve onboarding experience".
+
 ---
 
-## 🧪 Usage & Commands
-
-Below are the basic commands and examples of how to use the jira-creator.
+## 💡 Usage & Commands
 
 ### 🆕 Create Issues
 
-Different types of issues can be created such as bugs, stories, epics, and spikes. Use the `--edit` flag to open the issue in your `$EDITOR`, and `--dry-run` to print the payload without actually creating the issue.
+Create new issues of various types:
 
 ```bash
 rh-issue create bug "Fix login crash"
@@ -73,44 +67,53 @@ rh-issue create epic "Unify frontend UI" --edit
 rh-issue create spike "Evaluate GraphQL support" --dry-run
 ```
 
-### 🔁 Changing and Migrating Issues
+Use `--edit` to open your `$EDITOR` for inputting the description, and `--dry-run` to print the payload without creating the issue.
 
-Change the issue type or migrate an issue from one type to another:
+### 🔁 Change Issue Type
+
+Change the type of an existing issue:
 
 ```bash
 rh-issue change AAP-12345 story
+```
+
+### 🔁 Migrate Issue
+
+Migrate an issue to another project:
+
+```bash
 rh-issue migrate AAP-54321 story
 ```
 
-### ✏️ Editing Issue Descriptions
+### ✏️ Edit Description
 
-Edit the description of an issue. Use the `--no-ai` flag to bypass the AI provider:
+Edit the description of an issue:
 
 ```bash
 rh-issue edit AAP-98765
 rh-issue edit AAP-98765 --no-ai
 ```
 
-### 🧍 Unassigning Issues
+### 🧍 Unassign Issue
 
-Unassign an issue from a user:
+Unassign yourself from an issue:
 
 ```bash
 rh-issue unassign AAP-12345
 ```
 
-### 📋 Listing Issues
+### 📋 List Issues
 
-List issues, optionally filtered by project, component, and user:
+List all issues or filter them by project, component, or user:
 
 ```bash
 rh-issue list
 rh-issue list --project AAP --component api --user jdoe
 ```
 
-### 🏷️ Setting Issue Priority
+### 🏷️ Set Priority
 
-Set priority of an issue:
+Set the priority of an issue:
 
 ```bash
 rh-issue set-priority AAP-123 High
@@ -118,7 +121,7 @@ rh-issue set-priority AAP-123 High
 
 ### 📅 Sprint Management
 
-Manage sprints by setting, removing, or adding: 
+Manage the sprint of an issue:
 
 ```bash
 rh-issue set-sprint AAP-456 1234
@@ -126,9 +129,9 @@ rh-issue remove-sprint AAP-456
 rh-issue add-sprint AAP-456 "Sprint 33"
 ```
 
-### 🚦 Changing Issue Status
+### 🚦 Set Status
 
-Change the status of an issue:
+Set the status of an issue:
 
 ```bash
 rh-issue set-status AAP-123 "In Progress"
@@ -138,11 +141,9 @@ rh-issue set-status AAP-123 "In Progress"
 
 ## 🤖 AI Provider Support
 
-Plug in different AI providers by changing the `AI_PROVIDER` variable. Below are different AI providers supported:
+You can plug in different AI providers by setting `AI_PROVIDER`. Here's how to set up a few popular providers:
 
 ### ✅ OpenAI
-
-For OpenAI, provide the API key:
 
 ```bash
 export AI_PROVIDER=openai
@@ -152,30 +153,48 @@ export OPENAI_MODEL=gpt-4  # Optional
 
 ### 🖥 GPT4All
 
-For GPT4All, install the library and set the provider:
-
 ```bash
 pip install gpt4all
 export AI_PROVIDER=gpt4all
 ```
 
-### 🧪 And many more...
+### 🧪 InstructLab
 
-Check the README for a full list of supported providers and their setup instructions.
+```bash
+export AI_PROVIDER=instructlab
+export INSTRUCTLAB_URL=http://localhost:11434/api/generate
+export INSTRUCTLAB_MODEL=instructlab
+```
+
+### 🧠 BART
+
+```bash
+export AI_PROVIDER=bart
+export BART_URL=http://localhost:8000/bart
+```
+
+### 🧠 DeepSeek
+
+```bash
+export AI_PROVIDER=deepseek
+export DEEPSEEK_URL=http://localhost:8000/deepseek
+```
+
+### 🪫 Noop
+
+```bash
+export AI_PROVIDER=noop
+```
 
 ---
 
 ## 🛠 Dev Setup
-
-To set up your development environment:
 
 ```bash
 pipenv install --dev
 ```
 
 ### Testing & Linting
-
-Run tests, linting, and auto-fix formatting issues:
 
 ```bash
 make test
@@ -187,11 +206,10 @@ make format  # auto-fix formatting
 
 ## ⚙️ How It Works
 
-jira-creator works by:
-- Loading field definitions from `.tmpl` files under `templates/`
-- Using `TemplateLoader` to generate Markdown descriptions
-- Optionally applying AI cleanup for readability and structure
-- Sending the data to JIRA via REST API (or dry-runs it)
+- Loads field definitions from `.tmpl` files under `templates/`
+- Uses `TemplateLoader` to generate Markdown descriptions
+- Optionally applies AI cleanup for readability and structure
+- Sends to JIRA via REST API (or dry-runs it)
 
 ---
 

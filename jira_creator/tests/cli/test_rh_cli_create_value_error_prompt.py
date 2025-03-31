@@ -33,7 +33,7 @@ def test_create_value_error_prompt():
 
     # Catch the SystemExit triggered by sys.exit(1) when FileNotFoundError occurs
     with pytest.raises(SystemExit) as excinfo:
-        cli.create(Args())
+        cli.create_issue(Args())
 
     # Assert that sys.exit(1) was called
     assert excinfo.value.code == 1

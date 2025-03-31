@@ -35,7 +35,7 @@ def test_list_print(capsys):
             "unblocked": None,  # Add 'unblocked' attribute
         },
     )
-    cli.list(args)
+    cli.list_issues(args)
 
     captured = capsys.readouterr()
     assert "AAP-1" in captured.out
@@ -87,7 +87,7 @@ def test_list_with_filters(capsys):
     )
 
     # Run the list method with the filters
-    cli.list(args)
+    cli.list_issues(args)
 
     captured = capsys.readouterr()
 

@@ -70,6 +70,7 @@ lint:
 
 .PHONY: format
 format:
+	isort .
 	$(PIPENV) run autopep8 . --recursive --in-place --aggressive --aggressive
 	$(PIPENV) run black .
 

@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock
+
 from jira.ops.assign_issue import assign_issue
 
 

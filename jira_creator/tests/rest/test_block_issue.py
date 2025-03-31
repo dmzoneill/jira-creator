@@ -22,5 +22,5 @@ def test_block_issue_calls_expected_fields(client):
                 "customfield_12316543": {"value": "True"},
                 "customfield_12316544": "Waiting for dependency",
             }
-        }
+        },
     )

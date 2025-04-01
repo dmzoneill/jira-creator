@@ -78,7 +78,7 @@ format:
 .PHONY: coverage
 coverage:
 	$(PIPENV) run coverage erase
-	$(PIPENV) run coverage run -m pytest jira_creator/tests
+	$(PIPENV) run coverage run -m pytest --durations=10 jira_creator/tests
 	- $(PIPENV) run coverage combine
 	$(PIPENV) run coverage report -m --fail-under=99
 	$(PIPENV) run coverage html

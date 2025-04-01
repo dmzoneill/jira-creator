@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock
 
-import pytest
 from jira.client import JiraClient
 
 

@@ -12,6 +12,7 @@ from .ops import (
     build_payload,
     change_issue_type,
     create_issue,
+    get_acceptance_criteria,
     get_current_user,
     get_description,
     get_issue_type,
@@ -19,6 +20,7 @@ from .ops import (
     migrate_issue,
     remove_from_sprint,
     search_issues,
+    set_acceptance_criteria,
     set_priority,
     set_sprint,
     set_status,
@@ -91,6 +93,12 @@ class JiraClient:
             self.priority,
             self.epic_field,
         )
+
+    def get_acceptance_criteria(self, issue_key):
+        return get_acceptance_criteria(self._request, issue_key)
+
+    def set_acceptance_criteria(self, issue_key, acceptance_criteria):
+        return set_acceptance_criteria(self._request, issue_key, acceptance_criteria)
 
     def get_description(self, issue_key):
         return get_description(self._request, issue_key)

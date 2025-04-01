@@ -3,7 +3,11 @@ import os
 import sys
 from pathlib import Path
 
-from commands import (
+from jira.client import JiraClient
+from jira.jira_prompts import JiraPromptLibrary
+from providers import get_ai_provider
+
+from commands import (  # isort: skip
     _try_cleanup,
     add_comment,
     add_sprint,
@@ -28,9 +32,6 @@ from commands import (
     validate_issue,
     vote_story_points,
 )
-from jira.client import JiraClient
-from jira.jira_prompts import JiraPromptLibrary
-from providers import get_ai_provider
 
 
 class JiraCLI:

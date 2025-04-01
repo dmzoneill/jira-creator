@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from jira_creator.commands.lint_all import print_status_table
 from jira_creator.rh_jira import JiraCLI
 
 
@@ -9,6 +10,39 @@ from jira_creator.rh_jira import JiraCLI
 class Args:
     project = "TestProject"  # Add the required 'project' attribute
     component = "analytics-hcc-service"
+
+
+# Unit test for the print_status_table
+@pytest.mark.timeout(1)
+def test_print_status_table_with_wrapping(capsys):
+    # Prepare the mock data
+    failure_statuses = [
+        {
+            "key": "AAP-1",
+            "summary": "This is a test summary that exceeds 120 characters to check the wrapping functionality of the print function. It should not split in the middle of a word.",
+            "progress": True,
+        },
+        {"key": "AAP-2", "summary": "This summary is short.", "progress": False},
+        {"key": "AAP-3", "summary": "This summary is short.", "progress": None},
+    ]
+
+    # Call the function with the mock data
+    print_status_table(failure_statuses)
+
+    # Capture the output
+    captured = capsys.readouterr()
+    # Check if the correct symbols for progress are shown
+    assert "✅" in captured.out  # for the row with progress = True
+    assert "❌" in captured.out  # for the row with progress = False
+
+    # Ensure the correct columns exist in the output (check that the headers contain the expected keys)
+    headers = ["key", "summary", "progress"]
+    for header in headers:
+        assert f"| {header} |" in captured.out  # Check that each header appears
+
+    # Check that the rows have the correct values
+    assert "| ✅" in captured.out  # for AAP-1
+    assert "| ❌" in captured.out  # for AAP-2
 
 
 @pytest.mark.timeout(1)  # Timeout after 1 second for safety
@@ -63,7 +97,7 @@ def test_lint_all_all_pass(capsys):
 
     # Patch validate where it's imported (in the lint_all module, not edit_issue)
     with patch(
-        "jira_creator.rh_jira.lint_all.validate", return_value=[]
+        "jira_creator.rh_jira.lint_all.validate", return_value=[[], []]
     ):  # Correct patch for the validate function used in lint_all
         cli.lint_all(Args())
 
@@ -115,6 +149,7 @@ def test_lint_all_with_failures(capsys):
         {
             "key": "AAP-1",
             "fields": {
+                "key": "AAP-1",
                 "issuetype": {"name": "Story"},
                 "status": {"name": "Refinement"},
             },
@@ -122,6 +157,7 @@ def test_lint_all_with_failures(capsys):
         {
             "key": "AAP-2",
             "fields": {
+                "key": "AAP-2",
                 "issuetype": {"name": "Story"},
                 "status": {"name": "Refinement"},
             },
@@ -149,7 +185,7 @@ def test_lint_all_with_failures(capsys):
     # Patch validate to return problems
     with patch(
         "jira_creator.rh_jira.lint_all.validate",
-        return_value=["❌ Issue has no assigned Epic"],
+        return_value=[["❌ Issue has no assigned Epic"], []],
     ):
         cli.lint_all(Args())
 

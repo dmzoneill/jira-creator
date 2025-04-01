@@ -1,0 +1,61 @@
+from argparse import Namespace
+from unittest.mock import MagicMock
+
+from jira_creator.rh_jira import JiraCLI
+
+
+def test_set_acceptance_criteria(capsys):
+    # Create an instance of JiraCLI
+    cli = JiraCLI()
+
+    # Mock the JiraClient used within JiraCLI
+    cli.jira = MagicMock()
+
+    issue_key = "AAP-100"
+    acceptance_criteria = "Acceptance criteria description"
+
+    # Simulate the GET and PUT responses for the JiraClient's _request method
+    cli.jira._request.side_effect = [
+        {
+            "fields": {"customfield_12315940": "Acceptance criteria description"}
+        },  # GET response with 'fields'
+        {},  # PUT response (successful)
+    ]
+
+    # Simulate args being passed from the parser
+    args = Namespace(issue_key=issue_key, acceptance_criteria=acceptance_criteria)
+
+    # Call the set_acceptance_criteria method of JiraCLI, which should internally call the JiraClient
+    cli.set_acceptance_criteria(args)
+
+    # Capture the output
+    out = capsys.readouterr().out
+
+    # Assert that the correct output was printed
+    assert "✅ Acceptance criteria set to 'Acceptance criteria description'" in out
+
+
+def test_set_acceptance_criteria_exception(capsys):
+    # Create an instance of JiraCLI
+    cli = JiraCLI()
+
+    # Mock the JiraClient used within JiraCLI
+    cli.jira = MagicMock()
+
+    issue_key = "AAP-100"
+    acceptance_criteria = "Acceptance criteria description"
+
+    # Simulate the exception being raised by the set_acceptance_criteria method
+    cli.jira.set_acceptance_criteria.side_effect = Exception("Some error occurred")
+
+    # Simulate args being passed from the parser
+    args = Namespace(issue_key=issue_key, acceptance_criteria=acceptance_criteria)
+
+    # Call the set_acceptance_criteria method of JiraCLI, which should internally call the JiraClient
+    cli.set_acceptance_criteria(args)
+
+    # Capture the output
+    out = capsys.readouterr().out
+
+    # Assert that the correct error message was printed
+    assert "❌ Failed to set acceptance criteria: Some error occurred" in out

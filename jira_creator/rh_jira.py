@@ -19,6 +19,7 @@ from commands import (
     migrate,
     remove_sprint,
     search,
+    set_acceptance_criteria,
     set_priority,
     set_status,
     set_story_points,
@@ -119,6 +120,12 @@ class JiraCLI:
         set_status.add_argument("issue_key")
         set_status.add_argument("status")
 
+        set_acceptance_criteria = add(
+            "set-acceptance-criteria", "Set issue acceptance criteria"
+        )
+        set_acceptance_criteria.add_argument("issue_key")
+        set_acceptance_criteria.add_argument("acceptance_criteria")
+
         add_sprint = add("add-sprint", "Add issue to sprint by name")
         add_sprint.add_argument("issue_key")
         add_sprint.add_argument("sprint_name")
@@ -214,6 +221,9 @@ class JiraCLI:
 
     def set_status(self, args):
         set_status.handle(self.jira, args)
+
+    def set_acceptance_criteria(self, args):
+        set_acceptance_criteria.handle(self.jira, args)
 
     def vote_story_points(self, args):
         vote_story_points.handle(self.jira, args)

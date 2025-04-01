@@ -33,10 +33,12 @@ keyring = "*"
 poetry-plugin-export = "*"
 poetry = "*"
 bumpver = "*"
+pytest-timeout = "*"
 
 [dev-packages]
 coverage = "*"
 pytest = "*"
+pytest-timeout = "*"
 pytest-mock = "*"
 autopep8 = "*"
 black = "*"

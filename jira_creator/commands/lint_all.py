@@ -15,8 +15,17 @@ def handle(jira, ai_provider, args):
             key = issue["key"]
             full_issue = jira._request("GET", f"/rest/api/2/issue/{key}")
             fields = full_issue["fields"]
+            fields["key"] = issue["key"]
             summary = fields["summary"]
+
+            # Debugging: Check if validate is being called and its type
+            print(f"Debug: validate function type: {type(validate)}")
+            print(f"Debug: Fields being passed to validate: {fields}")
+
             problems = validate(fields, ai_provider)
+
+            # Debugging: Check what validate returns
+            print(f"Debug: Problems returned by validate: {problems}")
 
             if problems:
                 failures[key] = (summary, problems)

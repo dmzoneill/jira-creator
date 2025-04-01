@@ -6,6 +6,7 @@ from .blocked import blocked
 from .build_payload import build_payload
 from .change_issue_type import change_issue_type
 from .create_issue import create_issue
+from .get_acceptance_criteria import get_acceptance_criteria
 from .get_current_user import get_current_user
 from .get_description import get_description
 from .get_issue_type import get_issue_type
@@ -13,6 +14,7 @@ from .list_issues import list_issues
 from .migrate_issue import migrate_issue
 from .remove_from_sprint import remove_from_sprint
 from .search_issues import search_issues
+from .set_acceptance_criteria import set_acceptance_criteria
 from .set_priority import set_priority
 from .set_sprint import set_sprint
 from .set_status import set_status

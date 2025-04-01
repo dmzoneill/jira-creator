@@ -61,6 +61,9 @@ def test_lint_command_success(capsys):
             "customfield_12316544": "",
             "status": {"name": "To Do"},
             "assignee": {"displayName": "dev"},
+            "customfield_12311140": {
+                "name": "Epic Name"
+            },  # Add assigned Epic for a pass
         }
     }
 

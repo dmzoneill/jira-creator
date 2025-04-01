@@ -37,7 +37,7 @@ def list_issues(
     params = {
         "jql": jql,
         "fields": (
-            "summary,status,assignee,priority,"
+            "key,summary,status,assignee,priority,"
             "customfield_12310243,customfield_12310940,customfield_12316543"
         ),
         "maxResults": 200,

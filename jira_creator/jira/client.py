@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 
 import requests
 
-from .ops import (
+from .ops import (  # isort: skip
     add_comment,
     add_to_sprint_by_name,
     assign_issue,

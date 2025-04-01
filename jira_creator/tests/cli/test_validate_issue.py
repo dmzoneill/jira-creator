@@ -50,7 +50,7 @@ def test_acceptance_criteria_no_change_but_invalid(capsys):
     with patch(
         "commands.validate_issue.load_cache", return_value={fields["key"]: cached_data}
     ):
-        problems = validate_issue.handle(fields, ai_provider)
+        problems = validate_issue.handle(fields, ai_provider)[0]
 
         # Assert that the invalid acceptance criteria was detected
         assert (
@@ -92,10 +92,33 @@ def test_acceptance_criteria_validation(capsys):
         "commands.validate_issue.load_cache",
         return_value={fields["key"]: {"acceptance_criteria_hash": "old_hash"}},
     ):
-        problems = validate_issue.handle(fields, ai_provider)
+        problems = validate_issue.handle(fields, ai_provider)[0]
 
         # Assert that the validation message is correct
         assert [] == problems  # Since the AI returns OK, there should be no error
+
+
+def test_no_issue_key_return(capsys):
+    # Create a 'fields' dictionary without an issue key
+    fields = {
+        "summary": "Test Summary",
+        "description": "Test Description",
+        "customfield_12315940": "Acceptance criteria description",  # Acceptance criteria field
+        "customfield_12311140": "Epic Link",
+        "priority": {"name": "High"},
+        "customfield_12310243": 5,
+        "status": {"name": "To Do"},
+    }
+
+    # Simulate the AI provider (no need for specific behavior here)
+    ai_provider = MagicMock()
+
+    # Call the function and assert that problems and issue_status are returned as empty
+    problems, issue_status = validate_issue.handle(fields, ai_provider)
+
+    # Assert that the return is an empty problems list and empty issue_status
+    assert problems == []
+    assert issue_status == {}
 
 
 def test_acceptance_criteria_no_change(capsys):
@@ -124,7 +147,7 @@ def test_acceptance_criteria_no_change(capsys):
     with patch(
         "commands.validate_issue.load_cache", return_value={fields["key"]: cached_data}
     ):
-        problems = validate_issue.handle(fields, ai_provider)
+        problems = validate_issue.handle(fields, ai_provider)[0]
 
         # Check that no new AI suggestion is made since acceptance criteria hasn't changed
         assert [] == problems
@@ -160,7 +183,7 @@ def test_description_no_change_but_invalid(capsys):
     with patch(
         "commands.validate_issue.load_cache", return_value={fields["key"]: cached_data}
     ):
-        problems = validate_issue.handle(fields, ai_provider)
+        problems = validate_issue.handle(fields, ai_provider)[0]
 
         # Assert that the invalid description was detected
         assert (
@@ -191,11 +214,12 @@ def test_story_without_epic_flagged():
     ai_provider.improve_text.return_value = "OK"  # ✅ Mocked correctly
 
     fields = {
+        "key": "AAP-12345",
         "issuetype": {"name": "Story"},
-        "status": {"name": "To Do"},
+        "status": {"name": "In Progress"},
         "summary": "Some summary",
         "description": "Some description",
-        "customfield_10008": None,  # Epic link missing
+        "customfield_12311140": None,  # Epic link missing
         "customfield_12310940": None,
         "priority": {"name": "High"},
         "customfield_12310243": 5,
@@ -204,6 +228,6 @@ def test_story_without_epic_flagged():
         "assignee": {"displayName": "Alice"},
     }
 
-    problems = validate_issue.handle(fields, ai_provider)
+    problems = validate_issue.handle(fields, ai_provider)[0]
 
     assert "❌ Issue has no assigned Epic" in problems

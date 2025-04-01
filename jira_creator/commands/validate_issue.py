@@ -19,10 +19,8 @@ def load_cache():
 def save_cache(data):
     cache_dir = os.path.dirname(CACHE_PATH)
     # Debugging: print the cache directory being used
-    print(f"Debug: Inside save_cache, cache_dir: {cache_dir}")
 
     if not os.path.exists(cache_dir):
-        print(f"Creating directory: {cache_dir}")
         os.makedirs(cache_dir, exist_ok=True)  # Ensure directory exists
 
     with open(CACHE_PATH, "w") as f:
@@ -31,8 +29,13 @@ def save_cache(data):
 
 def handle(fields, ai_provider):
     problems = []
+    issue_status = {}
 
+    # Get the issue key and ensure it exists before proceeding
     issue_key = fields.get("key")
+    if not issue_key:
+        return problems, issue_status  # Return early if no issue key is present
+
     issue_type = fields.get("issuetype", {}).get("name")
     status = fields.get("status", {}).get("name")
     summary = fields.get("summary", "")
@@ -57,6 +60,9 @@ def handle(fields, ai_provider):
     # ✅ Basic validations
     if status == "In Progress" and not fields.get("assignee"):
         problems.append("❌ Issue is In Progress but unassigned")
+        issue_status["Progress"] = False
+    else:
+        issue_status["Progress"] = True
 
     epic_exempt_types = ["Epic"]
     epic_exempt_statuses = ["New", "Refinement"]
@@ -69,18 +75,33 @@ def handle(fields, ai_provider):
         and not epic_link
     ):
         problems.append("❌ Issue has no assigned Epic")
+        issue_status["Epic"] = False
+    else:
+        issue_status["Epic"] = True
 
     if status == "In Progress" and not sprint_field:
         problems.append("❌ Issue is In Progress but not assigned to a Sprint")
+        issue_status["Sprint"] = False
+    else:
+        issue_status["Sprint"] = True
 
     if not priority:
         problems.append("❌ Priority not set")
+        issue_status["Priority"] = False
+    else:
+        issue_status["Priority"] = True
 
     if story_points is None and status not in ["Refinement", "New"]:
         problems.append("❌ Story points not assigned")
+        issue_status["Story P."] = False
+    else:
+        issue_status["Story P."] = True
 
     if blocked_value == "True" and not blocked_reason:
         problems.append("❌ Issue is blocked but has no blocked reason")
+        issue_status["Blocked"] = False
+    else:
+        issue_status["Blocked"] = True
 
     # Validate summary
     if summary:
@@ -91,8 +112,10 @@ def handle(fields, ai_provider):
             )
             if "ok" not in reviewed.lower():
                 problems.append(f"❌ Summary: {reviewed.strip()}")
+                issue_status["Summary"] = False
             else:
                 cached["summary_hash"] = summary_hash
+                issue_status["Summary"] = True
 
     # Validate description
     if description:
@@ -103,9 +126,11 @@ def handle(fields, ai_provider):
             )
             if "ok" not in reviewed.lower():
                 problems.append(f"❌ Description: {reviewed.strip()}")
+                issue_status["Description"] = False
             else:
                 cached["description_hash"] = description_hash
                 cached["last_ai_description"] = reviewed.strip()  # Store AI suggestion
+                issue_status["Description"] = True
 
         elif (
             "last_ai_description" in cached
@@ -113,6 +138,7 @@ def handle(fields, ai_provider):
         ):
             # If the description hasn't changed, use the last AI suggestion only if it's not "OK"
             problems.append(f"❌ Description: {cached['last_ai_description']}")
+            issue_status["Description"] = False
 
     # Validate acceptance criteria
     if acceptance_criteria:
@@ -123,11 +149,13 @@ def handle(fields, ai_provider):
             )
             if "ok" not in reviewed.lower():
                 problems.append(f"❌ Acceptance Criteria: {reviewed.strip()}")
+                issue_status["Acceptance C."] = False
             else:
                 cached["acceptance_criteria_hash"] = acceptance_criteria_hash
                 cached["last_ai_acceptance_criteria"] = (
                     reviewed.strip()
                 )  # Store AI suggestion
+                issue_status["Acceptance C."] = True
 
         elif (
             "last_ai_acceptance_criteria" in cached
@@ -137,9 +165,10 @@ def handle(fields, ai_provider):
             problems.append(
                 f"❌ Acceptance Criteria: {cached['last_ai_acceptance_criteria']}"
             )
+            issue_status["Acceptance C."] = False
 
     # Save cache after processing
     cache[issue_key] = cached
     save_cache(cache)
 
-    return problems
+    return problems, issue_status

@@ -19,7 +19,9 @@ def test_print_status_table_with_wrapping(capsys):
     failure_statuses = [
         {
             "key": "AAP-1",
-            "summary": "This is a test summary that exceeds 120 characters to check the wrapping functionality of the print function. It should not split in the middle of a word.",
+            "summary": """This is a test summary that exceeds 120 characters
+            to check the wrapping functionality of the print function. It should
+            not split in the middle of a word.""",
             "progress": True,
         },
         {"key": "AAP-2", "summary": "This summary is short.", "progress": False},

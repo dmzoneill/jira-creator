@@ -107,7 +107,9 @@ def handle(fields, ai_provider):
     if summary:
         if summary_hash != cached.get("summary_hash"):
             reviewed = ai_provider.improve_text(
-                "Check the quality of the following Jira summary. Is it clear, concise, and informative? Respond with 'OK' if fine or explain why not.",
+                """Check the quality of the following Jira summary.
+                Is it clear, concise, and informative?
+                Respond with 'OK' if fine or explain why not.""",
                 summary,
             )
             if "ok" not in reviewed.lower():
@@ -121,7 +123,9 @@ def handle(fields, ai_provider):
     if description:
         if description_hash != cached.get("description_hash"):
             reviewed = ai_provider.improve_text(
-                "Check the quality of the following Jira description. Is it well-structured, informative, and helpful? Respond with 'OK' if fine or explain why not.",
+                """Check the quality of the following Jira description.
+                Is it well-structured, informative, and helpful?
+                Respond with 'OK' if fine or explain why not.""",
                 description,
             )
             if "ok" not in reviewed.lower():
@@ -144,7 +148,8 @@ def handle(fields, ai_provider):
     if acceptance_criteria:
         if acceptance_criteria_hash != cached.get("acceptance_criteria_hash"):
             reviewed = ai_provider.improve_text(
-                "Check the quality of the following Jira acceptance criteria. Is it clear, concise, and actionable? Respond with 'OK' if fine or explain why not.",
+                """Check the quality of the following Jira acceptance criteria.
+                Is it clear, concise, and actionable? Respond with 'OK' if fine or explain why not.""",
                 acceptance_criteria,
             )
             if "ok" not in reviewed.lower():

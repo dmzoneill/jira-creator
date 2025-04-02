@@ -37,13 +37,9 @@ def handle(jira, args):
                 and args.summary.lower() not in f.get("summary", "").lower()
             ):
                 continue
-            if args.blocked and "True" != f.get("customfield_12316543", {}).get(
-                "value"
-            ):
+            if args.blocked and f.get("customfield_12316543", {}):
                 continue
-            if args.unblocked and "True" == f.get("customfield_12316543", {}).get(
-                "value"
-            ):
+            if args.unblocked and f.get("customfield_12316543", {}) == False:
                 continue
 
             rows.append(
@@ -69,6 +65,9 @@ def handle(jira, args):
             "Sprint",
             "Summary",
         ]
+
+        print(rows)
+
         widths = [
             max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
         ]

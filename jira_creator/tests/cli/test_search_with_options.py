@@ -72,7 +72,26 @@ def test_search_no_issues(mock_cli):
         captured_output = mock_stdout.getvalue()
 
         # Verify that no issues found message is printed
-        assert "No issues found for the given JQL." in captured_output
+        assert "❌ No issues found for the given JQL." in captured_output
+
+
+def test_search_with_exception(mock_cli):
+    # Mock search_issues to raise an exception
+    mock_cli.jira.search_issues = MagicMock(side_effect=Exception("An error occurred"))
+
+    # Prepare the args object to simulate CLI arguments
+    class Args:
+        jql = "project = AAP AND status = 'NonExistentStatus'"
+
+    # Mock stdout to capture printed output
+    with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+        mock_cli.search(Args())
+
+        # Capture the printed output
+        captured_output = mock_stdout.getvalue()
+
+        # Verify that the error message is printed
+        assert "❌ Failed to search issues: An error occurred" in captured_output
 
 
 def test_list_with_summary_filter(mock_cli, capsys):

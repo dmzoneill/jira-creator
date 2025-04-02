@@ -243,8 +243,11 @@ def generate_readme(cli_script, output_readme):
     ### 🧠 DeepSeek
 
     ```bash
+    mkdir -vp ~/.ollama-models
+    docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
+    docker compose exec ollama ollama pull deepseek-r1:7b
     export AI_PROVIDER=deepseek
-    export DEEPSEEK_URL=http://localhost:8000/deepseek
+    export DEEPSEEK_URL=http://localhost:11434/api/generate
     ```
 
     ### 🪫 Noop

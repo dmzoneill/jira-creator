@@ -23,7 +23,7 @@ class OpenAIProvider:
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": text},
             ],
-            "temperature": 0.3,
+            "temperature": 0.8,
         }
 
         response = requests.post(self.endpoint, json=body, headers=headers, timeout=30)

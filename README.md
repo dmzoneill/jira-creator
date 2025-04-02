@@ -11,9 +11,7 @@ Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardi
 
 ## ⚡ Quick Start (Under 30 Seconds)
 
-### 🔧 Step 1. Create Your Config File and Enable Autocomplete
-
-Autocomplete enables you to quickly and efficiently use the JIRA command-line tool. Follow the below commands to set up autocomplete:
+### 1️⃣ Create your config file and enable autocomplete
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -34,27 +32,26 @@ EOF
 
 source ~/.bashrc.d/jira.sh
 ```
+This sets up the environment for our tool. Replace the values with your own.
 
 ---
 
-### 🔗 Step 2. Link the Command-Line Tool Wrapper
-
-This creates a symbolic link to the command-line tool wrapper, allowing you to use the tool from any location:
+### 2️⃣ Link the command-line tool wrapper
 
 ```bash
 chmod +x jira_creator/rh-issue-wrapper.sh
 sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
+This makes the rh-issue command globally accessible.
 
 ---
 
-### 🏃‍♀️ Step 3. Run It
-
-Here's how to create a story issue:
+### 3️⃣ Run it
 
 ```bash
 rh-issue create story "Improve onboarding experience"
 ```
+This creates a JIRA story with a given title.
 
 ---
 
@@ -62,135 +59,131 @@ rh-issue create story "Improve onboarding experience"
 
 ### 🆕 Create Issues
 
-You can use the `create` command to make various kinds of issues:
-
 ```bash
 rh-issue create bug "Fix login crash"
 rh-issue create story "Refactor onboarding flow"
 rh-issue create epic "Unify frontend UI" --edit
 rh-issue create spike "Evaluate GraphQL support" --dry-run
 ```
+Create a variety of issue types including bugs, stories, epics, and spikes. Use `--edit` to use your `$EDITOR`, and `--dry-run` to print the payload without creating the issue.
 
-The `--edit` flag opens the issue's description in your `$EDITOR` for editing, and `--dry-run` prints the payload without creating the issue.
-
-### 🔀 Change Issue Type
-
-You can alter the type of an existing issue with the `change` command:
+### 🔁 Change Issue Type
 
 ```bash
 rh-issue change AAP-12345 story
 ```
+This changes the issue type to a story for the issue with the id `AAP-12345`.
 
-### ➡️ Migrate Issue
-
-The `migrate` command allows you to move an issue to a different type:
+### 🔀 Migrate Issue
 
 ```bash
 rh-issue migrate AAP-54321 story
 ```
+This migrates the issue with the id `AAP-54321` to a story.
 
 ### ✏️ Edit Description
-
-Use the `edit` command to modify the description of an issue:
 
 ```bash
 rh-issue edit AAP-98765
 rh-issue edit AAP-98765 --no-ai
 ```
-
-The `--no-ai` flag lets you edit without AI assistance.
+This edits the description of issue `AAP-98765` using AI or without AI if `--no-ai` is used.
 
 ### 🧍 Unassign Issue
-
-The `unassign` command removes the current assignee from an issue:
 
 ```bash
 rh-issue unassign AAP-12345
 ```
+This unassigns the issue with the id `AAP-12345`.
 
 ### 📋 List Issues
-
-The `list` command shows all issues, with optional filtering:
 
 ```bash
 rh-issue list
 rh-issue list --project AAP --component api --user jdoe
 ```
+These commands list all issues or issues filtered by project, component, and user.
 
 ### 🏷️ Set Priority
-
-Use the `set-priority` command to change the priority of an issue:
 
 ```bash
 rh-issue set-priority AAP-123 High
 ```
+This sets the priority of issue `AAP-123` to high.
 
 ### 📅 Sprint Management
-
-The `set-sprint`, `remove-sprint`, and `add-sprint` commands help manage sprints:
 
 ```bash
 rh-issue set-sprint AAP-456 1234
 rh-issue remove-sprint AAP-456
 rh-issue add-sprint AAP-456 "Sprint 33"
 ```
+These commands manage sprints of an issue `AAP-456`.
 
 ### 🚦 Set Status
-
-The `set-status` command changes the status of an issue:
 
 ```bash
 rh-issue set-status AAP-123 "In Progress"
 ```
+This sets the status of issue `AAP-123` to "In Progress".
 
 ---
 
 ## 🤖 AI Provider Support
 
-You can plug in different AI providers by setting `AI_PROVIDER`. Here are some examples:
+You can plug in different AI providers by setting `AI_PROVIDER`.
 
-- OpenAI:
+### ✅ OpenAI
 
 ```bash
 export AI_PROVIDER=openai
 export OPENAI_API_KEY=sk-...
 export OPENAI_MODEL=gpt-4  # Optional
 ```
+This sets up OpenAI as the AI provider.
 
-- GPT4All:
+### 🖥 GPT4All
 
 ```bash
 pip install gpt4all
 export AI_PROVIDER=gpt4all
 ```
+This sets up GPT4All as the AI provider.
 
-- InstructLab:
+### 🧪 InstructLab
 
 ```bash
 export AI_PROVIDER=instructlab
 export INSTRUCTLAB_URL=http://localhost:11434/api/generate
 export INSTRUCTLAB_MODEL=instructlab
 ```
+This sets up InstructLab as the AI provider.
 
-- BART:
+### 🧠 BART
 
 ```bash
 export AI_PROVIDER=bart
 export BART_URL=http://localhost:8000/bart
 ```
+This sets up BART as the AI provider.
 
-- DeepSeek:
+### 🧠 DeepSeek
 
 ```bash
+mkdir -vp ~/.ollama-models
+docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
+docker compose exec ollama ollama pull deepseek-r1:7b
 export AI_PROVIDER=deepseek
-export DEEPSEEK_URL=http://localhost:8000/deepseek
+export DEEPSEEK_URL=http://localhost:11434/api/generate
 ```
+This sets up DeepSeek as the AI provider.
 
-- Noop:
+### 🪫 Noop
 
 ```bash
 export AI_PROVIDER=noop
 ```
+This sets up Noop as the AI provider.
 
 ---
 
@@ -199,6 +192,7 @@ export AI_PROVIDER=noop
 ```bash
 pipenv install --dev
 ```
+This sets up the development environment.
 
 ### Testing & Linting
 
@@ -207,6 +201,7 @@ make test
 make lint
 make format  # auto-fix formatting
 ```
+These commands are for testing, linting, and formatting.
 
 ---
 

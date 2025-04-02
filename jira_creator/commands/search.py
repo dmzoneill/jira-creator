@@ -6,11 +6,8 @@ def handle(jira, args):
         jql = args.jql
         issues = jira.search_issues(jql)
 
-        if issues is None:
-            print("❌ No issues found. The search returned None.")
-            return
-        if not issues:
-            print("No issues found for the given JQL.")
+        if issues is None or len(issues) == 0:
+            print("❌ No issues found for the given JQL.")
             return
 
         rows = []

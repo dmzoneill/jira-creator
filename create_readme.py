@@ -105,7 +105,8 @@ def generate_readme(cli_script, output_readme):
     cat <<EOF > ~/.bashrc.d/jira.sh
     export JPAT="your_jira_personal_access_token"
     export AI_PROVIDER=openai
-    export OPENAI_API_KEY=sk-...
+    export AI_API_KEY=sk-...
+    export AI_MODEL="gpt-4o-mini"
     export JIRA_URL="https://issues.redhat.com"
     export PROJECT_KEY="AAP"
     export AFFECTS_VERSION="aa-latest"
@@ -210,12 +211,37 @@ def generate_readme(cli_script, output_readme):
 
     You can plug in different AI providers by setting `AI_PROVIDER`.
 
+    We can use ollama for the management for differnet models
+
+    ```bash
+    mkdir -vp ~/.ollama-models
+    docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
+    ```
+
     ### ✅ OpenAI
 
     ```bash
     export AI_PROVIDER=openai
-    export OPENAI_API_KEY=sk-...
-    export OPENAI_MODEL=gpt-4  # Optional
+    export AI_API_KEY=sk-...
+    export AI_MODEL=gpt-4  # Optional
+    ```
+
+    ### 🦙 LLama3
+
+    ```bash
+    docker compose exec ollama ollama pull LLama3
+    export AI_PROVIDER=LLama3
+    export AI_URL=http://localhost:11434/api/generate
+    export AI_MODEL=LLama3
+    ```
+
+    ### 🧠 DeepSeek
+
+    ```bash
+    docker compose exec ollama ollama pull deepseek-r1:7b
+    export AI_PROVIDER=deepseek
+    export AI_URL=http://localhost:11434/api/generate
+    export AI_MODEL=http://localhost:11434/api/generate
     ```
 
     ### 🖥 GPT4All
@@ -223,31 +249,24 @@ def generate_readme(cli_script, output_readme):
     ```bash
     pip install gpt4all
     export AI_PROVIDER=gpt4all
+    # WIP
     ```
 
     ### 🧪 InstructLab
 
     ```bash
     export AI_PROVIDER=instructlab
-    export INSTRUCTLAB_URL=http://localhost:11434/api/generate
-    export INSTRUCTLAB_MODEL=instructlab
+    export AI_URL=http://localhost:11434/api/generate
+    export AI_MODEL=instructlab
+    # WIP
     ```
 
     ### 🧠 BART
 
     ```bash
     export AI_PROVIDER=bart
-    export BART_URL=http://localhost:8000/bart
-    ```
-
-    ### 🧠 DeepSeek
-
-    ```bash
-    mkdir -vp ~/.ollama-models
-    docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
-    docker compose exec ollama ollama pull deepseek-r1:7b
-    export AI_PROVIDER=deepseek
-    export DEEPSEEK_URL=http://localhost:11434/api/generate
+    export AI_URL=http://localhost:8000/bart
+    # WIP
     ```
 
     ### 🪫 Noop

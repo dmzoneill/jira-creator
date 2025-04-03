@@ -10,7 +10,7 @@ def cli():
     return JiraCLI()
 
 
-def test_set_story_points_success(monkeypatch, cli):
+def test_set_story_points_success(cli):
     mock_set_story_points = MagicMock()
     cli.jira = MagicMock(set_story_points=mock_set_story_points)
 
@@ -22,7 +22,7 @@ def test_set_story_points_success(monkeypatch, cli):
     mock_set_story_points.assert_called_once_with("AAP-12345", 5)
 
 
-def test_set_story_points_failure(monkeypatch, cli, capsys):
+def test_set_story_points_failure(cli, capsys):
     def boom(issue_key, points):
         raise Exception("fake failure")
 

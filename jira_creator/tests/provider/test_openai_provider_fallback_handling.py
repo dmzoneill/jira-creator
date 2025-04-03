@@ -2,7 +2,7 @@ import requests
 from providers.openai_provider import OpenAIProvider
 
 
-def test_openai_response_handling(monkeypatch):
+def test_openai_response_handling():
     mock = type(
         "Response",
         (),

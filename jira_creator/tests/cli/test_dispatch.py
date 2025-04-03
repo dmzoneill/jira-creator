@@ -1,7 +1,7 @@
 from jira_creator.rh_jira import JiraCLI
 
 
-def test_dispatch_unknown_command(monkeypatch):
+def test_dispatch_unknown_command():
     cli = JiraCLI()
 
     class DummyArgs:

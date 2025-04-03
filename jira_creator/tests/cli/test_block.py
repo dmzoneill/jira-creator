@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from jira_creator.rh_jira import JiraCLI
 
 
-def test_block_command(monkeypatch, capsys):
+def test_block_command(capsys):
     cli = JiraCLI()
     cli.jira = MagicMock()
 
@@ -29,7 +29,7 @@ def test_block_command(monkeypatch, capsys):
     }
 
 
-def test_block_command_exception(monkeypatch, capsys):
+def test_block_command_exception(capsys):
     cli = JiraCLI()
     cli.jira = MagicMock()
 

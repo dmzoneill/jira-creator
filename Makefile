@@ -50,7 +50,7 @@ test-setup:
 	echo "AFFECTS_VERSION=aa-latest" >> $$GITHUB_ENV
 	echo "COMPONENT_NAME=analytics-hcc-service" >> $$GITHUB_ENV
 	echo "PRIORITY=Normal" >> $$GITHUB_ENV
-	echo "OPENAI_API_KEY=NOT_A_SECRET" >> $$GITHUB_ENV
+	echo "AI_API_KEY=NOT_A_SECRET" >> $$GITHUB_ENV
 	echo "JIRA_BOARD_ID=21125" >> $$GITHUB_ENV
 
 .PHONY: test

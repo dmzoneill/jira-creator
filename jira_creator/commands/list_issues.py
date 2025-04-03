@@ -66,8 +66,6 @@ def handle(jira, args):
             "Summary",
         ]
 
-        print(rows)
-
         widths = [
             max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
         ]

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from jira_creator.rh_jira import JiraCLI
 
 
-def test_add_sprint(monkeypatch):
+def test_add_sprint():
     cli = JiraCLI()
     cli.jira.add_to_sprint_by_name = MagicMock()
 
@@ -15,7 +15,7 @@ def test_add_sprint(monkeypatch):
     cli.jira.add_to_sprint_by_name.assert_called_once()
 
 
-def test_remove_sprint(monkeypatch):
+def test_remove_sprint():
     cli = JiraCLI()
     cli.jira.remove_from_sprint = MagicMock()
 

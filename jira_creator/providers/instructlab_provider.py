@@ -5,8 +5,8 @@ import requests
 
 class InstructLabProvider:
     def __init__(self):
-        self.url = os.getenv("INSTRUCTLAB_URL", "http://localhost:11434/api/generate")
-        self.model = os.getenv("INSTRUCTLAB_MODEL", "instructlab")
+        self.url = os.getenv("AI_URL", "http://localhost:11434/api/generate")
+        self.model = os.getenv("AI_MODEL", "instructlab")
 
     def improve_text(self, prompt: str, text: str) -> str:
         full_prompt = f"{prompt}\n\n{text}"

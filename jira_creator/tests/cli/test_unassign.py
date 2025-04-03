@@ -1,7 +1,7 @@
 from jira_creator.rh_jira import JiraCLI
 
 
-def test_unassign_success(monkeypatch, capsys):
+def test_unassign_success(capsys):
     cli = JiraCLI()
     cli.jira.unassign_issue = lambda k: True
 
@@ -13,7 +13,7 @@ def test_unassign_success(monkeypatch, capsys):
     assert "✅" in out
 
 
-def test_unassign_failure(monkeypatch, capsys):
+def test_unassign_failure(capsys):
     cli = JiraCLI()
     cli.jira.unassign_issue = lambda k: False
 

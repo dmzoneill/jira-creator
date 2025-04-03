@@ -6,7 +6,7 @@ import requests
 class BARTProvider:
     def __init__(self):
         # Default to local endpoint or override with env var
-        self.url = os.getenv("BART_URL", "http://localhost:8000/bart")
+        self.url = os.getenv("AI_URL", "http://localhost:8000/bart")
         self.headers = {"Content-Type": "application/json"}
 
     def improve_text(self, prompt: str, text: str) -> str:

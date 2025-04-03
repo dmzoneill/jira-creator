@@ -1,28 +1,23 @@
 from unittest.mock import MagicMock, patch
-
 import pytest
 from providers.instructlab_provider import InstructLabProvider
 
 
-def test_instructlab_provider_init_defaults(monkeypatch):
-    monkeypatch.delenv("INSTRUCTLAB_URL", raising=False)
-    monkeypatch.delenv("INSTRUCTLAB_MODEL", raising=False)
-
-    provider = InstructLabProvider()
-    assert provider.url == "http://localhost:11434/api/generate"
-    assert provider.model == "instructlab"
+def test_instructlab_provider_init_defaults():
+    with patch.dict("os.environ", {}, clear=True):  # Clear any existing environment variables
+        provider = InstructLabProvider()
+        assert provider.url == "http://localhost:11434/api/generate"
+        assert provider.model == "instructlab"
 
 
-def test_instructlab_provider_init_env(monkeypatch):
-    monkeypatch.setenv("INSTRUCTLAB_URL", "http://custom-url")
-    monkeypatch.setenv("INSTRUCTLAB_MODEL", "custom-model")
-
-    provider = InstructLabProvider()
-    assert provider.url == "http://custom-url"
-    assert provider.model == "custom-model"
+def test_instructlab_provider_init_env():
+    with patch.dict("os.environ", {"AI_URL": "http://custom-url", "AI_MODEL": "custom-model"}):
+        provider = InstructLabProvider()
+        assert provider.url == "http://custom-url"
+        assert provider.model == "custom-model"
 
 
-def test_improve_text_success(monkeypatch):
+def test_improve_text_success():
     provider = InstructLabProvider()
 
     mock_response = MagicMock()
@@ -39,7 +34,7 @@ def test_improve_text_success(monkeypatch):
     assert "Prompt\n\nInput text" in mock_post.call_args[1]["json"]["prompt"]
 
 
-def test_improve_text_failure(monkeypatch):
+def test_improve_text_failure():
     provider = InstructLabProvider()
 
     mock_response = MagicMock()

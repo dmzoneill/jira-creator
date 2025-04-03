@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from jira_creator.rh_jira import JiraCLI
 
 
-def test_unblock_command_success(monkeypatch, capsys):
+def test_unblock_command_success(capsys):
     cli = JiraCLI()
     cli.jira = MagicMock()
 
@@ -24,7 +24,7 @@ def test_unblock_command_success(monkeypatch, capsys):
     assert called["issue_key"] == "AAP-123"
 
 
-def test_unblock_command_failure(monkeypatch, capsys):
+def test_unblock_command_failure(capsys):
     cli = JiraCLI()
 
     def raise_exception(issue_key):

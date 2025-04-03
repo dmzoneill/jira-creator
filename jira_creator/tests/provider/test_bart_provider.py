@@ -1,14 +1,13 @@
 from unittest.mock import MagicMock, patch
-
 import pytest
 from providers.bart_provider import BARTProvider
 
 
-def test_bart_provider_init(monkeypatch):
-    monkeypatch.setenv("BART_URL", "http://test-bart-url")
-    provider = BARTProvider()
-    assert provider.url == "http://test-bart-url"
-    assert provider.headers == {"Content-Type": "application/json"}
+def test_bart_provider_init():
+    with patch.dict("os.environ", {"AI_URL": "http://test-bart-url"}):
+        provider = BARTProvider()
+        assert provider.url == "http://test-bart-url"
+        assert provider.headers == {"Content-Type": "application/json"}
 
 
 @patch("providers.bart_provider.requests.post")

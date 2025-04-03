@@ -1,7 +1,8 @@
+from unittest.mock import patch
+
+import pytest
 from providers import get_ai_provider
 from providers.noop_provider import NoAIProvider
-import pytest
-from unittest.mock import patch
 
 
 def test_get_ai_provider_openai():
@@ -24,7 +25,9 @@ def test_get_ai_provider_instructlab():
         def __init__(self):
             raise Exception("💥 boom")
 
-    with patch("providers.instructlab_provider.InstructLabProvider", FailingInstructLab):
+    with patch(
+        "providers.instructlab_provider.InstructLabProvider", FailingInstructLab
+    ):
         provider = get_ai_provider("instructlab")
         assert isinstance(provider, NoAIProvider)
 

@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+
 import pytest
 import requests
 from providers.openai_provider import OpenAIProvider
@@ -28,6 +29,7 @@ def test_openai_provider_raises_without_api_key():
             EnvironmentError, match="AI_API_KEY not set in environment."
         ):
             OpenAIProvider()  # This should raise an EnvironmentError
+
 
 def test_improve_text_raises_on_api_failure():
     provider = OpenAIProvider()

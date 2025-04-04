@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 
 from commands.validate_issue import handle as validate
-from jira.jira_prompts import JiraIssueType, JiraPromptLibrary
+from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
 
 
 def handle(jira, ai_provider, default_prompt, try_cleanup_fn, args):
@@ -28,6 +28,7 @@ def handle(jira, ai_provider, default_prompt, try_cleanup_fn, args):
         )
     except Exception:
         prompt = default_prompt
+
     print("Prompt retrieved.")
 
     cleaned = edited if args.no_ai else try_cleanup_fn(ai_provider, prompt, edited)

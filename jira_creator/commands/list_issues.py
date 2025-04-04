@@ -3,11 +3,18 @@ import re
 
 def handle(jira, args):
     try:
-        issues = jira.list_issues(
-            project=args.project,
-            component=args.component,
-            assignee=args.user,
-        )
+        if args.reporter:
+            issues = jira.list_issues(
+                project=args.project,
+                component=args.component,
+                reporter=args.reporter,
+            )
+        else:
+            issues = jira.list_issues(
+                project=args.project,
+                component=args.component,
+                assignee=args.user,
+            )
 
         if not issues:
             print("No issues found.")
@@ -39,7 +46,7 @@ def handle(jira, args):
                 continue
             if args.blocked and f.get("customfield_12316543", {}):
                 continue
-            if args.unblocked and f.get("customfield_12316543", {}) == False:
+            if args.unblocked and f.get("customfield_12316543", {}) is False:
                 continue
 
             rows.append(

@@ -3,9 +3,9 @@ import os
 import sys
 from pathlib import Path
 
-from jira.client import JiraClient
-from jira.jira_prompts import JiraPromptLibrary
 from providers import get_ai_provider
+from rest.client import JiraClient
+from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
 
 from commands import (  # isort: skip
     _try_cleanup,
@@ -20,16 +20,19 @@ from commands import (  # isort: skip
     lint,
     lint_all,
     list_issues,
+    open_issue,
     migrate,
     remove_sprint,
     search,
     set_acceptance_criteria,
     set_priority,
     set_status,
+    set_story_epic,
     set_story_points,
     unassign,
     unblock,
     validate_issue,
+    view_issue,
     vote_story_points,
 )
 
@@ -43,8 +46,8 @@ class JiraCLI:
         )
         self.jira = JiraClient()
         self.ai_provider = get_ai_provider(os.getenv("AI_PROVIDER", "openai"))
-        self.default_prompt = JiraPromptLibrary.get_prompt("default")
-        self.comment_prompt = JiraPromptLibrary.get_prompt("comment")
+        self.default_prompt = JiraPromptLibrary.get_prompt(JiraIssueType["DEFAULT"])
+        self.comment_prompt = JiraPromptLibrary.get_prompt(JiraIssueType["COMMENT"])
 
     def run(self):
         import argparse
@@ -92,6 +95,9 @@ class JiraCLI:
             action="store_true",
             help="Show blocked reason field in listing",
         )
+        list_issues.add_argument(
+            "--reporter", help="Filter by JIRA issues reporter by you"
+        )
 
         search = add("search", "Search issues via JQL")
         search.add_argument("jql", help="JIRA Query Language expression")
@@ -116,6 +122,10 @@ class JiraCLI:
         set_priority = add("set-priority", "Set issue priority")
         set_priority.add_argument("issue_key")
         set_priority.add_argument("priority")
+
+        set_story_epic = add("set-story-epic", "Set stories epic")
+        set_story_epic.add_argument("issue_key")
+        set_story_epic.add_argument("epic_key")
 
         set_status = add("set-status", "Set issue status")
         set_status.add_argument("issue_key")
@@ -173,12 +183,26 @@ class JiraCLI:
         lint_all = add("lint-all", "Lint all issues assigned to you")
         lint_all.add_argument("--project", help="Project key override")
         lint_all.add_argument("--component", help="Component filter")
+        lint_all.add_argument("--assignee", help="Assignee filter")
+        lint_all.add_argument("--reporter", help="Reporter filter")
+
+        open_issue = add("open-issue", "Open issue in the browser")
+        open_issue.add_argument("issue_key")
+
+        view_issue = add("view-issue", "View issue in the console")
+        view_issue.add_argument("issue_key")
 
     def _dispatch_command(self, args):
         try:
             getattr(self, args.command.replace("-", "_"))(args)
         except Exception as e:
             print(f"❌ Command failed: {e}")
+
+    def open_issue(self, args):
+        open_issue.handle(args)
+
+    def view_issue(self, args):
+        view_issue.handle(self.jira, args)
 
     def add_comment(self, args):
         add_comment.handle(self.jira, self.ai_provider, self.default_prompt, args)
@@ -213,6 +237,9 @@ class JiraCLI:
 
     def set_priority(self, args):
         set_priority.handle(self.jira, args)
+
+    def set_story_epic(self, args):
+        set_story_epic.handle(self.jira, args)
 
     def remove_sprint(self, args):
         remove_sprint.handle(self.jira, args)

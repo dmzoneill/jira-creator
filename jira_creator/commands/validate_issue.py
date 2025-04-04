@@ -157,9 +157,9 @@ def handle(fields, ai_provider):
                 issue_status["Acceptance C."] = False
             else:
                 cached["acceptance_criteria_hash"] = acceptance_criteria_hash
-                cached[
-                    "last_ai_acceptance_criteria"
-                ] = reviewed.strip()  # Store AI suggestion
+                cached["last_ai_acceptance_criteria"] = (
+                    reviewed.strip()
+                )  # Store AI suggestion
                 issue_status["Acceptance C."] = True
 
         elif (

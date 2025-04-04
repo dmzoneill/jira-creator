@@ -4,7 +4,7 @@ import subprocess
 import sys
 import tempfile
 
-from jira.jira_prompts import JiraIssueType, JiraPromptLibrary
+from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
 from templates.template_loader import TemplateLoader
 
 
@@ -34,12 +34,8 @@ def handle(jira, ai_provider, default_prompt, template_dir, args):
             tmp.seek(0)
             description = tmp.read()
 
-    try:
-        enum_type = JiraIssueType(args.type.lower())
-        prompt = JiraPromptLibrary.get_prompt(enum_type)
-    except ValueError:
-        print(f"⚠️ Unknown issue type '{args.type}'. Using default prompt.")
-        prompt = default_prompt
+    enum_type = JiraIssueType[args.type.upper()]
+    prompt = JiraPromptLibrary.get_prompt(enum_type)
 
     try:
         description = ai_provider.improve_text(prompt, description)

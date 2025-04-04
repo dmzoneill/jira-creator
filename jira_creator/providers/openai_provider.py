@@ -26,7 +26,7 @@ class OpenAIProvider:
             "temperature": 0.8,
         }
 
-        response = requests.post(self.endpoint, json=body, headers=headers, timeout=30)
+        response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
 

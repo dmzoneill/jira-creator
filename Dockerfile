@@ -1,18 +1,19 @@
+# hadolint global ignore=DL3041,DL3013,DL3059,DL3040
 # Stage 1: Build Environment
 FROM fedora:41
 
 # Install necessary packages
-RUN dnf update -y && \
-    dnf install -y python3 python3.11 python3-pip python3-gobject gtk4 xauth mesa-libGL mesa-dri-drivers which
+RUN dnf update -y
+RUN dnf install -y python3 python3.11 python3-pip python3-gobject gtk4 xauth mesa-libGL mesa-dri-drivers which
 RUN dnf clean all -y
-RUN pip install pipenv
+RUN pip install --no-cache-dir pipenv
 
 # Set user and group IDs
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 ARG USER_NAME=jiracreator
 RUN groupadd -g ${GROUP_ID} ${USER_NAME} && \
-    useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash ${USER_NAME}
+    useradd -l -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash ${USER_NAME}
 
 # Set working directory
 WORKDIR /app

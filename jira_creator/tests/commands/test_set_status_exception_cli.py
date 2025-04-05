@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_set_status_exception(capsys):
-    cli = JiraCLI()
-
+def test_set_status_exception(cli, capsys):
     # Mock the set_status method to simulate an exception
     cli.jira.set_status = MagicMock(side_effect=Exception("bad status"))
 

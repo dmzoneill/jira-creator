@@ -1,12 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_epic_field():
-    # Create a MagicMock instance for JiraClient
-    client = JiraClient()
-
+def test_epic_field(client):
     # Mock the environment variable for the epic field
     client.build_payload = MagicMock(
         return_value={"fields": {"customfield_99999": "Epic Field"}}

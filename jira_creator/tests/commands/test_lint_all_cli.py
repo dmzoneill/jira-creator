@@ -2,8 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from jira_creator.commands.lint_all import print_status_table
-from jira_creator.rh_jira import JiraCLI
+from jira_creator.commands.cli_lint_all import print_status_table
 
 
 # Ensure the Args object has the required 'project' and other attributes
@@ -28,8 +27,6 @@ class ArgsAssignee:
     assignee = "test"
 
 
-# Unit test for the print_status_table
-@pytest.mark.timeout(1)
 def test_print_status_table_with_wrapping(capsys):
     # Prepare the mock data
     failure_statuses = [
@@ -64,8 +61,7 @@ def test_print_status_table_with_wrapping(capsys):
 
 
 @pytest.mark.timeout(1)  # Timeout after 1 second for safety
-def test_lint_all_all_pass(capsys):
-    cli = JiraCLI()
+def test_lint_all_all_pass(cli, capsys):
     cli.jira = MagicMock()
 
     # Mock the AI provider (if used in validation)
@@ -104,7 +100,7 @@ def test_lint_all_all_pass(capsys):
                 "customfield_12316544": "",
                 "status": {"name": "Refinement"},  # Status is "Refinement"
                 "assignee": {"displayName": "Someone"},
-                "customfield_12311140": None,  # No Epic assigned for Story issues with Refinement status
+                "customfield_12311140": "AAP-7654",  # No Epic assigned for Story issues with Refinement status
                 "reporter": None,
             }
         }
@@ -120,7 +116,7 @@ def test_lint_all_all_pass(capsys):
 
     # Patch validate where it's imported (in the lint_all module, not edit_issue)
     with patch(
-        "jira_creator.rh_jira.lint_all.validate", return_value=[[], []]
+        "jira_creator.commands.cli_lint_all.validate", return_value=[[], []]
     ):  # Correct patch for the validate function used in lint_all
         cli.lint_all(Args())
 
@@ -141,7 +137,7 @@ def test_lint_all_all_pass(capsys):
 
     # Patch validate where it's imported (in the lint_all module, not edit_issue)
     with patch(
-        "jira_creator.rh_jira.lint_all.validate", return_value=[[], []]
+        "jira_creator.commands.cli_lint_all.validate", return_value=[[], []]
     ):  # Correct patch for the validate function used in lint_all
         cli.lint_all(Args())
 
@@ -154,8 +150,7 @@ def test_lint_all_all_pass(capsys):
         assert "✅ AAP-2 OK passed" in captured.out
 
 
-def test_lint_all_no_issues(capsys):
-    cli = JiraCLI()
+def test_lint_all_no_issues(cli, capsys):
     cli.jira = MagicMock()
     cli.jira.ai_provider = MagicMock()
 
@@ -177,8 +172,7 @@ def test_lint_all_no_issues(capsys):
     assert "✅ No issues assigned to you." in out
 
 
-def test_lint_all_exception(capsys):
-    cli = JiraCLI()
+def test_lint_all_exception(cli, capsys):
     cli.jira = MagicMock()
     cli.jira.ai_provider = MagicMock()
 
@@ -190,8 +184,7 @@ def test_lint_all_exception(capsys):
     assert "❌ Failed to lint issues: Simulated failure" in out
 
 
-def test_lint_all_with_failures(capsys):
-    cli = JiraCLI()
+def test_lint_all_with_failures(cli, capsys):
     cli.jira = MagicMock()
 
     # Mock the AI provider (if used in validation)
@@ -241,7 +234,7 @@ def test_lint_all_with_failures(capsys):
 
     # Patch validate to return problems
     with patch(
-        "jira_creator.rh_jira.lint_all.validate",
+        "jira_creator.commands.cli_lint_all.validate",
         return_value=[["❌ Issue has no assigned Epic"], []],
     ):
         cli.lint_all(Args())

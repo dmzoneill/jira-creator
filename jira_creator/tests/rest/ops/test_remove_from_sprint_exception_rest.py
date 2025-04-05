@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_remove_from_sprint_error(capsys):
-    client = JiraClient()
-
+def test_remove_from_sprint_error(capsys, client):
     # Mock the _request method to raise an exception
     client._request = MagicMock(side_effect=Exception("fail"))
 

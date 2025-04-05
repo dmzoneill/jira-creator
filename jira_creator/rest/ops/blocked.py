@@ -1,5 +1,5 @@
-def blocked(list_issues_fn, project=None, component=None, user=None):
-    issues = list_issues_fn(project=project, component=component, assignee=user)
+def blocked(list_issues_fn, project=None, component=None, assignee=None):
+    issues = list_issues_fn(project=project, component=component, assignee=assignee)
 
     blocked_issues = []
     for issue in issues:

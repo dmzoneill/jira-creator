@@ -3,12 +3,9 @@ import os
 import time
 from unittest.mock import MagicMock, mock_open, patch
 
-from rest.client import JiraClient
-
 
 # Test for cache_fields when the file exists and is recent
-def test_cache_fields_file_exists_and_recent():
-    client = JiraClient()
+def test_cache_fields_file_exists_and_recent(client):
     client.fields_cache_path = "/tmp/to/cache.json"
 
     # Mock os.path.exists and os.path.getmtime to simulate a recent file
@@ -32,8 +29,7 @@ def test_cache_fields_file_exists_and_recent():
 
 
 # Test for cache_fields when the file does not exist or is old
-def test_cache_fields_file_does_not_exist_or_old():
-    client = JiraClient()
+def test_cache_fields_file_does_not_exist_or_old(client):
     client.fields_cache_path = "/tmp/to/cache.json"
 
     # Mock os.path.exists to return False (file doesn't exist)
@@ -59,8 +55,7 @@ def test_cache_fields_file_does_not_exist_or_old():
 
 
 # Test for get_field_name
-def test_get_field_name():
-    client = JiraClient()
+def test_get_field_name(client):
     client.fields_cache_path = "/tmp/to/cache.json"
 
     # Mock cache_fields to return a mock fields list

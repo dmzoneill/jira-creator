@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_remove_sprint_error(capsys):
-    cli = JiraCLI()
+def test_remove_sprint_error(cli, capsys):
 
     # Mock the remove_from_sprint method to raise an exception
     cli.jira.remove_from_sprint = MagicMock(side_effect=Exception("fail"))

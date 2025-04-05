@@ -9,31 +9,31 @@ from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
 
 from commands import (  # isort: skip
     _try_cleanup,
-    add_comment,
-    add_sprint,
-    assign,
-    block,
-    blocked,
-    change_type,
-    create_issue,
-    edit_issue,
-    lint,
-    lint_all,
-    list_issues,
-    open_issue,
-    migrate,
-    remove_sprint,
-    search,
-    set_acceptance_criteria,
-    set_priority,
-    set_status,
-    set_story_epic,
-    set_story_points,
-    unassign,
-    unblock,
-    validate_issue,
-    view_issue,
-    vote_story_points,
+    cli_add_comment,
+    cli_add_sprint,
+    cli_assign,
+    cli_block,
+    cli_blocked,
+    cli_change_type,
+    cli_create_issue,
+    cli_edit_issue,
+    cli_lint,
+    cli_lint_all,
+    cli_list_issues,
+    cli_open_issue,
+    cli_migrate,
+    cli_remove_sprint,
+    cli_search,
+    cli_set_acceptance_criteria,
+    cli_set_priority,
+    cli_set_status,
+    cli_set_story_epic,
+    cli_set_story_points,
+    cli_unassign,
+    cli_unblock,
+    cli_validate_issue,
+    cli_view_issue,
+    cli_vote_story_points,
 )
 
 
@@ -81,7 +81,7 @@ class JiraCLI:
         list_issues = add("list-issues", "List assigned issues")
         list_issues.add_argument("--project")
         list_issues.add_argument("--component")
-        list_issues.add_argument("--user")
+        list_issues.add_argument("--assignee", help="Filter by JIRA issues by user")
         list_issues.add_argument(
             "--blocked", action="store_true", help="Show only blocked issues"
         )
@@ -95,9 +95,7 @@ class JiraCLI:
             action="store_true",
             help="Show blocked reason field in listing",
         )
-        list_issues.add_argument(
-            "--reporter", help="Filter by JIRA issues reporter by you"
-        )
+        list_issues.add_argument("--reporter", help="Filter by JIRA issues by user")
 
         search = add("search", "Search issues via JQL")
         search.add_argument("jql", help="JIRA Query Language expression")
@@ -199,86 +197,86 @@ class JiraCLI:
             print(f"❌ Command failed: {e}")
 
     def open_issue(self, args):
-        open_issue.handle(args)
+        cli_open_issue(args)
 
     def view_issue(self, args):
-        view_issue.handle(self.jira, args)
+        cli_view_issue(self.jira, args)
 
     def add_comment(self, args):
-        add_comment.handle(self.jira, self.ai_provider, self.default_prompt, args)
+        cli_add_comment(self.jira, self.ai_provider, self.default_prompt, args)
 
     def create_issue(self, args):
-        create_issue.handle(
+        cli_create_issue(
             self.jira, self.ai_provider, self.default_prompt, self.template_dir, args
         )
 
     def list_issues(self, args):
-        list_issues.handle(self.jira, args)
+        cli_list_issues(self.jira, args)
 
     def change_type(self, args):
-        change_type.handle(self.jira, args)
+        cli_change_type(self.jira, args)
 
     def migrate(self, args):
-        migrate.handle(self.jira, args)
+        cli_migrate(self.jira, args)
 
     def edit_issue(self, args):
-        edit_issue.handle(
-            self.jira, self.ai_provider, self.default_prompt, _try_cleanup.handle, args
+        cli_edit_issue(
+            self.jira, self.ai_provider, self.default_prompt, _try_cleanup, args
         )
 
     def _try_cleanup(self, prompt, text):
-        return _try_cleanup.handle(self.ai_provider, prompt, text)
+        return _try_cleanup(self.ai_provider, prompt, text)
 
     def unassign(self, args):
-        unassign.handle(self.jira, args)
+        cli_unassign(self.jira, args)
 
     def assign(self, args):
-        assign.handle(self.jira, args)
+        cli_assign(self.jira, args)
 
     def set_priority(self, args):
-        set_priority.handle(self.jira, args)
+        cli_set_priority(self.jira, args)
 
     def set_story_epic(self, args):
-        set_story_epic.handle(self.jira, args)
+        cli_set_story_epic(self.jira, args)
 
     def remove_sprint(self, args):
-        remove_sprint.handle(self.jira, args)
+        cli_remove_sprint(self.jira, args)
 
     def add_sprint(self, args):
-        add_sprint.handle(self.jira, args)
+        cli_add_sprint(self.jira, args)
 
     def set_status(self, args):
-        set_status.handle(self.jira, args)
+        cli_set_status(self.jira, args)
 
     def set_acceptance_criteria(self, args):
-        set_acceptance_criteria.handle(self.jira, args)
+        cli_set_acceptance_criteria(self.jira, args)
 
     def vote_story_points(self, args):
-        vote_story_points.handle(self.jira, args)
+        cli_vote_story_points(self.jira, args)
 
     def set_story_points(self, args):
-        set_story_points.handle(self.jira, args)
+        cli_set_story_points(self.jira, args)
 
     def block(self, args):
-        block.handle(self.jira, args)
+        cli_block(self.jira, args)
 
     def unblock(self, args):
-        unblock.handle(self.jira, args)
+        cli_unblock(self.jira, args)
 
     def validate_issue(self, fields):
-        return validate_issue.handle(fields, self.ai_provider)
+        cli_validate_issue(fields, self.ai_provider)
 
     def lint(self, args):
-        lint.handle(self.jira, self.ai_provider, args)
+        cli_lint(self.jira, self.ai_provider, args)
 
     def lint_all(self, args):
-        lint_all.handle(self.jira, self.ai_provider, args)
+        cli_lint_all(self.jira, self.ai_provider, args)
 
     def blocked(self, args):
-        blocked.handle(self.jira, args)
+        cli_blocked(self.jira, args)
 
     def search(self, args):
-        search.handle(self.jira, args)
+        cli_search(self.jira, args)
 
 
 if __name__ == "__main__":

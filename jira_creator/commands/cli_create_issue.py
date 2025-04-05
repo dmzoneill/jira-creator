@@ -8,7 +8,7 @@ from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
 from templates.template_loader import TemplateLoader
 
 
-def handle(jira, ai_provider, default_prompt, template_dir, args):
+def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
     try:
         template = TemplateLoader(template_dir, args.type)
         fields = template.get_fields()

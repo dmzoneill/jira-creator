@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_migrate_success_print():
-    cli = JiraCLI()
+def test_migrate_success_print(cli):
 
     # Mock the migrate_issue method
     cli.jira.migrate_issue = MagicMock(return_value="AAP-999")

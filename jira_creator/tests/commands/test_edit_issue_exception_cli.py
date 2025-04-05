@@ -1,13 +1,9 @@
 from unittest.mock import MagicMock, patch
 
-from jira_creator.rh_jira import JiraCLI
 
-
-@patch("jira_creator.commands.edit_issue.subprocess.call", return_value=0)
-@patch("jira_creator.commands.edit_issue.tempfile.NamedTemporaryFile")
-def test_edit_issue_update_exception(mock_tmpfile, mock_subprocess, capsys):
-    cli = JiraCLI()
-
+@patch("commands.cli_edit_issue.subprocess.call", return_value=0)
+@patch("commands.cli_edit_issue.tempfile.NamedTemporaryFile")
+def test_edit_issue_update_exception(mock_tmpfile, mock_subprocess, capsys, cli):
     # Mock Jira internals
     cli.jira.get_description = MagicMock(return_value="original")
     cli.jira.get_issue_type = MagicMock(return_value="story")

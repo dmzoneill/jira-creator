@@ -9,11 +9,13 @@ def vote_story_points(request_fn, issue_key, points):
     payload = {"issueId": issue_id, "vote": points}
 
     try:
-        request_fn(
+        response = request_fn(
             "PUT",
             "/rest/eausm/latest/planningPoker/vote",
             json=payload,
         )
+        if response.status_code != 200:
+            raise Exception(f"JIRA API error ({response.status_code}): {response.text}")
         print(f"✅ Voted {points} story points on issue {issue_key}")
     except Exception as e:
         print(f"❌ Failed to vote on story points: {e}")

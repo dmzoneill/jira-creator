@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_migrate_fallback_transition():
-    client = JiraClient()
+def test_migrate_fallback_transition(client):
     transitions_called = []
 
     def mock_request(method, path, **kwargs):

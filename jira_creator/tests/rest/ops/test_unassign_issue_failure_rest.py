@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_unassign_issue_fails(capsys):
-    client = JiraClient()
-
+def test_unassign_issue_fails(capsys, client):
     # Mock the _request method to simulate an exception
     client._request = MagicMock(side_effect=Exception("fail"))
 

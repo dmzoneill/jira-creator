@@ -1,12 +1,8 @@
 from argparse import Namespace
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_set_acceptance_criteria(capsys):
-    # Create an instance of JiraCLI
-    cli = JiraCLI()
+def test_set_acceptance_criteria(cli, capsys):
 
     # Mock the JiraClient used within JiraCLI
     cli.jira = MagicMock()
@@ -35,9 +31,7 @@ def test_set_acceptance_criteria(capsys):
     assert "✅ Acceptance criteria set to 'Acceptance criteria description'" in out
 
 
-def test_set_acceptance_criteria_exception(capsys):
-    # Create an instance of JiraCLI
-    cli = JiraCLI()
+def test_set_acceptance_criteria_exception(cli, capsys):
 
     # Mock the JiraClient used within JiraCLI
     cli.jira = MagicMock()

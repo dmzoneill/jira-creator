@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_add_comment():
-    client = JiraClient()
+def test_add_comment(client):
     client._request = MagicMock(return_value={})
 
     client.add_comment("AAP-123", "This is a comment")

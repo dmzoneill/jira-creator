@@ -3,11 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_create_file_not_found():
-    cli = JiraCLI()
+def test_create_file_not_found(cli):
 
     # Mock the TemplateLoader to raise FileNotFoundError
     template_loader_mock = MagicMock(side_effect=FileNotFoundError("missing.tmpl"))
@@ -25,12 +22,11 @@ def test_create_file_not_found():
         cli.create_issue(Args())
 
 
-def test_create_file_not_found_error(capsys):
-    cli = JiraCLI()
+def test_create_file_not_found_error(cli, capsys):
     cli.template_dir = Path("non_existent_directory")
 
     # Mock TemplateLoader to raise a FileNotFoundError
-    with patch("commands.create_issue.TemplateLoader") as MockTemplateLoader:
+    with patch("commands.cli_create_issue.TemplateLoader") as MockTemplateLoader:
         MockTemplateLoader.side_effect = FileNotFoundError("Template file not found")
 
         # Create mock Args object
@@ -49,13 +45,11 @@ def test_create_file_not_found_error(capsys):
         assert "Error: Template file not found" in captured.out
 
 
-def test_create_ai_exception_handling(capsys):
-    cli = JiraCLI()
-
+def test_create_ai_exception_handling(cli, capsys):
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = Exception("AI service failed")
 
-    with patch("commands.create_issue.TemplateLoader") as MockTemplateLoader:
+    with patch("commands.cli_create_issue.TemplateLoader") as MockTemplateLoader:
         mock_template = MagicMock()
         mock_template.get_fields.return_value = ["field1", "field2"]
         mock_template.render_description.return_value = "Mocked description"
@@ -64,9 +58,11 @@ def test_create_ai_exception_handling(capsys):
         with patch("builtins.input", return_value="test_input"):
             with patch("subprocess.call") as _:
                 with (
-                    patch("commands.create_issue.JiraIssueType") as MockJiraIssueType,
                     patch(
-                        "commands.create_issue.JiraPromptLibrary.get_prompt"
+                        "commands.cli_create_issue.JiraIssueType"
+                    ) as MockJiraIssueType,
+                    patch(
+                        "commands.cli_create_issue.JiraPromptLibrary.get_prompt"
                     ) as MockGetPrompt,
                 ):
                     MockJiraIssueType.return_value = MagicMock()
@@ -94,10 +90,9 @@ def test_create_ai_exception_handling(capsys):
                 )
 
 
-def test_create(capsys):
-    cli = JiraCLI()
+def test_create(cli, capsys):
 
-    with patch("commands.create_issue.TemplateLoader") as MockTemplateLoader:
+    with patch("commands.cli_create_issue.TemplateLoader") as MockTemplateLoader:
         mock_template = MagicMock()
         mock_template.get_fields.return_value = ["field1", "field2"]
         mock_template.render_description.return_value = "Mocked description"
@@ -105,9 +100,9 @@ def test_create(capsys):
 
         with patch("builtins.input", return_value="test_input"):
             with (
-                patch("commands.create_issue.JiraIssueType") as MockJiraIssueType,
+                patch("commands.cli_create_issue.JiraIssueType") as MockJiraIssueType,
                 patch(
-                    "commands.create_issue.JiraPromptLibrary.get_prompt"
+                    "commands.cli_create_issue.JiraPromptLibrary.get_prompt"
                 ) as MockGetPrompt,
             ):
                 MockJiraIssueType.return_value = MagicMock()

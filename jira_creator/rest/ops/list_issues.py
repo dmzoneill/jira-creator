@@ -4,8 +4,6 @@ import re
 def list_issues(
     request_fn,
     get_current_user_fn,
-    project_key,
-    component_name,
     project=None,
     component=None,
     assignee=None,
@@ -17,10 +15,11 @@ def list_issues(
     reporter=None,
 ):
     jql_parts = []
-    jql_parts.append(f'project="{project_key}"')
-    jql_parts.append(f'component="{component_name}"')
+    jql_parts.append(f'project="{project}"')
+    jql_parts.append(f'component="{component}"')
 
-    if assignee:
+    if not reporter:
+        assignee = assignee if assignee is not None else get_current_user_fn()
         jql_parts.append(f'assignee="{assignee}"')
     if reporter:
         jql_parts.append(f'reporter="{reporter}"')

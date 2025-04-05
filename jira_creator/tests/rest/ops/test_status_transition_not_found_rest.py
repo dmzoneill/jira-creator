@@ -1,11 +1,9 @@
 from unittest.mock import MagicMock
 
 import pytest
-from rest.client import JiraClient
 
 
-def test_status_transition_missing():
-    client = JiraClient()
+def test_status_transition_missing(client):
 
     # Mock the _request method
     client._request = MagicMock()

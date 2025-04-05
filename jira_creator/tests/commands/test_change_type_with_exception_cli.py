@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_change_type_failure(capsys):
-    cli = JiraCLI()
+def test_change_type_failure(cli, capsys):
 
     # Mocking the change_issue_type method to raise an exception
     cli.jira.change_issue_type = MagicMock(side_effect=Exception("Boom"))

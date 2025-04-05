@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_handle_success(capsys):
-    cli = JiraCLI()
+def test_handle_success(cli, capsys):
     cli.jira.set_story_epic = MagicMock()
 
     class Args:
@@ -24,8 +21,7 @@ def test_handle_success(capsys):
     cli.jira.set_story_epic.assert_called_once_with("AAP-1", "EPIC-123")
 
 
-def test_set_story_epic_exception(capsys):
-    cli = JiraCLI()
+def test_set_story_epic_exception(cli, capsys):
     cli.jira.set_story_epic = MagicMock(side_effect=Exception("fail"))
 
     class Args:

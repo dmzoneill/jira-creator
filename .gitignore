@@ -76,3 +76,7 @@ dist/
 .ruby-lint.yml
 .stylelintrc.json
 .mypy_cache/
+
+
+# pinecone
+pinecone-index.json

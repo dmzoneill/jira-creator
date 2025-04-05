@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_set_priority():
-    client = JiraClient()
-    client._request = MagicMock()
+def test_set_priority(client):
 
     # Call the method to set priority
     client.set_priority("AAP-123", "High")

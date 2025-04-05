@@ -1,8 +1,4 @@
-from jira_creator.rh_jira import JiraCLI
-
-
-def test_register_subcommands_does_not_crash():
-    cli = JiraCLI()
+def test_register_subcommands_does_not_crash(cli):
     parser = type(
         "DummySubparsers",
         (),

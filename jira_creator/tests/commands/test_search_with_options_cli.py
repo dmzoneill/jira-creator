@@ -1,43 +1,8 @@
 import io
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from jira_creator.rh_jira import JiraCLI  # isort: skip
-
-
-@pytest.fixture
-def mock_cli():
-    cli = JiraCLI()
-    cli.jira = MagicMock()
-    return cli
-
-
-@pytest.fixture
-def mock_search_issues(mock_cli):
-    # Mock search_issues to return a list of issues
-    mock_cli.jira.search_issues = MagicMock(
-        return_value=[
-            {
-                "key": "AAP-41844",
-                "fields": {
-                    "summary": "Run IQE tests in promotion pipelines",
-                    "status": {"name": "In Progress"},
-                    "assignee": {"displayName": "David O Neill"},
-                    "priority": {"name": "Normal"},
-                    "customfield_12310243": 5,
-                    "customfield_12310940": [
-                        """com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,
-                        rapidViewId=18242,state=ACTIVE,name=SaaS Sprint 2025-13,"
-                        startDate=2025-03-27T12:01:00.000Z,endDate=2025-04-03T12:01:00.000Z]"""
-                    ],
-                },
-            }
-        ]
-    )
-
-
-def test_search(mock_cli, mock_search_issues):
+def test_search(cli, mock_search_issues):
     # Prepare the args object to simulate CLI arguments
     class Args:
         jql = "project = AAP AND status = 'In Progress'"
@@ -46,7 +11,7 @@ def test_search(mock_cli, mock_search_issues):
 
     # Mock stdout to capture printed output
     with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-        mock_cli.search(Args())
+        cli.search(Args())
 
         # Capture the printed output
         captured_output = mock_stdout.getvalue()
@@ -58,9 +23,9 @@ def test_search(mock_cli, mock_search_issues):
         assert "David O Neill" in captured_output  # Assignee name is printed
 
 
-def test_search_no_issues(mock_cli):
+def test_search_no_issues(cli):
     # Mock search_issues to return an empty list of issues
-    mock_cli.jira.search_issues = MagicMock(return_value=[])
+    cli.jira.search_issues = MagicMock(return_value=[])
 
     # Prepare the args object to simulate CLI arguments
     class Args:
@@ -70,7 +35,7 @@ def test_search_no_issues(mock_cli):
 
     # Mock stdout to capture printed output
     with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-        mock_cli.search(Args())
+        cli.search(Args())
 
         # Capture the printed output
         captured_output = mock_stdout.getvalue()
@@ -79,9 +44,9 @@ def test_search_no_issues(mock_cli):
         assert "❌ No issues found for the given JQL." in captured_output
 
 
-def test_search_with_exception(mock_cli):
+def test_search_with_exception(cli):
     # Mock search_issues to raise an exception
-    mock_cli.jira.search_issues = MagicMock(side_effect=Exception("An error occurred"))
+    cli.jira.search_issues = MagicMock(side_effect=Exception("An error occurred"))
 
     # Prepare the args object to simulate CLI arguments
     class Args:
@@ -91,7 +56,7 @@ def test_search_with_exception(mock_cli):
 
     # Mock stdout to capture printed output
     with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-        mock_cli.search(Args())
+        cli.search(Args())
 
         # Capture the printed output
         captured_output = mock_stdout.getvalue()
@@ -100,9 +65,9 @@ def test_search_with_exception(mock_cli):
         assert "❌ Failed to search issues: An error occurred" in captured_output
 
 
-def test_list_with_summary_filter(mock_cli, capsys):
+def test_list_with_summary_filter(cli, capsys):
     # Mock list_issues to return a list of issues
-    mock_cli.jira.list_issues.return_value = [
+    cli.jira.list_issues.return_value = [
         {
             "key": "AAP-1",
             "fields": {
@@ -145,7 +110,7 @@ def test_list_with_summary_filter(mock_cli, capsys):
     )
 
     # Run the list method with the summary filter
-    mock_cli.list_issues(args)
+    cli.list_issues(args)
 
     captured = capsys.readouterr()
 

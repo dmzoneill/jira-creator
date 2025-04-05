@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_add_comment_exception(capsys):
-    cli = JiraCLI()
+def test_add_comment_exception(cli, capsys):
 
     # Mock the add_comment method to raise an exception
     cli.jira.add_comment = MagicMock(side_effect=Exception("fail"))

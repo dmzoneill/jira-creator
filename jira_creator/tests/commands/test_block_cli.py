@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_block_command(capsys):
-    cli = JiraCLI()
-    cli.jira = MagicMock()
+def test_block_command(cli, capsys):
 
     called = {}
 
@@ -29,9 +25,7 @@ def test_block_command(capsys):
     }
 
 
-def test_block_command_exception(capsys):
-    cli = JiraCLI()
-    cli.jira = MagicMock()
+def test_block_command_exception(cli, capsys):
 
     def mock_block_issue(issue_key, reason):
         raise Exception("Simulated failure")

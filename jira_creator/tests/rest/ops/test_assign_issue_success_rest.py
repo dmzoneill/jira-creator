@@ -1,10 +1,4 @@
-from unittest.mock import MagicMock
-
-from rest.client import JiraClient
-
-
-def test_assign_issue_failure(capfd):
-    client = JiraClient()
+def test_assign_issue_failure(capfd, client):
 
     # Simulate a failure by raising an exception
     def mock_request_fail(*args, **kwargs):

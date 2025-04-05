@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_list_print(capsys):
-    cli = JiraCLI()
+def test_list_print(cli, capsys):
     cli.jira = MagicMock()
 
     cli.jira.list_issues.return_value = [
@@ -29,7 +26,7 @@ def test_list_print(capsys):
         {
             "project": None,
             "component": None,
-            "user": None,
+            "assignee": None,
             "status": None,
             "summary": None,
             "blocked": None,  # Add 'blocked' attribute
@@ -43,8 +40,7 @@ def test_list_print(capsys):
     assert "AAP-1" in captured.out
 
 
-def test_list_reporter_print(capsys):
-    cli = JiraCLI()
+def test_list_reporter_print(cli, capsys):
     cli.jira = MagicMock()
 
     cli.jira.list_issues.return_value = [
@@ -57,7 +53,7 @@ def test_list_reporter_print(capsys):
                 "customfield_12310243": 5,
                 "customfield_12316543": True,
                 "customfield_12310940": ["name=Spring, state=ACTIVE"],
-                "summary": "Fix bugs",
+                "summary": "Fix bugs" * 20,
             },
         }
     ]
@@ -69,7 +65,7 @@ def test_list_reporter_print(capsys):
         {
             "project": None,
             "component": None,
-            "user": None,
+            "assignee": None,
             "status": None,
             "summary": None,
             "blocked": None,  # Add 'blocked' attribute
@@ -83,8 +79,7 @@ def test_list_reporter_print(capsys):
     assert "AAP-1" in captured.out
 
 
-def test_list_with_filters(capsys):
-    cli = JiraCLI()
+def test_list_with_filters(cli, capsys):
     cli.jira = MagicMock()
 
     # Mock list_issues to return a list of issues
@@ -132,7 +127,7 @@ def test_list_with_filters(capsys):
         {
             "project": None,
             "component": None,
-            "user": None,
+            "assignee": None,
             "status": "In Progress",  # Only 'In Progress' issues should be shown
             "summary": None,
             "blocked": None,
@@ -153,8 +148,7 @@ def test_list_with_filters(capsys):
     )  # "AAP-2" should be skipped because its status is "Done"
 
 
-def test_list_with_blocked_filter(capsys):
-    cli = JiraCLI()
+def test_list_with_blocked_filter(cli, capsys):
     cli.jira = MagicMock()
 
     # Mock list_issues to return a list of issues
@@ -192,7 +186,7 @@ def test_list_with_blocked_filter(capsys):
         {
             "project": None,
             "component": None,
-            "user": None,
+            "assignee": None,
             "status": None,
             "summary": None,
             "blocked": True,  # This should filter in only issues with customfield_12316543 != "True"
@@ -211,8 +205,7 @@ def test_list_with_blocked_filter(capsys):
     assert "AAP-1" not in captured.out
 
 
-def test_list_with_unblocked_filter(capsys):
-    cli = JiraCLI()
+def test_list_with_unblocked_filter(cli, capsys):
     cli.jira = MagicMock()
 
     # Mock list_issues to return a list of issues
@@ -248,7 +241,7 @@ def test_list_with_unblocked_filter(capsys):
         {
             "project": None,
             "component": None,
-            "user": None,
+            "assignee": None,
             "status": None,
             "summary": None,
             "blocked": None,

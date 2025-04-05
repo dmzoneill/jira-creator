@@ -1,7 +1,7 @@
 import re
 
 
-def handle(jira, args):
+def cli_list_issues(jira, args):
     try:
         if args.reporter:
             issues = jira.list_issues(
@@ -13,7 +13,7 @@ def handle(jira, args):
             issues = jira.list_issues(
                 project=args.project,
                 component=args.component,
-                assignee=args.user,
+                assignee=args.assignee,
             )
 
         if not issues:
@@ -73,15 +73,32 @@ def handle(jira, args):
             "Summary",
         ]
 
+        # Ensure the "Summary" column width is limited to 60 characters
+        max_summary_length = 60
+
         widths = [
             max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
         ]
+
+        # Ensure summary column width does not exceed the max length
+        widths[6] = min(widths[6], max_summary_length)
 
         header_fmt = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
         print(header_fmt)
         print("-" * len(header_fmt))
 
+        max_summary_length = 100
+        truncate_length = 97
+
         for r in rows:
+            # Convert r to a list if it is a tuple
+            r = list(r)
+
+            # Truncate the summary column if it exceeds max_summary_length
+            if len(r[6]) > max_summary_length:
+                r[6] = r[6][:truncate_length] + " .."
+
+            # Print the formatted row
             print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
 
     except Exception as e:

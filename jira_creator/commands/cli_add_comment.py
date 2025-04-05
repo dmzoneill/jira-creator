@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 
 
-def handle(jira, ai_provider, default_prompt, args):
+def cli_add_comment(jira, ai_provider, default_prompt, args):
     if args.text:
         comment = args.text
     else:

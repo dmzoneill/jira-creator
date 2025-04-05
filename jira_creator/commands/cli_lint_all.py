@@ -1,7 +1,7 @@
 import textwrap
 from collections import OrderedDict
 
-from commands.validate_issue import handle as validate
+from commands.cli_validate_issue import cli_validate_issue as validate
 
 
 def print_status_table(failure_statuses):
@@ -70,7 +70,7 @@ def print_status_table(failure_statuses):
     print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
 
 
-def handle(jira, ai_provider, args):
+def cli_lint_all(jira, ai_provider, args):
     try:
         if args.reporter:
             issues = jira.list_issues(

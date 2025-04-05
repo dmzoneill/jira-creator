@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_set_priority_error(capsys):
-    cli = JiraCLI()
-
+def test_set_priority_error(cli, capsys):
     # Mock the set_priority method to simulate an exception
     cli.jira.set_priority = MagicMock(side_effect=Exception("fail"))
 

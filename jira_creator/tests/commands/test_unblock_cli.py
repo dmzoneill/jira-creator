@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_unblock_command_success(capsys):
-    cli = JiraCLI()
-    cli.jira = MagicMock()
+def test_unblock_command_success(cli, capsys):
 
     called = {}
 
@@ -24,9 +20,7 @@ def test_unblock_command_success(capsys):
     assert called["issue_key"] == "AAP-123"
 
 
-def test_unblock_command_failure(capsys):
-    cli = JiraCLI()
-
+def test_unblock_command_failure(cli, capsys):
     def raise_exception(issue_key):
         raise Exception("Simulated unblock failure")
 

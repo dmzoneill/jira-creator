@@ -1,13 +1,8 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
+def test_lint_command_flags_errors(cli, capsys):
 
-def test_lint_command_flags_errors(capsys):
-    cli = JiraCLI()
-    cli.jira = MagicMock()
-
-    # ✅ Fix: Mock ai_provider on cli directly
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = lambda prompt, text: (
         "too short" if text in ["Bad", "Meh"] else "OK"
@@ -43,11 +38,8 @@ def test_lint_command_flags_errors(capsys):
     assert "❌ Issue is In Progress but unassigned" in out
 
 
-def test_lint_command_success(capsys):
-    cli = JiraCLI()
-    cli.jira = MagicMock()
+def test_lint_command_success(cli, capsys):
 
-    # ✅ Fix: Mock ai_provider on cli directly
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
 
@@ -77,10 +69,7 @@ def test_lint_command_success(capsys):
     assert "✅ AAP-321 passed all lint checks" in out
 
 
-def test_lint_command_exception(capsys):
-    cli = JiraCLI()
-    cli.jira = MagicMock()
-
+def test_lint_command_exception(cli, capsys):
     # ✅ Fix: Mock ai_provider on cli directly
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"

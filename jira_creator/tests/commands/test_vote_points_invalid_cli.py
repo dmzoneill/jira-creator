@@ -1,8 +1,4 @@
-from jira_creator.rh_jira import JiraCLI
-
-
-def test_vote_story_points_value_error(capsys):
-    cli = JiraCLI()
+def test_vote_story_points_value_error(cli, capsys):
 
     class Args:
         issue_key = "AAP-123"

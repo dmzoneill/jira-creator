@@ -160,6 +160,9 @@ super-lint: $(SUPER_LINTER_CONFIGS)
 .stylelintrc.json:
 	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.stylelintrc.json
 
+.PHONY: weaviate-setup
+weaviate-setup:
+	docker run -d -p 8080:8080 semitechnologies/weaviate
 
 # --- Help ---
 .PHONY: help

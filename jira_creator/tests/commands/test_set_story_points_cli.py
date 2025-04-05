@@ -1,14 +1,5 @@
 from unittest.mock import MagicMock
 
-import pytest
-
-from jira_creator.rh_jira import JiraCLI
-
-
-@pytest.fixture
-def cli():
-    return JiraCLI()
-
 
 def test_set_story_points_success(cli):
     mock_set_story_points = MagicMock()
@@ -37,9 +28,7 @@ def test_set_story_points_failure(cli, capsys):
     assert "❌ Failed to set story points" in captured.out
 
 
-def test_set_story_points_value_error(capsys):
-    cli = JiraCLI()
-
+def test_set_story_points_value_error(cli, capsys):
     class Args:
         issue_key = "AAP-456"
         points = "five"  # invalid non-integer value

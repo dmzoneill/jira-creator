@@ -1,12 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-from rest.client import JiraClient
 
-from jira_creator.rh_jira import JiraCLI
-
-
-def test_change_issue_type():
-    client = JiraClient()
+def test_change_issue_type(client):
 
     # Mock the request method
     mock_request = MagicMock()
@@ -35,9 +30,7 @@ def test_change_issue_type():
     )
 
 
-def test_change_type_else_block():
-    # Create an instance of JiraCLI
-    cli = JiraCLI()
+def test_change_type_else_block(cli):
 
     # Mocking Args for issue_key and new_type
     class Args:

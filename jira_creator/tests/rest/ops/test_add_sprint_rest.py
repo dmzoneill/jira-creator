@@ -1,13 +1,9 @@
 from unittest.mock import MagicMock
 
 import pytest
-from rest.client import JiraClient
 
 
-def test_add_to_sprint_by_name_success():
-    # Create the JiraClient instance
-    client = JiraClient()
-
+def test_add_to_sprint_by_name_success(client):
     # Mock the _request method to simulate sprint lookup and assignment
     client._request = MagicMock(
         side_effect=[
@@ -23,10 +19,7 @@ def test_add_to_sprint_by_name_success():
     assert client._request.call_count == 2
 
 
-def test_add_to_sprint_by_name_not_found():
-    # Create the JiraClient instance
-    client = JiraClient()
-
+def test_add_to_sprint_by_name_not_found(client):
     # Mock the _request method to simulate sprint lookup where the sprint is not found
     client._request = MagicMock(return_value={"values": []})
 

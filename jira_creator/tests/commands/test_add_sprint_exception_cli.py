@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_add_sprint_exception(capsys):
-    cli = JiraCLI()
-
+def test_add_sprint_exception(cli, capsys):
     # Mock the add_to_sprint_by_name method to raise an exception
     cli.jira.add_to_sprint_by_name = MagicMock(side_effect=Exception("fail"))
 

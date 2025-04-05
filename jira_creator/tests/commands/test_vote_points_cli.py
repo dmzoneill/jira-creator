@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_vote_story_points(capsys):
-    cli = JiraCLI()
-    cli.jira = MagicMock()  # Mock the Jira instance directly
+def test_vote_story_points(cli, capsys):
     cli.jira.vote_story_points = MagicMock()
 
     class Args:

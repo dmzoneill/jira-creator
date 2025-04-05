@@ -1,13 +1,10 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_view_issue(capsys):
+def test_view_issue(cli, capsys):
 
     blob = {"smokekey": "somevalue", "customfield": 3}
 
-    cli = JiraCLI()
     cli.jira.get_field_name = MagicMock(return_value="xxx")
     cli.jira.view_issue = MagicMock(return_value=blob)
 
@@ -27,8 +24,7 @@ def test_view_issue(capsys):
     cli.jira.view_issue.assert_called_once_with("AAP-1")
 
 
-def test_view_issue_exception(capsys):
-    cli = JiraCLI()
+def test_view_issue_exception(cli, capsys):
     cli.jira.view_issue = MagicMock(side_effect=Exception("fail"))
 
     class Args:

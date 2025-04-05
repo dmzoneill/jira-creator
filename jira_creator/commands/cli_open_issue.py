@@ -2,7 +2,7 @@ import os
 import subprocess
 
 
-def handle(args):
+def cli_open_issue(args):
     try:
         subprocess.Popen(
             ["xdg-open", os.getenv("JIRA_URL") + "/browse/" + args.issue_key]

@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_set_sprint():
-    client = JiraClient()
+def test_set_sprint(client):
     client._request = MagicMock(return_value={})
 
     client.set_sprint("AAP-123", 42)
@@ -16,8 +13,7 @@ def test_set_sprint():
     )
 
 
-def test_remove_from_sprint():
-    client = JiraClient()
+def test_remove_from_sprint(client):
     client._request = MagicMock(return_value={})
 
     client.remove_from_sprint("AAP-123")

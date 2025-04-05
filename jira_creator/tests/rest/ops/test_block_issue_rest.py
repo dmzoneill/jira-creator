@@ -1,17 +1,8 @@
 from unittest.mock import MagicMock
 
-import pytest
-from rest.client import JiraClient
-
-
-@pytest.fixture
-def client():
-    client = JiraClient()
-    client._request = MagicMock(return_value={})
-    return client
-
 
 def test_block_issue_calls_expected_fields(client):
+    client._request = MagicMock()
     client.block_issue("ABC-123", "Waiting for dependency")
 
     client._request.assert_called_once_with(

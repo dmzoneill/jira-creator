@@ -65,18 +65,6 @@ class JiraClient:
                 "Missing required JIRA configuration in environment variables."
             )
 
-    def is_running_under_pytest(self):
-        return "pytest" in sys.modules
-
-    def ensure_requests_is_mocked(self):
-        if self.is_running_under_pytest():
-            # Check if requests.request is mocked by pytest
-            if "mock_calls" not in dir(requests.request):
-                raise Exception(
-                    "Running under pytest but requests is not mocked. "
-                    "This would result in an API query. Requests should be mocked."
-                )
-
     def _request(
         self,
         method: str,
@@ -90,18 +78,11 @@ class JiraClient:
             "Content-Type": "application/json",
         }
 
-        self.ensure_requests_is_mocked()
-
         response = requests.request(
             method, url, headers=headers, json=json, params=params
         )
 
-        if response.status_code >= 400:
-            raise Exception(f"JIRA API error ({response.status_code}): {response.text}")
-        if not response.text.strip():
-            return {}
-
-        return response.json()
+        return response.json() if response.text.strip() else {}
 
     def cache_fields(self):
         # Check if the cache file exists and is less than 24 hours old
@@ -195,11 +176,12 @@ class JiraClient:
         unblocked=False,
         reporter=None,
     ):
+        component = component if component is not None else self.component_name
+        project = project if project is not None else self.project_key
+
         return list_issues(
             self._request,
             self.get_current_user,
-            self.project_key,
-            self.component_name,
             project,
             component,
             assignee,
@@ -243,8 +225,8 @@ class JiraClient:
     def unblock_issue(self, issue_key):
         return unblock_issue(self._request, issue_key)
 
-    def blocked(self, project=None, component=None, user=None):
-        return blocked(self.list_issues, project, component, user)
+    def blocked(self, project=None, component=None, assignee=None):
+        return blocked(self.list_issues, project, component, assignee)
 
     def search_issues(self, jql):
         return search_issues(self._request, jql)

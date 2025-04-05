@@ -1,10 +1,7 @@
 import pytest
-from rest.client import JiraClient
 
 
-def test_add_to_sprint_board_id_check():
-    # Create the JiraClient instance
-    client = JiraClient()
+def test_add_to_sprint_board_id_check(client):
 
     # Mock the board_id attribute as None
     client.board_id = None

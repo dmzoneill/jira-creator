@@ -1,4 +1,4 @@
-def handle(jira, args):
+def cli_blocked(jira, args):
     try:
         issues = jira.list_issues(
             project=args.project,

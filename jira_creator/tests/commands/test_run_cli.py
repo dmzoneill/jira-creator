@@ -1,15 +1,9 @@
 import os
-import sys
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from jira_creator.rh_jira import JiraCLI
-
-
-def test_run():
+def test_run(cli):
     # Mocking the _register_subcommands and _dispatch_command methods
-    cli = JiraCLI()
     cli._register_subcommands = MagicMock()
     cli._dispatch_command = MagicMock()
 

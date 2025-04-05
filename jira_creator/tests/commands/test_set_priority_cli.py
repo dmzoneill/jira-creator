@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_set_priority():
-    cli = JiraCLI()
+def test_set_priority(cli):
     cli.jira = MagicMock()
 
     class Args:

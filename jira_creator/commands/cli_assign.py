@@ -1,4 +1,4 @@
-def handle(jira, args):
+def cli_assign(jira, args):
     success = jira.assign_issue(args.issue_key, args.assignee)
     print(
         f"✅ assigned {args.issue_key} to {args.assignee}"

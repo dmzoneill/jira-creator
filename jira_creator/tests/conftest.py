@@ -3,6 +3,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from jira_creator.rest.client import JiraClient
 from jira_creator.rh_jira import JiraCLI
 

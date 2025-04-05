@@ -2,12 +2,8 @@ import os
 import tempfile
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_create_editor():
-    cli = JiraCLI()
-
+def test_create_editor(cli):
     # Mocking the methods
     cli.jira.create_issue = MagicMock(return_value="AAP-123")
     cli.ai_provider.improve_text = MagicMock(return_value="description")
@@ -29,4 +25,4 @@ def test_create_editor():
     cli.create_issue(Args())
 
     # Cleanup the temp file after the test
-    os.remove(tf.name)
+    # os.remove(tf.name)

@@ -1,16 +1,3 @@
-from unittest.mock import MagicMock
-
-import pytest
-from rest.client import JiraClient
-
-
-@pytest.fixture
-def client():
-    client = JiraClient()
-    client._request = MagicMock(return_value={})
-    return client
-
-
 def test_unblock_issue_calls_expected_fields(client):
     called = {}
 

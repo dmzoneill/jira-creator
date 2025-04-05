@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_lint_data_structure():
-    client = JiraClient()
-
+def test_lint_data_structure(client):
     issue_data = {
         "fields": {
             "summary": "",

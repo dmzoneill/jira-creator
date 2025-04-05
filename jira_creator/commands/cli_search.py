@@ -1,7 +1,7 @@
 import re
 
 
-def handle(jira, args):
+def cli_search(jira, args):
     try:
         jql = args.jql
         issues = jira.search_issues(jql)

@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_try_cleanup_error(capsys):
-    cli = JiraCLI()
+def test_try_cleanup_error(cli):
 
     # Mock the AI provider's improve_text method to simulate an exception
     cli.ai_provider = MagicMock()

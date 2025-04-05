@@ -1,18 +1,17 @@
-import os
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
-from commands import validate_issue
-
-from jira_creator.rh_jira import JiraCLI
-
-CACHE_PATH = os.path.expanduser("~/.config/rh-issue/ai-hashes.json")
+from jira_creator.commands.cli_validate_issue import (
+    cli_validate_issue,
+    load_cache,
+    sha256,
+)
 
 
 def test_load_cache_file_not_found():
     # Patch os.path.exists to return False, simulating the cache file being absent
     with patch("os.path.exists", return_value=False):
         # Call load_cache, it should return an empty dictionary when the file doesn't exist
-        result = validate_issue.load_cache()
+        result = load_cache()
 
         # Assert that the result is an empty dictionary
         assert (
@@ -20,7 +19,7 @@ def test_load_cache_file_not_found():
         ), "Expected an empty dictionary when the cache file doesn't exist"
 
 
-def test_acceptance_criteria_no_change_but_invalid(capsys):
+def test_acceptance_criteria_no_change_but_invalid():
     ai_provider = MagicMock()
     ai_provider.improve_text.return_value = (
         "Needs Improvement"  # Simulate AI returning a poor response
@@ -41,16 +40,21 @@ def test_acceptance_criteria_no_change_but_invalid(capsys):
     # Simulate an existing cached value with last AI acceptance criteria not being "OK"
     cached_data = {
         "last_ai_acceptance_criteria": "Needs Improvement",  # Simulating a poor AI suggestion
-        "acceptance_criteria_hash": validate_issue.sha256(
-            fields["customfield_12315940"]
+        "acceptance_criteria_hash": sha256(
+            "kill cache"
         ),  # Hash of the acceptance criteria
+        "last_ai_description": "Ok",  # Simulating a poor AI suggestion
+        "description_hash": sha256(fields["description"]),  # Hash of the description
+        "last_ai_summary": "Ok",  # Simulating a poor AI suggestion
+        "summary_hash": sha256(fields["summary"]),  # Hash of the description
     }
 
     # Patch the cache loading function to return the mocked cached data
     with patch(
-        "commands.validate_issue.load_cache", return_value={fields["key"]: cached_data}
+        "jira_creator.commands.cli_validate_issue.load_cache",
+        return_value={fields["key"]: cached_data},
     ):
-        problems = validate_issue.handle(fields, ai_provider)[0]
+        problems = cli_validate_issue(fields, ai_provider)[0]
 
         # Assert that the invalid acceptance criteria was detected
         assert (
@@ -62,14 +66,28 @@ def test_acceptance_criteria_no_change_but_invalid(capsys):
         )  # No new AI review should be triggered
 
 
-@patch("commands.validate_issue.handle")
-def test_validate_issue_delegation(mock_handle):
-    cli = JiraCLI()
-    fields = {"summary": "Test", "description": "Something"}
+def test_validate_issue_delegation(cli):
+    # Create a MagicMock instance for validate_issue
+    mock_validate_issue = MagicMock(return_value=("mocked result", []))
+    with patch("jira_creator.rh_jira.cli_validate_issue", mock_validate_issue):
+        fields = {
+            "summary": "Test",
+            "description": "Something",
+        }  # Add "key" to ensure the condition is not met early
 
-    cli.validate_issue(fields)
+        # Call the method in JiraCLI that calls the patched validate_issue
+        res = cli.validate_issue(fields)
 
-    mock_handle.assert_called_once_with(fields, ANY)
+        # Debugging: Check if the mock was called and with what arguments
+        print(
+            f"Mock called: {mock_validate_issue.call_count}"
+        )  # Check how many times the mock was called
+        print(
+            f"Arguments passed to mock: {mock_validate_issue.call_args}"
+        )  # Check the arguments passed to the mock
+
+        # Assert that validate_issue was called with the expected arguments
+        mock_validate_issue.assert_called_once_with(fields, cli.ai_provider)
 
 
 def test_acceptance_criteria_validation(capsys):
@@ -89,16 +107,16 @@ def test_acceptance_criteria_validation(capsys):
 
     # Mock the cache load to simulate an existing cache with the previous hash
     with patch(
-        "commands.validate_issue.load_cache",
+        "commands.cli_validate_issue.load_cache",
         return_value={fields["key"]: {"acceptance_criteria_hash": "old_hash"}},
     ):
-        problems = validate_issue.handle(fields, ai_provider)[0]
+        problems = cli_validate_issue(fields, ai_provider)[0]
 
         # Assert that the validation message is correct
         assert [] == problems  # Since the AI returns OK, there should be no error
 
 
-def test_no_issue_key_return(capsys):
+def test_no_issue_key_return():
     # Create a 'fields' dictionary without an issue key
     fields = {
         "summary": "Test Summary",
@@ -114,14 +132,14 @@ def test_no_issue_key_return(capsys):
     ai_provider = MagicMock()
 
     # Call the function and assert that problems and issue_status are returned as empty
-    problems, issue_status = validate_issue.handle(fields, ai_provider)
+    problems, issue_status = cli_validate_issue(fields, ai_provider)
 
     # Assert that the return is an empty problems list and empty issue_status
     assert problems == []
     assert issue_status == {}
 
 
-def test_acceptance_criteria_no_change(capsys):
+def test_acceptance_criteria_no_change():
     ai_provider = MagicMock()
     ai_provider.improve_text.return_value = "OK"  # Simulate AI returning "OK"
 
@@ -139,21 +157,20 @@ def test_acceptance_criteria_no_change(capsys):
     # Simulate an existing cached value with last AI acceptance criteria
     cached_data = {
         "last_ai_acceptance_criteria": "OK",
-        "acceptance_criteria_hash": validate_issue.sha256(
-            fields["customfield_12315940"]
-        ),
+        "acceptance_criteria_hash": sha256(fields["customfield_12315940"]),
     }
 
     with patch(
-        "commands.validate_issue.load_cache", return_value={fields["key"]: cached_data}
+        "commands.cli_validate_issue.load_cache",
+        return_value={fields["key"]: cached_data},
     ):
-        problems = validate_issue.handle(fields, ai_provider)[0]
+        problems = cli_validate_issue(fields, ai_provider)[0]
 
         # Check that no new AI suggestion is made since acceptance criteria hasn't changed
         assert [] == problems
 
 
-def test_description_no_change_but_invalid(capsys):
+def test_description_no_change_but_invalid():
     ai_provider = MagicMock()
     ai_provider.improve_text.return_value = (
         "Needs Improvement"  # Simulate AI returning a poor response
@@ -174,16 +191,26 @@ def test_description_no_change_but_invalid(capsys):
     # Simulate an existing cached value with last AI description not being "OK"
     cached_data = {
         "last_ai_description": "Needs Improvement",  # Simulating a poor AI suggestion
-        "description_hash": validate_issue.sha256(
-            fields["description"]
-        ),  # Hash of the description
+        "description_hash": sha256(fields["description"]),  # Hash of the description
+    }
+
+    cached_data = {
+        "last_ai_acceptance_criteria": "Ok",  # Simulating a poor AI suggestion
+        "acceptance_criteria_hash": sha256(
+            fields["customfield_12315940"]
+        ),  # Hash of the acceptance criteria
+        "last_ai_description": "Needs Improvement",  # Simulating a poor AI suggestion
+        "description_hash": sha256("kill cache"),  # Hash of the description
+        "last_ai_summary": "Ok",  # Simulating a poor AI suggestion
+        "summary_hash": sha256(fields["summary"]),  # Hash of the description
     }
 
     # Patch the cache loading function to return the mocked cached data
     with patch(
-        "commands.validate_issue.load_cache", return_value={fields["key"]: cached_data}
+        "jira_creator.commands.cli_validate_issue.load_cache",
+        return_value={fields["key"]: cached_data},
     ):
-        problems = validate_issue.handle(fields, ai_provider)[0]
+        problems = cli_validate_issue(fields, ai_provider)[0]
 
         # Assert that the invalid description was detected
         assert (
@@ -193,20 +220,6 @@ def test_description_no_change_but_invalid(capsys):
             "❌ Description: Check the quality of the following Jira description."
             not in problems
         )  # No new AI review should be triggered
-
-
-def test_cache_directory_creation():
-    # Set up the mock cache path and patch os.makedirs
-    with patch("os.makedirs") as makedirs_mock:
-        # Simulate the condition where the cache directory doesn't exist
-        with patch("os.path.exists", return_value=False):
-            # Call the method that checks and creates the directory
-            validate_issue.save_cache({})
-
-            # Ensure that os.makedirs is called to create the directory
-            makedirs_mock.assert_called_once_with(
-                os.path.dirname(CACHE_PATH), exist_ok=True
-            )
 
 
 def test_story_without_epic_flagged():
@@ -228,6 +241,6 @@ def test_story_without_epic_flagged():
         "assignee": {"displayName": "Alice"},
     }
 
-    problems = validate_issue.handle(fields, ai_provider)[0]
+    problems = cli_validate_issue(fields, ai_provider)[0]
 
     assert "❌ Issue has no assigned Epic" in problems

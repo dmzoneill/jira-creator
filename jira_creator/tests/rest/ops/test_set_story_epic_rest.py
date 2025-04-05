@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_set_story_epic_rest():
-    client = JiraClient()
+def test_set_story_epic_rest(client):
     client._request = MagicMock(return_value={})
 
     # Call the function to set story points

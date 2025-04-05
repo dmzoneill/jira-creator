@@ -1,8 +1,4 @@
-from jira_creator.rh_jira import JiraCLI
-
-
-def test_assign_success(capsys):
-    cli = JiraCLI()
+def test_assign_success(cli, capsys):
     cli.jira.assign_issue = lambda k, a: True
 
     class Args:
@@ -14,8 +10,7 @@ def test_assign_success(capsys):
     assert "✅ assigned AAP-123 to johndoe" in out
 
 
-def test_assign_failure(capsys):
-    cli = JiraCLI()
+def test_assign_failure(cli, capsys):
     cli.jira.assign_issue = lambda k, a: False
 
     class Args:

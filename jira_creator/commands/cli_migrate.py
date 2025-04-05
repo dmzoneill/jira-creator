@@ -1,4 +1,4 @@
-def handle(jira, args):
+def cli_migrate(jira, args):
     try:
         new_key = jira.migrate_issue(args.issue_key, args.new_type)
         print(

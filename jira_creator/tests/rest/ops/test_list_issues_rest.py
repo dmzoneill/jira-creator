@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_list_issues():
-    client = JiraClient()
+def test_list_issues(client):
 
     # Mock get_current_user
     client.get_current_user = MagicMock(return_value="user123")
@@ -23,8 +20,7 @@ def test_list_issues():
     assert issues[0]["key"] == "AAP-1"
 
 
-def test_list_issues_reporter():
-    client = JiraClient()
+def test_list_issues_reporter(client):
 
     # Mock get_current_user
     client.get_current_user = MagicMock(return_value="user123")
@@ -43,8 +39,7 @@ def test_list_issues_reporter():
     assert issues[0]["key"] == "AAP-1"
 
 
-def test_list_issues_assignee():
-    client = JiraClient()
+def test_list_issues_assignee(client):
 
     # Mock get_current_user
     client.get_current_user = MagicMock(return_value="user123")
@@ -63,9 +58,7 @@ def test_list_issues_assignee():
     assert issues[0]["key"] == "AAP-1"
 
 
-def test_list_issues_with_status():
-    client = JiraClient()
-
+def test_list_issues_with_status(client):
     # Mock get_current_user to return a fixed user
     client.get_current_user = MagicMock(return_value="user123")
 
@@ -91,9 +84,7 @@ def test_list_issues_with_status():
     assert issues[0]["key"] == "AAP-1"
 
 
-def test_list_issues_with_summary():
-    client = JiraClient()
-
+def test_list_issues_with_summary(client):
     # Mock get_current_user to return a fixed user
     client.get_current_user = MagicMock(return_value="user123")
 
@@ -119,9 +110,7 @@ def test_list_issues_with_summary():
     assert issues[0]["key"] == "AAP-1"
 
 
-def test_list_issues_with_blocked_unblocked():
-    client = JiraClient()
-
+def test_list_issues_with_blocked_unblocked(client):
     # Mock get_current_user to return a fixed user
     client.get_current_user = MagicMock(return_value="user123")
 
@@ -174,9 +163,7 @@ def test_list_issues_with_blocked_unblocked():
     assert issues_unblocked[0]["key"] == "AAP-1"
 
 
-def test_list_issues_with_none_sprints():
-    client = JiraClient()
-
+def test_list_issues_with_none_sprints(client):
     # Mock get_current_user to return a fixed user
     client.get_current_user = MagicMock(return_value="user123")
 
@@ -213,8 +200,7 @@ def test_list_issues_with_none_sprints():
     assert issues[0]["sprint"] == "No active sprint"
 
 
-def test_list_issues_with_sprint_regex_matching():
-    client = JiraClient()
+def test_list_issues_with_sprint_regex_matching(client):
 
     # Mock get_current_user to return a fixed user
     client.get_current_user = MagicMock(return_value="user123")

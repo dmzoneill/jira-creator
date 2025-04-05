@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_add_comment_blank(capsys):
-    cli = JiraCLI()
+def test_add_comment_blank(cli, capsys):
 
     # Mock add_comment method
     cli.jira.add_comment = MagicMock()

@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_set_status_print():
-    cli = JiraCLI()
+def test_set_status_print(cli):
 
     # Mock the set_status method
     cli.jira.set_status = MagicMock()

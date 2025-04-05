@@ -1,7 +1,5 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
-
 
 class Args:
     project = None
@@ -9,8 +7,7 @@ class Args:
     user = None
 
 
-def test_blocked_issues_found(capsys):
-    cli = JiraCLI()
+def test_blocked_issues_found(cli, capsys):
     cli.jira = MagicMock()
 
     cli.jira.list_issues.return_value = [
@@ -45,8 +42,7 @@ def test_blocked_issues_found(capsys):
     assert "AAP-456" not in out
 
 
-def test_blocked_no_issues(capsys):
-    cli = JiraCLI()
+def test_blocked_no_issues(cli, capsys):
     cli.jira = MagicMock()
     cli.jira.list_issues.return_value = []
 
@@ -56,8 +52,7 @@ def test_blocked_no_issues(capsys):
     assert "✅ No issues found." in out
 
 
-def test_blocked_none_blocked(capsys):
-    cli = JiraCLI()
+def test_blocked_none_blocked(cli, capsys):
     cli.jira = MagicMock()
     cli.jira.list_issues.return_value = [
         {
@@ -78,8 +73,7 @@ def test_blocked_none_blocked(capsys):
     assert "AAP-789" not in out
 
 
-def test_blocked_exception(capsys):
-    cli = JiraCLI()
+def test_blocked_exception(cli, capsys):
     cli.jira = MagicMock()
     cli.jira.list_issues.side_effect = Exception("Boom!")
 

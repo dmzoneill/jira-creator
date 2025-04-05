@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_migrate_no_transitions():
-    client = JiraClient()
+def test_migrate_no_transitions(client):
 
     def mock_request(method, path, **kwargs):
         if path.startswith("/rest/api/2/issue/AAP-1/transitions"):

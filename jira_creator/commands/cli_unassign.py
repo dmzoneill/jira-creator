@@ -1,4 +1,4 @@
-def handle(jira, args):
+def cli_unassign(jira, args):
     success = jira.unassign_issue(args.issue_key)
     print(
         f"✅ Unassigned {args.issue_key}"

@@ -1,8 +1,4 @@
-from jira_creator.rh_jira import JiraCLI
-
-
-def test_dispatch_unknown_command():
-    cli = JiraCLI()
+def test_dispatch_unknown_command(cli):
 
     class DummyArgs:
         command = "does-not-exist"

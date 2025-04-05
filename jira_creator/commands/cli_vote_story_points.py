@@ -1,4 +1,4 @@
-def handle(jira, args):
+def cli_vote_story_points(jira, args):
     try:
         points = int(args.points)
     except ValueError:

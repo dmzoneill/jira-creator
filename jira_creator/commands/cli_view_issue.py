@@ -1,4 +1,4 @@
-def handle(jira, args):
+def cli_view_issue(jira, args):
     try:
         issue = jira.view_issue(args.issue_key)
 

@@ -1,12 +1,4 @@
-from unittest.mock import MagicMock
-
-from rest.client import JiraClient
-
-
-def test_set_status():
-    client = JiraClient()
-    client._request = MagicMock()
-
+def test_set_status(client):
     # Simulating the side effects for multiple calls
     client._request.side_effect = [{"transitions": [{"name": "Done", "id": "2"}]}, {}]
 

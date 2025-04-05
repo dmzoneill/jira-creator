@@ -1,11 +1,7 @@
-from unittest.mock import MagicMock, patch  # Add patch here
-
-from jira_creator.rh_jira import JiraCLI
+from unittest.mock import MagicMock, patch
 
 
-def test_create_dry_run():
-    cli = JiraCLI()
-    cli.jira = MagicMock()
+def test_create_dry_run(cli):
     cli.ai_provider = MagicMock()
 
     # Mock method: build_payload returns a payload with summary
@@ -25,9 +21,7 @@ def test_create_dry_run():
         cli.create_issue(Args())
 
 
-def test_create_issue_with_exception():
-    cli = JiraCLI()
-    cli.jira = MagicMock()
+def test_create_issue_with_exception(cli):
     cli.ai_provider = MagicMock()
 
     # Mock method: build_payload returns a payload with summary

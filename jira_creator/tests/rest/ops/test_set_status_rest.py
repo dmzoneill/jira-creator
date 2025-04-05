@@ -1,15 +1,9 @@
 from unittest.mock import MagicMock
 
 import pytest
-from rest.client import JiraClient
 
 
-def test_set_status_valid_transition():
-    client = JiraClient()
-
-    # Mock the _request method
-    client._request = MagicMock()
-
+def test_set_status_valid_transition(client):
     # Mock response for GET and POST requests
     transitions = {"transitions": [{"name": "In Progress", "id": "31"}]}
     client._request.return_value = transitions  # First call is GET, second is POST
@@ -21,11 +15,7 @@ def test_set_status_valid_transition():
     assert client._request.call_count == 2
 
 
-def test_set_status_invalid_transition():
-    client = JiraClient()
-
-    # Mock the _request method
-    client._request = MagicMock()
+def test_set_status_invalid_transition(client):
 
     # Mock response for GET and POST requests
     transitions = {"transitions": [{"name": "In Progress", "id": "31"}]}

@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_add_sprint():
-    cli = JiraCLI()
+def test_add_sprint(cli):
     cli.jira.add_to_sprint_by_name = MagicMock()
 
     class Args:
@@ -15,8 +12,7 @@ def test_add_sprint():
     cli.jira.add_to_sprint_by_name.assert_called_once()
 
 
-def test_remove_sprint():
-    cli = JiraCLI()
+def test_remove_sprint(cli):
     cli.jira.remove_from_sprint = MagicMock()
 
     class Args:

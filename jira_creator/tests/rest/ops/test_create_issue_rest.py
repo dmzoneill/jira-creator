@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_create_issue():
-    client = JiraClient()
+def test_create_issue(client):
 
     # Mock the _request method to return a response with a 'key'
     client._request = MagicMock(return_value={"key": "AAP-1"})

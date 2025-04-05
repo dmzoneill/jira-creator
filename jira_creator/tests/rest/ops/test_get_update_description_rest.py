@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_get_update_description():
-    client = JiraClient()
+def test_get_update_description(client):
 
     # Mock _request method to simulate getting description
     client._request = MagicMock(return_value={"fields": {"description": "text"}})

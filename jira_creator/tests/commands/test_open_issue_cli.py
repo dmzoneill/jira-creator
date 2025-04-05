@@ -1,15 +1,12 @@
 import subprocess
-from unittest.mock import MagicMock, patch
-
-from jira_creator.rh_jira import JiraCLI
+from unittest.mock import patch
 
 
-def test_open_issue():
+def test_open_issue(cli):
     # Patch os.getenv to return a mock JIRA URL
     with patch("os.getenv", return_value="https://your-jira-url.com"):
         # Patch subprocess.Popen to prevent actually opening a process
         with patch("subprocess.Popen") as mock_popen:
-            cli = JiraCLI()
 
             class Args:
                 issue_key = "AAP-1"
@@ -26,12 +23,11 @@ def test_open_issue():
             )
 
 
-def test_open_issue_exception_handling():
+def test_open_issue_exception_handling(cli):
     # Patch os.getenv to return a mock JIRA URL
     with patch("os.getenv", return_value="https://your-jira-url.com"):
         # Patch subprocess.Popen to simulate an exception
         with patch("subprocess.Popen") as mock_popen:
-            cli = JiraCLI()
 
             class Args:
                 issue_key = "AAP-1"

@@ -1,8 +1,4 @@
-from jira_creator.rh_jira import JiraCLI
-
-
-def test_unassign_success(capsys):
-    cli = JiraCLI()
+def test_unassign_success(cli, capsys):
     cli.jira.unassign_issue = lambda k: True
 
     class Args:
@@ -13,8 +9,7 @@ def test_unassign_success(capsys):
     assert "✅" in out
 
 
-def test_unassign_failure(capsys):
-    cli = JiraCLI()
+def test_unassign_failure(cli, capsys):
     cli.jira.unassign_issue = lambda k: False
 
     class Args:

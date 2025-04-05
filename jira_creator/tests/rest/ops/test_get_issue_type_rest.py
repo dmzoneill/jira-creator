@@ -1,13 +1,7 @@
 from unittest.mock import MagicMock
 
-import pytest
-from rest.client import JiraClient
 
-
-def test_get_issue_type():
-    # Create an instance of JiraClient
-    client = JiraClient()
-
+def test_get_issue_type(client):
     # Mock the _request method to simulate a successful response
     client._request = MagicMock(
         return_value={"fields": {"issuetype": {"name": "Story"}}}

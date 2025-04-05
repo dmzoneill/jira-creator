@@ -2,11 +2,8 @@ import os
 import tempfile
 from unittest.mock import MagicMock, patch
 
-from jira_creator.rh_jira import JiraCLI
 
-
-def test_add_comment_editor():
-    cli = JiraCLI()
+def test_add_comment_editor(cli):
 
     # Mock the add_comment method and the improve_text method
     cli.jira.add_comment = MagicMock()
@@ -27,15 +24,13 @@ def test_add_comment_editor():
     cli.add_comment(Args())
 
     # Clean up the temporary file
-    os.remove(tf.name)
+    # os.remove(tf.name)
 
     # Ensure the add_comment method was called
     cli.jira.add_comment.assert_called_once_with("AAP-1", "my comment")
 
 
-def test_add_comment_with_editor_and_ai_exception_handling(capsys):
-    cli = JiraCLI()
-
+def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
     # Mock the AI provider's improve_text method to avoid calling the real AI service
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = Exception("AI service failed")

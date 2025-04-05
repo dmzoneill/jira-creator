@@ -1,4 +1,4 @@
-def handle(jira, args):
+def cli_unblock(jira, args):
     try:
         jira.unblock_issue(args.issue_key)
         print(f"✅ {args.issue_key} marked as unblocked")

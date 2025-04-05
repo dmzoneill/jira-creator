@@ -1,11 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_list_issues_defaults():
-    client = JiraClient()
-
+def test_list_issues_defaults(client):
     # Mock get_current_user to return a fixed user
     client.get_current_user = MagicMock(return_value="me")
 

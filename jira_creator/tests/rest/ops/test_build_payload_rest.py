@@ -1,13 +1,4 @@
-from unittest.mock import MagicMock
-
-import pytest
-from rest.client import JiraClient
-
-
-def test_build_payload_epic():
-    # Create an instance of JiraClient
-    client = JiraClient()
-
+def test_build_payload_epic(client):
     # Mock values for the test
     client.epic_field = "customfield_12345"  # Example epic field
     client.project_key = "PROJ"
@@ -25,10 +16,7 @@ def test_build_payload_epic():
     assert result["fields"][client.epic_field] == "Epic Summary"
 
 
-def test_build_payload_non_epic():
-    # Create an instance of JiraClient
-    client = JiraClient()
-
+def test_build_payload_non_epic(client):
     # Mock values for the test
     client.epic_field = "customfield_12345"  # Example epic field
     client.project_key = "PROJ"

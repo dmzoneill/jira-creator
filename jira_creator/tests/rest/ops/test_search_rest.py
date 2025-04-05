@@ -1,12 +1,7 @@
 from unittest.mock import MagicMock
 
-from rest.client import JiraClient
 
-
-def test_search_issues():
-    # Create an instance of JiraClient
-    client = JiraClient()
-
+def test_search_issues(client):
     # Mock the _request method of JiraClient
     client._request = MagicMock(
         return_value={
@@ -50,9 +45,7 @@ def test_search_issues():
     )  # Check if sprint name is parsed correctly
 
 
-def test_search_issues_no_sprints():
-    # Create an instance of JiraClient
-    client = JiraClient()
+def test_search_issues_no_sprints(client):
 
     # Mock the _request method of JiraClient to simulate no sprints
     client._request = MagicMock(

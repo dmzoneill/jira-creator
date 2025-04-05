@@ -1,15 +1,4 @@
-from unittest.mock import MagicMock
-
-from rest.client import JiraClient
-
-
-def test_set_acceptance_criteria(capsys):
-    # Create an instance of JiraClient
-    client = JiraClient()
-
-    # Mock the _request method
-    client._request = MagicMock()
-
+def test_set_acceptance_criteria(capsys, client):
     issue_key = "AAP-100"
     acceptance_criteria = "Acceptance criteria description"
 

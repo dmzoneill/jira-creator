@@ -1,7 +1,7 @@
-from commands.validate_issue import handle as validate
+from commands.cli_validate_issue import cli_validate_issue as validate
 
 
-def handle(jira, ai_provider, args):
+def cli_lint(jira, ai_provider, args):
     try:
         issue = jira._request("GET", f"/rest/api/2/issue/{args.issue_key}")
         fields = issue["fields"]

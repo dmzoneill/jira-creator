@@ -15,7 +15,9 @@ def test_search_issues(client):
                         "priority": {"name": "Normal"},
                         "customfield_12310243": 5,
                         "customfield_12310940": [
-                            "com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,rapidViewId=18242,state=ACTIVE,name=SaaS Sprint 2025-13,startDate=2025-03-27T12:01:00.000Z,endDate=2025-04-03T12:01:00.000Z]"
+                            """com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,
+                            rapidViewId=18242,state=ACTIVE,name=SaaS Sprint 2025-13,"
+                            startDate=2025-03-27T12:01:00.000Z,endDate=2025-04-03T12:01:00.000Z]"""
                         ],
                     },
                 }
@@ -46,7 +48,6 @@ def test_search_issues(client):
 
 
 def test_search_issues_no_sprints(client):
-
     # Mock the _request method of JiraClient to simulate no sprints
     client._request = MagicMock(
         return_value={

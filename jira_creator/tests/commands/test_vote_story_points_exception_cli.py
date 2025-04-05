@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_vote_story_points_error(cli, capsys):
-
     # Mock the vote_story_points method to simulate an error
     cli.jira.vote_story_points = MagicMock(side_effect=Exception("fail"))
 

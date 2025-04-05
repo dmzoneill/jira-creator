@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from jira_creator.commands.cli_lint_all import print_status_table
 
 
@@ -108,7 +107,7 @@ def test_lint_all_all_pass(cli, capsys):
     cli.jira._request = mock_request
 
     # Ensure the Args object has the required 'project' and other attributes
-    class Args:
+    class Args1:
         project = "TestProject"
         component = "analytics-hcc-service"
         reporter = None
@@ -118,7 +117,7 @@ def test_lint_all_all_pass(cli, capsys):
     with patch(
         "jira_creator.commands.cli_lint_all.validate", return_value=[[], []]
     ):  # Correct patch for the validate function used in lint_all
-        cli.lint_all(Args())
+        cli.lint_all(Args1())
 
         # Capture and print output
         captured = capsys.readouterr()
@@ -129,7 +128,7 @@ def test_lint_all_all_pass(cli, capsys):
         assert "✅ AAP-2 OK passed" in captured.out
 
     # Ensure the Args object has the required 'project' and other attributes
-    class Args:
+    class Args2:
         project = "TestProject"
         component = "analytics-hcc-service"
         reporter = "John"
@@ -139,7 +138,7 @@ def test_lint_all_all_pass(cli, capsys):
     with patch(
         "jira_creator.commands.cli_lint_all.validate", return_value=[[], []]
     ):  # Correct patch for the validate function used in lint_all
-        cli.lint_all(Args())
+        cli.lint_all(Args2())
 
         # Capture and print output
         captured = capsys.readouterr()

@@ -1,10 +1,8 @@
-import os
 import tempfile
 from unittest.mock import MagicMock, patch
 
 
 def test_add_comment_editor(cli):
-
     # Mock the add_comment method and the improve_text method
     cli.jira.add_comment = MagicMock()
     cli.ai_provider.improve_text = MagicMock(return_value="my comment")

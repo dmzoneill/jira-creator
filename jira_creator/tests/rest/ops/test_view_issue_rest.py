@@ -1,5 +1,4 @@
 def test_rest_view_issue(client):
-
     # Call the method to set priority
     client.view_issue("AAP-123")
 

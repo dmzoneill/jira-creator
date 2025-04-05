@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_change_issue_type_fails(client):
-
     # Mock the _request method to raise an exception
     client._request = MagicMock(side_effect=Exception("failure"))
 

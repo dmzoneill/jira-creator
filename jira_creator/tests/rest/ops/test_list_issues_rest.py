@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_list_issues(client):
-
     # Mock get_current_user
     client.get_current_user = MagicMock(return_value="user123")
 
@@ -21,7 +20,6 @@ def test_list_issues(client):
 
 
 def test_list_issues_reporter(client):
-
     # Mock get_current_user
     client.get_current_user = MagicMock(return_value="user123")
 
@@ -40,7 +38,6 @@ def test_list_issues_reporter(client):
 
 
 def test_list_issues_assignee(client):
-
     # Mock get_current_user
     client.get_current_user = MagicMock(return_value="user123")
 
@@ -201,7 +198,6 @@ def test_list_issues_with_none_sprints(client):
 
 
 def test_list_issues_with_sprint_regex_matching(client):
-
     # Mock get_current_user to return a fixed user
     client.get_current_user = MagicMock(return_value="user123")
 
@@ -220,7 +216,9 @@ def test_list_issues_with_sprint_regex_matching(client):
                             "priority": {"name": "Normal"},
                             "customfield_12310243": 5,
                             "customfield_12310940": [
-                                "com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,rapidViewId=18242,state=ACTIVE,name=SaaS Sprint 2025-13,startDate=2025-03-27T12:01:00.000Z,endDate=2025-04-03T12:01:00.000Z]"
+                                """com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,rapidViewId=18242,
+                                state=ACTIVE,name=SaaS Sprint 2025-13,startDate=2025-03-27T12:01:00.000Z,"
+                                endDate=2025-04-03T12:01:00.000Z]"""
                             ],  # Sprint data with ACTIVE state
                         },
                     }

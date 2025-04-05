@@ -2,7 +2,6 @@ import pytest
 
 
 def test_add_to_sprint_board_id_check(client):
-
     # Mock the board_id attribute as None
     client.board_id = None
 

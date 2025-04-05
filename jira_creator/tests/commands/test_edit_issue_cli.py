@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from jira_creator.commands.cli_edit_issue import (
+from jira_creator.commands.cli_edit_issue import (  # isort: skip
     cli_edit_issue,
     edit_description,
     fetch_description,
@@ -13,7 +13,7 @@ from jira_creator.commands.cli_edit_issue import (
     lint_description_once,
     update_jira_description,
 )
-from jira_creator.commands.cli_validate_issue import (
+from jira_creator.commands.cli_validate_issue import (  # isort: skip
     load_and_cache_issue,
     save_cache,
     sha256,
@@ -467,7 +467,6 @@ def test_cli_edit_issue_no_edited():
             update_jira_description_mock,
         ),
     ):
-
         # Call the function
         cli_edit_issue(
             jira_mock, ai_provider_mock, default_prompt, try_cleanup_fn, args
@@ -527,7 +526,6 @@ def test_cli_edit_issue_lint_true():
             update_jira_description_mock,
         ),
     ):
-
         # Call the function with linting enabled
         cli_edit_issue(
             jira_mock, ai_provider_mock, default_prompt, try_cleanup_fn, args

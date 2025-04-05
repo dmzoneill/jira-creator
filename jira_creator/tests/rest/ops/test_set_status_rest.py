@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import pytest
 
 
@@ -16,7 +14,6 @@ def test_set_status_valid_transition(client):
 
 
 def test_set_status_invalid_transition(client):
-
     # Mock response for GET and POST requests
     transitions = {"transitions": [{"name": "In Progress", "id": "31"}]}
     client._request.return_value = transitions  # First call is GET, second is POST

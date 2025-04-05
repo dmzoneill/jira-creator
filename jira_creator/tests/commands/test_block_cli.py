@@ -1,8 +1,4 @@
-from unittest.mock import MagicMock
-
-
 def test_block_command(cli, capsys):
-
     called = {}
 
     def mock_block_issue(issue_key, reason):
@@ -26,7 +22,6 @@ def test_block_command(cli, capsys):
 
 
 def test_block_command_exception(cli, capsys):
-
     def mock_block_issue(issue_key, reason):
         raise Exception("Simulated failure")
 

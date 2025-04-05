@@ -1,5 +1,4 @@
 def test_vote_story_points_value_error(cli, capsys):
-
     class Args:
         issue_key = "AAP-123"
         points = "notanint"

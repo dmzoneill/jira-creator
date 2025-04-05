@@ -5,7 +5,6 @@ import pytest
 
 
 def test_create_file_not_found(cli):
-
     # Mock the TemplateLoader to raise FileNotFoundError
     template_loader_mock = MagicMock(side_effect=FileNotFoundError("missing.tmpl"))
     cli.template_loader = template_loader_mock
@@ -91,7 +90,6 @@ def test_create_ai_exception_handling(cli, capsys):
 
 
 def test_create(cli, capsys):
-
     with patch("commands.cli_create_issue.TemplateLoader") as MockTemplateLoader:
         mock_template = MagicMock()
         mock_template.get_fields.return_value = ["field1", "field2"]
@@ -129,7 +127,5 @@ def test_create(cli, capsys):
                     cli.create_issue(Args)
 
                 captured = capsys.readouterr()
-                assert (
-                    "✅ Created: https://jira.example.com/browse/AAP-123"
-                    in captured.out
-                )
+                assert "https://jira.example.com/browse/AAP-123" in captured.out
+

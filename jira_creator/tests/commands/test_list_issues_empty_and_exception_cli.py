@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_list_issues_empty(cli, capsys):
-
     # Mock list_issues to return an empty list
     cli.jira.list_issues = MagicMock(return_value=[])
 
@@ -19,7 +18,6 @@ def test_list_issues_empty(cli, capsys):
 
 
 def test_list_issues_fail(cli, capsys):
-
     # Mock list_issues to raise an exception
     cli.jira.list_issues = MagicMock(side_effect=Exception("fail"))
 

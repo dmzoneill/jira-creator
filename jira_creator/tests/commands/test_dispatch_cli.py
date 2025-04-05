@@ -1,5 +1,4 @@
 def test_dispatch_unknown_command(cli):
-
     class DummyArgs:
         command = "does-not-exist"
 

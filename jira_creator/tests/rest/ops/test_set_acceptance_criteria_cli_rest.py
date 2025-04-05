@@ -3,7 +3,6 @@ from unittest.mock import MagicMock
 
 
 def test_set_acceptance_criteria(cli, capsys):
-
     # Mock the JiraClient used within JiraCLI
     cli.jira = MagicMock()
 
@@ -32,7 +31,6 @@ def test_set_acceptance_criteria(cli, capsys):
 
 
 def test_set_acceptance_criteria_exception(cli, capsys):
-
     # Mock the JiraClient used within JiraCLI
     cli.jira = MagicMock()
 

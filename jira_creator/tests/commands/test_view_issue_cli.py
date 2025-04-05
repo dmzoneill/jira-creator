@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_view_issue(cli, capsys):
-
     blob = {"smokekey": "somevalue", "customfield": 3}
 
     cli.jira.get_field_name = MagicMock(return_value="xxx")
@@ -15,7 +14,7 @@ def test_view_issue(cli, capsys):
     cli.view_issue(Args())
 
     # Capture the printed output
-    captured = capsys.readouterr()
+    # captured = capsys.readouterr()
 
     # Assert that the correct message was printed
     # assert "✅ Story's epic set to 'EPIC-123'" in captured.out

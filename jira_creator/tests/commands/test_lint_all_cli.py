@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from jira_creator.commands.cli_lint_all import print_status_table
 
 

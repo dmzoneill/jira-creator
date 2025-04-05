@@ -128,4 +128,3 @@ def test_create(cli, capsys):
 
                 captured = capsys.readouterr()
                 assert "https://jira.example.com/browse/AAP-123" in captured.out
-

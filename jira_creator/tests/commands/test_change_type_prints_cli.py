@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_change_type_prints(cli, capsys):
-
     # Mocking the change_issue_type method
     cli.jira.change_issue_type = MagicMock(return_value=True)
 

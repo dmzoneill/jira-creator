@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, patch
 
 
 def test_change_issue_type(client):
-
     # Mock the request method
     mock_request = MagicMock()
     # First call: GET request to fetch issue details
@@ -31,7 +30,6 @@ def test_change_issue_type(client):
 
 
 def test_change_type_else_block(cli):
-
     # Mocking Args for issue_key and new_type
     class Args:
         issue_key = "FAKE-123"

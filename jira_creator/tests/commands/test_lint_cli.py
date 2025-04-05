@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_lint_command_flags_errors(cli, capsys):
-
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = lambda prompt, text: (
         "too short" if text in ["Bad", "Meh"] else "OK"
@@ -39,7 +38,6 @@ def test_lint_command_flags_errors(cli, capsys):
 
 
 def test_lint_command_success(cli, capsys):
-
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
 

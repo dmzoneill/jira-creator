@@ -4,7 +4,6 @@ import pytest
 
 
 def test_status_transition_missing(client):
-
     # Mock the _request method
     client._request = MagicMock()
 

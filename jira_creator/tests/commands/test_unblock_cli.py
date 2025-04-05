@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_unblock_command_success(cli, capsys):
-
     called = {}
 
     def mock_unblock(issue_key):

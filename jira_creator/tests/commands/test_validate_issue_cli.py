@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from jira_creator.commands.cli_validate_issue import (
+from jira_creator.commands.cli_validate_issue import (  # isort: skip
     cli_validate_issue,
     load_cache,
     sha256,
@@ -76,7 +76,7 @@ def test_validate_issue_delegation(cli):
         }  # Add "key" to ensure the condition is not met early
 
         # Call the method in JiraCLI that calls the patched validate_issue
-        res = cli.validate_issue(fields)
+        cli.validate_issue(fields)
 
         # Debugging: Check if the mock was called and with what arguments
         print(

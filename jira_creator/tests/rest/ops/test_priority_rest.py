@@ -1,8 +1,4 @@
-from unittest.mock import MagicMock
-
-
 def test_set_priority(client):
-
     # Call the method to set priority
     client.set_priority("AAP-123", "High")
 

@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_get_update_description(client):
-
     # Mock _request method to simulate getting description
     client._request = MagicMock(return_value={"fields": {"description": "text"}})
 

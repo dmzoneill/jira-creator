@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_add_comment_with_text(cli, capsys):
-
     # Mock dependencies using MagicMock
     cli.jira = MagicMock()
     cli.jira.add_comment = MagicMock()

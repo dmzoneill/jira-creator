@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 
 def test_change_type_failure(cli, capsys):
-
     # Mocking the change_issue_type method to raise an exception
     cli.jira.change_issue_type = MagicMock(side_effect=Exception("Boom"))
 

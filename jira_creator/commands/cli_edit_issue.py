@@ -118,6 +118,6 @@ def cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args):
 
     cleaned = edited if args.no_ai else try_cleanup_fn(ai_provider, prompt, edited)
     if args.lint:
-        cleaned = lint_description(cleaned, ai_provider, try_cleanup_fn)
+        cleaned = lint_description(cleaned, ai_provider)
 
     update_jira_description(jira, args.issue_key, cleaned)

@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import pytest
 from providers import get_ai_provider
 from providers.noop_provider import NoAIProvider
 

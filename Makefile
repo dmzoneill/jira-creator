@@ -19,6 +19,7 @@ SCRIPT := rh-jira.py
 # --- Setup & Install ---
 .PHONY: install
 install:
+	npm install jscpd
 	$(PIPENV) install --dev
 
 .PHONY: setup
@@ -70,6 +71,7 @@ lint:
 
 .PHONY: format
 format:
+	node_modules/jscpd/bin/jscpd -p "**/*.py" $$PWD
 	isort .
 	$(PIPENV) run autopep8 . --recursive --in-place --aggressive --aggressive
 	$(PIPENV) run black .
@@ -143,7 +145,15 @@ deb-install: deb
 	sudo dpkg -i $(DEB_FILENAME)
 
 super-lint: $(SUPER_LINTER_CONFIGS)
-	docker run --rm -e SUPER_LINTER_LINTER=error -e LINTER_OUTPUT=error -e RUN_LOCAL=true -v $$(pwd):/tmp/lint github/super-linter:latest  --quiet
+	docker run --rm \
+	-e SUPER_LINTER_LINTER=error \
+	-e LINTER_OUTPUT=error \
+	-e LOG_LEVEL=ERROR \
+	-e RUN_LOCAL=true \
+	-e FILTER_REGEX_EXCLUDE="(^|/)\.git(/|$)" \
+	-e GIT_IGNORE=true \
+	-v $$(pwd):/tmp/lint \
+	github/super-linter:latest --quiet
 
 .eslintrc.json:
 	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.eslintrc.json

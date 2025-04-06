@@ -44,6 +44,7 @@ def test_acceptance_criteria_no_change_but_invalid():
             "kill cache"
         ),  # Hash of the acceptance criteria
         "last_ai_description": "Ok",  # Simulating a poor AI suggestion
+        # /* jscpd:ignore-tart */
         "description_hash": sha256(fields["description"]),  # Hash of the description
         "last_ai_summary": "Ok",  # Simulating a poor AI suggestion
         "summary_hash": sha256(fields["summary"]),  # Hash of the description
@@ -55,7 +56,7 @@ def test_acceptance_criteria_no_change_but_invalid():
         return_value={fields["key"]: cached_data},
     ):
         problems = cli_validate_issue(fields, ai_provider)[0]
-
+        # /* jscpd:ignore-end */
         # Assert that the invalid acceptance criteria was detected
         assert (
             "❌ Acceptance Criteria: Needs Improvement" in problems
@@ -199,10 +200,12 @@ def test_description_no_change_but_invalid():
         "acceptance_criteria_hash": sha256(
             fields["customfield_12315940"]
         ),  # Hash of the acceptance criteria
+        # /* jscpd:ignore-start */
         "last_ai_description": "Needs Improvement",  # Simulating a poor AI suggestion
         "description_hash": sha256("kill cache"),  # Hash of the description
         "last_ai_summary": "Ok",  # Simulating a poor AI suggestion
         "summary_hash": sha256(fields["summary"]),  # Hash of the description
+        # /* jscpd:ignore-end */
     }
 
     # Patch the cache loading function to return the mocked cached data

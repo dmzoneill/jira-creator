@@ -1,6 +1,7 @@
 import re
 
 
+# /* jscpd:ignore-start */
 def list_issues(
     request_fn,
     get_current_user_fn,
@@ -67,3 +68,6 @@ def list_issues(
         issue["sprint"] = active_sprint if active_sprint else "No active sprint"
 
     return issues
+
+
+# /* jscpd:ignore-end */

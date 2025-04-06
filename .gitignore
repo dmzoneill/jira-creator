@@ -80,3 +80,8 @@ dist/
 
 # pinecone
 pinecone-index.json
+
+# node / jscp
+node_modules/
+package.json
+package-lock.json

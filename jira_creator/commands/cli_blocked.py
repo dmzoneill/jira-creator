@@ -1,3 +1,4 @@
+# /* jscpd:ignore-start */
 def cli_blocked(jira, args):
     try:
         issues = jira.list_issues(
@@ -43,3 +44,6 @@ def cli_blocked(jira, args):
 
     except Exception as e:
         print(f"❌ Failed to list blocked issues: {e}")
+
+
+# /* jscpd:ignore-end */

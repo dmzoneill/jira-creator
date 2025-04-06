@@ -19,7 +19,7 @@ SCRIPT := rh-jira.py
 # --- Setup & Install ---
 .PHONY: install
 install:
-	npm install jscpd
+	npm install jscpd textlint
 	$(PIPENV) install --dev
 
 .PHONY: setup

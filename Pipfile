@@ -34,6 +34,7 @@ poetry-plugin-export = "*"
 poetry = "*"
 bumpver = "*"
 pytest-timeout = "*"
+mypy = "*"
 
 [dev-packages]
 coverage = "*"
@@ -45,3 +46,4 @@ black = "*"
 flake8 = "*"
 twine = "*"
 build = "*"
+mypy = "*"

@@ -19,7 +19,7 @@ SCRIPT := rh-jira.py
 # --- Setup & Install ---
 .PHONY: install
 install:
-	npm install jscpd textlint
+	npm install jscpd textlint markdownlint
 	$(PIPENV) install --dev
 
 .PHONY: setup
@@ -71,7 +71,7 @@ lint:
 
 .PHONY: format
 format:
-	node_modules/jscpd/bin/jscpd -p "**/*.py" $$PWD
+	- node_modules/jscpd/bin/jscpd -p "**/*.py" $$PWD
 	isort .
 	$(PIPENV) run autopep8 . --recursive --in-place --aggressive --aggressive
 	$(PIPENV) run black .

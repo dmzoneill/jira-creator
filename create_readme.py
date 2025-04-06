@@ -93,7 +93,9 @@ def generate_readme(cli_script, output_readme):
 
     # Step 4: Improve the README content using OpenAI
     readme_content = openai_provider.improve_text(
-        "Update and improve this README template with the provided commands.", prompt
+        """Update and improve this README template with the provided commands."""
+        """Dont had trailing period to \"# headers\".  Let autofix as autofix.""",
+        prompt,
     )
 
     # Step 5: Write the new README content to the output file

@@ -9,9 +9,9 @@ Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardi
 
 ---
 
-## ⚡ Quick Start (Under 30 Seconds)
+## ⚡ Quick Start (Under 30 Seconds) 🚀
 
-### 1. Create your config file and enable autocomplete 📂.
+### 1. Create your config file and enable autocomplete 📝.
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -33,26 +33,24 @@ EOF
 
 source ~/.bashrc.d/jira.sh
 ```
-This sets up your environment variables for the Jira Creator tool. Replace the dummy values with your own data. 
+This config file sets all the necessary environment variables for operating the AI and JIRA API. Running these commands will create the config file and initialize it in the current shell.
 
-### 2. Link the command-line tool wrapper 🔗.
+### 2. Link the command-line tool wrapper 🖇️
 
 ```bash
 chmod +x jira_creator/rh-issue-wrapper.sh
 sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
-This creates a symbolic link to conveniently run the tool from any location.
+This command makes the shell script `rh-issue-wrapper.sh` executable and links it to a location in your `PATH`. You can then access the script anywhere from your command line by typing `rh-issue`.
 
-### 3. Run it 🏃‍♀️.
+### 3. Run it 🏃
 
 ```bash
 rh-issue create story "Improve onboarding experience"
 ```
-This command will create a new story issue titled "Improve onboarding experience".
+This command creates a new story issue in JIRA. The argument `"Improve onboarding experience"` is the title of the new issue.
 
----
-
-## 🧪 Usage & Commands
+## 🧪 Usage & Commands 🛠️
 
 ### 🆕 Create Issues
 
@@ -62,21 +60,22 @@ rh-issue create story "Refactor onboarding flow"
 rh-issue create epic "Unify frontend UI" --edit
 rh-issue create spike "Evaluate GraphQL support" --dry-run
 ```
-These commands create issues of various types. The `--edit` flag opens the issue in your default editor for further refinement. The `--dry-run` flag prints the payload without creating the issue, useful for testing.
+
+The `--edit` option opens your default `$EDITOR` for you to add additional details to the issue, and `--dry-run` prints the payload without actually creating the issue.
 
 ### 🔁 Change Issue Type
 
 ```bash
 rh-issue change AAP-12345 story
 ```
-This command changes the type of the issue AAP-12345 to 'story'.
+This command changes the type of issue `AAP-12345` to `story`.
 
 ### 🔁 Migrate Issue
 
 ```bash
 rh-issue migrate AAP-54321 story
 ```
-This command migrates the issue AAP-54321 to the type 'story'.
+This command migrates issue `AAP-54321` to a `story`. 
 
 ### ✏️ Edit Description
 
@@ -84,14 +83,14 @@ This command migrates the issue AAP-54321 to the type 'story'.
 rh-issue edit AAP-98765
 rh-issue edit AAP-98765 --no-ai
 ```
-These commands allow you to edit the description of the issue AAP-98765, with the second command bypassing the AI-enhanced description process.
+These commands open the issue `AAP-98765` for editing, with or without AI assistance.
 
 ### 🧍 Unassign Issue
 
 ```bash
 rh-issue unassign AAP-12345
 ```
-This command unassigns the issue AAP-12345.
+This command unassigns the issue `AAP-12345`.
 
 ### 📋 List Issues
 
@@ -99,14 +98,14 @@ This command unassigns the issue AAP-12345.
 rh-issue list
 rh-issue list --project AAP --component api --user jdoe
 ```
-These commands list issues. The second command lists issue specific to a particular project, component, and user.
+These commands list all issues, or only those matching given criteria.
 
 ### 🏷️ Set Priority
 
 ```bash
 rh-issue set-priority AAP-123 High
 ```
-This command sets the priority of the issue AAP-123 to 'High'.
+This command sets the priority of issue `AAP-123` to `High`.
 
 ### 📅 Sprint Management
 
@@ -115,90 +114,31 @@ rh-issue set-sprint AAP-456 1234
 rh-issue remove-sprint AAP-456
 rh-issue add-sprint AAP-456 "Sprint 33"
 ```
-These commands manage the sprint association of issues.
+These commands manage the sprint assignment of issue `AAP-456`.
 
 ### 🚦 Set Status
 
 ```bash
 rh-issue set-status AAP-123 "In Progress"
 ```
-This command sets the status of the issue AAP-123 to 'In Progress'.
+This command sets the status of issue `AAP-123` to `In Progress`.
 
----
-
-## 🤖 AI Provider Support
+## 🤖 AI Provider Support 
 
 You can plug in different AI providers by setting `AI_PROVIDER`.
 
-### ✅ OpenAI
+We can use ollama for the management for different models
 
 ```bash
-export AI_PROVIDER=openai
-export AI_API_KEY=sk-...
-export AI_MODEL=gpt-4  # Optional
+mkdir -vp ~/.ollama-models
+docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
 ```
-This sets up OpenAI as your AI provider.
-
-### 🦙 LLama3
-
-```bash
-docker compose exec ollama ollama pull LLama3
-export AI_PROVIDER=LLama3
-export AI_URL=http://localhost:11434/api/generate
-export AI_MODEL=LLama3
-```
-This sets up LLama3 as your AI provider.
-
-### 🧠 DeepSeek
-
-```bash
-docker compose exec ollama ollama pull deepseek-r1:7b
-export AI_PROVIDER=deepseek
-export AI_URL=http://localhost:11434/api/generate
-export AI_MODEL=http://localhost:11434/api/generate
-```
-This sets up DeepSeek as your AI provider.
-
-### 🖥 GPT4All
-
-```bash
-pip install gpt4all
-export AI_PROVIDER=gpt4all
-```
-This sets up GPT4All as your AI provider.
-
-### 🧪 InstructLab
-
-```bash
-export AI_PROVIDER=instructlab
-export AI_URL=http://localhost:11434/api/generate
-export AI_MODEL=instructlab
-```
-This sets up InstructLab as your AI provider.
-
-### 🧠 BART
-
-```bash
-export AI_PROVIDER=bart
-export AI_URL=http://localhost:8000/bart
-```
-This sets up BART as your AI provider.
-
-### 🪫 Noop
-
-```bash
-export AI_PROVIDER=noop
-```
-This sets up Noop as your AI provider.
-
----
 
 ## 🛠 Dev Setup
 
 ```bash
 pipenv install --dev
 ```
-This installs the necessary development dependencies.
 
 ### Testing & Linting
 
@@ -207,15 +147,13 @@ make test
 make lint
 make format  # autofix formatting
 ```
-These commands run tests, lint code, and auto-fix any formatting issues respectively.
-
----
 
 ## ⚙️ How It Works
 
-Jira Creator works by loading field definitions from `.tmpl` files found in the `templates/` directory. It generates compact and informative issue descriptions using a `TemplateLoader`. Optionally, it applies AI enhancements to cleanup the descriptions for better readability and structure. The cleaned up descriptions are then sent to JIRA via its REST API or just printed as a dry-run.
-
----
+- Loads field definitions from `.tmpl` files under `templates/`
+- Uses `TemplateLoader` to generate Markdown descriptions
+- Optionally applies AI cleanup for readability and structure
+- Sends to JIRA via REST API (or dry-runs it)
 
 ## 📜 License
 

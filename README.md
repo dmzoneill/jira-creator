@@ -1,4 +1,4 @@
-# jira-creator 📝
+# jira-creator
 
 [![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
@@ -9,9 +9,11 @@ Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardi
 
 ---
 
-## ⚡ Quick Start (Under 30 Seconds) 🚀
+## ⚡ Quick Start (Within 30 Seconds)
 
-### 1. Create your config file and enable autocomplete 📝.
+### 📝 Create your config file and enable autocomplete
+
+This step consists in creating a configuration file and activating autocomplete. Replace the placeholders with your actual data.
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -33,26 +35,35 @@ EOF
 
 source ~/.bashrc.d/jira.sh
 ```
-This config file sets all the necessary environment variables for operating the AI and JIRA API. Running these commands will create the config file and initialize it in the current shell.
 
-### 2. Link the command-line tool wrapper 🖇️
+---
+
+### 🔗 Link the command-line tool wrapper
+
+This step involves making the wrapper shell script executable and linking it to a directory on your path.
 
 ```bash
 chmod +x jira_creator/rh-issue-wrapper.sh
 sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
-This command makes the shell script `rh-issue-wrapper.sh` executable and links it to a location in your `PATH`. You can then access the script anywhere from your command line by typing `rh-issue`.
 
-### 3. Run it 🏃
+---
+
+### 🚀 Run it
+
+This is how you use the tool to create a story. Replace the placeholder with your actual data.
 
 ```bash
 rh-issue create story "Improve onboarding experience"
 ```
-This command creates a new story issue in JIRA. The argument `"Improve onboarding experience"` is the title of the new issue.
 
-## 🧪 Usage & Commands 🛠️
+---
+
+## 🧪 Usage & Commands
 
 ### 🆕 Create Issues
+
+You can create various types of issues using the following commands. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue create bug "Fix login crash"
@@ -61,69 +72,79 @@ rh-issue create epic "Unify frontend UI" --edit
 rh-issue create spike "Evaluate GraphQL support" --dry-run
 ```
 
-The `--edit` option opens your default `$EDITOR` for you to add additional details to the issue, and `--dry-run` prints the payload without actually creating the issue.
+You can further customize your command with `--edit` to use your `$EDITOR`, and `--dry-run` to print the payload without creating the issue.
 
 ### 🔁 Change Issue Type
+
+You can change the type of an existing issue with the following command. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue change AAP-12345 story
 ```
-This command changes the type of issue `AAP-12345` to `story`.
 
 ### 🔁 Migrate Issue
+
+You can migrate an existing issue with the following command. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue migrate AAP-54321 story
 ```
-This command migrates issue `AAP-54321` to a `story`. 
 
 ### ✏️ Edit Description
+
+You can edit the description of an existing issue with the following command. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue edit AAP-98765
 rh-issue edit AAP-98765 --no-ai
 ```
-These commands open the issue `AAP-98765` for editing, with or without AI assistance.
 
 ### 🧍 Unassign Issue
+
+You can unassign an existing issue with the following command. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue unassign AAP-12345
 ```
-This command unassigns the issue `AAP-12345`.
 
 ### 📋 List Issues
+
+You can list issues with the following command. You can customize your command with `--project`, `--component`, and `--user` options. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue list
 rh-issue list --project AAP --component api --user jdoe
 ```
-These commands list all issues, or only those matching given criteria.
 
 ### 🏷️ Set Priority
+
+You can set the priority of an existing issue with the following command. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue set-priority AAP-123 High
 ```
-This command sets the priority of issue `AAP-123` to `High`.
 
 ### 📅 Sprint Management
+
+You can manage sprints with the following commands. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue set-sprint AAP-456 1234
 rh-issue remove-sprint AAP-456
 rh-issue add-sprint AAP-456 "Sprint 33"
 ```
-These commands manage the sprint assignment of issue `AAP-456`.
 
 ### 🚦 Set Status
+
+You can set the status of an existing issue with the following command. Replace the placeholders with your actual data.
 
 ```bash
 rh-issue set-status AAP-123 "In Progress"
 ```
-This command sets the status of issue `AAP-123` to `In Progress`.
 
-## 🤖 AI Provider Support 
+---
+
+## 🤖 AI Provider Support
 
 You can plug in different AI providers by setting `AI_PROVIDER`.
 
@@ -134,7 +155,82 @@ mkdir -vp ~/.ollama-models
 docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
 ```
 
+### ✅ OpenAI
+
+Setup for using OpenAI as AI provider.
+
+```bash
+export AI_PROVIDER=openai
+export AI_API_KEY=sk-...
+export AI_MODEL=gpt-4  # Optional
+```
+
+### 🦙 LLama3
+
+Setup for using LLama3 as AI provider.
+
+```bash
+docker compose exec ollama ollama pull LLama3
+export AI_PROVIDER=LLama3
+export AI_URL=http://localhost:11434/api/generate
+export AI_MODEL=LLama3
+```
+
+### 🧠 DeepSeek
+
+Setup for using DeepSeek as AI provider.
+
+```bash
+docker compose exec ollama ollama pull deepseek-r1:7b
+export AI_PROVIDER=deepseek
+export AI_URL=http://localhost:11434/api/generate
+export AI_MODEL=http://localhost:11434/api/generate
+```
+
+### 🖥 GPT4All
+
+Setup for using GPT4All as AI provider.
+
+```bash
+pip install gpt4all
+export AI_PROVIDER=gpt4all
+# WIP
+```
+
+### 🧪 InstructLab
+
+Setup for using InstructLab as AI provider.
+
+```bash
+export AI_PROVIDER=instructlab
+export AI_URL=http://localhost:11434/api/generate
+export AI_MODEL=instructlab
+# WIP
+```
+
+### 🧠 BART
+
+Setup for using BART as AI provider.
+
+```bash
+export AI_PROVIDER=bart
+export AI_URL=http://localhost:8000/bart
+# WIP
+```
+
+### 🪫 Noop
+
+Setup for using Noop as AI provider.
+
+```bash
+export AI_PROVIDER=noop
+```
+
+---
+
 ## 🛠 Dev Setup
+
+To set up your development environment, run the following command.
 
 ```bash
 pipenv install --dev
@@ -142,11 +238,15 @@ pipenv install --dev
 
 ### Testing & Linting
 
+Use the following commands for testing, linting, and formatting respectively.
+
 ```bash
 make test
 make lint
 make format  # autofix formatting
 ```
+
+---
 
 ## ⚙️ How It Works
 
@@ -154,6 +254,8 @@ make format  # autofix formatting
 - Uses `TemplateLoader` to generate Markdown descriptions
 - Optionally applies AI cleanup for readability and structure
 - Sends to JIRA via REST API (or dry-runs it)
+
+---
 
 ## 📜 License
 

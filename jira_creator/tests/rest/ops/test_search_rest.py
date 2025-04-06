@@ -49,6 +49,7 @@ def test_search_issues(client):
 
 def test_search_issues_no_sprints(client):
     # Mock the _request method of JiraClient to simulate no sprints
+    # /* jscpd:ignore-start */
     client._request = MagicMock(
         return_value={
             "issues": [
@@ -66,6 +67,7 @@ def test_search_issues_no_sprints(client):
             ]
         }
     )
+    # /* jscpd:ignore-end */
 
     # Execute the search_issues method with a sample JQL query
     jql = "project = AAP AND status = 'In Progress'"

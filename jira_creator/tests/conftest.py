@@ -2,10 +2,10 @@
 import os
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from jira_creator.rest.client import JiraClient
 from jira_creator.rh_jira import JiraCLI
+
+import pytest  # isort: skip
 
 # Dummy file path and hash for testing
 DUMMY_FILE_PATH = "/tmp/test_cache/ai-hashes.json"

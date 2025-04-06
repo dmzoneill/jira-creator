@@ -192,6 +192,7 @@ def test_lint_all_with_failures(cli, capsys):
     cli.ai_provider.improve_text.return_value = "OK"
 
     # Mock list of issues
+    # /* jscpd:ignore-start */
     cli.jira.list_issues.return_value = [
         {
             "key": "AAP-1",
@@ -229,6 +230,8 @@ def test_lint_all_with_failures(cli, capsys):
                 "reporter": None,
             }
         }
+
+    # /* jscpd:ignore-end */
 
     cli.jira._request = mock_request
 

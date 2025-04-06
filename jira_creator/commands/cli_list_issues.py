@@ -1,6 +1,7 @@
 import re
 
 
+# /* jscpd:ignore-start */
 def cli_list_issues(jira, args):
     try:
         if args.reporter:
@@ -103,3 +104,6 @@ def cli_list_issues(jira, args):
 
     except Exception as e:
         print(f"❌ Failed to list issues: {e}")
+
+
+# /* jscpd:ignore-end */

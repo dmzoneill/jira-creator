@@ -1,6 +1,8 @@
 import io
 from unittest.mock import MagicMock, patch
 
+from core.env_fetcher import EnvFetcher
+
 
 def test_search(cli, mock_search_issues):
     # Prepare the args object to simulate CLI arguments
@@ -17,7 +19,7 @@ def test_search(cli, mock_search_issues):
         captured_output = mock_stdout.getvalue()
 
         # Verify if the correct output is printed
-        assert "AAP-41844" in captured_output  # Issue key is printed
+        assert "AAP-mock_search_issues" in captured_output  # Issue key is printed
         assert "SaaS Sprint 2025-13" in captured_output  # Sprint name is printed
         assert "In Progress" in captured_output  # Status is printed
         assert "David O Neill" in captured_output  # Assignee name is printed
@@ -69,24 +71,24 @@ def test_list_with_summary_filter(cli, capsys):
     # Mock list_issues to return a list of issues
     cli.jira.list_issues.return_value = [
         {
-            "key": "AAP-1",
+            "key": "AAP-test_list_with_summary_filter-1",
             "fields": {
                 "status": {"name": "In Progress"},
                 "assignee": {"displayName": "Dino"},
                 "priority": {"name": "High"},
-                "customfield_12310243": 5,
-                "customfield_12310940": ["name=Spring, state=ACTIVE"],
+                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+                EnvFetcher.get("JIRA_SPRINT_FIELD"): ["name=Spring, state=ACTIVE"],
                 "summary": "Fix bugs",
             },
         },
         {
-            "key": "AAP-2",
+            "key": "AAP-test_list_with_summary_filter-2",
             "fields": {
                 "status": {"name": "In Progress"},
                 "assignee": {"displayName": "Alice"},
                 "priority": {"name": "Low"},
-                "customfield_12310243": 3,
-                "customfield_12310940": ["name=Summer, state=ACTIVE"],
+                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 3,
+                EnvFetcher.get("JIRA_SPRINT_FIELD"): ["name=Summer, state=ACTIVE"],
                 "summary": "Improve UX",
             },
         },
@@ -114,8 +116,5 @@ def test_list_with_summary_filter(cli, capsys):
 
     captured = capsys.readouterr()
 
-    # Ensure only the "AAP-1" issue is printed (the one with "Fix" in the summary)
-    assert "AAP-1" in captured.out
-    assert (
-        "AAP-2" not in captured.out
-    )  # "AAP-2" should be skipped because its summary is "Improve UX"
+    assert "AAP-test_list_with_summary_filter-1" in captured.out
+    assert "AAP-test_list_with_summary_filter-2" not in captured.out

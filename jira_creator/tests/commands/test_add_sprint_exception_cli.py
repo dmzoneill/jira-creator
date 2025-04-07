@@ -6,7 +6,7 @@ def test_add_sprint_exception(cli, capsys):
     cli.jira.add_to_sprint_by_name = MagicMock(side_effect=Exception("fail"))
 
     class Args:
-        issue_key = "AAP-1"
+        issue_key = "AAP-test_add_sprint_exception"
         sprint_name = "Sprint X"
 
     # Call the add_sprint method and handle the exception

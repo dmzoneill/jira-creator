@@ -2,8 +2,10 @@
 import os
 from unittest.mock import MagicMock, patch
 
-from jira_creator.rest.client import JiraClient
-from jira_creator.rh_jira import JiraCLI
+from rest.client import JiraClient
+from rh_jira import JiraCLI
+
+from core.env_fetcher import EnvFetcher  # isort: skip
 
 import pytest  # isort: skip
 
@@ -34,7 +36,7 @@ def client():
 @pytest.fixture
 def patch_subprocess_call():
     with patch(
-        "jira_creator.commands.cli_edit_issue.subprocess.call", return_value=0
+        "commands.cli_edit_issue.subprocess.call", return_value=0
     ) as mock_subprocess:
         yield mock_subprocess
 
@@ -43,7 +45,7 @@ def patch_subprocess_call():
 @pytest.fixture
 def patch_tempfile_namedtemporaryfile():
     with patch(
-        "jira_creator.commands.cli_edit_issue.tempfile.NamedTemporaryFile"
+        "commands.cli_edit_issue.tempfile.NamedTemporaryFile"
     ) as mock_tempfile:
         # Mock tempfile behavior
         fake_file = MagicMock()
@@ -57,10 +59,6 @@ def patch_tempfile_namedtemporaryfile():
 # Fixture for CLI object
 @pytest.fixture
 def cli(
-    mock_cache_path,
-    mock_load_cache,
-    mock_save_cache,
-    mock_load_and_cache_issue,
     patch_subprocess_call,
     patch_tempfile_namedtemporaryfile,
 ):
@@ -91,14 +89,14 @@ def mock_search_issues(cli):
     cli.jira.search_issues = MagicMock(
         return_value=[
             {
-                "key": "AAP-41844",
+                "key": "AAP-mock_search_issues",
                 "fields": {
                     "summary": "Run IQE tests in promotion pipelines",
                     "status": {"name": "In Progress"},
                     "assignee": {"displayName": "David O Neill"},
                     "priority": {"name": "Normal"},
-                    "customfield_12310243": 5,
-                    "customfield_12310940": [
+                    EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+                    EnvFetcher.get("JIRA_SPRINT_FIELD"): [
                         """com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,
                         rapidViewId=18242,state=ACTIVE,name=SaaS Sprint 2025-13,"
                         startDate=2025-03-27T12:01:00.000Z,endDate=2025-04-03T12:01:00.000Z]"""
@@ -113,37 +111,35 @@ def mock_search_issues(cli):
 @pytest.fixture
 def mock_cache_path():
     with patch(
-        "jira_creator.commands.cli_validate_issue.get_cache_path",
+        "commands.cli_validate_issue.get_cache_path",
         return_value=DUMMY_FILE_PATH,
     ):
-        yield DUMMY_FILE_PATH  # Provide the mock cache path
+        yield DUMMY_FILE_PATH
 
 
 # Mocking load_cache to return a dummy cache
 @pytest.fixture
-def mock_load_cache():
+def mock_load_cache(mock_cache_path):
     with patch(
-        "jira_creator.commands.cli_validate_issue.load_cache",
+        "commands.cli_validate_issue.load_cache",
         return_value={DUMMY_HASH: {"summary_hash": "dummy_summary_hash"}},
     ):
-        yield  # Provide the mocked return value
+        yield
 
 
 # Mocking save_cache to prevent actual file writing
 @pytest.fixture
-def mock_save_cache():
-    with patch("jira_creator.commands.cli_validate_issue.save_cache") as mock_save:
-        yield mock_save  # Provide the mocked save_cache function
+def mock_save_cache(mock_cache_path):
+    with patch("commands.cli_validate_issue.save_cache") as mock_save:
+        yield mock_save
 
 
 # Mocking load_and_cache_issue to return a dummy cache and cached values
 @pytest.fixture
-def mock_load_and_cache_issue():
-    with patch(
-        "jira_creator.commands.cli_validate_issue.load_and_cache_issue",
-        return_value=(
-            {"FAKE-123": {"summary_hash": DUMMY_HASH}},
-            {"summary_hash": DUMMY_HASH},
-        ),
-    ):
-        yield  # Provide the mocked return value
+def mock_load_and_cache_issue(mock_save_cache):
+    data = (
+        {"AAP-mock_load_and_cache_issue": {"summary_hash": DUMMY_HASH}},
+        {"summary_hash": DUMMY_HASH},
+    )
+    with patch("commands.cli_validate_issue.load_and_cache_issue", return_value=data):
+        yield

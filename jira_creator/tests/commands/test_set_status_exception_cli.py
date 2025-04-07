@@ -6,7 +6,7 @@ def test_set_status_exception(cli, capsys):
     cli.jira.set_status = MagicMock(side_effect=Exception("bad status"))
 
     class Args:
-        issue_key = "AAP-900"
+        issue_key = "AAP-test_set_status_exception"
         status = "Invalid"
 
     # Call the method

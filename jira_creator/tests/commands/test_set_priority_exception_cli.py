@@ -6,7 +6,7 @@ def test_set_priority_error(cli, capsys):
     cli.jira.set_priority = MagicMock(side_effect=Exception("fail"))
 
     class Args:
-        issue_key = "AAP-4"
+        issue_key = "AAP-test_set_priority_error"
         priority = "High"
 
     # Call the method

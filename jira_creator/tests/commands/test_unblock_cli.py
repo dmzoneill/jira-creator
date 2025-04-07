@@ -10,13 +10,13 @@ def test_unblock_command_success(cli, capsys):
     cli.jira.unblock_issue = mock_unblock
 
     class Args:
-        issue_key = "AAP-123"
+        issue_key = "AAP-test_unblock_command_success"
 
     cli.unblock(Args())
 
     out = capsys.readouterr().out
-    assert "✅ AAP-123 marked as unblocked" in out
-    assert called["issue_key"] == "AAP-123"
+    assert "✅ AAP-test_unblock_command_success marked as unblocked" in out
+    assert called["issue_key"] == "AAP-test_unblock_command_success"
 
 
 def test_unblock_command_failure(cli, capsys):
@@ -27,9 +27,12 @@ def test_unblock_command_failure(cli, capsys):
     cli.jira.unblock_issue = raise_exception
 
     class Args:
-        issue_key = "AAP-999"
+        issue_key = "AAP-test_unblock_command_failure"
 
     cli.unblock(Args())
 
     out = capsys.readouterr().out
-    assert "❌ Failed to unblock AAP-999: Simulated unblock failure" in out
+    assert (
+        "❌ Failed to unblock AAP-test_unblock_command_failure: Simulated unblock failure"
+        in out
+    )

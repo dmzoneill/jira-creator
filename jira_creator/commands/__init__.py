@@ -12,6 +12,7 @@ from .cli_lint_all import cli_lint_all  # noqa
 from .cli_list_issues import cli_list_issues  # noqa
 from .cli_migrate import cli_migrate  # noqa
 from .cli_open_issue import cli_open_issue  # noqa
+from .cli_quarterly_connection import cli_quarterly_connection  # noqa
 from .cli_remove_sprint import cli_remove_sprint  # noqa
 from .cli_search import cli_search  # noqa
 from .cli_set_acceptance_criteria import cli_set_acceptance_criteria  # noqa

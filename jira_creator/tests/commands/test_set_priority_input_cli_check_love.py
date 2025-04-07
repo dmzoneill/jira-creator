@@ -7,7 +7,7 @@ def test_set_priority_love_input(cli):
     cli.jira = MagicMock()
 
     class Args:
-        issue_key = "AAP-200"
+        issue_key = "AAP-test_set_priority_love_input"
         priority = "me love you long time"
 
     captured_output = StringIO()

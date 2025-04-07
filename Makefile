@@ -16,69 +16,90 @@ PYTHON ?= python
 PIPENV ?= PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv
 SCRIPT := rh-jira.py
 
+# --- Helper Target for Printing Headers ---
+.PHONY: print-header
+print-header:
+	@echo "===================================="
+	@echo "  Running Target: $(MAKECMDGOALS)"
+	@echo "===================================="
+
 # --- Setup & Install ---
+.PHONY: install-linters
+install-linters: print-header
+	sudo dnf install -y yamllint hadolint shellcheck
+	npm install jscpd textlint markdownlint hadolint
+	$(PIPENV) run pip install pylint flake8 pyflakes black
+
 .PHONY: install
-install:
-	npm install jscpd textlint markdownlint
+install: print-header install-linters
 	$(PIPENV) install --dev
 
 .PHONY: setup
-setup: install
+setup: print-header install
 	@echo "✅ Virtualenv and dependencies ready."
 
 # --- Run Script ---
 .PHONY: run
-run:
+run: print-header
 	$(PIPENV) run $(PYTHON) $(SCRIPT)
 
-# --- Create new readme ---
-.PHONY: readme
-readme:
-	python3 create_readme.py
-
 .PHONY: dry-run
-dry-run:
+dry-run: print-header
 	$(PIPENV) run $(PYTHON) $(SCRIPT) bug "Dry run summary" --dry-run
 
 # --- Tests ---
-
 .PHONY: test-setup
-test-setup:
-	echo "JPAT=NOT_A_SECRET" >> $$GITHUB_ENV
-	echo "AI_PROVIDER=openai" >> $$GITHUB_ENV
-	echo "JIRA_URL=https://issues.redhat.com" >> $$GITHUB_ENV
-	echo "PROJECT_KEY=AAP" >> $$GITHUB_ENV
-	echo "AFFECTS_VERSION=aa-latest" >> $$GITHUB_ENV
-	echo "COMPONENT_NAME=analytics-hcc-service" >> $$GITHUB_ENV
-	echo "PRIORITY=Normal" >> $$GITHUB_ENV
-	echo "AI_API_KEY=NOT_A_SECRET" >> $$GITHUB_ENV
-	echo "JIRA_BOARD_ID=21125" >> $$GITHUB_ENV
+test-setup: print-header
+	$(eval ENV_VARS := \
+		"JPAT=NOT_A_SECRET" \
+		"AI_PROVIDER=openai" \
+		"JIRA_URL=https://issues.redhat.com" \
+		"PROJECT_KEY=AAP" \
+		"AFFECTS_VERSION=aa-latest" \
+		"COMPONENT_NAME=analytics-hcc-service" \
+		"PRIORITY=Normal" \
+		"AI_API_KEY=NOT_A_SECRET" \
+		"JIRA_BOARD_ID=21125" \
+	)
+	@for var in $(ENV_VARS); do echo $$var >> $$GITHUB_ENV; done
 
 .PHONY: test
-test: coverage
-	echo Running coverage
+test: print-header coverage
+	@echo "Running coverage"
 
 .PHONY: test-watch
-test-watch:
+test-watch: print-header
 	$(PIPENV) run ptw --onfail "notify-send 'Tests failed!'"
 
-# --- Lint ---
+# --- Linting ---
 .PHONY: lint
-lint:
-	$(PIPENV) run black . --check
-	$(PIPENV) run flake8 . --ignore=E501,F401,W503
-
-
-.PHONY: format
-format:
-	- node_modules/jscpd/bin/jscpd -p "**/*.py" $$PWD
-	isort .
+lint: print-header
+	$(PIPENV) run isort .
+	@echo "\n========== isort Finished =========="
 	$(PIPENV) run autopep8 . --recursive --in-place --aggressive --aggressive
-	$(PIPENV) run black .
+	@echo "\n========== autopep8 Finished =========="
+	#$(PIPENV) run pylint $$PWD
+	@echo "\n========== pylint Finished =========="
+	#$(PIPENV) run flake8 $$PWD
+	@echo "\n========== flake8 Finished =========="
+	#$(PIPENV) run pyflakes $$PWD
+	@echo "\n========== pyflakes Finished =========="
+	$(PIPENV) run black $$PWD
+	@echo "\n========== black Finished =========="
+	#$(PIPENV) run yamllint $$PWD
+	@echo "\n========== yamllint Finished =========="
+	$(PIPENV) run hadolint $$PWD/Dockerfile
+	@echo "\n========== hadolint Finished =========="
+	#$(PIPENV) run markdownlint $$PWD/README.md
+	@echo "\n========== markdownlint Finished =========="
+	#$(PIPENV) run shellcheck $$PWD/README.md
+	@echo "\n========== shellcheck Finished =========="
+	./node_modules/jscpd/bin/jscpd -p "**/*.py" $$PWD
+	@echo "\n========== jscpd Finished =========="
 
-# Run tests with coverage, including subprocess tracking
+# --- Coverage ---
 .PHONY: coverage
-coverage:
+coverage: print-header
 	$(PIPENV) run coverage erase
 	$(PIPENV) run coverage run -m pytest --durations=10 jira_creator/tests
 	- $(PIPENV) run coverage combine
@@ -86,14 +107,14 @@ coverage:
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
 
-
 # Clean up coverage artifacts
-clean-coverage:
+.PHONY: clean-coverage
+clean-coverage: print-header
 	rm -rf .coverage htmlcov
 
 # --- Clean ---
 .PHONY: clean
-clean:
+clean: print-header
 	- find . -type d -name "__pycache__" -exec rm -r {} +
 	- find . -type f -name "*.pyc" -delete
 	- find . -type f -name ".coverage*" -delete
@@ -112,7 +133,9 @@ clean:
 	- rm -rvf *.deb
 	- rm -rvf *.rpm
 
-rpm: clean
+# --- RPM / DEB Packaging ---
+.PHONY: rpm
+rpm: print-header clean
 	- sudo dnf install -y rpm-build rpmlint python3-setuptools python3-setuptools
 	rm -rvf ./rpmbuild
 	mkdir -p ./rpmbuild/BUILD ./rpmbuild/BUILDROOT ./rpmbuild/RPMS ./rpmbuild/SOURCES ./rpmbuild/SPECS ./rpmbuild/SRPMS ./rpmbuild/SOURCE
@@ -121,11 +144,13 @@ rpm: clean
 	tar -czvf rpmbuild/SOURCES/$(RPM_FILENAME).tar.gz jira_creator/ 
 	rpmbuild --define "_topdir `pwd`/rpmbuild" -v -ba ./rpmbuild/SPECS/jira-creator.spec
 
-rpm-install: rpm
+.PHONY: rpm-install
+rpm-install: print-header rpm
 	sudo dnf install rpmbuild/RPMS/<architecture>/python-example-1.0-1.<architecture>.rpm
 	rpmlint
 
-deb: clean
+.PHONY: deb
+deb: print-header clean
 	sudo apt-get install dpkg dpkg-dev fakeroot
 	sudo rm -rvf ./debbuild
 	mkdir -vp ./debbuild/DEBIAN
@@ -141,10 +166,13 @@ deb: clean
 	dpkg -c $(DEB_FILENAME)
 	dpkg -I $(DEB_FILENAME)
 
-deb-install: deb	
+.PHONY: deb-install
+deb-install: print-header deb	
 	sudo dpkg -i $(DEB_FILENAME)
 
-super-lint: $(SUPER_LINTER_CONFIGS)
+# --- Super Linter ---
+.PHONY: super-lint
+super-lint: print-header $(SUPER_LINTER_CONFIGS)
 	docker run --rm \
 	-e SUPER_LINTER_LINTER=error \
 	-e LINTER_OUTPUT=error \
@@ -155,6 +183,7 @@ super-lint: $(SUPER_LINTER_CONFIGS)
 	-v $$(pwd):/tmp/lint \
 	github/super-linter:latest --quiet
 
+# --- External Linter Configs ---
 .eslintrc.json:
 	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.eslintrc.json
 
@@ -170,8 +199,9 @@ super-lint: $(SUPER_LINTER_CONFIGS)
 .stylelintrc.json:
 	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.stylelintrc.json
 
+# --- Weaviate Setup ---
 .PHONY: weaviate-setup
-weaviate-setup:
+weaviate-setup: print-header
 	docker run -d -p 8080:8080 semitechnologies/weaviate
 
 # --- Help ---
@@ -186,5 +216,4 @@ help:
 	@echo "  make coverage    - Run coverage"
 	@echo "  make lint        - Run format checks"
 	@echo "  make super-lint  - Run super linter for more extensive lint"
-	@echo "  make format      - Auto-format code"
 	@echo "  make clean       - Remove __pycache__ and *.pyc files"

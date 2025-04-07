@@ -8,9 +8,11 @@ def test_get_issue_type(client):
     )
 
     # Call the get_issue_type method with a sample issue key
-    result = client.get_issue_type("AAP-123")
+    result = client.get_issue_type("AAP-test_get_issue_type")
 
     # Check if the result is the correct issue type
     assert result == "Story"
     # Ensure that _request was called with the expected arguments
-    client._request.assert_called_once_with("GET", "/rest/api/2/issue/AAP-123")
+    client._request.assert_called_once_with(
+        "GET", "/rest/api/2/issue/AAP-test_get_issue_type"
+    )

@@ -6,7 +6,7 @@ def test_change_issue_type_fails(client):
     client._request = MagicMock(side_effect=Exception("failure"))
 
     # Attempt to change the issue type
-    success = client.change_issue_type("AAP-1", "task")
+    success = client.change_issue_type("AAP-test_change_issue_type_fails", "task")
 
     # Assert that the operation failed
     assert not success

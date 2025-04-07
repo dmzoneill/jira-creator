@@ -2,6 +2,8 @@ import hashlib
 import json
 import os
 
+from core.env_fetcher import EnvFetcher
+
 
 def get_cache_path():
     return os.path.expanduser("~/.config/rh-issue/ai-hashes.json")
@@ -145,12 +147,12 @@ def cli_validate_issue(fields, ai_provider):
 
     status = fields.get("status", {}).get("name")
     assignee = fields.get("assignee")
-    epic_link = fields.get("customfield_12311140")
-    sprint_field = fields.get("customfield_12310940")
+    epic_link = fields.get(EnvFetcher.get("JIRA_EPIC_FIELD"))
+    sprint_field = fields.get(EnvFetcher.get("JIRA_SPRINT_FIELD"))
     priority = fields.get("priority")
-    story_points = fields.get("customfield_12310243")
-    blocked_value = fields.get("customfield_12316543", {}).get("value")
-    blocked_reason = fields.get("customfield_12316544")
+    story_points = fields.get(EnvFetcher.get("JIRA_STORY_POINTS_FIELD"))
+    blocked_value = fields.get(EnvFetcher.get("JIRA_BLOCKED_FIELD"), {}).get("value")
+    blocked_reason = fields.get(EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"))
 
     # Load cache for the issue
     cache, cached = load_and_cache_issue(issue_key)
@@ -194,7 +196,9 @@ def cli_validate_issue(fields, ai_provider):
         issue_status,
     )
 
-    acceptance_criteria = fields.get("customfield_12315940", "")
+    acceptance_criteria = fields.get(
+        EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD"), ""
+    )
     acceptance_criteria_hash = (
         sha256(acceptance_criteria) if acceptance_criteria else None
     )

@@ -2,13 +2,13 @@ from unittest.mock import MagicMock
 
 
 def test_view_issue(cli, capsys):
-    blob = {"smokekey": "somevalue", "customfield": 3}
+    blob = {"smokekey": "somevalue", "customfield_12345": 3}
 
     cli.jira.get_field_name = MagicMock(return_value="xxx")
     cli.jira.view_issue = MagicMock(return_value=blob)
 
     class Args:
-        issue_key = "AAP-1"
+        issue_key = "AAP-test_view_issue"
 
     # Call the handle function
     cli.view_issue(Args())
@@ -20,14 +20,14 @@ def test_view_issue(cli, capsys):
     # assert "✅ Story's epic set to 'EPIC-123'" in captured.out
 
     # Ensure that set_story_epic was called with the correct arguments
-    cli.jira.view_issue.assert_called_once_with("AAP-1")
+    cli.jira.view_issue.assert_called_once_with("AAP-test_view_issue")
 
 
 def test_view_issue_exception(cli, capsys):
     cli.jira.view_issue = MagicMock(side_effect=Exception("fail"))
 
     class Args:
-        issue_key = "AAP-1"
+        issue_key = "AAP-test_view_issue_exception"
 
     # Call the handle function
     cli.view_issue(Args())
@@ -38,4 +38,4 @@ def test_view_issue_exception(cli, capsys):
     assert "❌ Unable to view issue: fail" in captured.out
 
     # Ensure that set_story_epic was called with the correct arguments
-    cli.jira.view_issue.assert_called_once_with("AAP-1")
+    cli.jira.view_issue.assert_called_once_with("AAP-test_view_issue_exception")

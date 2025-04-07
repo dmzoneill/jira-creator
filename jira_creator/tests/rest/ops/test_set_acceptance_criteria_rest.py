@@ -1,11 +1,18 @@
+from core.env_fetcher import EnvFetcher
+
+
 def test_set_acceptance_criteria(capsys, client):
-    issue_key = "AAP-100"
+    issue_key = "AAP-test_set_acceptance_criteria"
     acceptance_criteria = "Acceptance criteria description"
 
     # Simulate the GET and PUT responses correctly
     client._request.side_effect = [
         {
-            "fields": {"customfield_12315940": "Acceptance criteria description"}
+            "fields": {
+                EnvFetcher.get(
+                    "JIRA_ACCEPTANCE_CRITERIA_FIELD"
+                ): "Acceptance criteria description"
+            }
         },  # GET response with 'fields'
         {},  # PUT response (successful)
     ]

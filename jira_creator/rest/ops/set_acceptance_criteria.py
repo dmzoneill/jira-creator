@@ -1,7 +1,10 @@
+from core.env_fetcher import EnvFetcher
+
+
 def set_acceptance_criteria(request_fn, issue_key, acceptance_criteria):
     payload = {
         "fields": {
-            "customfield_12315940": (
+            EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD"): (
                 "" if not acceptance_criteria else str(acceptance_criteria)
             )
         }

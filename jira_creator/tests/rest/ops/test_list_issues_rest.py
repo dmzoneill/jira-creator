@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+from core.env_fetcher import EnvFetcher
+
 
 def mock_client_request(client, mock_return_value):
     # Mock get_current_user
@@ -14,28 +16,30 @@ def mock_client_request(client, mock_return_value):
 
 
 def test_list_issues(client):
-    mock_client_request(client, {"issues": [{"key": "AAP-1"}]})
+    mock_client_request(client, {"issues": [{"key": "AAP-test_list_issues"}]})
 
     issues = client.list_issues(project="AAP", component="platform", assignee="user123")
 
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
-    assert issues[0]["key"] == "AAP-1"
+    assert issues[0]["key"] == "AAP-test_list_issues"
 
 
 def test_list_issues_reporter(client):
-    mock_client_request(client, {"issues": [{"key": "AAP-1"}]})
+    mock_client_request(client, {"issues": [{"key": "AAP-test_list_issues_reporter"}]})
 
     issues = client.list_issues(project="AAP", component="platform", reporter="user123")
 
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
-    assert issues[0]["key"] == "AAP-1"
+    assert issues[0]["key"] == "AAP-test_list_issues_reporter"
 
 
 def test_list_issues_with_status(client):
 
-    mock_client_request(client, {"issues": [{"key": "AAP-1"}]})
+    mock_client_request(
+        client, {"issues": [{"key": "AAP-test_list_issues_with_status"}]}
+    )
 
     issues = client.list_issues(
         project="AAP", component="platform", assignee="user123", status="In Progress"
@@ -43,11 +47,13 @@ def test_list_issues_with_status(client):
 
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
-    assert issues[0]["key"] == "AAP-1"
+    assert issues[0]["key"] == "AAP-test_list_issues_with_status"
 
 
 def test_list_issues_with_summary(client):
-    mock_client_request(client, {"issues": [{"key": "AAP-1"}]})
+    mock_client_request(
+        client, {"issues": [{"key": "AAP-test_list_issues_with_summary"}]}
+    )
 
     issues = client.list_issues(
         project="AAP", component="platform", assignee="user123", summary="Onboarding"
@@ -55,11 +61,13 @@ def test_list_issues_with_summary(client):
 
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
-    assert issues[0]["key"] == "AAP-1"
+    assert issues[0]["key"] == "AAP-test_list_issues_with_summary"
 
 
 def test_list_issues_with_blocked(client):
-    mock_client_request(client, {"issues": [{"key": "AAP-1"}]})
+    mock_client_request(
+        client, {"issues": [{"key": "AAP-test_list_issues_with_blocked"}]}
+    )
 
     issues = client.list_issues(
         project="AAP", component="platform", assignee="user123", blocked=True
@@ -67,40 +75,47 @@ def test_list_issues_with_blocked(client):
 
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
-    assert issues[0]["key"] == "AAP-1"
+    assert issues[0]["key"] == "AAP-test_list_issues_with_blocked"
 
-    mock_client_request(client, {"issues": [{"key": "AAP-1"}]})
+    mock_client_request(
+        client, {"issues": [{"key": "AAP-test_list_issues_with_blocked"}]}
+    )
 
 
 def test_list_issues_with_unblocked(client):
-    mock_client_request(client, {"issues": [{"key": "AAP-1"}]})
+    mock_client_request(
+        client, {"issues": [{"key": "AAP-test_list_issues_with_unblocked"}]}
+    )
 
     issues = client.list_issues(
         project="AAP", component="platform", assignee="user123", unblocked=True
     )
 
-    # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
-    assert issues[0]["key"] == "AAP-1"
+    assert issues[0]["key"] == "AAP-test_list_issues_with_unblocked"
 
-    mock_client_request(client, {"issues": [{"key": "AAP-1"}]})
+    mock_client_request(
+        client, {"issues": [{"key": "AAP-test_list_issues_with_unblocked"}]}
+    )
 
 
 def test_list_issues_with_none_sprints(client):
     def mock_request(method, path, **kwargs):
         if method == "GET" and "search" in path:
-            # Return an issue with 'customfield_12310940' set to None or missing
+            # Return an issue with 'JIRA_SPRINT_FIELD' set to None or missing
             return {
                 "issues": [
                     {
-                        "key": "AAP-41844",
+                        "key": "AAP-test_list_issues_with_none_sprints",
                         "fields": {
                             "summary": "Run IQE tests in promotion pipelines",
                             "status": {"name": "In Progress"},
                             "assignee": {"displayName": "David O Neill"},
                             "priority": {"name": "Normal"},
-                            "customfield_12310243": 5,
-                            "customfield_12310940": None,  # No sprints data
+                            EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+                            EnvFetcher.get(
+                                "JIRA_SPRINT_FIELD"
+                            ): None,  # No sprints data
                         },
                     }
                 ]
@@ -112,7 +127,7 @@ def test_list_issues_with_none_sprints(client):
 
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
-    assert issues[0]["key"] == "AAP-41844"
+    assert issues[0]["key"] == "AAP-test_list_issues_with_none_sprints"
 
     # Ensure that 'sprint' field is set to 'No active sprint' when sprints is None
     assert issues[0]["sprint"] == "No active sprint"
@@ -121,18 +136,18 @@ def test_list_issues_with_none_sprints(client):
 def test_list_issues_with_sprint_regex_matching(client):
     def mock_request(method, path, **kwargs):
         if method == "GET" and "search" in path:
-            # Return an issue with customfield_12310940 containing a sprint string
+            # Return an issue with JIRA_SPRINT_FIELD containing a sprint string
             return {
                 "issues": [
                     {
-                        "key": "AAP-41844",
+                        "key": "AAP-test_list_issues_with_sprint_regex_matching",
                         "fields": {
                             "summary": "Run IQE tests in promotion pipelines",
                             "status": {"name": "In Progress"},
                             "assignee": {"displayName": "David O Neill"},
                             "priority": {"name": "Normal"},
-                            "customfield_12310243": 5,
-                            "customfield_12310940": [
+                            EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+                            EnvFetcher.get("JIRA_SPRINT_FIELD"): [
                                 """com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,rapidViewId=18242,
                                 state=ACTIVE,name=SaaS Sprint 2025-13,startDate=2025-03-27T12:01:00.000Z,"
                                 endDate=2025-04-03T12:01:00.000Z]"""
@@ -149,7 +164,7 @@ def test_list_issues_with_sprint_regex_matching(client):
     # Assert that the issues returned are a list and contain the correct key
     # /* jscpd:ignore-start */
     assert isinstance(issues, list)
-    assert issues[0]["key"] == "AAP-41844"
+    assert issues[0]["key"] == "AAP-test_list_issues_with_sprint_regex_matching"
     # /* jscpd:ignore-end */
     # Ensure that the sprint is correctly extracted and assigned when sprint state is ACTIVE
     assert issues[0]["sprint"] == "SaaS Sprint 2025-13"  # Check the sprint name

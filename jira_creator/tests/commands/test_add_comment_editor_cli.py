@@ -15,7 +15,7 @@ def test_add_comment_editor(cli):
 
     # Use the temporary file as input for the comment
     class Args:
-        issue_key = "AAP-1"
+        issue_key = "AAP-test_add_comment_editor"
         text = tf.name  # Use the file path for the comment
 
     # Call the add_comment method
@@ -25,7 +25,9 @@ def test_add_comment_editor(cli):
     # os.remove(tf.name)
 
     # Ensure the add_comment method was called
-    cli.jira.add_comment.assert_called_once_with("AAP-1", "my comment")
+    cli.jira.add_comment.assert_called_once_with(
+        "AAP-test_add_comment_editor", "my comment"
+    )
 
 
 def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
@@ -50,7 +52,9 @@ def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
 
                 # Create an empty text argument to trigger the else block
                 class Args:
-                    issue_key = "AAP-999"
+                    issue_key = (
+                        "AAP-test_add_comment_with_editor_and_ai_exception_handling"
+                    )
                     text = (
                         ""  # Empty text should trigger the else block (temporary file)
                     )
@@ -66,7 +70,8 @@ def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
 
                 # Ensure that the add_comment method was called with the comment from the temporary file
                 cli.jira.add_comment.assert_called_once_with(
-                    "AAP-999", "Mocked comment"
+                    "AAP-test_add_comment_with_editor_and_ai_exception_handling",
+                    "Mocked comment",
                 )
 
                 # Assert the expected output (you can check if the process was handled correctly)

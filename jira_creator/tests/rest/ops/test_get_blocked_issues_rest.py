@@ -1,19 +1,20 @@
 from unittest.mock import MagicMock
 
 import pytest
+from core.env_fetcher import EnvFetcher
 
 
 def test_get_blocked_issues_found(client):
     client.list_issues = MagicMock(
         return_value=[
             {
-                "key": "AAP-123",
+                "key": "AAP-test_get_blocked_issues_found",
                 "fields": {
                     "summary": "Fix DB timeout",
                     "status": {"name": "In Progress"},
                     "assignee": {"displayName": "Alice"},
-                    "customfield_12316543": {"value": "True"},
-                    "customfield_12316544": "DB down",
+                    EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "True"},
+                    EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "DB down",
                 },
             }
         ]
@@ -21,7 +22,7 @@ def test_get_blocked_issues_found(client):
 
     result = client.blocked()
     assert len(result) == 1
-    assert result[0]["key"] == "AAP-123"
+    assert result[0]["key"] == "AAP-test_get_blocked_issues_found"
     assert result[0]["reason"] == "DB down"
 
 
@@ -29,13 +30,13 @@ def test_get_blocked_issues_none_blocked(client):
     client.list_issues = MagicMock(
         return_value=[
             {
-                "key": "AAP-999",
+                "key": "AAP-test_get_blocked_issues_none_blocked",
                 "fields": {
                     "summary": "Write docs",
                     "status": {"name": "To Do"},
                     "assignee": {"displayName": "Bob"},
-                    "customfield_12316543": {"value": "False"},
-                    "customfield_12316544": "",
+                    EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "False"},
+                    EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
                 },
             }
         ]

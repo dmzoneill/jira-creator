@@ -6,7 +6,7 @@ def test_vote_story_points_error(cli, capsys):
     cli.jira.vote_story_points = MagicMock(side_effect=Exception("fail"))
 
     class Args:
-        issue_key = "AAP-2"
+        issue_key = "AAP-test_vote_story_points_error"
         points = "8"
 
     # Call the method and capture the output

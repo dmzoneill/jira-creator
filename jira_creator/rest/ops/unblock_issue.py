@@ -1,9 +1,15 @@
 import os
 
+from core.env_fetcher import EnvFetcher
+
 
 def unblock_issue(request_fn, issue_key):
-    blocked_field = os.getenv("JIRA_BLOCKED_FIELD", "customfield_12316543")
-    reason_field = os.getenv("JIRA_BLOCKED_REASON_FIELD", "customfield_12316544")
+    blocked_field = os.getenv(
+        "JIRA_BLOCKED_FIELD", EnvFetcher.get("JIRA_BLOCKED_FIELD")
+    )
+    reason_field = os.getenv(
+        "JIRA_BLOCKED_REASON_FIELD", EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD")
+    )
 
     payload = {
         "fields": {

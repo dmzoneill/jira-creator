@@ -5,8 +5,8 @@ def test_assign_issue_failure(capfd, client):
 
     client._request = mock_request_fail
 
-    result = client.assign_issue("AAP-100", {"name": "johndoe"})
+    result = client.assign_issue("AAP-test_assign_issue_failure", {"name": "johndoe"})
     out = capfd.readouterr().out
 
     assert result is False
-    assert "❌ Failed to assign issue AAP-100" in out
+    assert "❌ Failed to assign issue AAP-test_assign_issue_failure" in out

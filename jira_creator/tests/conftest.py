@@ -44,9 +44,7 @@ def patch_subprocess_call():
 # Fixture for patching tempfile.NamedTemporaryFile
 @pytest.fixture
 def patch_tempfile_namedtemporaryfile():
-    with patch(
-        "commands.cli_edit_issue.tempfile.NamedTemporaryFile"
-    ) as mock_tempfile:
+    with patch("commands.cli_edit_issue.tempfile.NamedTemporaryFile") as mock_tempfile:
         # Mock tempfile behavior
         fake_file = MagicMock()
         fake_file.__enter__.return_value = fake_file

@@ -2,6 +2,7 @@ import time
 
 from rest.prompts import IssueType, PromptLibrary
 
+
 def cli_quarterly_connection(jira, ai_provider):
     try:
         print("Building employee report")
@@ -23,7 +24,7 @@ def cli_quarterly_connection(jira, ai_provider):
             description = jira.get_description(key) or ""
             print("Fetched: " + summary)
             time.sleep(2)
-            if 'CVE' in summary:
+            if "CVE" in summary:
                 print("Not adding CVE to analysis")
                 continue
             qc_input += summary + "\n"
@@ -34,8 +35,5 @@ def cli_quarterly_connection(jira, ai_provider):
         print("Manager churning:")
         print(ai_provider.improve_text(system_prompt, qc_input))
 
-        
-
     except Exception as e:
         print(e)
-        

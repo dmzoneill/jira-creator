@@ -1,5 +1,7 @@
 import re
 
+from core.env_fetcher import EnvFetcher
+
 
 def cli_search(jira, args):
     try:
@@ -13,7 +15,7 @@ def cli_search(jira, args):
         rows = []
         for issue in issues:
             f = issue["fields"]
-            sprints = f.get("customfield_12310940") or []
+            sprints = f.get(EnvFetcher.get("JIRA_SPRINT_FIELD")) or []
             sprint = next(
                 (
                     re.search(r"name=([^,]+)", s).group(1)
@@ -29,7 +31,7 @@ def cli_search(jira, args):
                     f["status"]["name"],
                     f["assignee"]["displayName"] if f["assignee"] else "Unassigned",
                     f.get("priority", {}).get("name", "—"),
-                    str(f.get("customfield_12310243", "—")),
+                    str(f.get(EnvFetcher.get("JIRA_STORY_POINTS_FIELD"), "—")),
                     sprint,
                     f["summary"],
                 )

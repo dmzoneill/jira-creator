@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock, patch
 
-from jira_creator.commands.cli_validate_issue import (  # isort: skip
+from core.env_fetcher import EnvFetcher
+
+from commands.cli_validate_issue import (  # isort: skip
     cli_validate_issue,
     load_cache,
     sha256,
@@ -19,7 +21,7 @@ def test_load_cache_file_not_found():
         ), "Expected an empty dictionary when the cache file doesn't exist"
 
 
-def test_acceptance_criteria_no_change_but_invalid():
+def test_acceptance_criteria_no_change_but_invalid(mock_load_cache, mock_save_cache):
     ai_provider = MagicMock()
     ai_provider.improve_text.return_value = (
         "Needs Improvement"  # Simulate AI returning a poor response
@@ -27,13 +29,15 @@ def test_acceptance_criteria_no_change_but_invalid():
 
     # Ensure we add the 'key' field for the issue to match the cache
     fields = {
-        "key": "AAP-100",  # Issue key is added here
+        "key": "AAP-test_acceptance_criteria_no_change_but_invalid",  # Issue key is added here
         "summary": "Test Summary",
         "description": "Test Description",
-        "customfield_12315940": "Acceptance criteria description",  # Acceptance criteria field
-        "customfield_12311140": "Epic Link",
+        EnvFetcher.get(
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD"
+        ): "Acceptance criteria description",  # Acceptance criteria field
+        EnvFetcher.get("JIRA_EPIC_FIELD"): "Epic Link",
         "priority": {"name": "High"},
-        "customfield_12310243": 5,
+        EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
         "status": {"name": "To Do"},
     }
 
@@ -52,25 +56,28 @@ def test_acceptance_criteria_no_change_but_invalid():
 
     # Patch the cache loading function to return the mocked cached data
     with patch(
-        "jira_creator.commands.cli_validate_issue.load_cache",
-        return_value={fields["key"]: cached_data},
+        "commands.cli_validate_issue.save_cache"
     ):
-        problems = cli_validate_issue(fields, ai_provider)[0]
-        # /* jscpd:ignore-end */
-        # Assert that the invalid acceptance criteria was detected
-        assert (
-            "❌ Acceptance Criteria: Needs Improvement" in problems
-        )  # The old AI suggestion should be used
-        assert (
-            "❌ Acceptance Criteria: Check the quality of the following Jira acceptance criteria."
-            not in problems
-        )  # No new AI review should be triggered
+        with patch(
+            "commands.cli_validate_issue.load_cache",
+            return_value={fields["key"]: cached_data},
+        ):
+            problems = cli_validate_issue(fields, ai_provider)[0]
+            # /* jscpd:ignore-end */
+            # Assert that the invalid acceptance criteria was detected
+            assert (
+                "❌ Acceptance Criteria: Needs Improvement" in problems
+            )  # The old AI suggestion should be used
+            assert (
+                "❌ Acceptance Criteria: Check the quality of the following Jira acceptance criteria."
+                not in problems
+            )  # No new AI review should be triggered
 
 
-def test_validate_issue_delegation(cli):
+def test_validate_issue_delegation(mock_save_cache, cli, capsys):
     # Create a MagicMock instance for validate_issue
     mock_validate_issue = MagicMock(return_value=("mocked result", []))
-    with patch("jira_creator.rh_jira.cli_validate_issue", mock_validate_issue):
+    with patch("rh_jira.cli_validate_issue", mock_validate_issue):
         fields = {
             "summary": "Test",
             "description": "Something",
@@ -91,18 +98,20 @@ def test_validate_issue_delegation(cli):
         mock_validate_issue.assert_called_once_with(fields, cli.ai_provider)
 
 
-def test_acceptance_criteria_validation(capsys):
+def test_acceptance_criteria_validation(mock_save_cache, cli, capsys):
     ai_provider = MagicMock()
     ai_provider.improve_text.return_value = "OK"  # Simulate AI's 'OK' response
 
     fields = {
-        "key": "AAP-100",
+        "key": "AAP-test_acceptance_criteria_validation",
         "summary": "Test Summary",
         "description": "Test Description",
-        "customfield_12315940": "Acceptance criteria description",  # Acceptance criteria field
-        "customfield_12311140": "Epic Link",
+        EnvFetcher.get(
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD"
+        ): "Acceptance criteria description",  # Acceptance criteria field
+        EnvFetcher.get("JIRA_EPIC_FIELD"): "Epic Link",
         "priority": {"name": "High"},
-        "customfield_12310243": 5,
+        EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
         "status": {"name": "To Do"},
     }
 
@@ -117,15 +126,17 @@ def test_acceptance_criteria_validation(capsys):
         assert [] == problems  # Since the AI returns OK, there should be no error
 
 
-def test_no_issue_key_return():
+def test_no_issue_key_return(mock_save_cache, cli, capsys):
     # Create a 'fields' dictionary without an issue key
     fields = {
         "summary": "Test Summary",
         "description": "Test Description",
-        "customfield_12315940": "Acceptance criteria description",  # Acceptance criteria field
-        "customfield_12311140": "Epic Link",
+        EnvFetcher.get(
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD"
+        ): "Acceptance criteria description",  # Acceptance criteria field
+        EnvFetcher.get("JIRA_EPIC_FIELD"): "Epic Link",
         "priority": {"name": "High"},
-        "customfield_12310243": 5,
+        EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
         "status": {"name": "To Do"},
     }
 
@@ -140,25 +151,29 @@ def test_no_issue_key_return():
     assert issue_status == {}
 
 
-def test_acceptance_criteria_no_change():
+def test_acceptance_criteria_no_change(mock_save_cache, cli, capsys):
     ai_provider = MagicMock()
     ai_provider.improve_text.return_value = "OK"  # Simulate AI returning "OK"
 
     fields = {
-        "key": "AAP-100",
+        "key": "AAP-test_acceptance_criteria_no_change",
         "summary": "Test Summary",
         "description": "Test Description",
-        "customfield_12315940": "Acceptance criteria description",  # Acceptance criteria field
-        "customfield_12311140": "Epic Link",
+        EnvFetcher.get(
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD"
+        ): "Acceptance criteria description",  # Acceptance criteria field
+        EnvFetcher.get("JIRA_EPIC_FIELD"): "Epic Link",
         "priority": {"name": "High"},
-        "customfield_12310243": 5,
+        EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
         "status": {"name": "To Do"},
     }
 
     # Simulate an existing cached value with last AI acceptance criteria
     cached_data = {
         "last_ai_acceptance_criteria": "OK",
-        "acceptance_criteria_hash": sha256(fields["customfield_12315940"]),
+        "acceptance_criteria_hash": sha256(
+            fields[EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD")]
+        ),
     }
 
     with patch(
@@ -171,7 +186,7 @@ def test_acceptance_criteria_no_change():
         assert [] == problems
 
 
-def test_description_no_change_but_invalid():
+def test_description_no_change_but_invalid(mock_save_cache, cli, capsys):
     ai_provider = MagicMock()
     ai_provider.improve_text.return_value = (
         "Needs Improvement"  # Simulate AI returning a poor response
@@ -179,13 +194,15 @@ def test_description_no_change_but_invalid():
 
     # Ensure we add the 'key' field for the issue to match the cache
     fields = {
-        "key": "AAP-100",  # Issue key is added here
+        "key": "AAP-test_description_no_change_but_invalid",  # Issue key is added here
         "summary": "Test Summary",
         "description": "Test Description",  # The description is used
-        "customfield_12315940": "Acceptance criteria description",
-        "customfield_12311140": "Epic Link",
+        EnvFetcher.get(
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD"
+        ): "Acceptance criteria description",
+        EnvFetcher.get("JIRA_EPIC_FIELD"): "Epic Link",
         "priority": {"name": "High"},
-        "customfield_12310243": 5,
+        EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
         "status": {"name": "To Do"},
     }
 
@@ -198,7 +215,7 @@ def test_description_no_change_but_invalid():
     cached_data = {
         "last_ai_acceptance_criteria": "Ok",  # Simulating a poor AI suggestion
         "acceptance_criteria_hash": sha256(
-            fields["customfield_12315940"]
+            fields[EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD")]
         ),  # Hash of the acceptance criteria
         # /* jscpd:ignore-start */
         "last_ai_description": "Needs Improvement",  # Simulating a poor AI suggestion
@@ -210,37 +227,41 @@ def test_description_no_change_but_invalid():
 
     # Patch the cache loading function to return the mocked cached data
     with patch(
-        "jira_creator.commands.cli_validate_issue.load_cache",
+        "commands.cli_validate_issue.load_cache",
         return_value={fields["key"]: cached_data},
     ):
-        problems = cli_validate_issue(fields, ai_provider)[0]
+        # Patch the cache loading function to return the mocked cached data
+        with patch(
+            "commands.cli_validate_issue.save_cache"
+        ) as mock_save_save_cache:
+            problems = cli_validate_issue(fields, ai_provider)[0]
 
-        # Assert that the invalid description was detected
-        assert (
-            "❌ Description: Needs Improvement" in problems
-        )  # The old AI suggestion should be used
-        assert (
-            "❌ Description: Check the quality of the following Jira description."
-            not in problems
-        )  # No new AI review should be triggered
+            # Assert that the invalid description was detected
+            assert (
+                "❌ Description: Needs Improvement" in problems
+            )  # The old AI suggestion should be used
+            assert (
+                "❌ Description: Check the quality of the following Jira description."
+                not in problems
+            )  # No new AI review should be triggered
 
 
-def test_story_without_epic_flagged():
+def test_story_without_epic_flagged(mock_save_cache, cli, capsys):
     ai_provider = MagicMock()
     ai_provider.improve_text.return_value = "OK"  # ✅ Mocked correctly
 
     fields = {
-        "key": "AAP-12345",
+        "key": "AAP-test_story_without_epic_flagged",
         "issuetype": {"name": "Story"},
         "status": {"name": "In Progress"},
         "summary": "Some summary",
         "description": "Some description",
-        "customfield_12311140": None,  # Epic link missing
-        "customfield_12310940": None,
+        EnvFetcher.get("JIRA_EPIC_FIELD"): None,  # Epic link missing
+        EnvFetcher.get("JIRA_SPRINT_FIELD"): None,
         "priority": {"name": "High"},
-        "customfield_12310243": 5,
-        "customfield_12316543": {"value": "False"},
-        "customfield_12316544": "",
+        EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+        EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "False"},
+        EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
         "assignee": {"displayName": "Alice"},
     }
 

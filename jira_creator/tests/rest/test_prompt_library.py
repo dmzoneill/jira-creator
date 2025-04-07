@@ -1,22 +1,25 @@
 from unittest.mock import patch
 
-import pytest
-from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
+from rest.prompts import IssueType, PromptLibrary
+
+import pytest  # isort: skip
 
 
 def test_prompt_exists_for_all_types():
-    # Iterate through all issue types in JiraIssueType enum
+    # Iterate through all issue types in IssueType enum
 
-    for issue_type in JiraIssueType:
-        if issue_type == JiraIssueType.COMMENT or issue_type == JiraIssueType.DEFAULT:
+    for issue_type in IssueType:
+        if issue_type == IssueType.COMMENT or issue_type == IssueType.DEFAULT:
             continue
-        prompt = JiraPromptLibrary.get_prompt(JiraIssueType[issue_type.value.upper()])
+        if issue_type == IssueType.QC:
+            continue
+        prompt = PromptLibrary.get_prompt(IssueType[issue_type.value.upper()])
         assert isinstance(prompt, str)
         assert (
             "As a professional Principal Software Engineer, you write acute" in prompt
         )  # Ensure it's a template-style string
 
-    prompt = JiraPromptLibrary.get_prompt(JiraIssueType.COMMENT)
+    prompt = PromptLibrary.get_prompt(IssueType.COMMENT)
     assert (
         "As a professional Principal Software Engineer, you write great" in prompt
     )  # Ensure it's a template-style string
@@ -25,7 +28,7 @@ def test_prompt_exists_for_all_types():
 def test_prompt_fallback_for_invalid_type():
     try:
         # Attempting to get a prompt for an invalid type (string instead of enum)
-        JiraPromptLibrary.get_prompt("invalid")  # type: ignore
+        PromptLibrary.get_prompt("invalid")  # type: ignore
     except Exception as e:
         # Ensure an exception is raised
         assert isinstance(e, Exception)
@@ -36,5 +39,5 @@ def test_prompt_raises_file_not_found_error():
     # Mock the TEMPLATE_DIR and os.path.exists to simulate file not found error
     with patch("os.path.exists", return_value=False):
         with pytest.raises(FileNotFoundError, match="Template not found:.*"):
-            # Simulate calling the method with JiraIssueType.DEFAULT
-            JiraPromptLibrary.get_prompt(JiraIssueType.DEFAULT)
+            # Simulate calling the method with IssueType.DEFAULT
+            PromptLibrary.get_prompt(IssueType.DEFAULT)

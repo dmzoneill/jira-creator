@@ -6,7 +6,7 @@ def test_edit_issue_fetch_fail(cli):
     cli.jira.get_description = MagicMock(side_effect=Exception("fail"))
 
     class Args:
-        issue_key = "AAP-1"
+        issue_key = "AAP-test_edit_issue_fetch_fail"
         no_ai = False
 
     cli.edit_issue(Args())

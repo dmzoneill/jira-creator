@@ -6,7 +6,7 @@ def test_change_type_failure(cli, capsys):
     cli.jira.change_issue_type = MagicMock(side_effect=Exception("Boom"))
 
     class Args:
-        issue_key = "AAP-1"
+        issue_key = "AAP-test_change_type_failure"
         new_type = "task"
 
     # Call the method

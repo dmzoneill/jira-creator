@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 def test_create_editor(cli):
     # Mocking the methods
-    cli.jira.create_issue = MagicMock(return_value="AAP-123")
+    cli.jira.create_issue = MagicMock(return_value="AAP-test_create_editor")
     cli.ai_provider.improve_text = MagicMock(return_value="description")
 
     # Create a temporary file and write the description into it

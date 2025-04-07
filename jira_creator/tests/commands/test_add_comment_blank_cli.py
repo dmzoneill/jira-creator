@@ -6,7 +6,7 @@ def test_add_comment_blank(cli, capsys):
     cli.jira.add_comment = MagicMock()
 
     class Args:
-        issue_key = "AAP-123"
+        issue_key = "AAP-test_add_comment_blank"
         text = "   "  # Blank comment
 
     # Call the method

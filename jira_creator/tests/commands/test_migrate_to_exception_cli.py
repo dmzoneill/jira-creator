@@ -8,7 +8,7 @@ def test_migrate_to_exception(cli, capsys):
 
     # Mock the Args class with necessary attributes
     class Args:
-        issue_key = "AAP-123"
+        issue_key = "AAP-test_migrate_to_exception"
         new_type = "story"
 
     # Call the migrate method

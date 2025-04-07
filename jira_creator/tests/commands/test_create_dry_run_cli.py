@@ -8,7 +8,7 @@ def test_create_dry_run(cli):
     cli.jira.build_payload = lambda s, d, t: {"fields": {"summary": s}}
 
     # Mock create_issue to just return a fake issue key
-    cli.jira.create_issue = lambda payload: "AAP-123"
+    cli.jira.create_issue = lambda payload: "AAP-test_create_dry_run"
 
     class Args:
         type = "story"

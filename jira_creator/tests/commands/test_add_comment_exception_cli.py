@@ -9,7 +9,7 @@ def test_add_comment_exception(cli, capsys):
     cli.ai_provider.improve_text = MagicMock(return_value="text")
 
     class Args:
-        issue_key = "AAP-7"
+        issue_key = "AAP-test_add_comment_exception"
         text = "test"
 
     # Call the add_comment method and handle the exception

@@ -3,9 +3,10 @@ import os
 import sys
 from pathlib import Path
 
+from core.env_fetcher import EnvFetcher
 from providers import get_ai_provider
 from rest.client import JiraClient
-from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
+from rest.prompts import IssueType, PromptLibrary
 
 from commands import (  # isort: skip
     _try_cleanup,
@@ -23,6 +24,7 @@ from commands import (  # isort: skip
     cli_open_issue,
     cli_migrate,
     cli_remove_sprint,
+    cli_quarterly_connection,
     cli_search,
     cli_set_acceptance_criteria,
     cli_set_priority,
@@ -39,15 +41,35 @@ from commands import (  # isort: skip
 
 class JiraCLI:
     def __init__(self):
+        self.jira = JiraClient()
+        # List of required Jira-related environment variables
+        required_vars = [
+            "JPAT",
+            "AI_PROVIDER",
+            "JIRA_URL",
+            "PROJECT_KEY",
+            "AFFECTS_VERSION",
+            "COMPONENT_NAME",
+            "PRIORITY",
+            "AI_API_KEY",
+            "JIRA_BOARD_ID",
+            "JIRA_EPIC_FIELD",
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD",
+            "JIRA_BLOCKED_FIELD",
+            "JIRA_BLOCKED_REASON_FIELD",
+            "JIRA_STORY_POINTS_FIELD",
+            "JIRA_SPRINT_FIELD",
+        ]
+
+        EnvFetcher.fetch_all(required_vars)
         self.template_dir = Path(
             os.getenv(
                 "TEMPLATE_DIR", os.path.join(os.path.dirname(__file__) + "/templates")
             )
         )
-        self.jira = JiraClient()
         self.ai_provider = get_ai_provider(os.getenv("AI_PROVIDER", "openai"))
-        self.default_prompt = JiraPromptLibrary.get_prompt(JiraIssueType["DEFAULT"])
-        self.comment_prompt = JiraPromptLibrary.get_prompt(JiraIssueType["COMMENT"])
+        self.default_prompt = PromptLibrary.get_prompt(IssueType["DEFAULT"])
+        self.comment_prompt = PromptLibrary.get_prompt(IssueType["COMMENT"])
 
     def run(self):
         import argparse
@@ -190,6 +212,9 @@ class JiraCLI:
         view_issue = add("view-issue", "View issue in the console")
         view_issue.add_argument("issue_key")
 
+        add("quarterly-connection", "Perform a quarterly connection report")
+
+
     def _dispatch_command(self, args):
         try:
             getattr(self, args.command.replace("-", "_"))(args)
@@ -277,6 +302,9 @@ class JiraCLI:
 
     def search(self, args):
         cli_search(self.jira, args)
+
+    def quarterly_connection(self, args):
+        cli_quarterly_connection(self.jira, self.ai_provider)
 
 
 if __name__ == "__main__":

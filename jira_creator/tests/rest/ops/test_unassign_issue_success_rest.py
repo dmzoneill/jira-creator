@@ -6,5 +6,5 @@ def test_unassign_issue(client):
     client._request = MagicMock(return_value={})
 
     # Call unassign_issue and assert the result
-    result = client.unassign_issue("AAP-100")
+    result = client.unassign_issue("AAP-test_unassign_issue")
     assert result is True

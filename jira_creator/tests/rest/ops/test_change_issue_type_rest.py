@@ -13,15 +13,15 @@ def test_change_issue_type(client):
     client._request = mock_request
 
     # Call the method
-    client.change_issue_type("AAP-1", "story")
+    client.change_issue_type("AAP-test_change_issue_type", "story")
 
     # Assert that the GET request was called to retrieve the issue
-    mock_request.assert_any_call("GET", "/rest/api/2/issue/AAP-1")
+    mock_request.assert_any_call("GET", "/rest/api/2/issue/AAP-test_change_issue_type")
 
     # Assert that the PUT request was called to change the issue type
     mock_request.assert_any_call(
         "PUT",
-        "/rest/api/2/issue/AAP-1",
+        "/rest/api/2/issue/AAP-test_change_issue_type",
         json={
             "fields": {"issuetype": {"name": "Story"}},
             "update": {"parent": [{"remove": {}}]},
@@ -32,7 +32,7 @@ def test_change_issue_type(client):
 def test_change_type_else_block(cli):
     # Mocking Args for issue_key and new_type
     class Args:
-        issue_key = "FAKE-123"
+        issue_key = "AAP-test_change_type_else_block"
         new_type = "bug"
 
     # Mock the JiraClient's change_issue_type to return False to hit the else block
@@ -43,4 +43,6 @@ def test_change_type_else_block(cli):
             cli.change_type(Args())
 
             # Ensure that print was called with the correct "❌ Change failed" message
-            mock_print.assert_called_with("❌ Change failed for FAKE-123")
+            mock_print.assert_called_with(
+                "❌ Change failed for AAP-test_change_type_else_block"
+            )

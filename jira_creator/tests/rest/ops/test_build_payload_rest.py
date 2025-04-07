@@ -1,6 +1,6 @@
 def test_build_payload_epic(client):
     # Mock values for the test
-    client.epic_field = "customfield_12345"  # Example epic field
+    client.epic_field = "nonsense"  # Example epic field
     client.project_key = "PROJ"
     client.priority = "High"
     client.affects_version = "1.0"
@@ -18,7 +18,7 @@ def test_build_payload_epic(client):
 
 def test_build_payload_non_epic(client):
     # Mock values for the test
-    client.epic_field = "customfield_12345"  # Example epic field
+    client.epic_field = "nonsense"  # Example epic field
     client.project_key = "PROJ"
     client.priority = "High"
     client.affects_version = "1.0"

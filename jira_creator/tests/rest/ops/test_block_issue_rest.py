@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+from core.env_fetcher import EnvFetcher
+
 
 def test_block_issue_calls_expected_fields(client):
     client._request = MagicMock()
@@ -10,8 +12,8 @@ def test_block_issue_calls_expected_fields(client):
         "/rest/api/2/issue/ABC-123",
         json={
             "fields": {
-                "customfield_12316543": {"value": "True"},
-                "customfield_12316544": "Waiting for dependency",
+                EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "True"},
+                EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "Waiting for dependency",
             }
         },
     )

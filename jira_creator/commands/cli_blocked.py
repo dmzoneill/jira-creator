@@ -1,3 +1,6 @@
+from core.env_fetcher import EnvFetcher
+
+
 # /* jscpd:ignore-start */
 def cli_blocked(jira, args):
     try:
@@ -14,7 +17,10 @@ def cli_blocked(jira, args):
         blocked_issues = []
         for issue in issues:
             fields = issue["fields"]
-            is_blocked = fields.get("customfield_12316543", {}).get("value") == "True"
+            is_blocked = (
+                fields.get(EnvFetcher.get("JIRA_BLOCKED_FIELD"), {}).get("value")
+                == "True"
+            )
             if is_blocked:
                 blocked_issues.append(
                     {
@@ -25,7 +31,9 @@ def cli_blocked(jira, args):
                             if fields["assignee"]
                             else "Unassigned"
                         ),
-                        "reason": fields.get("customfield_12316544", "(no reason)"),
+                        "reason": fields.get(
+                            EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"), "(no reason)"
+                        ),
                         "summary": fields["summary"],
                     }
                 )

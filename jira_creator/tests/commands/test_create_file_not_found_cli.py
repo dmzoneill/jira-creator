@@ -57,14 +57,12 @@ def test_create_ai_exception_handling(cli, capsys):
         with patch("builtins.input", return_value="test_input"):
             with patch("subprocess.call") as _:
                 with (
+                    patch("commands.cli_create_issue.IssueType") as MockIssueType,
                     patch(
-                        "commands.cli_create_issue.JiraIssueType"
-                    ) as MockJiraIssueType,
-                    patch(
-                        "commands.cli_create_issue.JiraPromptLibrary.get_prompt"
+                        "commands.cli_create_issue.PromptLibrary.get_prompt"
                     ) as MockGetPrompt,
                 ):
-                    MockJiraIssueType.return_value = MagicMock()
+                    MockIssueType.return_value = MagicMock()
                     MockGetPrompt.return_value = "Mocked prompt"
 
                     cli.jira = MagicMock()
@@ -72,7 +70,9 @@ def test_create_ai_exception_handling(cli, capsys):
                         "summary": "Mock summary",
                         "description": "Mock description",
                     }
-                    cli.jira.create_issue.return_value = "AAP-123"
+                    cli.jira.create_issue.return_value = (
+                        "AAP-test_create_ai_exception_handling-0"
+                    )
 
                     class Args:
                         type = "story"
@@ -98,12 +98,12 @@ def test_create(cli, capsys):
 
         with patch("builtins.input", return_value="test_input"):
             with (
-                patch("commands.cli_create_issue.JiraIssueType") as MockJiraIssueType,
+                patch("commands.cli_create_issue.IssueType") as MockIssueType,
                 patch(
-                    "commands.cli_create_issue.JiraPromptLibrary.get_prompt"
+                    "commands.cli_create_issue.PromptLibrary.get_prompt"
                 ) as MockGetPrompt,
             ):
-                MockJiraIssueType.return_value = MagicMock()
+                MockIssueType.return_value = MagicMock()
                 MockGetPrompt.return_value = "Mocked prompt"
 
                 cli.ai_provider = MagicMock()
@@ -114,7 +114,9 @@ def test_create(cli, capsys):
                     "summary": "Mock summary",
                     "description": "Mock description",
                 }
-                cli.jira.create_issue.return_value = "AAP-123"
+                cli.jira.create_issue.return_value = (
+                    "AAP-test_create_ai_exception_handling-1"
+                )
                 cli.jira.jira_url = "https://jira.example.com"
 
                 class Args:
@@ -127,4 +129,7 @@ def test_create(cli, capsys):
                     cli.create_issue(Args)
 
                 captured = capsys.readouterr()
-                assert "https://jira.example.com/browse/AAP-123" in captured.out
+                assert (
+                    "https://jira.example.com/browse/AAP-test_create_ai_exception_handling"
+                    in captured.out
+                )

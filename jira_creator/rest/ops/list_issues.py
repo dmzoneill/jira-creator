@@ -1,5 +1,7 @@
 import re
 
+from core.env_fetcher import EnvFetcher
+
 
 # /* jscpd:ignore-start */
 def list_issues(
@@ -29,9 +31,9 @@ def list_issues(
     if summary:
         jql_parts.append(f'summary~"{summary}"')
     if blocked:
-        jql_parts.append('customfield_12316543="True"')
+        jql_parts.append(EnvFetcher.get("JIRA_BLOCKED_FIELD") + '="True"')
     if unblocked:
-        jql_parts.append('customfield_12316543!="True"')
+        jql_parts.append(EnvFetcher.get("JIRA_BLOCKED_FIELD") + '!="True"')
 
     jql = " AND ".join(jql_parts) + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
 
@@ -39,7 +41,11 @@ def list_issues(
         "jql": jql,
         "fields": (
             "key,summary,status,assignee,priority,"
-            "customfield_12310243,customfield_12310940,customfield_12316543"
+            + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_SPRINT_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_BLOCKED_FIELD")
         ),
         "maxResults": 200,
     }
@@ -49,7 +55,7 @@ def list_issues(
     state_regex = r"state\s*=\s*([A-Za-z]+)"
 
     for issue in issues:
-        sprints = issue.get("fields", {}).get("customfield_12310940", [])
+        sprints = issue.get("fields", {}).get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
         if sprints is None:
             sprints = []
 

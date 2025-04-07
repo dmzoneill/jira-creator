@@ -6,7 +6,7 @@ def test_remove_sprint_error(cli, capsys):
     cli.jira.remove_from_sprint = MagicMock(side_effect=Exception("fail"))
 
     class Args:
-        issue_key = "AAP-3"
+        issue_key = "AAP-test_remove_sprint_error"
 
     # Call the remove_sprint method
     cli.remove_sprint(Args())

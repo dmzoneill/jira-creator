@@ -11,7 +11,7 @@ def test_add_comment_ai_fail(cli, capsys):
     cli.ai_provider = ai_provider_mock
 
     class Args:
-        issue_key = "AAP-1"
+        issue_key = "AAP-test_add_comment_ai_fail"
         text = "Comment text"
 
     # Call the method

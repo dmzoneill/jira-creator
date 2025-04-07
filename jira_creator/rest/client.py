@@ -4,6 +4,7 @@ import time
 from typing import Any, Dict, Optional
 
 import requests
+from core.env_fetcher import EnvFetcher
 
 from .ops import (  # isort: skip
     add_comment,
@@ -38,31 +39,15 @@ from .ops import (  # isort: skip
 
 class JiraClient:
     def __init__(self):
-        self.jira_url = os.getenv("JIRA_URL")
-        self.project_key = os.getenv("PROJECT_KEY")
-        self.affects_version = os.getenv("AFFECTS_VERSION")
-        self.component_name = os.getenv("COMPONENT_NAME")
-        self.priority = os.getenv("PRIORITY")
-        self.jpat = os.getenv("JPAT")
-        self.epic_field = os.getenv("JIRA_EPIC_NAME_FIELD", "customfield_12311141")
-        self.board_id = os.getenv("JIRA_BOARD_ID")
+        self.jira_url = EnvFetcher.get("JIRA_URL")
+        self.project_key = EnvFetcher.get("PROJECT_KEY")
+        self.affects_version = EnvFetcher.get("AFFECTS_VERSION")
+        self.component_name = EnvFetcher.get("COMPONENT_NAME")
+        self.priority = EnvFetcher.get("PRIORITY")
+        self.jpat = EnvFetcher.get("JPAT")
+        self.epic_field = EnvFetcher.get("JIRA_EPIC_FIELD")
+        self.board_id = EnvFetcher.get("JIRA_BOARD_ID")
         self.fields_cache_path = os.path.expanduser("~/.config/rh-issue/fields.json")
-
-        if not all(
-            [
-                self.jira_url,
-                self.project_key,
-                self.affects_version,
-                self.component_name,
-                self.priority,
-                self.jpat,
-                self.epic_field,
-                self.board_id,
-            ]
-        ):
-            raise EnvironmentError(
-                "Missing required JIRA configuration in environment variables."
-            )
 
     def _request(
         self,
@@ -77,11 +62,23 @@ class JiraClient:
             "Content-Type": "application/json",
         }
 
-        response = requests.request(
-            method, url, headers=headers, json=json, params=params
-        )
+        retries = 3  # Set default number of retries
+        delay = 2  # Set default delay between retries in seconds
 
-        return response.json() if response.text.strip() else {}
+        # Loop with retry logic
+        for attempt in range(retries):
+            try:
+                response = requests.request(
+                    method, url, headers=headers, json=json, params=params, timeout=10
+                )
+                response.raise_for_status()
+                return response.json() if response.text.strip() else {}
+            except Exception as e:
+                # Catch network-related errors and retries
+                if attempt < retries - 1:
+                    time.sleep(delay)
+                else:
+                    raise(e)
 
     def cache_fields(self):
         # Check if the cache file exists and is less than 24 hours old

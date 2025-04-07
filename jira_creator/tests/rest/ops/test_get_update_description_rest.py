@@ -6,7 +6,7 @@ def test_get_update_description(client):
     client._request = MagicMock(return_value={"fields": {"description": "text"}})
 
     # Call get_description and assert it returns the correct description
-    desc = client.get_description("AAP-1")
+    desc = client.get_description("AAP-test_get_update_description")
     assert desc == "text"
 
     # Create a dictionary to capture the updated fields
@@ -18,5 +18,5 @@ def test_get_update_description(client):
     )
 
     # Call update_description and assert that the description field is updated
-    client.update_description("AAP-1", "new text")
+    client.update_description("AAP-test_get_update_description", "new text")
     assert "description" in updated["fields"]

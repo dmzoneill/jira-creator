@@ -4,7 +4,7 @@ import subprocess
 import sys
 import tempfile
 
-from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
+from rest.prompts import IssueType, PromptLibrary
 from templates.template_loader import TemplateLoader
 
 
@@ -34,8 +34,8 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
             tmp.seek(0)
             description = tmp.read()
 
-    enum_type = JiraIssueType[args.type.upper()]
-    prompt = JiraPromptLibrary.get_prompt(enum_type)
+    enum_type = IssueType[args.type.upper()]
+    prompt = PromptLibrary.get_prompt(enum_type)
 
     try:
         description = ai_provider.improve_text(prompt, description)

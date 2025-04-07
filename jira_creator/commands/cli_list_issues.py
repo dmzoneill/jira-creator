@@ -1,5 +1,7 @@
 import re
 
+from core.env_fetcher import EnvFetcher
+
 
 # /* jscpd:ignore-start */
 def cli_list_issues(jira, args):
@@ -24,7 +26,7 @@ def cli_list_issues(jira, args):
         rows = []
         for issue in issues:
             f = issue["fields"]
-            sprints = f.get("customfield_12310940") or []
+            sprints = f.get(EnvFetcher.get("JIRA_SPRINT_FIELD")) or []
             sprint = next(
                 (
                     re.search(r"name=([^,]+)", s).group(1)
@@ -45,9 +47,12 @@ def cli_list_issues(jira, args):
                 and args.summary.lower() not in f.get("summary", "").lower()
             ):
                 continue
-            if args.blocked and f.get("customfield_12316543", {}):
+            if args.blocked and f.get(EnvFetcher.get("JIRA_BLOCKED_FIELD"), {}):
                 continue
-            if args.unblocked and f.get("customfield_12316543", {}) is False:
+            if (
+                args.unblocked
+                and f.get(EnvFetcher.get("JIRA_BLOCKED_FIELD"), {}) is False
+            ):
                 continue
 
             rows.append(
@@ -56,7 +61,7 @@ def cli_list_issues(jira, args):
                     f["status"]["name"],
                     f["assignee"]["displayName"] if f["assignee"] else "Unassigned",
                     f.get("priority", {}).get("name", "—"),
-                    str(f.get("customfield_12310243", "—")),
+                    str(f.get(EnvFetcher.get("JIRA_STORY_POINTS_FIELD"), "—")),
                     sprint,
                     f["summary"],
                 )

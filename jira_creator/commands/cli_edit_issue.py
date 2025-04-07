@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 
 from commands.cli_validate_issue import cli_validate_issue as validate
-from rest.jira_prompts import JiraIssueType, JiraPromptLibrary
+from rest.prompts import IssueType, PromptLibrary
 
 
 def fetch_description(jira, issue_key):
@@ -34,8 +34,8 @@ def edit_description(original_description):
 def get_prompt(jira, issue_key, default_prompt):
     try:
         print("Getting Jira prompt...")
-        return JiraPromptLibrary.get_prompt(
-            JiraIssueType(jira.get_issue_type(issue_key).lower())
+        return PromptLibrary.get_prompt(
+            IssueType(jira.get_issue_type(issue_key).lower())
         )
     except Exception:
         print("❌ Failed to get Jira prompt, using default prompt.")
@@ -47,7 +47,7 @@ def lint_description_once(cleaned, ai_provider):
     This function encapsulates the linting logic for one iteration of the loop.
     It validates the description and interacts with the user to improve the description.
     """
-    fields = {"key": "AAP-12345", "description": cleaned}
+    fields = {"key": "AAP-lint_description_once", "description": cleaned}
     problems = validate(fields, ai_provider)[0]
     print(f"Validation issues: {problems}")
 

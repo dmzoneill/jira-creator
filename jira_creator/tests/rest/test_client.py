@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from jira_creator.rest.client import JiraClient
+from rest.client import JiraClient
 
 
 def test_request_success():

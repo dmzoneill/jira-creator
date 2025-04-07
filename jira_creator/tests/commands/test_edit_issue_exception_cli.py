@@ -25,7 +25,7 @@ def test_edit_issue_update_exception(mock_tmpfile, mock_subprocess, capsys, cli)
 
     # Simulated CLI args
     class Args:
-        issue_key = "AAP-5"
+        issue_key = "AAP-test_edit_issue_update_exception"
         no_ai = False
         lint = False  # ✅ Add this to fix the error
 

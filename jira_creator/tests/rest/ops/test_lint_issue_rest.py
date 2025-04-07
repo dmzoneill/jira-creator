@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+from core.env_fetcher import EnvFetcher
+
 
 def test_lint_data_structure(client):
     issue_data = {
@@ -7,16 +9,16 @@ def test_lint_data_structure(client):
             "summary": "",
             "description": None,
             "priority": None,
-            "customfield_12310243": None,  # Story points
-            "customfield_12316543": {"value": "True"},  # Blocked
-            "customfield_12316544": "",  # Blocked reason
+            EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): None,  # Story points
+            EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "True"},  # Blocked
+            EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",  # Blocked reason
             "status": {"name": "In Progress"},
             "assignee": None,
         }
     }
 
     client._request = MagicMock(return_value=issue_data)
-    result = client._request("GET", "/rest/api/2/issue/AAP-123")
+    result = client._request("GET", "/rest/api/2/issue/AAP-test_lint_data_structure")
 
     assert result["fields"]["status"]["name"] == "In Progress"
-    assert result["fields"]["customfield_12316543"]["value"] == "True"
+    assert result["fields"][EnvFetcher.get("JIRA_BLOCKED_FIELD")]["value"] == "True"

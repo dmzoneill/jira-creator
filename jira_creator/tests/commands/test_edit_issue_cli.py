@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from jira_creator.commands.cli_edit_issue import (  # isort: skip
+from commands.cli_edit_issue import (  # isort: skip
     cli_edit_issue,
     edit_description,
     fetch_description,
@@ -13,7 +13,7 @@ from jira_creator.commands.cli_edit_issue import (  # isort: skip
     lint_description_once,
     update_jira_description,
 )
-from jira_creator.commands.cli_validate_issue import (  # isort: skip
+from commands.cli_validate_issue import (  # isort: skip
     load_and_cache_issue,
     save_cache,
     sha256,
@@ -27,12 +27,12 @@ from jira_creator.commands.cli_validate_issue import (  # isort: skip
 )
 
 
-def test_cache_directory_creation(mock_cache_path):
+def test_cache_directory_creation(mock_cache_path, mock_save_cache):
     # Set up the mock cache path and patch os.makedirs
     with patch("os.makedirs") as makedirs_mock:
         # Mock the get_cache_path function to return the mock path
         with patch(
-            "jira_creator.commands.cli_validate_issue.get_cache_path",
+            "commands.cli_validate_issue.get_cache_path",
             return_value=mock_cache_path,
         ):
             # Simulate the condition where the cache directory doesn't exist
@@ -51,7 +51,7 @@ def test_cache_directory_creation(mock_cache_path):
 def test_edit_issue_prompt_fallback(cli):
     # Simulate exception when trying to get the prompt
     with patch(
-        "rh_jira.JiraPromptLibrary.get_prompt",
+        "rh_jira.PromptLibrary.get_prompt",
         side_effect=Exception("Prompt error"),
     ):
         # Default prompt to fall back to
@@ -66,7 +66,7 @@ def test_edit_issue_prompt_fallback(cli):
         cli.edit_issue(args)
 
         # Check if default prompt was used as fallback
-        # In this case, we check the call to JiraPromptLibrary.get_prompt, which should have triggered an exception.
+        # In this case, we check the call to PromptLibrary.get_prompt, which should have triggered an exception.
         # We want to verify that the prompt was set to the default prompt after the exception.
         # Since there's no direct way to assert the prompt value here, we can verify the behavior.
         cli.jira.update_description.assert_called_once()  # Ensure update_description was called
@@ -81,7 +81,7 @@ def test_edit_issue_executes(cli):
 
 def test_load_and_cache_issue():
     with patch(
-        "jira_creator.commands.cli_validate_issue.load_cache",
+        "commands.cli_validate_issue.load_cache",
         return_value={"FAKE-123": {"summary_hash": "some_hash"}},
     ):
         cache, cached = load_and_cache_issue("FAKE-123")
@@ -188,7 +188,7 @@ def test_validate_blocked():
 def test_validate_field_with_ai_valid():
     # Patch ai_provider to return the MagicMock object
     with patch(
-        "jira_creator.providers.get_ai_provider", return_value=MagicMock()
+        "providers.get_ai_provider", return_value=MagicMock()
     ) as ai_provider:
         problems = []  # Initialize problems list
         issue_status = {}  # Initialize issue_status dictionary
@@ -224,7 +224,7 @@ def test_validate_field_with_ai_valid():
 def test_validate_field_with_ai_invalid():
     # Patch ai_provider to return the MagicMock object
     with patch(
-        "jira_creator.providers.get_ai_provider", return_value=MagicMock()
+        "providers.get_ai_provider", return_value=MagicMock()
     ) as ai_provider:
         problems = []  # Initialize problems list
         issue_status = {}  # Initialize issue_status dictionary
@@ -271,7 +271,7 @@ def test_edit_no_ai(cli):
             tf.seek(0)
 
             class Args:
-                issue_key = "AAP-123"
+                issue_key = "AAP-test_edit_no_ai"
                 no_ai = True
                 lint = False  # ✅ Add this to fix the error
 
@@ -293,13 +293,13 @@ def test_edit_with_ai(cli):
             tf.seek(0)
 
             class Args:
-                issue_key = "AAP-999"
+                issue_key = "AAP-test_edit_with_ai"
                 no_ai = False
                 lint = False  # ✅ Add this to fix the error
 
             cli.edit_issue(Args())
             cli.jira.update_description.assert_called_once_with(
-                "AAP-999", "cleaned text"
+                "AAP-test_edit_with_ai", "cleaned text"
             )
             mock_subprocess.assert_called_once()
 
@@ -330,7 +330,7 @@ def test_lint_description_once():
     mock_input = MagicMock(side_effect=["additional details"])
 
     with (
-        patch("jira_creator.commands.cli_edit_issue.validate", validate_mock),
+        patch("commands.cli_edit_issue.validate", validate_mock),
         patch("builtins.input", mock_input),
     ):
         cleaned, should_continue = lint_description_once(
@@ -356,7 +356,7 @@ def test_lint_description():
 
     # Mock lint_description_once to directly return "Cleaned description"
     with patch(
-        "jira_creator.commands.cli_edit_issue.lint_description_once",
+        "commands.cli_edit_issue.lint_description_once",
         return_value=("Cleaned description", False),
     ):
         # Call the lint_description function (which now uses the mocked lint_description_once)
@@ -417,7 +417,7 @@ def test_lint_description_once_no_issues():
     # Simulate the cleaned description without issues
     cleaned = "Original description"
 
-    with patch("jira_creator.commands.cli_edit_issue.validate", validate_mock):
+    with patch("commands.cli_edit_issue.validate", validate_mock):
         # Call the lint_description_once function (should return cleaned description and False)
         result, should_continue = lint_description_once(cleaned, ai_provider_mock)
 
@@ -431,7 +431,7 @@ def test_lint_description_once_no_issues():
         assert validate_mock.call_count == 1
 
 
-def test_cli_edit_issue_no_edited():
+def test_cli_edit_issue_no_edited(mock_save_cache):
     # Setup the mocks
     jira_mock = MagicMock()
     ai_provider_mock = MagicMock()
@@ -440,7 +440,7 @@ def test_cli_edit_issue_no_edited():
 
     # Arguments for the test, simulating the case when no AI cleanup is needed
     args = MagicMock()
-    args.issue_key = "AAP-12345"
+    args.issue_key = "AAP-test_cli_edit_issue_no_edited"
     args.no_ai = True  # Simulate no AI cleanup
     args.lint = False  # No linting
 
@@ -455,15 +455,15 @@ def test_cli_edit_issue_no_edited():
 
     with (
         patch(
-            "jira_creator.commands.cli_edit_issue.fetch_description",
+            "commands.cli_edit_issue.fetch_description",
             fetch_description_mock,
         ),
         patch(
-            "jira_creator.commands.cli_edit_issue.edit_description",
+            "commands.cli_edit_issue.edit_description",
             edit_description_mock,
         ),
         patch(
-            "jira_creator.commands.cli_edit_issue.update_jira_description",
+            "commands.cli_edit_issue.update_jira_description",
             update_jira_description_mock,
         ),
     ):
@@ -479,7 +479,7 @@ def test_cli_edit_issue_no_edited():
         update_jira_description_mock.assert_not_called()
 
 
-def test_cli_edit_issue_lint_true():
+def test_cli_edit_issue_lint_true(mock_save_cache):
     # Setup the mocks
     jira_mock = MagicMock()
     ai_provider_mock = MagicMock()
@@ -488,7 +488,7 @@ def test_cli_edit_issue_lint_true():
 
     # Arguments for the test, simulating the case where linting is enabled
     args = MagicMock()
-    args.issue_key = "AAP-12345"
+    args.issue_key = "AAP-test_cli_edit_issue_lint_true"
     args.no_ai = False  # Simulate that AI cleanup is needed
     args.lint = True  # Linting is enabled
 
@@ -509,20 +509,20 @@ def test_cli_edit_issue_lint_true():
 
     with (
         patch(
-            "jira_creator.commands.cli_edit_issue.fetch_description",
+            "commands.cli_edit_issue.fetch_description",
             fetch_description_mock,
         ),
         patch(
-            "jira_creator.commands.cli_edit_issue.edit_description",
+            "commands.cli_edit_issue.edit_description",
             edit_description_mock,
         ),
-        patch("jira_creator.commands._try_cleanup", try_cleanup_fn_mock),
+        patch("commands._try_cleanup", try_cleanup_fn_mock),
         patch(
-            "jira_creator.commands.cli_edit_issue.lint_description",
+            "commands.cli_edit_issue.lint_description",
             lint_description_mock,
         ),
         patch(
-            "jira_creator.commands.cli_edit_issue.update_jira_description",
+            "commands.cli_edit_issue.update_jira_description",
             update_jira_description_mock,
         ),
     ):

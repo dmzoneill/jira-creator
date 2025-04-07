@@ -6,7 +6,7 @@ def test_change_type_prints(cli, capsys):
     cli.jira.change_issue_type = MagicMock(return_value=True)
 
     class Args:
-        issue_key = "AAP-123"
+        issue_key = "AAP-test_change_type_prints"
         new_type = "story"
 
     # Call the method
@@ -15,4 +15,4 @@ def test_change_type_prints(cli, capsys):
     # Capture the output
     out = capsys.readouterr().out
     # Correct the expected output to match the actual printed output
-    assert "✅ Changed AAP-123 to 'story'" in out
+    assert "✅ Changed AAP-test_change_type_prints to 'story'" in out

@@ -214,7 +214,6 @@ class JiraCLI:
 
         add("quarterly-connection", "Perform a quarterly connection report")
 
-
     def _dispatch_command(self, args):
         try:
             getattr(self, args.command.replace("-", "_"))(args)

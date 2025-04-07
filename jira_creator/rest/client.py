@@ -78,7 +78,7 @@ class JiraClient:
                 if attempt < retries - 1:
                     time.sleep(delay)
                 else:
-                    raise(e)
+                    raise (e)
 
     def cache_fields(self):
         # Check if the cache file exists and is less than 24 hours old

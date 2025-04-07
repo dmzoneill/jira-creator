@@ -187,9 +187,7 @@ def test_validate_blocked():
 
 def test_validate_field_with_ai_valid():
     # Patch ai_provider to return the MagicMock object
-    with patch(
-        "providers.get_ai_provider", return_value=MagicMock()
-    ) as ai_provider:
+    with patch("providers.get_ai_provider", return_value=MagicMock()) as ai_provider:
         problems = []  # Initialize problems list
         issue_status = {}  # Initialize issue_status dictionary
         cached_field_hash = None  # Initialize cached hash
@@ -223,9 +221,7 @@ def test_validate_field_with_ai_valid():
 
 def test_validate_field_with_ai_invalid():
     # Patch ai_provider to return the MagicMock object
-    with patch(
-        "providers.get_ai_provider", return_value=MagicMock()
-    ) as ai_provider:
+    with patch("providers.get_ai_provider", return_value=MagicMock()) as ai_provider:
         problems = []  # Initialize problems list
         issue_status = {}  # Initialize issue_status dictionary
         cached_field_hash = None  # Initialize cached hash

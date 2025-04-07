@@ -55,9 +55,7 @@ def test_acceptance_criteria_no_change_but_invalid(mock_load_cache, mock_save_ca
     }
 
     # Patch the cache loading function to return the mocked cached data
-    with patch(
-        "commands.cli_validate_issue.save_cache"
-    ):
+    with patch("commands.cli_validate_issue.save_cache"):
         with patch(
             "commands.cli_validate_issue.load_cache",
             return_value={fields["key"]: cached_data},
@@ -231,9 +229,7 @@ def test_description_no_change_but_invalid(mock_save_cache, cli, capsys):
         return_value={fields["key"]: cached_data},
     ):
         # Patch the cache loading function to return the mocked cached data
-        with patch(
-            "commands.cli_validate_issue.save_cache"
-        ) as mock_save_save_cache:
+        with patch("commands.cli_validate_issue.save_cache") as mock_save_save_cache:
             problems = cli_validate_issue(fields, ai_provider)[0]
 
             # Assert that the invalid description was detected

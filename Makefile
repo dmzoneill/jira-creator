@@ -122,10 +122,10 @@ clean: print-header
 	- find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	- find . -type d -name "htmlcov" -exec rm -rf {} +
 	- find . -type d -name "jira_creator.egg-info" -exec rm -rf {} +
-	- find . -type d -name "dist" -exec rm -rf {} +
+	# - find . -type d -name "dist" -exec rm -rf {} +
 	- rm -rvf log.log
 	- rm -rvf d_fake_seeder/log.log
-	- rm -rvf dist
+	#- rm -rvf dist
 	- rm -rvf .pytest_cache
 	- find . -type d -iname __pycache__ -exec rm -rf {} \;
 	- rm -rvf debbuild

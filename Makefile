@@ -26,8 +26,9 @@ print-header:
 # --- Setup & Install ---
 .PHONY: install-linters
 install-linters: print-header
-	sudo dnf install -y yamllint hadolint shellcheck
-	npm install jscpd textlint markdownlint hadolint
+	- sudo dnf install -y yamllint hadolint shellcheck
+	- sudo apt install -y yamllint hadolint shellcheck
+	- npm install jscpd textlint markdownlint hadolint
 	$(PIPENV) run pip install pylint flake8 pyflakes black
 
 .PHONY: install

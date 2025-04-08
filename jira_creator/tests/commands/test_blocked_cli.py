@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import ListBlockedError
 
 
 class Args:
@@ -77,9 +79,10 @@ def test_blocked_none_blocked(cli, capsys):
 
 def test_blocked_exception(cli, capsys):
     cli.jira = MagicMock()
-    cli.jira.list_issues.side_effect = Exception("Boom!")
+    cli.jira.list_issues.side_effect = ListBlockedError("Boom!")
 
-    cli.blocked(Args())
+    with pytest.raises(ListBlockedError):
+        cli.blocked(Args())
 
     out = capsys.readouterr().out
-    assert "❌ Failed to list blocked issues: Boom!" in out
+    assert "❌ Failed to list blocked issues" in out

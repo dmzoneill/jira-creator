@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+from exceptions.exceptions import AiError
 
 
 def test_create_file_not_found(cli):
@@ -46,7 +47,7 @@ def test_create_file_not_found_error(cli, capsys):
 
 def test_create_ai_exception_handling(cli, capsys):
     cli.ai_provider = MagicMock()
-    cli.ai_provider.improve_text.side_effect = Exception("AI service failed")
+    cli.ai_provider.improve_text.side_effect = AiError("AI service failed")
 
     with patch("commands.cli_create_issue.TemplateLoader") as MockTemplateLoader:
         mock_template = MagicMock()
@@ -80,13 +81,14 @@ def test_create_ai_exception_handling(cli, capsys):
                         dry_run = False
                         summary = "Test summary"
 
-                    cli.create_issue(Args)
+                    with pytest.raises(AiError):
+                        cli.create_issue(Args)
 
-                captured = capsys.readouterr()
-                assert (
-                    "⚠️ AI cleanup failed. Using original text. Error: AI service failed"
-                    in captured.out
-                )
+                    captured = capsys.readouterr()
+                    assert (
+                        "⚠️ AI cleanup failed. Using original text. Error: AI service failed"
+                        in captured.out
+                    )
 
 
 def test_create(cli, capsys):

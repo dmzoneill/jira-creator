@@ -1,16 +1,20 @@
 from unittest.mock import MagicMock
 
+import pytest
+from exceptions.exceptions import ChangeTypeError
+
 
 def test_change_type_failure(cli, capsys):
     # Mocking the change_issue_type method to raise an exception
-    cli.jira.change_issue_type = MagicMock(side_effect=Exception("Boom"))
+    cli.jira.change_issue_type = MagicMock(side_effect=ChangeTypeError("Boom"))
 
     class Args:
         issue_key = "AAP-test_change_type_failure"
         new_type = "task"
 
-    # Call the method
-    cli.change_type(Args())
+    with pytest.raises(ChangeTypeError):
+        # Call the method
+        cli.change_type(Args())
 
     # Capture the output
     out = capsys.readouterr().out

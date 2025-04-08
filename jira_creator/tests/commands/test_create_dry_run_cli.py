@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+from exceptions.exceptions import CreateIssueError
+
 
 def test_create_dry_run(cli):
     cli.ai_provider = MagicMock()
@@ -28,7 +31,9 @@ def test_create_issue_with_exception(cli):
     cli.jira.build_payload = lambda s, d, t: {"fields": {"summary": s}}
 
     # Mock create_issue to raise an exception
-    cli.jira.create_issue = MagicMock(side_effect=Exception("Failed to create issue"))
+    cli.jira.create_issue = MagicMock(
+        side_effect=CreateIssueError("Failed to create issue")
+    )
 
     class Args:
         type = "story"
@@ -39,4 +44,5 @@ def test_create_issue_with_exception(cli):
     # Mock input to avoid blocking
     with patch("builtins.input", return_value="Test"):
         # This should raise the exception
-        cli.create_issue(Args())
+        with pytest.raises(CreateIssueError):
+            cli.create_issue(Args())

@@ -2,6 +2,8 @@ import os
 import subprocess
 import tempfile
 
+from exceptions.exceptions import AddCommentError, AiError
+
 
 def cli_add_comment(jira, ai_provider, default_prompt, args):
     if args.text:
@@ -20,12 +22,15 @@ def cli_add_comment(jira, ai_provider, default_prompt, args):
 
     try:
         cleaned = ai_provider.improve_text(default_prompt, comment)
-    except Exception as e:
-        print(f"⚠️ AI cleanup failed. Using raw comment. Error: {e}")
-        cleaned = comment
+    except AiError as e:
+        msg = f"⚠️ AI cleanup failed. Using raw comment. Error: {e}"
+        print(msg)
+        raise (AiError(msg))
 
     try:
         jira.add_comment(args.issue_key, cleaned)
         print(f"✅ Comment added to {args.issue_key}")
-    except Exception as e:
-        print(f"❌ Failed to add comment: {e}")
+    except AddCommentError as e:
+        msg = f"❌ Failed to add comment: {e}"
+        print(msg)
+        raise (AddCommentError(msg))

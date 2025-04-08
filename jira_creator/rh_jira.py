@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import DispatcherError
 from providers import get_ai_provider
 from rest.client import JiraClient
 from rest.prompts import IssueType, PromptLibrary
@@ -217,8 +218,10 @@ class JiraCLI:
     def _dispatch_command(self, args):
         try:
             getattr(self, args.command.replace("-", "_"))(args)
-        except Exception as e:
-            print(f"❌ Command failed: {e}")
+        except AttributeError as e:
+            msg = f"❌ Command failed: {e}"
+            print(msg)
+            raise (DispatcherError(msg))
 
     def open_issue(self, args):
         cli_open_issue(args)

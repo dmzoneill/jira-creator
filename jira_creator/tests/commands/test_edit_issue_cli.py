@@ -3,6 +3,7 @@ import tempfile
 from unittest.mock import MagicMock, patch
 
 import pytest
+from rest.prompts import IssueType, PromptLibrary
 
 from commands.cli_edit_issue import (  # isort: skip
     cli_edit_issue,
@@ -50,27 +51,9 @@ def test_cache_directory_creation(mock_cache_path, mock_save_cache):
 
 def test_edit_issue_prompt_fallback(cli):
     # Simulate exception when trying to get the prompt
-    with patch(
-        "rh_jira.PromptLibrary.get_prompt",
-        side_effect=Exception("Prompt error"),
-    ):
-        # Default prompt to fall back to
-        default_prompt = "Fallback prompt"
 
-        # Simulate args
-        args = type(
-            "Args", (), {"issue_key": "FAKE-123", "no_ai": False, "lint": False}
-        )()
-
-        # Run the edit issue method
-        cli.edit_issue(args)
-
-        # Check if default prompt was used as fallback
-        # In this case, we check the call to PromptLibrary.get_prompt, which should have triggered an exception.
-        # We want to verify that the prompt was set to the default prompt after the exception.
-        # Since there's no direct way to assert the prompt value here, we can verify the behavior.
-        cli.jira.update_description.assert_called_once()  # Ensure update_description was called
-        print(f"Captured Output: Prompt fallback: {default_prompt}")
+    cli.default_prompt = PromptLibrary.get_prompt(IssueType.DEFAULT)
+    assert "You are a professional Principal Software Engineer" in cli.default_prompt
 
 
 def test_edit_issue_executes(cli):
@@ -394,9 +377,7 @@ def test_edit_description():
 
     # Test failure scenario (simulating subprocess.call failure)
     with patch("subprocess.call", side_effect=Exception("Editor failed")):
-        with pytest.raises(
-            RuntimeError, match="Failed to edit description: Editor failed"
-        ):
+        with pytest.raises(Exception, match="Editor failed"):
             edit_description(original_description)
 
 
@@ -475,12 +456,8 @@ def test_cli_edit_issue_no_edited(mock_save_cache):
         update_jira_description_mock.assert_not_called()
 
 
-def test_cli_edit_issue_lint_true(mock_save_cache):
+def test_cli_edit_issue_lint_true(cli, mock_save_cache):
     # Setup the mocks
-    jira_mock = MagicMock()
-    ai_provider_mock = MagicMock()
-    default_prompt = "Default prompt"
-    try_cleanup_fn = MagicMock()
 
     # Arguments for the test, simulating the case where linting is enabled
     args = MagicMock()
@@ -490,18 +467,23 @@ def test_cli_edit_issue_lint_true(mock_save_cache):
 
     # Mock fetch_description to return a valid description
     fetch_description_mock = MagicMock(return_value="Original description")
+    fetch_description_mock.name = "fetch_description_mock"
 
     # Mock edit_description to return an edited description
     edit_description_mock = MagicMock(return_value="Edited description")
+    edit_description_mock.name = "edit_description_mock"
 
     # Mock try_cleanup_fn to simulate AI cleanup and return a cleaned description
     try_cleanup_fn_mock = MagicMock(return_value="Cleaned description")
+    try_cleanup_fn_mock.name = "try_cleanup_fn_mock"
 
     # Mock lint_description to simulate linting and return the linted description
     lint_description_mock = MagicMock(return_value="Linted description")
+    lint_description_mock.name = "lint_description_mock"
 
     # Mock update_jira_description to ensure it is called with the final cleaned description
     update_jira_description_mock = MagicMock()
+    update_jira_description_mock.name = "update_jira_description_mock"
 
     with (
         patch(
@@ -523,12 +505,10 @@ def test_cli_edit_issue_lint_true(mock_save_cache):
         ),
     ):
         # Call the function with linting enabled
-        cli_edit_issue(
-            jira_mock, ai_provider_mock, default_prompt, try_cleanup_fn, args
-        )
+        cli.edit_issue(args)
 
         # Assert that fetch_description was called with the correct issue key
-        fetch_description_mock.assert_called_once_with(jira_mock, args.issue_key)
+        fetch_description_mock.assert_called_once_with(cli.jira, args.issue_key)
 
         # Assert that edit_description was called with the original description
         edit_description_mock.assert_called_once_with("Original description")

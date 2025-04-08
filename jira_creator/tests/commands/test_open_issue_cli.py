@@ -1,5 +1,7 @@
-import subprocess
 from unittest.mock import patch
+
+import pytest
+from exceptions.exceptions import OpenIssueError
 
 
 def test_open_issue(cli):
@@ -33,13 +35,14 @@ def test_open_issue_exception_handling(cli):
                 issue_key = "AAP-test_open_issue_exception_handling"
 
             # Simulate subprocess.Popen raising an exception
-            mock_popen.side_effect = subprocess.SubprocessError("Failed to open issue")
+            mock_popen.side_effect = OpenIssueError("Failed to open issue")
 
             # Call the method
             with patch(
                 "builtins.print"
             ) as mock_print:  # Mock print to check the output
-                cli.open_issue(Args())
+                with pytest.raises(OpenIssueError):
+                    cli.open_issue(Args())
 
                 # Assert that print was called with the correct error message
                 mock_print.assert_called_once_with(

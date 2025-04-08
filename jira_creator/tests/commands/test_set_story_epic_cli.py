@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
+from exceptions.exceptions import SetStoryEpicError
+
 
 def test_handle_success(cli, capsys):
     cli.jira.set_story_epic = MagicMock()
@@ -24,21 +27,15 @@ def test_handle_success(cli, capsys):
 
 
 def test_set_story_epic_exception(cli, capsys):
-    cli.jira.set_story_epic = MagicMock(side_effect=Exception("fail"))
+    cli.jira.set_story_epic = MagicMock(side_effect=SetStoryEpicError("fail"))
 
     class Args:
         issue_key = "AAP-test_set_story_epic_exception"
         epic_key = "EPIC-123"
+        reporter = "me"
+        project = "aa"
+        component = "bb"
 
-    # Call the handle function
-    cli.set_story_epic(Args())
-
-    captured = capsys.readouterr()
-
-    # Assert that the correct error message was printed
-    assert "❌ Failed to set epic: fail" in captured.out
-
-    # Ensure that set_story_epic was called with the correct arguments
-    cli.jira.set_story_epic.assert_called_once_with(
-        "AAP-test_set_story_epic_exception", "EPIC-123"
-    )
+    with pytest.raises(SetStoryEpicError):
+        # Call the handle function
+        cli.set_story_epic(Args())

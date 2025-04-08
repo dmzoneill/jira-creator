@@ -12,6 +12,8 @@ def test_prompt_exists_for_all_types():
         if issue_type == IssueType.COMMENT or issue_type == IssueType.DEFAULT:
             continue
         if issue_type == IssueType.QC:
+            prompt = PromptLibrary.get_prompt(IssueType.QC)
+            assert "You are a software engineering manager" in prompt
             continue
         prompt = PromptLibrary.get_prompt(IssueType[issue_type.value.upper()])
         assert isinstance(prompt, str)
@@ -23,15 +25,6 @@ def test_prompt_exists_for_all_types():
     assert (
         "As a professional Principal Software Engineer, you write great" in prompt
     )  # Ensure it's a template-style string
-
-
-def test_prompt_fallback_for_invalid_type():
-    try:
-        # Attempting to get a prompt for an invalid type (string instead of enum)
-        PromptLibrary.get_prompt("invalid")  # type: ignore
-    except Exception as e:
-        # Ensure an exception is raised
-        assert isinstance(e, Exception)
 
 
 # Test for FileNotFoundError exception

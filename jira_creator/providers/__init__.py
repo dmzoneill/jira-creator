@@ -1,3 +1,6 @@
+from exceptions.exceptions import AiProviderError
+
+
 def get_ai_provider(name: str):
     name = name.lower()
 
@@ -24,8 +27,10 @@ def get_ai_provider(name: str):
             return DeepSeekProvider()
     except ImportError as e:
         print(f"⚠️ Could not import {name} provider: {e}")
-    except Exception as e:
-        print(f"⚠️ Failed to initialize {name} provider: {e}")
+    except AiProviderError as e:
+        msg = f"⚠️ Failed to initialize {name} provider: {e}"
+        print(AiProviderError)
+        raise (AiProviderError(msg))
 
     from .noop_provider import NoAIProvider
 

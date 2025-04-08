@@ -1,60 +1,55 @@
-logging
+Core
+  - logging
+  - Type Exceptions
+  - Docstrings
+  - move status enums etc (31 Refinemnt) to config file
+    - validation-issue factory pattern
+      - new, refinement, backlog, in progress, closed, review
 
-Custom output for
- - view-epic
- - view-story
- - view-bug
- - view-task
- - view-spike
+Add
+  - list-blocked
+  - add-flag
+  - remove-flag
 
-list issues output
- - fix default output
- - epic column
- - assignee column
- - reporter column
- - blocked column
- - acceptance criteria column
- - when --assignee or --reporter is empty or "me" get the current user 
- - add --columns option in list_issues
- - add --sort option in list_issues
- - add --blocked
+Modify 
+  - list-issues
+    - fix default output
+    - epic column 
+    - assignee column 
+    - reporter column
+    - blocked column
+    - acceptance criteria column
+    - when --assignee or --reporter is empty or "me" get the current user 
+    - add --columns option in list_issues
+    - add --sort option in list_issues
+    - add --blocked
+    - Story points
+      - round 3.0 to 3
+      - None = 0
 
-List blocked
+  - view-issue
+    Custom output for
+    - epic
+    - story
+    - bug
+    - task
+    - spike
 
-add-sprint
- - assign default to current user
- - or -- assign to specifc user
+  - list-issues
+    - fix default output
+    - epic column 
+    - assignee column 
+    - reporter column
+    - blocked column
+    - acceptance criteria column
+    - when --assignee or --reporter is empty or "me" get the current user 
+    - add --columns option in list_issues
+    - add --sort option in list_issues
+    - add --blocked
 
-Update issues
- - Update acepance criteria from descirption (--ai) or user input
- 
-Tech debt - maintenance
- - move all custom fields out of code into config file
- - move status enums etc (31 Refinemnt) to config file
+  - add-sprint
+    - assign default to current user
+    - or -- assign to specifc user
 
-Validation
- - validate criteria for "new"
- - validate criteria for "refinement"
- - validate criteria for "backlog"
- - validate criteria for "in progress"
- - validate criteria for "closed"
- - validate criteria for "review"
-
-Story points
-  - round 3.0 to 3
-  - None = 0
-
-Test error
- - AAP-12345 being set in cache file
-
-
- jira-creatordaoneill@fedora:~/src/jira-creator$ cat ~/.config/rh-issue/ai-hashes.json
-{
-  "AAP-12345": {
-    "summary_hash": "90d456e2e19e6b567416220f0a6b368974cbcc791661802b0ea3805852abfa26",
-    "description_hash": "53f8ee8944a01238e0f265ccb10e88ab8c5dcaf639ac0fed7e4604a8d026eee4",
-    "last_ai_description": "OK"
-  }
-}
-
-Type - Exceptions
+  - edit-issue --acceptance-criteria
+    - Update acepance criteria from descirption (--ai) or user input

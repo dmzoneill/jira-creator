@@ -109,29 +109,23 @@ def validate_field_with_ai(
     problems,
     issue_status,
 ):
-    print(f"Validating field: {field_name}")  # Debugging: Field being validated
     if field_value:
         # Ensure the field hash comparison is correct
         if field_hash != cached_field_hash:
-            print(
-                f"Field hash mismatch: {field_hash} != {cached_field_hash}"
-            )  # Debugging: Check hash mismatch
             reviewed = ai_provider.improve_text(
                 f"""Check the quality of the following Jira {field_name}.
                 Is it clear, concise, and informative? Respond with 'OK' if fine or explain why not.""",
                 field_value,
             )
-            print(f"Reviewed text: {reviewed}")  # Debugging: Print the AI response
-
             if "ok" not in reviewed.lower():  # If AI response is not OK
-                print(
-                    f"Adding problem for {field_name}: {reviewed.strip()}"
-                )  # Debugging: Print what gets added
                 problems.append(f"❌ {field_name}: {reviewed.strip()}")
                 issue_status[field_name] = False
             else:
                 cached_field_hash = field_hash  # Update the cached hash here
                 issue_status[field_name] = True
+        elif field_hash == cached_field_hash and "ok" not in field_value.lower():
+            problems.append(f"❌ {field_name}: {field_value.strip()}")
+            issue_status[field_name] = False
 
     return cached_field_hash  # Return the updated hash to use in the next validation
 

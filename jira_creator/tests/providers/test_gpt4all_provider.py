@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from exceptions.exceptions import GTP4AllError
 from providers.gpt4all_provider import GPT4AllProvider
 
 
@@ -12,8 +13,8 @@ def test_init_success():
 
 
 def test_init_failure():
-    with patch("providers.gpt4all_provider.GPT4All", side_effect=Exception("💥")):
-        with pytest.raises(RuntimeError, match="Failed to load GPT4All model: 💥"):
+    with patch("providers.gpt4all_provider.GPT4All", side_effect=GTP4AllError("💥")):
+        with pytest.raises(GTP4AllError, match="Failed to load GPT4All model: 💥"):
             GPT4AllProvider("broken-model")
 
 

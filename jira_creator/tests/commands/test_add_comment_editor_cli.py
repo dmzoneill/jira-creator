@@ -1,6 +1,9 @@
 import tempfile
 from unittest.mock import MagicMock, patch
 
+import pytest
+from exceptions.exceptions import AiError
+
 
 def test_add_comment_editor(cli):
     # Mock the add_comment method and the improve_text method
@@ -33,7 +36,7 @@ def test_add_comment_editor(cli):
 def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
     # Mock the AI provider's improve_text method to avoid calling the real AI service
     cli.ai_provider = MagicMock()
-    cli.ai_provider.improve_text.side_effect = Exception("AI service failed")
+    cli.ai_provider.improve_text.side_effect = AiError("AI service failed")
 
     # Mock the add_comment method (to skip actual Jira interaction)
     cli.jira.add_comment = MagicMock()
@@ -59,8 +62,9 @@ def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
                         ""  # Empty text should trigger the else block (temporary file)
                     )
 
-                # Call the add_comment method
-                cli.add_comment(Args())
+                with pytest.raises(AiError):
+                    # Call the add_comment method
+                    cli.add_comment(Args())
 
                 # Capture the printed output
                 captured = capsys.readouterr()
@@ -68,17 +72,5 @@ def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
                 # Check if the subprocess call was made (indicating editor use)
                 mock_subprocess.assert_called_once()
 
-                # Ensure that the add_comment method was called with the comment from the temporary file
-                cli.jira.add_comment.assert_called_once_with(
-                    "AAP-test_add_comment_with_editor_and_ai_exception_handling",
-                    "Mocked comment",
-                )
-
                 # Assert the expected output (you can check if the process was handled correctly)
-                assert (
-                    "⚠️ AI cleanup failed. Using raw comment. Error: AI service failed"
-                    in captured.out
-                )
-                assert (
-                    "✅ Comment added" in captured.out
-                )  # Assuming this would be printed after success
+                assert "AI service failed" in captured.out

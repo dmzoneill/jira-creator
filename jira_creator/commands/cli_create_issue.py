@@ -4,6 +4,7 @@ import subprocess
 import sys
 import tempfile
 
+from exceptions.exceptions import AiError, CreateIssueError
 from rest.prompts import IssueType, PromptLibrary
 from templates.template_loader import TemplateLoader
 
@@ -23,8 +24,6 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
     )
 
     description = template.render_description(inputs)
-    print("DEBUG: Rendered description BEFORE AI:")
-    print(description)
 
     if args.edit:
         with tempfile.NamedTemporaryFile(mode="w+", suffix=".tmp", delete=False) as tmp:
@@ -39,8 +38,10 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
 
     try:
         description = ai_provider.improve_text(prompt, description)
-    except Exception as e:
-        print(f"⚠️ AI cleanup failed. Using original text. Error: {e}")
+    except AiError as e:
+        msg = f"⚠️ AI cleanup failed. Using original text. Error: {e}"
+        print(msg)
+        raise (AiError(msg))
 
     payload = jira.build_payload(args.summary, description, args.type)
 
@@ -55,5 +56,7 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
     try:
         key = jira.create_issue(payload)
         print(f"✅ Created: {jira.jira_url}/browse/{key}")
-    except Exception as e:
-        print(f"❌ Failed to create issue: {e}")
+    except CreateIssueError as e:
+        msg = f"❌ Failed to create issue: {e}"
+        print(msg)
+        raise (CreateIssueError)

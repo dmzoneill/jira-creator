@@ -1,4 +1,5 @@
 from commands.cli_validate_issue import cli_validate_issue as validate
+from exceptions.exceptions import LintError
 
 
 def cli_lint(jira, ai_provider, args):
@@ -16,5 +17,7 @@ def cli_lint(jira, ai_provider, args):
         else:
             print(f"✅ {args.issue_key} passed all lint checks")
 
-    except Exception as e:
-        print(f"❌ Failed to lint issue {args.issue_key}: {e}")
+    except LintError as e:
+        msg = f"❌ Failed to lint issue {args.issue_key}: {e}"
+        print(msg)
+        raise (LintError(msg))

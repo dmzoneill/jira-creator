@@ -1,4 +1,8 @@
-from commands.cli_validate_issue import load_and_cache_issue, load_cache, save_cache
+from commands.cli_validate_issue import (  # isort: skip
+    load_and_cache_issue,
+    load_cache,
+    save_cache,
+)  # isort: skip
 
 
 def test_mock_load_cache(mock_load_cache):

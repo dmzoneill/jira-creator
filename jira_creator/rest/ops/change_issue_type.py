@@ -1,3 +1,6 @@
+from exceptions.exceptions import ChangeIssueTypeError
+
+
 def change_issue_type(request_fn, issue_key, new_type):
     try:
         issue_data = request_fn("GET", f"/rest/api/2/issue/{issue_key}")
@@ -7,7 +10,7 @@ def change_issue_type(request_fn, issue_key, new_type):
             payload["update"] = {"parent": [{"remove": {}}]}
 
         request_fn("PUT", f"/rest/api/2/issue/{issue_key}", json=payload)
-        return True
-    except Exception as e:
-        print(f"❌ Failed to change issue type: {e}")
-        return False
+    except ChangeIssueTypeError as e:
+        msg = f"❌ Failed to change issue type: {e}"
+        print(msg)
+        raise (ChangeIssueTypeError(msg))

@@ -2,6 +2,7 @@ import textwrap
 from collections import OrderedDict
 
 from commands.cli_validate_issue import cli_validate_issue as validate
+from exceptions.exceptions import LintAllError
 
 
 def print_status_table(failure_statuses):
@@ -121,5 +122,7 @@ def cli_lint_all(jira, ai_provider, args):
 
             print_status_table(failure_statuses)
 
-    except Exception as e:
-        print(f"❌ Failed to lint issues: {e}")
+    except LintAllError as e:
+        msg = f"❌ Failed to lint issues: {e}"
+        print(msg)
+        raise (LintAllError(msg))

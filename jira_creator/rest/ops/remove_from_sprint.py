@@ -1,3 +1,6 @@
+from exceptions.exceptions import RemoveFromSprintError
+
+
 def remove_from_sprint(request_fn, issue_key):
     try:
         request_fn(
@@ -6,5 +9,7 @@ def remove_from_sprint(request_fn, issue_key):
             json={"issues": [issue_key]},
         )
         print(f"✅ Moved {issue_key} to backlog")
-    except Exception as e:
-        print(f"❌ Failed to remove from sprint: {e}")
+    except RemoveFromSprintError as e:
+        msg = f"❌ Failed to remove from sprint: {e}"
+        print(msg)
+        raise (RemoveFromSprintError(msg))

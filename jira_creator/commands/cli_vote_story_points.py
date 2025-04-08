@@ -1,3 +1,6 @@
+from exceptions.exceptions import VoteStoryPointsError
+
+
 def cli_vote_story_points(jira, args):
     try:
         points = int(args.points)
@@ -8,5 +11,7 @@ def cli_vote_story_points(jira, args):
     try:
         jira.vote_story_points(args.issue_key, points)
         print(f"✅ Voted {points} points on {args.issue_key}")
-    except Exception as e:
-        print(f"❌ Failed to vote on story points: {e}")
+    except VoteStoryPointsError as e:
+        msg = f"❌ Failed to vote on story points: {e}"
+        print(msg)
+        raise (VoteStoryPointsError(msg))

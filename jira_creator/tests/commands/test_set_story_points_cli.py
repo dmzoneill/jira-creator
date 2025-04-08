@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
+from exceptions.exceptions import SetStoryPointsError
+
 
 def test_set_story_points_success(cli):
     mock_set_story_points = MagicMock()
@@ -17,7 +20,7 @@ def test_set_story_points_success(cli):
 
 def test_set_story_points_failure(cli, capsys):
     def boom(issue_key, points):
-        raise Exception("fake failure")
+        raise SetStoryPointsError("fake failure")
 
     cli.jira = MagicMock(set_story_points=boom)
 
@@ -25,7 +28,9 @@ def test_set_story_points_failure(cli, capsys):
         issue_key = "AAP-test_set_story_points_failure"
         points = 5
 
-    cli.set_story_points(Args())
+    with pytest.raises(SetStoryPointsError):
+        cli.set_story_points(Args())
+
     captured = capsys.readouterr()
     assert "❌ Failed to set story points" in captured.out
 

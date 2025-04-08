@@ -1,7 +1,9 @@
 from argparse import Namespace
 from unittest.mock import MagicMock
 
+import pytest
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import SetAcceptanceCriteriaError
 
 
 def test_set_acceptance_criteria(cli, capsys):
@@ -44,13 +46,16 @@ def test_set_acceptance_criteria_exception(cli, capsys):
     acceptance_criteria = "Acceptance criteria description"
 
     # Simulate the exception being raised by the set_acceptance_criteria method
-    cli.jira.set_acceptance_criteria.side_effect = Exception("Some error occurred")
+    cli.jira.set_acceptance_criteria.side_effect = SetAcceptanceCriteriaError(
+        "Some error occurred"
+    )
 
     # Simulate args being passed from the parser
     args = Namespace(issue_key=issue_key, acceptance_criteria=acceptance_criteria)
 
-    # Call the set_acceptance_criteria method of JiraCLI, which should internally call the JiraClient
-    cli.set_acceptance_criteria(args)
+    with pytest.raises(SetAcceptanceCriteriaError):
+        # Call the set_acceptance_criteria method of JiraCLI, which should internally call the JiraClient
+        cli.set_acceptance_criteria(args)
 
     # Capture the output
     out = capsys.readouterr().out

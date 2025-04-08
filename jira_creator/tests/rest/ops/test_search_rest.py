@@ -5,6 +5,7 @@ from core.env_fetcher import EnvFetcher
 
 def test_search_issues(client):
     # Mock the _request method of JiraClient
+    # /* jscpd:ignore-start */
     client._request = MagicMock(
         return_value={
             "issues": [
@@ -46,6 +47,7 @@ def test_search_issues(client):
             "maxResults": 200,
         },
     )
+    # /* jscpd:ignore-end */
 
     # Assert that the method correctly processes the issue data
     assert issues[0]["key"] == "AAP-test_search_issues"

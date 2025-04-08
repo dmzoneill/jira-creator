@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+import pytest
+from exceptions.exceptions import AssignIssueError
 from rest.ops.assign_issue import assign_issue
 
 
@@ -15,12 +17,11 @@ def test_assign_issue_success():
     assert kwargs["json"] == {"fields": {"assignee": {"name": "johndoe"}}}
 
 
-def test_assign_issue_failure(capfd):
-    def fail_request(*args, **kwargs):
-        raise Exception("kaboom")
+def test_assign_issue_failure(capsys, client):
+    client._request = MagicMock(side_effect=AssignIssueError("fail"))
 
-    result = assign_issue(fail_request, "ABC-123", "johndoe")
-    out, _ = capfd.readouterr()
+    with pytest.raises(AssignIssueError):
+        client.assign_issue("ABC-123", "johndoe")
 
-    assert result is False
-    assert "❌ Failed to assign issue ABC-123" in out
+    capsys, _ = capsys.readouterr()
+    assert "❌ Failed to assign issue ABC-123" in capsys

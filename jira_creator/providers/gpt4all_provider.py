@@ -1,3 +1,4 @@
+from exceptions.exceptions import GTP4AllError
 from gpt4all import GPT4All
 
 
@@ -6,8 +7,8 @@ class GPT4AllProvider:
         self.model_name = model_name
         try:
             self.model = GPT4All(model_name)
-        except Exception as e:
-            raise RuntimeError(f"Failed to load GPT4All model: {e}")
+        except GTP4AllError as e:
+            raise GTP4AllError(RuntimeError(f"Failed to load GPT4All model: {e}"))
 
     def improve_text(self, prompt: str, text: str) -> str:
         instruction = (

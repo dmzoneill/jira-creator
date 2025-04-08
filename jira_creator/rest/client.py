@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 
 import requests
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import JiraClientRequestError
 
 from .ops import (  # isort: skip
     add_comment,
@@ -73,12 +74,12 @@ class JiraClient:
                 )
                 response.raise_for_status()
                 return response.json() if response.text.strip() else {}
-            except Exception as e:
+            except JiraClientRequestError as e:
                 # Catch network-related errors and retries
                 if attempt < retries - 1:
                     time.sleep(delay)
                 else:
-                    raise (e)
+                    raise (JiraClientRequestError(e))
 
     def cache_fields(self):
         # Check if the cache file exists and is less than 24 hours old

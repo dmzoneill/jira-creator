@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
+from exceptions.exceptions import ListIssuesError
+
 
 def test_list_issues_empty(cli, capsys):
     # Mock list_issues to return an empty list
@@ -19,7 +22,7 @@ def test_list_issues_empty(cli, capsys):
 
 def test_list_issues_fail(cli, capsys):
     # Mock list_issues to raise an exception
-    cli.jira.list_issues = MagicMock(side_effect=Exception("fail"))
+    cli.jira.list_issues = MagicMock(side_effect=ListIssuesError("fail"))
 
     class Args:
         project = None
@@ -27,6 +30,8 @@ def test_list_issues_fail(cli, capsys):
         assignee = None
         reporter = None
 
-    cli.list_issues(Args())
+    with pytest.raises(ListIssuesError):
+        cli.list_issues(Args())
+
     out = capsys.readouterr().out
     assert "❌ Failed to list issues" in out

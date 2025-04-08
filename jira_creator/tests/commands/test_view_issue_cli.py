@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
+from exceptions.exceptions import ViewIssueError
+
 
 def test_view_issue(cli, capsys):
     blob = {"smokekey": "somevalue", "customfield_12345": 3}
@@ -24,13 +27,14 @@ def test_view_issue(cli, capsys):
 
 
 def test_view_issue_exception(cli, capsys):
-    cli.jira.view_issue = MagicMock(side_effect=Exception("fail"))
+    cli.jira.view_issue = MagicMock(side_effect=ViewIssueError("fail"))
 
     class Args:
         issue_key = "AAP-test_view_issue_exception"
 
-    # Call the handle function
-    cli.view_issue(Args())
+    with pytest.raises(ViewIssueError):
+        # Call the handle function
+        cli.view_issue(Args())
 
     captured = capsys.readouterr()
 

@@ -25,6 +25,12 @@ def client():
             "COMPONENT_NAME": "backend",
             "PRIORITY": "High",
             "JPAT": "dummy-token",
+            "JIRA_EPIC_FIELD": "customfield_12311140",
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_12315940",
+            "JIRA_BLOCKED_FIELD": "customfield_12316543",
+            "JIRA_BLOCKED_REASON_FIELD": "customfield_12316544",
+            "JIRA_STORY_POINTS_FIELD": "customfield_12310243",
+            "JIRA_SPRINT_FIELD": "customfield_12310940",
         },
     ):
         client = JiraClient()

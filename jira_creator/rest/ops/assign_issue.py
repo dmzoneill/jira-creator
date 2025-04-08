@@ -1,3 +1,6 @@
+from exceptions.exceptions import AssignIssueError
+
+
 def assign_issue(request_fn, issue_key, assignee):
     try:
         request_fn(
@@ -6,6 +9,7 @@ def assign_issue(request_fn, issue_key, assignee):
             json={"fields": {"assignee": {"name": assignee}}},
         )
         return True
-    except Exception as e:
-        print(f"❌ Failed to assign issue {issue_key}: {e}")
-        return False
+    except AssignIssueError as e:
+        msg = f"❌ Failed to assign issue {issue_key}: {e}"
+        print(msg)
+        raise (AssignIssueError(msg))

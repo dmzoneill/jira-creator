@@ -1,3 +1,6 @@
+from exceptions.exceptions import SetStoryPointsError
+
+
 def cli_set_story_points(jira, args):
     try:
         points = int(args.points)
@@ -8,5 +11,7 @@ def cli_set_story_points(jira, args):
     try:
         jira.set_story_points(args.issue_key, points)
         print(f"✅ Set {points} story points on {args.issue_key}")
-    except Exception as e:
-        print(f"❌ Failed to set story points: {e}")
+    except SetStoryPointsError as e:
+        msg = f"❌ Failed to set story points: {e}"
+        print(msg)
+        raise (SetStoryPointsError(msg))

@@ -1,4 +1,5 @@
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import ListBlockedError
 
 
 # /* jscpd:ignore-start */
@@ -50,8 +51,10 @@ def cli_blocked(jira, args):
             print(f"  📄 {i['summary']}")
             print("-" * 80)
 
-    except Exception as e:
-        print(f"❌ Failed to list blocked issues: {e}")
+    except ListBlockedError as e:
+        msg = f"❌ Failed to list blocked issues: {e}"
+        print(msg)
+        raise (ListBlockedError(msg))
 
 
 # /* jscpd:ignore-end */

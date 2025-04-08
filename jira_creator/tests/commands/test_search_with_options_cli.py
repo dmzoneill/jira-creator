@@ -1,7 +1,9 @@
 import io
 from unittest.mock import MagicMock, patch
 
+import pytest
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import SearchError
 
 
 def test_search(cli, mock_search_issues):
@@ -48,7 +50,7 @@ def test_search_no_issues(cli):
 
 def test_search_with_exception(cli):
     # Mock search_issues to raise an exception
-    cli.jira.search_issues = MagicMock(side_effect=Exception("An error occurred"))
+    cli.jira.search_issues = MagicMock(side_effect=SearchError("An error occurred"))
 
     # Prepare the args object to simulate CLI arguments
     class Args:
@@ -58,7 +60,8 @@ def test_search_with_exception(cli):
 
     # Mock stdout to capture printed output
     with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
-        cli.search(Args())
+        with pytest.raises(SearchError):
+            cli.search(Args())
 
         # Capture the printed output
         captured_output = mock_stdout.getvalue()

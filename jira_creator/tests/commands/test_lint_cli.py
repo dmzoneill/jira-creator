@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import LintError
 
 
 def test_lint_command_flags_errors(mock_save_cache, cli, capsys):
@@ -73,12 +75,14 @@ def test_lint_command_exception(mock_save_cache, cli, capsys):
     # ✅ Fix: Mock ai_provider on cli directly
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
-    cli.jira._request.side_effect = Exception("Simulated fetch failure")
+    cli.jira._request.side_effect = LintError("Simulated fetch failure")
 
     class Args:
         issue_key = "AAP-test_lint_command_exception"
 
-    cli.lint(Args())
+    with pytest.raises(LintError):
+        cli.lint(Args())
+
     out = capsys.readouterr().out
     assert (
         "❌ Failed to lint issue AAP-test_lint_command_exception: Simulated fetch failure"

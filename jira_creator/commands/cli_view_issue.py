@@ -1,3 +1,6 @@
+from exceptions.exceptions import ViewIssueError
+
+
 def cli_view_issue(jira, args):
     try:
         issue = jira.view_issue(args.issue_key)
@@ -18,5 +21,7 @@ def cli_view_issue(jira, args):
         for key in sorted(updated_issue.keys()):
             print(f"{key} : {updated_issue[key]}")
 
-    except Exception as e:
-        print(f"❌ Unable to view issue: {e}")
+    except ViewIssueError as e:
+        msg = f"❌ Unable to view issue: {e}"
+        print(msg)
+        raise (ViewIssueError(msg))

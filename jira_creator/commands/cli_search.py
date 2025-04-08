@@ -1,6 +1,7 @@
 import re
 
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import SearchError
 
 
 def cli_search(jira, args):
@@ -59,5 +60,7 @@ def cli_search(jira, args):
         for r in rows:
             print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
 
-    except Exception as e:
-        print(f"❌ Failed to search issues: {e}")
+    except SearchError as e:
+        msg = f"❌ Failed to search issues: {e}"
+        print(msg)
+        raise (SearchError(msg))

@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import LintAllError
 
 import pytest  # isort: skip
 from commands.cli_lint_all import print_status_table  # isort: skip
@@ -187,9 +188,10 @@ def test_lint_all_exception(mock_save_cache, cli, capsys):
     cli.jira = MagicMock()
     cli.jira.ai_provider = MagicMock()
 
-    cli.jira.list_issues.side_effect = Exception("Simulated failure")
+    cli.jira.list_issues.side_effect = LintAllError("Simulated failure")
 
-    cli.lint_all(Args())
+    with pytest.raises(LintAllError):
+        cli.lint_all(Args())
     out = capsys.readouterr().out
 
     assert "❌ Failed to lint issues: Simulated failure" in out

@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
+from exceptions.exceptions import FetchIssueIDError, VoteStoryPointsError
+
 
 def test_vote_story_points_success(client):
     # First call: get issue ID
@@ -35,7 +38,9 @@ def test_vote_story_points_failure(client, capsys):
     mock_vote_response.text = '{"error": "bad request"}'
 
     client._request.side_effect = [mock_issue_response, mock_vote_response]
-    client.vote_story_points("ISSUE-123", 3)
+
+    with pytest.raises(VoteStoryPointsError):
+        client.vote_story_points("ISSUE-123", 3)
 
     captured = capsys.readouterr()
     assert "❌ Failed to vote on story points: JIRA API error (400):" in captured.out
@@ -43,8 +48,10 @@ def test_vote_story_points_failure(client, capsys):
 
 def test_vote_story_points_fetch_issue_id_failure(client, capsys):
     # Simulate the first request (GET issue) raising an exception
-    client._request.side_effect = Exception("network error")
-    client.vote_story_points("ISSUE-123", 3)
+    client._request.side_effect = FetchIssueIDError("network error")
+
+    with pytest.raises(FetchIssueIDError):
+        client.vote_story_points("ISSUE-123", 3)
 
     captured = capsys.readouterr()
     assert "❌ Failed to fetch issue ID for ISSUE-123: network error" in captured.out

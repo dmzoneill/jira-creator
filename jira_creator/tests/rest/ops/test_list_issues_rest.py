@@ -36,7 +36,6 @@ def test_list_issues_reporter(client):
 
 
 def test_list_issues_with_status(client):
-
     mock_client_request(
         client, {"issues": [{"key": "AAP-test_list_issues_with_status"}]}
     )

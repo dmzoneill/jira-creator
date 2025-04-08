@@ -1,6 +1,7 @@
 import re
 
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import ListIssuesError
 
 
 # /* jscpd:ignore-start */
@@ -107,8 +108,10 @@ def cli_list_issues(jira, args):
             # Print the formatted row
             print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
 
-    except Exception as e:
-        print(f"❌ Failed to list issues: {e}")
+    except ListIssuesError as e:
+        msg = f"❌ Failed to list issues: {e}"
+        print(msg)
+        raise (ListIssuesError(msg))
 
 
 # /* jscpd:ignore-end */

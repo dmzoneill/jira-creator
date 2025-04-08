@@ -2,17 +2,27 @@ import os
 import subprocess
 import tempfile
 
-from commands.cli_validate_issue import cli_validate_issue as validate
 from rest.prompts import IssueType, PromptLibrary
+
+from exceptions.exceptions import (  # isort: skip
+    EditDescriptionError,
+    EditIssueError,
+    FetchDescriptionError,
+    GetPromptError,
+    UpdateDescriptionError,
+)  # isort: skip
+
+from commands.cli_validate_issue import cli_validate_issue as validate  # isort: skip
 
 
 def fetch_description(jira, issue_key):
     try:
         print("Fetching description...")
         return jira.get_description(issue_key)
-    except Exception as e:
-        print(f"❌ Failed to fetch description: {e}")
-        return None
+    except FetchDescriptionError as e:
+        msg = f"❌ Failed to fetch description: {e}"
+        print(msg)
+        raise (FetchDescriptionError(msg))
 
 
 def edit_description(original_description):
@@ -25,10 +35,10 @@ def edit_description(original_description):
             )  # This can raise an exception
             tmp.seek(0)
             return tmp.read()
-    except Exception as e:
+    except EditDescriptionError as e:
         error_message = f"❌ Failed to edit description: {e}"
         print(error_message)  # This would be captured in the logs
-        raise RuntimeError(error_message)
+        raise EditDescriptionError(error_message)
 
 
 def get_prompt(jira, issue_key, default_prompt):
@@ -37,7 +47,7 @@ def get_prompt(jira, issue_key, default_prompt):
         return PromptLibrary.get_prompt(
             IssueType(jira.get_issue_type(issue_key).lower())
         )
-    except Exception:
+    except GetPromptError:
         print("❌ Failed to get Jira prompt, using default prompt.")
         return default_prompt
 
@@ -101,23 +111,28 @@ def update_jira_description(jira, issue_key, cleaned):
         print("Updating Jira description...")
         jira.update_description(issue_key, cleaned)
         print(f"✅ Updated {issue_key}")
-    except Exception as e:
-        print(f"❌ Update failed: {e}")
+    except UpdateDescriptionError as e:
+        msg = f"❌ Update failed: {e}"
+        print(msg)
+        raise (UpdateDescriptionError(msg))
 
 
 def cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args):
-    original_description = fetch_description(jira, args.issue_key)
-    if not original_description:
-        return
+    try:
+        original_description = fetch_description(jira, args.issue_key)
+        if not original_description:
+            return
 
-    edited = edit_description(original_description)
-    if not edited:
-        return
+        edited = edit_description(original_description)
+        if not edited:
+            return
 
-    prompt = get_prompt(jira, args.issue_key, default_prompt)
+        prompt = get_prompt(jira, args.issue_key, default_prompt)
 
-    cleaned = edited if args.no_ai else try_cleanup_fn(ai_provider, prompt, edited)
-    if args.lint:
-        cleaned = lint_description(cleaned, ai_provider)
+        cleaned = edited if args.no_ai else try_cleanup_fn(ai_provider, prompt, edited)
+        if args.lint:
+            cleaned = lint_description(cleaned, ai_provider)
 
-    update_jira_description(jira, args.issue_key, cleaned)
+        update_jira_description(jira, args.issue_key, cleaned)
+    except EditIssueError as e:
+        raise (e)

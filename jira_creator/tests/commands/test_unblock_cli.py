@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
+from exceptions.exceptions import UnBlockError
+
 
 def test_unblock_command_success(cli, capsys):
     called = {}
@@ -21,7 +24,7 @@ def test_unblock_command_success(cli, capsys):
 
 def test_unblock_command_failure(cli, capsys):
     def raise_exception(issue_key):
-        raise Exception("Simulated unblock failure")
+        raise UnBlockError("Simulated unblock failure")
 
     cli.jira = MagicMock()
     cli.jira.unblock_issue = raise_exception
@@ -29,10 +32,8 @@ def test_unblock_command_failure(cli, capsys):
     class Args:
         issue_key = "AAP-test_unblock_command_failure"
 
-    cli.unblock(Args())
+    with pytest.raises(UnBlockError):
+        cli.unblock(Args())
 
     out = capsys.readouterr().out
-    assert (
-        "❌ Failed to unblock AAP-test_unblock_command_failure: Simulated unblock failure"
-        in out
-    )
+    assert "Simulated unblock failure" in out

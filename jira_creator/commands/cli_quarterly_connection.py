@@ -1,12 +1,16 @@
 import time
 
+from exceptions.exceptions import QuarterlyConnectionError
 from rest.prompts import IssueType, PromptLibrary
 
 
 def cli_quarterly_connection(jira, ai_provider):
     try:
         print("Building employee report")
-        jql = "(created >= -90d OR resolutionDate >= -90d OR updated >= -90d OR comment ~ currentUser()) AND assignee = currentUser()"
+        jql = "(created >= -90d OR resolutionDate >= -90d OR"
+        jql += (
+            " updated >= -90d OR comment ~ currentUser()) AND assignee = currentUser()"
+        )
         issues = jira.search_issues(jql)
 
         if issues is None or len(issues) == 0:
@@ -35,5 +39,6 @@ def cli_quarterly_connection(jira, ai_provider):
         print("Manager churning:")
         print(ai_provider.improve_text(system_prompt, qc_input))
 
-    except Exception as e:
+    except QuarterlyConnectionError as e:
         print(e)
+        raise (QuarterlyConnectionError(e))

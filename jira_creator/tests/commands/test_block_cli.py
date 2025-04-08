@@ -1,3 +1,7 @@
+import pytest
+from exceptions.exceptions import BlockError
+
+
 def test_block_command(cli, capsys):
     called = {}
 
@@ -23,7 +27,7 @@ def test_block_command(cli, capsys):
 
 def test_block_command_exception(cli, capsys):
     def mock_block_issue(issue_key, reason):
-        raise Exception("Simulated failure")
+        raise BlockError("Simulated failure")
 
     cli.jira.block_issue = mock_block_issue
 
@@ -31,7 +35,8 @@ def test_block_command_exception(cli, capsys):
         issue_key = "AAP-test_block_command_exception"
         reason = "Something went wrong"
 
-    cli.block(Args())
+    with pytest.raises(BlockError):
+        cli.block(Args())
 
     captured = capsys.readouterr()
     assert (

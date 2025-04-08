@@ -1,6 +1,8 @@
 import os
 import subprocess
 
+from exceptions.exceptions import OpenIssueError
+
 
 def cli_open_issue(args):
     try:
@@ -8,5 +10,7 @@ def cli_open_issue(args):
             ["xdg-open", os.getenv("JIRA_URL") + "/browse/" + args.issue_key]
         )
 
-    except Exception as e:
-        print(f"❌ Failed to open issue {args.issue_key}: {e}")
+    except OpenIssueError as e:
+        msg = f"❌ Failed to open issue {args.issue_key}: {e}"
+        print(msg)
+        raise (OpenIssueError(msg))

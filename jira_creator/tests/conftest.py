@@ -13,6 +13,7 @@ import pytest  # isort: skip
 DUMMY_FILE_PATH = "/tmp/test_cache/ai-hashes.json"
 DUMMY_HASH = "dummy_hash_value"
 
+
 def vars():
     return {
         "JIRA_URL": "https://example.atlassian.net",

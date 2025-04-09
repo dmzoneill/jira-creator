@@ -32,7 +32,6 @@ class EnvFetcher:
             "JIRA_SPRINT_FIELD": "customfield_12310940",
         }
 
-        print(vars[var_name])
         value = (
             os.getenv(var_name, None) if "pytest" not in sys.modules else vars[var_name]
         )

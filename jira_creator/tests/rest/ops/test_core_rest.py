@@ -1,8 +1,3 @@
-import pytest
-from exceptions.exceptions import MissingConfigVariable
-from rest.client import JiraClient
-
-
 def test_build_payload_with_patch_dict(client):
     summary = "Fix login issue"
     description = "Steps to reproduce..."

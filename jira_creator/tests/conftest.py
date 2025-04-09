@@ -14,29 +14,11 @@ DUMMY_FILE_PATH = "/tmp/test_cache/ai-hashes.json"
 DUMMY_HASH = "dummy_hash_value"
 
 
-def vars():
-    return {
-        "JIRA_URL": "https://example.atlassian.net",
-        "PROJECT_KEY": "XYZ",
-        "AFFECTS_VERSION": "v1.2.3",
-        "COMPONENT_NAME": "backend",
-        "PRIORITY": "High",
-        "JPAT": "dummy-token",
-        "JIRA_EPIC_FIELD": "customfield_12311140",
-        "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_12315940",
-        "JIRA_BLOCKED_FIELD": "customfield_12316543",
-        "JIRA_BLOCKED_REASON_FIELD": "customfield_12316544",
-        "JIRA_STORY_POINTS_FIELD": "customfield_12310243",
-        "JIRA_SPRINT_FIELD": "customfield_12310940",
-    }
-
-
 @pytest.fixture
 def client():
-    with patch.dict("core.env_fetcher.os.environ", vars()):
-        client = JiraClient()
-        client._request = MagicMock()
-        return client
+    client = JiraClient()
+    client._request = MagicMock()
+    return client
 
 
 # Fixture for patching subprocess.call
@@ -71,21 +53,20 @@ def cli(
     patch_subprocess_call  # Applies patch to subprocess.call
     patch_tempfile_namedtemporaryfile  # Applies patch to tempfile.NamedTemporaryFile
 
-    with patch.dict(os.environ, vars()):
-        cli = JiraCLI()
-        cli.jira = MagicMock()
+    cli = JiraCLI()
+    cli.jira = MagicMock()
 
-        # Mock Jira methods
-        cli.jira.get_description = MagicMock(return_value="Original description")
-        cli.jira.update_description = MagicMock(return_value=True)
-        cli.jira.get_issue_type = MagicMock(return_value="story")
+    # Mock Jira methods
+    cli.jira.get_description = MagicMock(return_value="Original description")
+    cli.jira.update_description = MagicMock(return_value=True)
+    cli.jira.get_issue_type = MagicMock(return_value="story")
 
-        # Mock AI provider
-        cli.ai_provider.improve_text = MagicMock(
-            return_value="Cleaned and corrected content."
-        )
+    # Mock AI provider
+    cli.ai_provider.improve_text = MagicMock(
+        return_value="Cleaned and corrected content."
+    )
 
-        yield cli
+    yield cli
 
 
 # Mocking search_issues to return a list of issues

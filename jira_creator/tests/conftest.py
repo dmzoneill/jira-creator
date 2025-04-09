@@ -33,7 +33,7 @@ def vars():
 
 @pytest.fixture
 def client():
-    with patch.dict(os.environ, vars()):
+    with patch.dict("core.env_fetcher.os.environ", vars()):
         client = JiraClient()
         client._request = MagicMock()
         return client

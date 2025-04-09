@@ -3,6 +3,7 @@ import tempfile
 from unittest.mock import MagicMock, patch
 
 import pytest
+from exceptions.exceptions import EditIssueError
 from rest.prompts import IssueType, PromptLibrary
 
 from commands.cli_edit_issue import (  # isort: skip
@@ -300,6 +301,25 @@ def test_update_jira_description():
     jira_mock.update_description.assert_called_once_with(
         "ISSUE-123", "Cleaned description"
     )
+
+
+# def test_update_jira_update_description_exception(cli):
+#     jira_mock = MagicMock()
+#     jira_mock.update_description = MagicMock()
+
+#     class Args:
+#         isssue_key = "abc-123"
+
+#     with patch("commands.cli_edit_issue.fetch_description") as mock:
+#         mock.side_effect = EditIssueError("fail")
+
+#         with pytest.raises(EditIssueError):
+#             print("here")
+#             cli_edit_issue(jira_mock, MagicMock(), "ISSUE-123", MagicMock(), Args())
+
+#     jira_mock.update_description.assert_called_once_with(
+#         "ISSUE-123", "Cleaned description"
+#     )
 
 
 def test_lint_description_once():

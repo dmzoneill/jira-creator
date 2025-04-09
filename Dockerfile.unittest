@@ -1,0 +1,15 @@
+# Start with a Python base image
+FROM python:3.11-slim
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Install pipenv and dependencies
+RUN pip install pipenv
+
+# Install coverage (optional, you can add it to your Pipfile)
+RUN pipenv install coverage pytest requests coverage pytest-timeout pytest-mock 
+
+
+# Default command (this will be overwritten by `docker run` when executing coverage)
+CMD ["bash"]

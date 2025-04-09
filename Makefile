@@ -108,6 +108,19 @@ coverage: print-header
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
 
+# --- Coverage ---
+.PHONY: coverage-docker
+coverage-docker: print-header
+	docker build -t jira_creator_unit -f Dockerfile.unittest .  # Build the Docker image
+	docker run --rm -v $(PWD):/app -w /app --name coverage-container jira_creator_unit bash -c "\
+		pipenv run coverage erase && \
+		pipenv run coverage run -m pytest --durations=10 jira_creator/tests && \
+		pipenv run coverage combine && \
+		pipenv run coverage report -m --fail-under=99 && \
+		pipenv run coverage html"  # Run all steps inside the container
+	@echo "📂 Coverage report: open htmlcov/index.html"
+
+
 # Clean up coverage artifacts
 .PHONY: clean-coverage
 clean-coverage: print-header

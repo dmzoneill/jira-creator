@@ -2,9 +2,11 @@ import os
 import tempfile
 from unittest.mock import MagicMock, patch
 
-import pytest
 # from exceptions.exceptions import EditIssueError
 from rest.prompts import IssueType, PromptLibrary
+
+import pytest  # isort: skip
+
 
 from commands.cli_edit_issue import (  # isort: skip
     cli_edit_issue,

@@ -3,7 +3,7 @@ import tempfile
 from unittest.mock import MagicMock, patch
 
 import pytest
-from exceptions.exceptions import EditIssueError
+# from exceptions.exceptions import EditIssueError
 from rest.prompts import IssueType, PromptLibrary
 
 from commands.cli_edit_issue import (  # isort: skip

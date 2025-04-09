@@ -1,6 +1,7 @@
 Core
   - logging
   - Type Exceptions
+    - raise exceptions
   - Docstrings
   - move status enums etc (31 Refinemnt) to config file
     - validation-issue factory pattern
@@ -8,6 +9,8 @@ Core
 
 Add
   - list-blocked
+  - list-sprints
+  - In Progress or blocked status
   - add-flag
   - remove-flag
 

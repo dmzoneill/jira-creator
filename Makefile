@@ -101,14 +101,14 @@ lint: print-header
 # --- Coverage ---
 .PHONY: coverage
 coverage: print-header
-	- @source ./.test_vars && echo "Environment loaded"
+	- @. ./.test_vars && echo "Environment loaded"
 	$(PIPENV) run coverage erase
 	$(PIPENV) run coverage run -m pytest --durations=10 jira_creator/tests
 	- $(PIPENV) run coverage combine
 	$(PIPENV) run coverage report -m --fail-under=99
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
-	- @source ~/.bashrc.d/jpat.sh && echo "Environment restored"
+	- @. ~/.bashrc.d/jpat.sh && echo "Environment restored"
 
 # --- Coverage ---
 .PHONY: coverage-docker

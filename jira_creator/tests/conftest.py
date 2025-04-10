@@ -1,11 +1,10 @@
 # conftest.py
-import os
 from unittest.mock import MagicMock, patch
 
-from rest.client import JiraClient
+from rest.client import JiraClient  # pylint: disable=E0611
 from rh_jira import JiraCLI
 
-from core.env_fetcher import EnvFetcher  # isort: skip
+from core.env_fetcher import EnvFetcher  # isort: skip # pylint: disable=E0611
 
 import pytest  # isort: skip
 

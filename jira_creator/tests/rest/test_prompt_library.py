@@ -15,6 +15,10 @@ def test_prompt_exists_for_all_types():
             prompt = PromptLibrary.get_prompt(IssueType.QC)
             assert "You are a software engineering manager" in prompt
             continue
+        if issue_type == IssueType.AIHELPER:
+            prompt = PromptLibrary.get_prompt(IssueType.AIHELPER)
+            assert "You are an intelligent assistant that converts" in prompt
+            continue
         prompt = PromptLibrary.get_prompt(IssueType[issue_type.value.upper()])
         assert isinstance(prompt, str)
         assert (

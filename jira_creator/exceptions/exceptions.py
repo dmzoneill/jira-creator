@@ -159,3 +159,15 @@ class GTP4AllError(BaseException):
 
 class AiProviderError(BaseException):
     pass
+
+
+class AIHelperError(BaseException):
+    pass
+
+
+class GetUserError(BaseException):
+    pass
+
+
+class SearchUsersError(BaseException):
+    pass

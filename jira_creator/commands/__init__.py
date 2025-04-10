@@ -1,6 +1,7 @@
 from ._try_cleanup import _try_cleanup  # noqa
 from .cli_add_comment import cli_add_comment  # noqa
 from .cli_add_sprint import cli_add_sprint  # noqa
+from .cli_ai_helper import cli_ai_helper  # noqa
 from .cli_assign import cli_assign  # noqa
 from .cli_block import cli_block  # noqa
 from .cli_blocked import cli_blocked  # noqa
@@ -15,6 +16,7 @@ from .cli_open_issue import cli_open_issue  # noqa
 from .cli_quarterly_connection import cli_quarterly_connection  # noqa
 from .cli_remove_sprint import cli_remove_sprint  # noqa
 from .cli_search import cli_search  # noqa
+from .cli_search_users import cli_search_users  # noqa
 from .cli_set_acceptance_criteria import cli_set_acceptance_criteria  # noqa
 from .cli_set_priority import cli_set_priority  # noqa
 from .cli_set_status import cli_set_status  # noqa
@@ -24,4 +26,5 @@ from .cli_unassign import cli_unassign  # noqa
 from .cli_unblock import cli_unblock  # noqa
 from .cli_validate_issue import cli_validate_issue  # noqa
 from .cli_view_issue import cli_view_issue  # noqa
+from .cli_view_user import cli_view_user  # noqa
 from .cli_vote_story_points import cli_vote_story_points  # noqa

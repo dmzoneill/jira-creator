@@ -1,4 +1,6 @@
 Core
+  _ mask private methods with _ prefix
+  - type hardening
   - logging
   - Type Exceptions
     - raise exceptions
@@ -6,15 +8,21 @@ Core
   - move status enums etc (31 Refinemnt) to config file
     - validation-issue factory pattern
       - new, refinement, backlog, in progress, closed, review
+  - grep for os.environ.get
 
 Add
   - list-blocked
   - list-sprints
+  - set-summary
   - In Progress or blocked status
   - add-flag
   - remove-flag
+  - clone / copy issue
 
 Modify 
+  - set-satus
+    - move to stop of sprint if (refinement)
+
   - list-issues
     - fix default output
     - epic column 
@@ -29,6 +37,12 @@ Modify
     - Story points
       - round 3.0 to 3
       - None = 0
+
+  - lint-issues
+    - show description
+
+  - set-acceptance-criteria 
+    - --ai-from-description
 
   - view-issue
     - validation-issue factory pattern
@@ -57,3 +71,12 @@ Modify
 
   - edit-issue --acceptance-criteria
     - Update acepance criteria from descirption (--ai) or user input
+    - create linked issue
+    - move to stop of sprint if (refinement)
+
+  - create-issue
+    - move to stop of sprint if (refinement)
+
+
+Bug
+  - add comment is loading story prompt, not comment prompt

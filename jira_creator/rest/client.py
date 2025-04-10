@@ -20,10 +20,12 @@ from .ops import (  # isort: skip
     get_current_user,
     get_description,
     get_issue_type,
+    get_user,
     list_issues,
     migrate_issue,
     remove_from_sprint,
     search_issues,
+    search_users,
     set_acceptance_criteria,
     set_priority,
     set_sprint,
@@ -56,7 +58,7 @@ class JiraClient:
         path: str,
         json: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+    ) -> Optional[Dict[str, Any]]:
         url = f"{self.jira_url}{path}"
         headers = {
             "Authorization": f"Bearer {self.jpat}",
@@ -65,6 +67,7 @@ class JiraClient:
 
         retries = 3  # Set default number of retries
         delay = 2  # Set default delay between retries in seconds
+        result = None
 
         # Loop with retry logic
         for attempt in range(retries):
@@ -73,13 +76,21 @@ class JiraClient:
                     method, url, headers=headers, json=json, params=params, timeout=10
                 )
                 response.raise_for_status()
-                return response.json() if response.text.strip() else {}
+
+                try:
+                    result = response.json()
+                    break
+                except ValueError:
+                    print("❌ Response was not valid JSON:")
+                    print(response.text)
+                    result = {}
             except JiraClientRequestError as e:
                 # Catch network-related errors and retries
                 if attempt < retries - 1:
                     time.sleep(delay)
                 else:
                     raise (JiraClientRequestError(e))
+        return result
 
     def cache_fields(self):
         # Check if the cache file exists and is less than 24 hours old
@@ -151,6 +162,9 @@ class JiraClient:
 
     def get_current_user(self):
         return get_current_user(self._request)
+
+    def get_user(self, str):
+        return get_user(self._request, str)
 
     def get_issue_type(self, issue_key):
         return get_issue_type(self._request, issue_key)
@@ -227,6 +241,9 @@ class JiraClient:
 
     def search_issues(self, jql):
         return search_issues(self._request, jql)
+
+    def search_users(self, str):
+        return search_users(self._request, str)
 
     def view_issue(self, issue_key):
         return view_issue(self._request, issue_key)

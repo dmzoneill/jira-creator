@@ -534,3 +534,26 @@ def test_cli_edit_issue_lint_true(cli, mock_save_cache):
 
         # Assert that edit_description was called with the original description
         edit_description_mock.assert_called_once_with("Original description")
+
+
+def test_cli_edit_issue_returns_early_on_empty_description():
+    fake_jira = MagicMock()
+    fake_jira.get_description.return_value = ""  # or None, both will work
+
+    fake_ai = MagicMock()
+    fake_cleanup = MagicMock()
+
+    class Args:
+        issue_key = "TEST-42"
+        no_ai = True
+        lint = False
+
+    with patch("commands.cli_edit_issue.fetch_description", return_value=""):
+        result = cli_edit_issue(
+            fake_jira, fake_ai, "unused_prompt", fake_cleanup, Args()
+        )
+
+    assert result is None
+    fake_jira.get_description.assert_not_called()  # because fetch_description is patched
+    fake_ai.improve_text.assert_not_called()
+    fake_cleanup.assert_not_called()

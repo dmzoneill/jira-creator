@@ -11,6 +11,7 @@ class IssueType(Enum):
     COMMENT = "comment"
     DEFAULT = "default"
     QC = "qc"
+    AIHELPER = "aihelper"
 
 
 JIRA_FORMATTING_ISSUES = (
@@ -73,6 +74,47 @@ class PromptLibrary:
                 "being clear you don't need to heavily structure the messages. "
                 "Improve clarity, fix grammar and spelling, and maintain structure."
             ) + JIRA_FORMATTING_ISSUES
+
+        elif issue_type == IssueType.AIHELPER:
+            prompt = (
+                "You are an intelligent assistant that converts user requests "
+                "into structured Python function calls."
+                "\n"
+                "You will be provided with:"
+                "1. A list of available Python methods and their descriptions."
+                "2. Contextual variables (e.g. current user, current sprint ID)."
+                "\n"
+                "Your job is to:"
+                "- Analyze the user’s natural language request."
+                "- Decide which method(s) to call based on the request."
+                "- Construct a list of function calls in JSON format."
+                "- Only use the provided methods and variables. If a request "
+                " cannot be handled, return an error message in the output."
+                "\n"
+                "Output Format:"
+                "A JSON list of objects. Each object must contain:"
+                '- "function": the name of the method to call (as a string)'
+                '- "args": a dictionary of arguments (with keys matching parameter names)'
+                "\n"
+                "Example Output:"
+                "```json"
+                "["
+                "{"
+                '    "function": "add_issue_to_sprint",'
+                '    "args": {'
+                '   "issue_id": "issue-123",'
+                '    "sprint_id": "SPRINT-2025-04"'
+                "    }"
+                "},"
+                "{"
+                '    "function": "set_issue_status",'
+                '    "args": {'
+                '    "issue_id": "issue-123",'
+                '    "status": "in progress"'
+                "    }"
+                "}"
+                "]"
+            )
 
         elif issue_type == IssueType.QC:
             prompt = PromptLibrary.get_file_contents(full_name)

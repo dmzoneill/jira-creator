@@ -1,3 +1,4 @@
+# hadolint global ignore=DL3041,DL3013,DL3059,DL3040,DL3042
 # Start with a Python base image
 FROM python:3.11-slim
 
@@ -8,8 +9,7 @@ WORKDIR /app
 RUN pip install pipenv
 
 # Install coverage (optional, you can add it to your Pipfile)
-RUN pipenv install coverage pytest requests coverage pytest-timeout pytest-mock 
-
+RUN pipenv install --no-cache-dir coverage pytest requests coverage pytest-timeout pytest-mock 
 
 # Default command (this will be overwritten by `docker run` when executing coverage)
 CMD ["bash"]

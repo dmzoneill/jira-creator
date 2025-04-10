@@ -1,4 +1,4 @@
-from commands.cli_validate_issue import (  # isort: skip
+from commands.cli_validate_issue import (  # isort: skip # pylint: disable=E0611
     load_and_cache_issue,
     load_cache,
     save_cache,

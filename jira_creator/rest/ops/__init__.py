@@ -10,10 +10,12 @@ from .get_acceptance_criteria import get_acceptance_criteria  # noqa
 from .get_current_user import get_current_user  # noqa
 from .get_description import get_description  # noqa
 from .get_issue_type import get_issue_type  # noqa
+from .get_user import get_user  # noqa
 from .list_issues import list_issues  # noqa
 from .migrate_issue import migrate_issue  # noqa
 from .remove_from_sprint import remove_from_sprint  # noqa
 from .search_issues import search_issues  # noqa
+from .search_users import search_users  # noqa
 from .set_acceptance_criteria import set_acceptance_criteria  # noqa
 from .set_priority import set_priority  # noqa
 from .set_sprint import set_sprint  # noqa

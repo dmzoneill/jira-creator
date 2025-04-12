@@ -217,6 +217,13 @@ super-lint: print-header $(SUPER_LINTER_CONFIGS)
 weaviate-setup: print-header
 	docker run -d -p 8080:8080 semitechnologies/weaviate
 
+.PHONY: vosk-install
+vosk-install:
+	@mkdir -p ~/.vosk && \
+	cd ~/.vosk && \
+	wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip && \
+	unzip vosk-model-small-en-us-0.15.zip
+
 # --- Help ---
 .PHONY: help
 help:

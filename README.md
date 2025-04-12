@@ -1,19 +1,17 @@
-# 🛠️ jira-creator
+# jira-creator 📝
 
 [![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 [![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/commits/main)
 
-A powerful command-line tool for creating JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates, and optional AI-enhanced descriptions.
+Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates and optional AI-enhanced descriptions.
 
 ---
 
-## 🚀 Quick Start (Under 30 Seconds)
+## ⚡ Quick Start (Under 30 Seconds) ⏱️
 
-### 1️⃣ Create your config file and enable autocomplete
-
-First, we set up a configuration file `jira.sh` with our JIRA credentials, AI settings and project information.
+### 1. Create your config file and enable autocomplete. 💻
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -34,6 +32,7 @@ export JIRA_BLOCKED_FIELD="customfield_12316543"
 export JIRA_BLOCKED_REASON_FIELD="customfield_12316544"
 export JIRA_STORY_POINTS_FIELD="customfield_12310243"
 export JIRA_SPRINT_FIELD="customfield_12310940"
+export VOSK_MODEL="/home/daoneill/.vosk/vosk-model-small-en-us-0.15"
 
 # Enable autocomplete
 eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira.py/rh-issue/')"
@@ -42,36 +41,27 @@ EOF
 source ~/.bashrc.d/jira.sh
 ```
 
----
-
-### 2️⃣ Link the command-line tool wrapper
-
-Next, we make the tool executable and link it to a convenient location in our PATH.
+### 2. Link the command-line tool wrapper 🖇️
 
 ```bash
 chmod +x jira_creator/rh-issue-wrapper.sh
 sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
 
----
-
-### 3️⃣ Run it
-
-Finally, let's test our setup by creating a story in JIRA.
+### 3. Run it 🚀
 
 ```bash
 rh-issue create story "Improve onboarding experience"
 ```
-
 ---
 
-## 📘 Usage & Commands
-
-Here are some common commands you can use with `rh-issue`.
+## 🧪 Usage & Commands 🛠️
 
 ### 🆕 Create Issues
 
-You can create various types of issues including bug, story, epic, and spike.
+Use the `create` command followed by the issue type (bug, story, epic, spike) and the description.
+
+Use `--edit` to use your `$EDITOR`, and `--dry-run` to print the payload without creating the issue.
 
 ```bash
 rh-issue create bug "Fix login crash"
@@ -80,19 +70,17 @@ rh-issue create epic "Unify frontend UI" --edit
 rh-issue create spike "Evaluate GraphQL support" --dry-run
 ```
 
-Use `--edit` to open the issue in your `$EDITOR`, and `--dry-run` to print the payload without creating the issue.
+### 🔁 Change Issue Type
 
-### 🔄 Change Issue Type
-
-To change the type of an existing issue use:
+To change an issue type, use the `change` command, followed by the issue key and the new type.
 
 ```bash
 rh-issue change AAP-12345 story
 ```
 
-### 🚚 Migrate Issue
+### 📦 Migrate Issue
 
-To migrate an issue to a different project or issue type:
+To migrate an issue, use the `migrate` command followed by the issue key and the new type.
 
 ```bash
 rh-issue migrate AAP-54321 story
@@ -100,18 +88,16 @@ rh-issue migrate AAP-54321 story
 
 ### ✏️ Edit Description
 
-To edit the description of an existing issue, use:
+To edit the description of an issue, use the `edit` command and the issue key. Use `--no-ai` to disable AI enhancement.
 
 ```bash
 rh-issue edit AAP-98765
 rh-issue edit AAP-98765 --no-ai
 ```
 
-Use `--no-ai` to disable the AI enhancements while editing.
-
 ### 🧍 Unassign Issue
 
-To unassign a user from an issue, use:
+To unassign an issue, use the `unassign` command followed by the issue key.
 
 ```bash
 rh-issue unassign AAP-12345
@@ -119,7 +105,7 @@ rh-issue unassign AAP-12345
 
 ### 📋 List Issues
 
-List all issues or filter by project, component, or user:
+To list issues, use the `list` command. You can filter by project, component, and user.
 
 ```bash
 rh-issue list
@@ -128,7 +114,7 @@ rh-issue list --project AAP --component api --user jdoe
 
 ### 🏷️ Set Priority
 
-To change the priority of an issue, use:
+To set the priority of an issue, use the `set-priority` command, followed by the issue key and the new priority.
 
 ```bash
 rh-issue set-priority AAP-123 High
@@ -136,7 +122,7 @@ rh-issue set-priority AAP-123 High
 
 ### 📅 Sprint Management
 
-Manage sprint assignments for an issue:
+To manage sprints, use the `set-sprint`, `remove-sprint`, and `add-sprint` commands followed by the issue key and the sprint details.
 
 ```bash
 rh-issue set-sprint AAP-456 1234
@@ -146,7 +132,7 @@ rh-issue add-sprint AAP-456 "Sprint 33"
 
 ### 🚦 Set Status
 
-Change the status of an issue:
+To set the status of an issue, use the `set-status` command, followed by the issue key and the new status.
 
 ```bash
 rh-issue set-status AAP-123 "In Progress"
@@ -154,18 +140,15 @@ rh-issue set-status AAP-123 "In Progress"
 
 ---
 
-## 🤖 AI Provider Support
+## 🤖 AI Provider Support 🧠
 
-You can use various AI providers by setting `AI_PROVIDER`. You can manage different AI models using ollama:
+You can plug in different AI providers by setting `AI_PROVIDER`.
 
-```bash
-mkdir -vp ~/.ollama-models
-docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
-```
-
-For each AI provider, set `AI_PROVIDER` and other environment variables as described below:
+Check out the following examples of setting up different AI providers:
 
 ### ✅ OpenAI
+
+To use OpenAI, set your `AI_API_KEY` and optionally specify an `AI_MODEL`.
 
 ```bash
 export AI_PROVIDER=openai
@@ -174,6 +157,8 @@ export AI_MODEL=gpt-4  # Optional
 ```
 
 ### 🦙 LLama3
+
+To use LLama3, first pull the model using Docker, then specify the provider, URL, and model.
 
 ```bash
 docker compose exec ollama ollama pull LLama3
@@ -184,6 +169,8 @@ export AI_MODEL=LLama3
 
 ### 🧠 DeepSeek
 
+To use DeepSeek, first pull the model using Docker, then specify the provider, URL, and model.
+
 ```bash
 docker compose exec ollama ollama pull deepseek-r1:7b
 export AI_PROVIDER=deepseek
@@ -193,27 +180,38 @@ export AI_MODEL=http://localhost:11434/api/generate
 
 ### 🖥 GPT4All
 
+To use GPT4All, install the package via pip and set the provider.
+
 ```bash
 pip install gpt4all
 export AI_PROVIDER=gpt4all
+# WIP
 ```
 
 ### 🧪 InstructLab
+
+To use InstructLab, specify the provider, URL, and model.
 
 ```bash
 export AI_PROVIDER=instructlab
 export AI_URL=http://localhost:11434/api/generate
 export AI_MODEL=instructlab
+# WIP
 ```
 
 ### 🧠 BART
 
+To use BART, specify the provider and URL.
+
 ```bash
 export AI_PROVIDER=bart
 export AI_URL=http://localhost:8000/bart
+# WIP
 ```
 
 ### 🪫 Noop
+
+To disable AI enhancement, set the provider as `noop`.
 
 ```bash
 export AI_PROVIDER=noop
@@ -221,9 +219,9 @@ export AI_PROVIDER=noop
 
 ---
 
-## 🔧 Dev Setup
+## 🛠 Dev Setup ⚙️
 
-Install development dependencies:
+Install the development dependencies with pipenv.
 
 ```bash
 pipenv install --dev
@@ -231,7 +229,7 @@ pipenv install --dev
 
 ### Testing & Linting
 
-To test, lint, and format the code:
+Run tests, linting, and autofix code formatting with Make.
 
 ```bash
 make test
@@ -241,15 +239,15 @@ make format  # autofix formatting
 
 ---
 
-## ⚙️ How It Works
+## ⚙️ How It Works 📜
 
-- The tool loads field definitions from `.tmpl` files under `templates/`
-- It uses `TemplateLoader` to generate Markdown descriptions
-- It applies AI cleanup for readability and structure
-- The tool sends the issue details to JIRA via REST API (or performs a dry-run if requested)
+- Loads field definitions from `.tmpl` files under `templates/`
+- Uses `TemplateLoader` to generate Markdown descriptions
+- Optionally applies AI cleanup for readability and structure
+- Sends to JIRA via REST API (or dry-runs it)
 
 ---
 
-## 📜 License
+## 📜 License 📚
 
 This project is licensed under the [Apache License](./LICENSE).

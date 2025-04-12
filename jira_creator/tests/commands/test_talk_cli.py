@@ -288,7 +288,6 @@ def cli_talk_mocks():
         patch("commands.cli_talk.initialize_recognizer") as mock_initialize_recognizer,
         patch("commands.cli_talk.EnvFetcher.get") as mock_get,
     ):
-
         # Mocking the external dependencies
         mock_get.return_value = "mock_model_path"
         mock_recognizer = MagicMock()
@@ -319,9 +318,8 @@ def test_cli_talk(cli_talk_mocks):
 
     # Simulate successful audio data processing and AI communication
     cli_talk_mocks["mock_process_audio_data"].return_value = "Valid Text"
-    cli_talk_mocks["mock_process_text_and_communicate"].return_value = (
-        False  # Simulating that the text is not "stop"
-    )
+    # Simulating that the text is not "stop"
+    cli_talk_mocks["mock_process_text_and_communicate"].return_value = False
 
     # Simulate do_once returning False for a couple of iterations and then True
     cli_talk_mocks["mock_do_once"].side_effect = [
@@ -378,9 +376,9 @@ def test_cli_talk_breaks_loop(cli_talk_mocks):
 
     # Simulate successful audio data processing and AI communication
     cli_talk_mocks["mock_process_audio_data"].return_value = "Valid Text"
-    cli_talk_mocks["mock_process_text_and_communicate"].return_value = (
-        True  # This should cause the break in the loop
-    )
+    cli_talk_mocks[
+        "mock_process_text_and_communicate"
+    ].return_value = True  # This should cause the break in the loop
 
     # Simulate do_once returning False for a couple of iterations and then True
     cli_talk_mocks["mock_do_once"].side_effect = [

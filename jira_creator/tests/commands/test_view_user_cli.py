@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from commands.cli_view_user import cli_view_user  # adjust path if needed
 from exceptions.exceptions import GetUserError
 
 

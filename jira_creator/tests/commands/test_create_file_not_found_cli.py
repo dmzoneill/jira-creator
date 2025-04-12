@@ -18,7 +18,7 @@ def test_create_file_not_found(cli):
         dry_run = False
 
     # Capture the exit and assert it raises the correct exception
-    with pytest.raises(SystemExit):
+    with pytest.raises(FileNotFoundError):
         cli.create_issue(Args())
 
 
@@ -37,7 +37,7 @@ def test_create_file_not_found_error(cli, capsys):
             summary = "Test summary"
 
         # Capture the SystemExit exception
-        with pytest.raises(SystemExit):
+        with pytest.raises(FileNotFoundError):
             cli.create_issue(Args)
 
         # Capture the printed output

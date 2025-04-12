@@ -121,11 +121,11 @@ def cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args):
     try:
         original_description = fetch_description(jira, args.issue_key)
         if not original_description:
-            return
+            return False
 
         edited = edit_description(original_description)
         if not edited:
-            return
+            return False
 
         prompt = get_prompt(jira, args.issue_key, default_prompt)
 
@@ -134,5 +134,6 @@ def cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args):
             cleaned = lint_description(cleaned, ai_provider)
 
         update_jira_description(jira, args.issue_key, cleaned)
+        return True
     except EditIssueError as e:
-        raise (e)
+        raise EditIssueError(e)

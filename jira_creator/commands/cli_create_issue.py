@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import sys
 import tempfile
 
 from exceptions.exceptions import AiError, CreateIssueError
@@ -15,7 +14,7 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
         fields = template.get_fields()
     except FileNotFoundError as e:
         print(f"Error: {e}")
-        sys.exit(1)
+        raise (FileNotFoundError(e))
 
     inputs = (
         {field: input(f"{field}: ") for field in fields}
@@ -25,7 +24,7 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
 
     description = template.render_description(inputs)
 
-    if args.edit:
+    if args.edit is not None:
         with tempfile.NamedTemporaryFile(mode="w+", suffix=".tmp", delete=False) as tmp:
             tmp.write(description)
             tmp.flush()
@@ -56,6 +55,7 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
     try:
         key = jira.create_issue(payload)
         print(f"✅ Created: {jira.jira_url}/browse/{key}")
+        return key
     except CreateIssueError as e:
         msg = f"❌ Failed to create issue: {e}"
         print(msg)

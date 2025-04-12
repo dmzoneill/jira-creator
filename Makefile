@@ -193,6 +193,7 @@ super-lint: print-header $(SUPER_LINTER_CONFIGS)
 	-e FILTER_REGEX_EXCLUDE="(^|/)\.git(/|$)" \
 	-e GIT_IGNORE=true \
 	-v $$(pwd):/tmp/lint \
+	-w /tmp/lint \
 	github/super-linter:latest --quiet
 
 # --- External Linter Configs ---

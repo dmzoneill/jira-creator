@@ -39,6 +39,7 @@ def cli_quarterly_connection(jira, ai_provider):
         print("Manager churning:")
         print(ai_provider.improve_text(system_prompt, qc_input))
 
+        return True
     except QuarterlyConnectionError as e:
         print(e)
         raise (QuarterlyConnectionError(e))

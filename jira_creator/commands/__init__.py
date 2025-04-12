@@ -22,6 +22,7 @@ from .cli_set_priority import cli_set_priority  # noqa
 from .cli_set_status import cli_set_status  # noqa
 from .cli_set_story_epic import cli_set_story_epic  # noqa
 from .cli_set_story_points import cli_set_story_points  # noqa
+from .cli_talk import cli_talk  # noqa
 from .cli_unassign import cli_unassign  # noqa
 from .cli_unblock import cli_unblock  # noqa
 from .cli_validate_issue import cli_validate_issue  # noqa

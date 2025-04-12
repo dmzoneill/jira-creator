@@ -5,3 +5,4 @@ def cli_unassign(jira, args):
         if success
         else f"❌ Could not unassign {args.issue_key}"
     )
+    return True if success else False

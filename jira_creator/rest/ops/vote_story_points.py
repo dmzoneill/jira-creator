@@ -23,6 +23,7 @@ def vote_story_points(request_fn, issue_key, points):
                 f"JIRA API error ({response.status_code}): {response.text}"
             )
         print(f"✅ Voted {points} story points on issue {issue_key}")
+        return
     except (VoteStoryPointsError, VoteStoryPointsError) as e:
         msg = f"❌ Failed to vote on story points: {e}"
         print(msg)

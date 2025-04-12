@@ -11,7 +11,7 @@ def cli_search(jira, args):
 
         if issues is None or len(issues) == 0:
             print("❌ No issues found for the given JQL.")
-            return
+            return False
 
         rows = []
         for issue in issues:
@@ -60,6 +60,7 @@ def cli_search(jira, args):
         for r in rows:
             print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
 
+        return issues
     except SearchError as e:
         msg = f"❌ Failed to search issues: {e}"
         print(msg)

@@ -5,3 +5,4 @@ def cli_assign(jira, args):
         if success
         else f"❌ Could not assign {args.issue_key} to {args.assignee}"
     )
+    return True if success else False

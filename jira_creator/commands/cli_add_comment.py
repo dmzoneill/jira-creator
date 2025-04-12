@@ -18,7 +18,7 @@ def cli_add_comment(jira, ai_provider, default_prompt, args):
 
     if not comment.strip():
         print("⚠️ No comment provided. Skipping.")
-        return
+        return False
 
     try:
         cleaned = ai_provider.improve_text(default_prompt, comment)
@@ -30,6 +30,7 @@ def cli_add_comment(jira, ai_provider, default_prompt, args):
     try:
         jira.add_comment(args.issue_key, cleaned)
         print(f"✅ Comment added to {args.issue_key}")
+        return True
     except AddCommentError as e:
         msg = f"❌ Failed to add comment: {e}"
         print(msg)

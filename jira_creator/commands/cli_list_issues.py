@@ -107,7 +107,7 @@ def cli_list_issues(jira, args):
 
             # Print the formatted row
             print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
-
+        return issues
     except ListIssuesError as e:
         msg = f"❌ Failed to list issues: {e}"
         print(msg)

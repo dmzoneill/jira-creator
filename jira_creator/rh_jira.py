@@ -35,6 +35,7 @@ from commands import (  # isort: skip
     cli_set_status,
     cli_set_story_epic,
     cli_set_story_points,
+    cli_talk,
     cli_unassign,
     cli_unblock,
     cli_validate_issue,
@@ -98,6 +99,7 @@ class JiraCLI:
         # --- 🧠 AI Helper ---
         ai_helper = add("ai-helper", "AI Helper")
         ai_helper.add_argument("prompt", help="A string describing a series of actions")
+        ai_helper.add_argument("--voice", action="store_true")
 
         # --- 📌 Issue Creation & Editing ---
         create = add("create-issue", "Create a new issue")
@@ -238,6 +240,10 @@ class JiraCLI:
         blocked.add_argument("--project", help="Optional project key")
         blocked.add_argument("--component", help="Optional component")
 
+        # talk to jira
+        talk = add("talk", "Talk to jira")
+        talk.add_argument("--voice", action="store_true")
+
         # --- 📊 Reporting ---
         add("quarterly-connection", "Perform a quarterly connection report")
 
@@ -250,33 +256,33 @@ class JiraCLI:
             raise DispatcherError(msg)
 
     def ai_helper(self, args: Namespace) -> None:
-        cli_ai_helper(self, self.ai_provider, self.ai_helper_prompt, args)
+        return cli_ai_helper(self, self.ai_provider, self.ai_helper_prompt, args)
 
     def open_issue(self, args: Namespace) -> None:
-        cli_open_issue(args)
+        return cli_open_issue(args)
 
     def view_issue(self, args: Namespace) -> None:
-        cli_view_issue(self.jira, args)
+        return cli_view_issue(self.jira, args)
 
     def add_comment(self, args: Namespace) -> None:
-        cli_add_comment(self.jira, self.ai_provider, self.default_prompt, args)
+        return cli_add_comment(self.jira, self.ai_provider, self.default_prompt, args)
 
     def create_issue(self, args: Namespace) -> None:
-        cli_create_issue(
+        return cli_create_issue(
             self.jira, self.ai_provider, self.default_prompt, self.template_dir, args
         )
 
     def list_issues(self, args: Namespace) -> None:
-        cli_list_issues(self.jira, args)
+        return cli_list_issues(self.jira, args)
 
     def change_type(self, args: Namespace) -> None:
-        cli_change_type(self.jira, args)
+        return cli_change_type(self.jira, args)
 
     def migrate(self, args: Namespace) -> None:
-        cli_migrate(self.jira, args)
+        return cli_migrate(self.jira, args)
 
     def edit_issue(self, args: Namespace) -> None:
-        cli_edit_issue(
+        return cli_edit_issue(
             self.jira, self.ai_provider, self.default_prompt, _try_cleanup, args
         )
 
@@ -284,65 +290,68 @@ class JiraCLI:
         return _try_cleanup(self.ai_provider, prompt, text)
 
     def unassign(self, args: Namespace) -> None:
-        cli_unassign(self.jira, args)
+        return cli_unassign(self.jira, args)
 
     def assign(self, args: Namespace) -> None:
-        cli_assign(self.jira, args)
+        return cli_assign(self.jira, args)
 
     def set_priority(self, args: Namespace) -> None:
-        cli_set_priority(self.jira, args)
+        return cli_set_priority(self.jira, args)
 
     def set_story_epic(self, args: Namespace) -> None:
-        cli_set_story_epic(self.jira, args)
+        return cli_set_story_epic(self.jira, args)
 
     def remove_sprint(self, args: Namespace) -> None:
-        cli_remove_sprint(self.jira, args)
+        return cli_remove_sprint(self.jira, args)
 
     def add_sprint(self, args: Namespace) -> None:
-        cli_add_sprint(self.jira, args)
+        return cli_add_sprint(self.jira, args)
 
     def set_status(self, args: Namespace) -> None:
-        cli_set_status(self.jira, args)
+        return cli_set_status(self.jira, args)
 
     def set_acceptance_criteria(self, args: Namespace) -> None:
-        cli_set_acceptance_criteria(self.jira, args)
+        return cli_set_acceptance_criteria(self.jira, args)
 
     def vote_story_points(self, args: Namespace) -> None:
-        cli_vote_story_points(self.jira, args)
+        return cli_vote_story_points(self.jira, args)
 
     def set_story_points(self, args: Namespace) -> None:
-        cli_set_story_points(self.jira, args)
+        return cli_set_story_points(self.jira, args)
 
     def block(self, args: Namespace) -> None:
-        cli_block(self.jira, args)
+        return cli_block(self.jira, args)
 
     def unblock(self, args: Namespace) -> None:
-        cli_unblock(self.jira, args)
+        return cli_unblock(self.jira, args)
 
     def validate_issue(self, fields: dict[str, str]) -> None:
-        cli_validate_issue(fields, self.ai_provider)
+        return cli_validate_issue(fields, self.ai_provider)
 
     def lint(self, args: Namespace) -> None:
-        cli_lint(self.jira, self.ai_provider, args)
+        return cli_lint(self.jira, self.ai_provider, args)
 
     def lint_all(self, args: Namespace) -> None:
-        cli_lint_all(self.jira, self.ai_provider, args)
+        return cli_lint_all(self.jira, self.ai_provider, args)
 
     def blocked(self, args: Namespace) -> None:
-        cli_blocked(self.jira, args)
+        return cli_blocked(self.jira, args)
 
     def search(self, args: Namespace) -> None:
-        cli_search(self.jira, args)
+        return cli_search(self.jira, args)
 
     def quarterly_connection(self, args: Namespace) -> None:
-        cli_quarterly_connection(self.jira, self.ai_provider)
+        return cli_quarterly_connection(self.jira, self.ai_provider)
 
     def search_users(self, args: Namespace) -> None:
-        cli_search_users(self.jira, args)
+        return cli_search_users(self.jira, args)
+
+    def talk(self, args: Namespace) -> None:
+        return cli_talk(self, args)
 
     def view_user(self, args: Namespace) -> None:
-        cli_view_user(self.jira, args)
+        return cli_view_user(self.jira, args)
 
 
-if __name__ == "__main__":
-    JiraCLI().run()
+if __name__ == "__main__":  # pragma: no cover
+    JiraCLI().run()  # pragma: no cover

@@ -13,7 +13,7 @@ def cli_blocked(jira, args):
 
         if not issues:
             print("✅ No issues found.")
-            return
+            return True
 
         blocked_issues = []
         for issue in issues:
@@ -41,7 +41,7 @@ def cli_blocked(jira, args):
 
         if not blocked_issues:
             print("✅ No blocked issues found.")
-            return
+            return True
 
         print("🔒 Blocked issues:")
         print("-" * 80)
@@ -50,6 +50,8 @@ def cli_blocked(jira, args):
             print(f"  🔸 Reason: {i['reason']}")
             print(f"  📄 {i['summary']}")
             print("-" * 80)
+
+        return blocked_issues
 
     except ListBlockedError as e:
         msg = f"❌ Failed to list blocked issues: {e}"

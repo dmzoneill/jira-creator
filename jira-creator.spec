@@ -1,5 +1,5 @@
 Name: JiraCreator
-Version:    0.0.36
+Version:    0.0.37
 Release:    1%{?dist}
 Summary:    Jira Cli App
 

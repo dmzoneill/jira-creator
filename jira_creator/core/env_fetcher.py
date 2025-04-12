@@ -30,6 +30,7 @@ class EnvFetcher:
             "JIRA_BLOCKED_REASON_FIELD": "customfield_12316544",
             "JIRA_STORY_POINTS_FIELD": "customfield_12310243",
             "JIRA_SPRINT_FIELD": "customfield_12310940",
+            "VOSK_MODEL": "/home/daoneill/.vosk/vosk-model-small-en-us-0.15",
         }
 
         value = (

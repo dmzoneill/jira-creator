@@ -85,3 +85,7 @@ pinecone-index.json
 node_modules/
 package.json
 package-lock.json
+
+# test to voice
+output.mp3
+

@@ -1,9 +1,11 @@
 import argparse
 import json
+import os
 import re
 from argparse import Namespace
 
 from exceptions.exceptions import AIHelperError
+from gtts import gTTS
 
 
 def get_cli_command_metadata():
@@ -47,7 +49,6 @@ def get_cli_command_metadata():
 
 
 def call_function(client, function_name, args_dict):
-
     # Build a fake argparse Namespace (just like real CLI parsing would do)
     args = Namespace(**args_dict)
     setattr(args, "command", function_name)  # required for _dispatch_command
@@ -71,18 +72,37 @@ def clean_ai_output(ai_output: str) -> list:
         )
 
 
-def ask_ai_question(client, ai_provider, system_prompt, user_prompt):
-
+def ask_ai_question(client, ai_provider, system_prompt, user_prompt, voice=False):
     ai_raw = ai_provider.improve_text(system_prompt, user_prompt)
     ai_generated_steps = clean_ai_output(ai_raw)
 
-    print("AI performing changes")
-    print("Action: ")
+    if isinstance(ai_generated_steps, dict):
+        if "error" in ai_generated_steps:
+            print("AI response: " + ai_generated_steps["error"])
+            if voice:
+                tts = gTTS(text=ai_generated_steps["error"], lang="en")
+                tts.save("output.mp3")
+                os.system("mpg123 output.mp3")
+            return False
+        else:
+            print("Not sure: ")
+            print(ai_generated_steps)
+            return
 
-    for step in ai_generated_steps:
-        print("Action: {action}".format(action=step["function"]))
-        print("   Changes: {changes}".format(changes=step["args"]))
-        call_function(client, step["function"], step["args"])
+    if isinstance(ai_generated_steps, list):
+        if len(ai_generated_steps) > 0:
+            for step in ai_generated_steps:
+                print("AI action: {action}".format(action=step["action"]))
+                print("Action: {action}".format(action=step["function"]))
+                print("   Changes: {changes}".format(changes=step["args"]))
+                call_function(client, step["function"], step["args"])
+                if voice:
+                    tts = gTTS(text=step["action"], lang="en")
+                    tts.save("output.mp3")
+                    os.system("mpg123 output.mp3")
+        else:
+            print("No steps generated")
+            return False
 
 
 def cli_ai_helper(client, ai_provider, system_prompt, args):
@@ -101,9 +121,11 @@ def cli_ai_helper(client, ai_provider, system_prompt, args):
             ai_provider,
             system_prompt,
             "\n\n" + commands + "\n\nQuestion: " + args.prompt,
+            args.voice,
         )
 
-    except Exception as e:
+        return True
+    except AIHelperError as e:
         msg = f"❌ Failed to inspect public methods of JiraCLI: {e}"
         print(msg)
         raise AIHelperError(msg)

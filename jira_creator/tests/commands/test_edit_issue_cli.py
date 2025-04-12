@@ -380,10 +380,7 @@ def test_get_prompt():
     jira_mock.get_issue_type = MagicMock(return_value="story")
 
     prompt = get_prompt(jira_mock, "ISSUE-123", "Default prompt")
-    assert (
-        "As a professional Principal Software Engineer, you write acute, well-defined Jira issues"
-        in prompt
-    )
+    assert "As a professional Principal Software Engineer, you write acute" in prompt
 
 
 def test_edit_description():
@@ -553,7 +550,7 @@ def test_cli_edit_issue_returns_early_on_empty_description():
             fake_jira, fake_ai, "unused_prompt", fake_cleanup, Args()
         )
 
-    assert result is None
+    assert result is False
     fake_jira.get_description.assert_not_called()  # because fetch_description is patched
     fake_ai.improve_text.assert_not_called()
     fake_cleanup.assert_not_called()

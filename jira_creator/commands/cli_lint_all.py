@@ -86,7 +86,7 @@ def cli_lint_all(jira, ai_provider, args):
 
         if not issues:
             print("✅ No issues assigned to you.")
-            return
+            return True
 
         failures = {}
         failure_statuses = []
@@ -121,7 +121,7 @@ def cli_lint_all(jira, ai_provider, args):
                     print(f" - {wrapped_text}")
 
             print_status_table(failure_statuses)
-
+        return failure_statuses
     except LintAllError as e:
         msg = f"❌ Failed to lint issues: {e}"
         print(msg)

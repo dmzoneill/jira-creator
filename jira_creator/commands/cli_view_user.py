@@ -7,7 +7,7 @@ def cli_view_user(jira, args):
 
         for key in sorted(user.keys()):
             print(f"{key} : {user[key]}")
-
+        return user
     except GetUserError as e:
         msg = f"❌ Unable to retrieve user: {e}"
         print(msg)

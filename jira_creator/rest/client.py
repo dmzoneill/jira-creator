@@ -1,11 +1,13 @@
 import json
 import os
 import time
+import traceback
 from typing import Any, Dict, Optional
 
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import JiraClientRequestError
+from requests.exceptions import RequestException
 
 from .ops import (  # isort: skip
     add_comment,
@@ -51,6 +53,80 @@ class JiraClient:
         self.epic_field = EnvFetcher.get("JIRA_EPIC_FIELD")
         self.board_id = EnvFetcher.get("JIRA_BOARD_ID")
         self.fields_cache_path = os.path.expanduser("~/.config/rh-issue/fields.json")
+        self.is_speaking = False
+
+    def generate_curl_command(
+        self,
+        method: str,
+        url: str,
+        headers: Dict[str, str],
+        json_data: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, str]] = None,
+    ) -> None:
+        parts = [f"curl -X {method.upper()}"]
+
+        # Add headers
+        for k, v in headers.items():
+            safe_value = v
+            parts.append(f"-H '{k}: {safe_value}'")
+
+        # Add data
+        if json_data:
+            body = json.dumps(json_data)
+            parts.append(f"--data '{body}'")
+
+        # Add URL with query params if any
+        if params:
+            from urllib.parse import urlencode
+
+            url += "?" + urlencode(params)
+
+        parts.append(f"'{url}'")
+        command = " \\\n  ".join(parts)
+        command = command + "\n"
+
+        print("\n🔧 You can debug with this curl command:\n" + command)
+
+    def __request(
+        self,
+        method: str,
+        url: str,
+        headers: Dict[str, str],
+        json: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, str]] = None,
+    ) -> tuple:
+        """Core request logic. Returns a tuple (status_code, result)."""
+        try:
+            response = requests.request(
+                method, url, headers=headers, json=json, params=params, timeout=10
+            )
+            # Status code checks and JSON parsing
+            if response.status_code == 404:
+                print("❌ Resource not found")
+                return response.status_code, {}
+
+            if response.status_code == 401:
+                print("❌ Unauthorized access")
+                return response.status_code, {}
+
+            if response.status_code >= 400:
+                print(f"❌ Client/Server error: {response.status_code}")
+                return response.status_code, {}
+
+            if not response.content.strip():
+                return response.status_code, {}  # No content, return empty dict
+
+            try:
+                result = response.json()  # Try to parse JSON
+                return response.status_code, result
+            except ValueError:
+                print("❌ Could not parse JSON. Raw response:")
+                traceback.print_exc()
+                return response.status_code, {}
+
+        except RequestException as e:
+            print(f"⚠️ Request error: {e}")
+            raise JiraClientRequestError(f"Request failed: {e}")
 
     def _request(
         self,
@@ -59,38 +135,39 @@ class JiraClient:
         json: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
     ) -> Optional[Dict[str, Any]]:
+        """Handles retries and delegates the request to __request."""
         url = f"{self.jira_url}{path}"
         headers = {
             "Authorization": f"Bearer {self.jpat}",
             "Content-Type": "application/json",
         }
 
-        retries = 3  # Set default number of retries
-        delay = 2  # Set default delay between retries in seconds
-        result = None
+        retries = 3
+        delay = 2
 
-        # Loop with retry logic
         for attempt in range(retries):
-            try:
-                response = requests.request(
-                    method, url, headers=headers, json=json, params=params, timeout=10
-                )
-                response.raise_for_status()
+            status_code, result = self.__request(
+                method, url, headers, json=json, params=params
+            )
 
-                try:
-                    result = response.json()
-                    break
-                except ValueError:
-                    print("❌ Response was not valid JSON:")
-                    print(response.text)
-                    result = {}
-            except JiraClientRequestError as e:
-                # Catch network-related errors and retries
-                if attempt < retries - 1:
-                    time.sleep(delay)
-                else:
-                    raise (JiraClientRequestError(e))
-        return result
+            if 200 <= status_code < 300:  # Handle all 2xx status codes as success
+                return result
+
+            if attempt < retries - 1:
+                print(f"Attempt {attempt + 1}: Sleeping before retry...")
+                time.sleep(delay)
+            else:
+                # Generate a cURL command for debugging failed requests
+                self.generate_curl_command(
+                    method, url, headers, json_data=json, params=params
+                )
+
+                print(f"Attempt {attempt + 1}: Final failure, raising error")
+                raise JiraClientRequestError(
+                    f"Failed after {retries} attempts: Status Code {status_code}"
+                )
+
+        return None  # Unreachable code  # pragma: no cover
 
     def cache_fields(self):
         # Check if the cache file exists and is less than 24 hours old

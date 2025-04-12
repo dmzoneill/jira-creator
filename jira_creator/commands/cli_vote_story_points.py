@@ -6,11 +6,12 @@ def cli_vote_story_points(jira, args):
         points = int(args.points)
     except ValueError:
         print("❌ Points must be an integer.")
-        return
+        return False
 
     try:
         jira.vote_story_points(args.issue_key, points)
         print(f"✅ Voted {points} points on {args.issue_key}")
+        return True
     except VoteStoryPointsError as e:
         msg = f"❌ Failed to vote on story points: {e}"
         print(msg)

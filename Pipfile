@@ -35,6 +35,12 @@ poetry = "*"
 bumpver = "*"
 pytest-timeout = "*"
 mypy = "*"
+vosk = "*"
+sounddevice = "*"
+number-parser = "*"
+word2number = "*"
+pyttsx3 = "*"
+gtts = "*"
 
 [dev-packages]
 coverage = "*"

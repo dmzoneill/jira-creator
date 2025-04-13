@@ -21,7 +21,7 @@ def test_unblock_issue_calls_expected_fields(client):
     )
     assert called["json"] == {
         "fields": {
-            EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "False"},
+            EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": False},
             EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
         }
     }

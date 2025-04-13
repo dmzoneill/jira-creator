@@ -5,10 +5,9 @@ from providers.bart_provider import BARTProvider
 
 
 def test_bart_provider_init():
-    with patch.dict("os.environ", {"AI_URL": "http://test-bart-url"}):
-        provider = BARTProvider()
-        assert provider.url == "http://test-bart-url"
-        assert provider.headers == {"Content-Type": "application/json"}
+    provider = BARTProvider()
+    assert provider.url == "http://some/url"
+    assert provider.headers == {"Content-Type": "application/json"}
 
 
 @patch("providers.bart_provider.requests.post")

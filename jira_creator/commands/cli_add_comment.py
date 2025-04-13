@@ -5,7 +5,7 @@ import tempfile
 from exceptions.exceptions import AddCommentError, AiError
 
 
-def cli_add_comment(jira, ai_provider, default_prompt, args):
+def cli_add_comment(jira, ai_provider, comment_prompt, args):
     if args.text:
         comment = args.text
     else:
@@ -21,7 +21,7 @@ def cli_add_comment(jira, ai_provider, default_prompt, args):
         return False
 
     try:
-        cleaned = ai_provider.improve_text(default_prompt, comment)
+        cleaned = ai_provider.improve_text(comment_prompt, comment)
     except AiError as e:
         msg = f"⚠️ AI cleanup failed. Using raw comment. Error: {e}"
         print(msg)

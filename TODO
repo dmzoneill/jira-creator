@@ -1,18 +1,26 @@
 Core
-  _ mask private methods with _ prefix
+  - mask private methods with _ prefix
   - type hardening
   - logging
   - Type Exceptions
-    - raise exceptions
+    - raise exceptions (need grep all files)
   - Docstrings
-  - move status enums etc (31 Refinemnt) to config file
+    - fix the docstring script
+  - move status enums etc (31 Refinement) to config file
     - validation-issue factory pattern
       - new, refinement, backlog, in progress, closed, review
-  - grep for os.environ.get
+  - naming of _request and __request
+  - voice to text factory pattern
+  - text to speech factory pattern
+  - AI state - track issue id
+  - readme ascii cinema for readme
+  - readme comprehensive command list 
+
 
 Add
   - list-blocked
   - list-sprints
+  - get-current-sprint
   - set-summary
   - In Progress or blocked status
   - add-flag
@@ -24,6 +32,7 @@ Modify
     - move to stop of sprint if (refinement)
 
   - list-issues
+    - customer column output
     - fix default output
     - epic column 
     - assignee column 
@@ -39,13 +48,14 @@ Modify
       - None = 0
 
   - lint-issues
+    - validation-issue factory pattern
+    - custom column output
     - show description
 
   - set-acceptance-criteria 
     - --ai-from-description
 
-  - view-issue
-    - validation-issue factory pattern
+  - view-issue    
     Custom output for
     - epic
     - story
@@ -54,7 +64,7 @@ Modify
     - spike
 
   - list-issues
-    - fix default output
+    - Custom column output
     - epic column 
     - assignee column 
     - reporter column
@@ -77,6 +87,3 @@ Modify
   - create-issue
     - move to stop of sprint if (refinement)
 
-
-Bug
-  - add comment is loading story prompt, not comment prompt

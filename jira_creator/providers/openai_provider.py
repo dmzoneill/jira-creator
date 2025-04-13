@@ -1,15 +1,12 @@
-import os
-
 import requests
+from core.env_fetcher import EnvFetcher
 
 
 class OpenAIProvider:
     def __init__(self):
-        self.api_key = os.getenv("AI_API_KEY")
-        if not self.api_key:
-            raise EnvironmentError("AI_API_KEY not set in environment.")
+        self.api_key = EnvFetcher.get("AI_API_KEY")
         self.endpoint = "https://api.openai.com/v1/chat/completions"
-        self.model = os.getenv("AI_MODEL", "gpt-4o-mini")
+        self.model = EnvFetcher.get("AI_MODEL")
 
     # /* jscpd:ignore-start */
     def improve_text(self, prompt: str, text: str) -> str:

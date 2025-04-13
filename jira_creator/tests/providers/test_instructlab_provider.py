@@ -5,21 +5,9 @@ from providers.instructlab_provider import InstructLabProvider
 
 
 def test_instructlab_provider_init_defaults():
-    with patch.dict(
-        "os.environ", {}, clear=True
-    ):  # Clear any existing environment variables
-        provider = InstructLabProvider()
-        assert provider.url == "http://localhost:11434/api/generate"
-        assert provider.model == "instructlab"
-
-
-def test_instructlab_provider_init_env():
-    with patch.dict(
-        "os.environ", {"AI_URL": "http://custom-url", "AI_MODEL": "custom-model"}
-    ):
-        provider = InstructLabProvider()
-        assert provider.url == "http://custom-url"
-        assert provider.model == "custom-model"
+    provider = InstructLabProvider()
+    assert provider.url == "http://some/url"
+    assert provider.model == "hhhhhhhhhhhhh"
 
 
 def test_improve_text_success():

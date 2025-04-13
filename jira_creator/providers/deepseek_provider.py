@@ -1,15 +1,15 @@
 import json
-import os
 
 import requests
+from core.env_fetcher import EnvFetcher
 
 
 class DeepSeekProvider:
     def __init__(self):
         # Defaults to a local or proxied endpoint; override with env var
-        self.url = os.getenv("AI_URL", "http://localhost:11434/api/generate")
+        self.url = EnvFetcher.get("AI_URL")
         self.headers = {"Content-Type": "application/json"}
-        self.model = os.getenv("AI_MODEL", "deepseek-r1:7b")
+        self.model = EnvFetcher.get("AI_MODEL")
 
     def improve_text(self, prompt: str, text: str) -> str:
         full_prompt = f"{prompt}\n\n{text}"

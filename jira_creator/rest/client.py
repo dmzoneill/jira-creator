@@ -39,6 +39,7 @@ from .ops import (  # isort: skip
     update_description,
     view_issue,
     vote_story_points,
+    # commands entry
 )
 
 

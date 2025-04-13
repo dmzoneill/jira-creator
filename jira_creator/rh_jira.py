@@ -42,6 +42,7 @@ from commands import (  # isort: skip
     cli_view_issue,
     cli_view_user,
     cli_vote_story_points,
+    # commands entry
 )
 
 
@@ -244,6 +245,8 @@ class JiraCLI:
         # --- 📊 Reporting ---
         add("quarterly-connection", "Perform a quarterly connection report")
 
+        # Add your other subcommands here
+
     def _dispatch_command(self, args: Namespace) -> None:
         try:
             getattr(self, args.command.replace("-", "_"))(args)
@@ -348,6 +351,8 @@ class JiraCLI:
 
     def view_user(self, args: Namespace) -> None:
         return cli_view_user(self.jira, args)
+
+    # add new df here
 
 
 if __name__ == "__main__":  # pragma: no cover

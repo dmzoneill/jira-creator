@@ -51,6 +51,7 @@ class JiraCLI:
         required_vars: list[str] = [
             "JPAT",
             "AI_PROVIDER",
+            "AI_MODEL",
             "JIRA_URL",
             "PROJECT_KEY",
             "AFFECTS_VERSION",
@@ -66,12 +67,8 @@ class JiraCLI:
             "JIRA_SPRINT_FIELD",
         ]
         EnvFetcher.fetch_all(required_vars)
-        self.template_dir: Path = Path(
-            os.getenv(
-                "TEMPLATE_DIR", os.path.join(os.path.dirname(__file__), "templates")
-            )
-        )
-        self.ai_provider = get_ai_provider(os.getenv("AI_PROVIDER", "openai"))
+        self.template_dir: Path = Path(EnvFetcher.get("TEMPLATE_DIR"))
+        self.ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
         self.default_prompt = PromptLibrary.get_prompt(IssueType["DEFAULT"])
         self.comment_prompt = PromptLibrary.get_prompt(IssueType["COMMENT"])
         self.ai_helper_prompt = PromptLibrary.get_prompt(IssueType["AIHELPER"])
@@ -265,7 +262,7 @@ class JiraCLI:
         return cli_view_issue(self.jira, args)
 
     def add_comment(self, args: Namespace) -> None:
-        return cli_add_comment(self.jira, self.ai_provider, self.default_prompt, args)
+        return cli_add_comment(self.jira, self.ai_provider, self.comment_prompt, args)
 
     def create_issue(self, args: Namespace) -> None:
         return cli_create_issue(

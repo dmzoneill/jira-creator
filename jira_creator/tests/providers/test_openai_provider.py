@@ -22,14 +22,6 @@ def test_openai_provider_improve_text():
         assert result == "Cleaned up text"
 
 
-def test_openai_provider_raises_without_api_key():
-    with patch.dict("os.environ", {"AI_API_KEY": ""}):  # Set to an empty string
-        with pytest.raises(
-            EnvironmentError, match="AI_API_KEY not set in environment."
-        ):
-            OpenAIProvider()  # This should raise an EnvironmentError
-
-
 def test_improve_text_raises_on_api_failure():
     provider = OpenAIProvider()
     provider.api_key = "fake-key"

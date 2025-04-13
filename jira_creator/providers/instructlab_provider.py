@@ -1,12 +1,11 @@
-import os
-
 import requests
+from core.env_fetcher import EnvFetcher
 
 
 class InstructLabProvider:
     def __init__(self):
-        self.url = os.getenv("AI_URL", "http://localhost:11434/api/generate")
-        self.model = os.getenv("AI_MODEL", "instructlab")
+        self.url = EnvFetcher.get("AI_URL")
+        self.model = EnvFetcher.get("AI_MODEL")
 
     def improve_text(self, prompt: str, text: str) -> str:
         full_prompt = f"{prompt}\n\n{text}"

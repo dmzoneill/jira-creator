@@ -24,6 +24,7 @@ class EnvFetcher:
             "AI_PROVIDER": "openai",
             "AI_API_KEY": "dsdasdsadsadasdadsa",
             "AI_MODEL": "hhhhhhhhhhhhh",
+            "AI_URL": "http://some/url",
             "JIRA_EPIC_FIELD": "customfield_12311140",
             "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_12315940",
             "JIRA_BLOCKED_FIELD": "customfield_12316543",
@@ -31,6 +32,7 @@ class EnvFetcher:
             "JIRA_STORY_POINTS_FIELD": "customfield_12310243",
             "JIRA_SPRINT_FIELD": "customfield_12310940",
             "VOSK_MODEL": os.path.expanduser("~/.vosk/vosk-model-small-en-us-0.15"),
+            "TEMPLATE_DIR": os.path.join(os.path.dirname(__file__), "../templates"),
         }
 
         value = (

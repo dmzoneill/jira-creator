@@ -28,7 +28,7 @@ class OpenAIProvider:
             "temperature": 0.8,
         }
 
-        response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
+        response = requests.post(self.endpoint, json=body, headers=headers, timeout=300)
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
 
@@ -36,44 +36,58 @@ class OpenAIProvider:
             f"OpenAI API call failed: {response.status_code} - {response.text}"
         )
 
+import re
 
 def extract_argparse_commands(cli_script):
-    """Extract argparse commands and their arguments from a CLI script."""
-    with open(cli_script, "r") as f:
-        content = f.read()
+    with open(cli_script_path, "r") as f:
+            lines = f.readlines()
 
-    # We need to extract both the command and the arguments
-    commands = []
-    tree = ast.parse(content)
+    formatted_output = []
+    current_command = None
+    current_args = []
 
-    # Walk through the parsed script to find argparse usage
-    for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.Call)
-            and getattr(node.func, "id", "") == "add_argument"
-        ):
-            # Extract command and arguments
-            command = None
-            args = []
-            for keyword in node.keywords:
-                if keyword.arg == "name":
-                    command = keyword.value.s
-                elif keyword.arg == "help":
-                    args.append(f"  - **help**: {keyword.value.s}")
-                elif keyword.arg == "type":
-                    args.append(
-                        f"  - **type**: {keyword.value.id if isinstance(keyword.value, ast.Name) else keyword.value.s}"
-                    )
-                elif keyword.arg == "default":
-                    str = (
-                        keyword.value.n
-                        if isinstance(keyword.value, ast.Constant)
-                        else keyword.value.s
-                    )
-                    args.append(f"  - **default**: {str}")
-            if command:
-                commands.append(f"**{command}**: \n" + "\n".join(args))
-    return commands
+    # Regex patterns to match the command and argument lines
+    command_pattern = re.compile(r'\s*(\w+)\s*=\s*add\("([^"]+)",\s*"([^"]+)"\)')
+    argument_pattern = re.compile(r'\s*(\w+)\.add_argument\(([^)]+)\)')
+
+    for line in lines:
+        # Check for command definitions (e.g., ai_helper = add("ai-helper", "AI Helper"))
+        command_match = command_pattern.match(line)
+        if command_match:
+            # If there was a previous command, add it to the formatted output
+            if current_command:
+                formatted_output.append(format_command(current_command, current_args))
+            # Start a new command
+            current_command = command_match.group(2)  # Command name (e.g., "ai-helper")
+            current_args = []
+        
+        # Check for argument definitions (e.g., ai_helper.add_argument("prompt", help="A string..."))
+        argument_match = argument_pattern.match(line)
+        if argument_match:
+            argument_name = argument_match.group(2).strip('"')
+            argument_help = None
+            # Look for help text in the argument definition
+            help_match = re.search(r'help\s*=\s*"([^"]+)"', line)
+            if help_match:
+                argument_help = help_match.group(1)
+            current_args.append((argument_name, argument_help))
+    
+    # Don't forget to append the last command and its arguments
+    if current_command:
+        formatted_output.append(format_command(current_command, current_args))
+
+    return "\n\n".join(formatted_output)
+
+def format_command(command_name, arguments):
+    """Format a command with its arguments into a human-readable string."""
+    formatted_args = []
+    for arg, help_text in arguments:
+        arg_str = f"  - **name**: {arg}"
+        if help_text:
+            arg_str += f"\n    - **help**: {help_text}"
+        formatted_args.append(arg_str)
+
+    return f"**{command_name}**:\n" + "\n".join(formatted_args)
 
 
 def generate_readme(cli_script, output_readme):
@@ -82,28 +96,42 @@ def generate_readme(cli_script, output_readme):
     commands = extract_argparse_commands(cli_script)
 
     # Template format for the README structure
-    content = open("readme.tmpl", "r").read()
-
-    # Prepare the final prompt to pass to OpenAI
-    prompt = eval(f"f'''{content}'''")
-    prompt.format(commands=commands)
+    template = open("readme.tmpl", "r").read()
 
     # Step 3: Initialize OpenAIProvider
     openai_provider = OpenAIProvider()
 
     # Step 4: Improve the README content using OpenAI
-    readme_content = openai_provider.improve_text(
-        """Update and improve this README template with the provided commands."""
-        """Dont had trailing period to \"# headers\"."""
-        """Leave autofix as autofix."""
-        """Leave \"command line\" be \"command-line\"."""
-        """Avoid trailing whitespace, remove where necessary""",
-        prompt,
+    commands_content = openai_provider.improve_text(
+        """A user will provide you with a list of function signitures.
+        Output README markdown **only**
+        Be sure to provide:
+        - Descriptions for each command and argument.
+        - Examples of how to use the commands.
+        - Any relevant explanations to improve understanding of the tool.
+        - Add icons next to headers for look and feel
+        - Provide fully detailed commands and argument and examples
+        """,
+        commands,
+    )
+
+    # Prepare the final prompt to pass to OpenAI
+    template = template.replace("==COMMANDS==", commands_content)
+
+    # Step 4: Improve the README content using OpenAI
+    template = openai_provider.improve_text(
+        """Update and improve this README template.
+        Dont add trailing period to \"# headers\".
+        Leave autofix as autofix.
+        Leave \"command line\" be \"command-line\".
+        Avoid trailing whitespace, remove where necessary.
+        """,
+        template,
     )
 
     # Step 5: Write the new README content to the output file
     with open(output_readme, "w") as f:
-        f.write(readme_content)
+        f.write(template)
 
     print(f"README updated and saved to {output_readme}")
 

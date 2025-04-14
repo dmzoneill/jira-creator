@@ -1,4 +1,4 @@
-def list_sprints(request_fn, board_id: str) -> dict:
+def list_sprints(request_fn, board_id: str) -> list[str]:
     path = f"/rest/agile/1.0/board/{board_id}/sprint"
     res = request_fn("GET", path)
     sprints = res.get("values")

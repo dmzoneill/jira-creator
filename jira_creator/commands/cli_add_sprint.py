@@ -9,4 +9,4 @@ def cli_add_sprint(jira, args):
     except AddSprintError as e:
         msg = f"❌ {e}"
         print(msg)
-        raise (AddSprintError(msg))
+        raise AddSprintError(msg)

@@ -66,68 +66,7 @@ rh-issue create story "Improve onboarding experience"
 
 ## 🧪 Usage & Commands
 
-### 🆕 Create Issues
-
-```bash
-rh-issue create bug "Fix login crash"
-rh-issue create story "Refactor onboarding flow"
-rh-issue create epic "Unify frontend UI" --edit
-rh-issue create spike "Evaluate GraphQL support" --dry-run
-```
-
-Use `--edit` to use your `$EDITOR`, and `--dry-run` to print the payload without creating the issue.
-
-### 🔁 Change Issue Type
-
-```bash
-rh-issue change AAP-12345 story
-```
-
-### 🔁 Migrate Issue
-
-```bash
-rh-issue migrate AAP-54321 story
-```
-
-### ✏️ Edit Description
-
-```bash
-rh-issue edit AAP-98765
-rh-issue edit AAP-98765 --no-ai
-```
-
-### 🧍 Unassign Issue
-
-```bash
-rh-issue unassign AAP-12345
-```
-
-### 📋 List Issues
-
-```bash
-rh-issue list
-rh-issue list --project AAP --component api --user jdoe
-```
-
-### 🏷️ Set Priority
-
-```bash
-rh-issue set-priority AAP-123 High
-```
-
-### 📅 Sprint Management
-
-```bash
-rh-issue set-sprint AAP-456 1234
-rh-issue remove-sprint AAP-456
-rh-issue add-sprint AAP-456 "Sprint 33"
-```
-
-### 🚦 Set Status
-
-```bash
-rh-issue set-status AAP-123 "In Progress"
-```
+==COMMANDS==
 
 ---
 
@@ -212,7 +151,7 @@ pipenv install --dev
 ```bash
 make test
 make lint
-make format  # autofix formatting
+make super-lint
 ```
 
 ---
@@ -229,15 +168,3 @@ make format  # autofix formatting
 ## 📜 License
 
 This project is licensed under the [Apache License](./LICENSE).
-
-Now, update this template to include detailed sections for the following commands. Keep the structure and improve the details where possible:
-
-{commands}
-
-Be sure to provide:
-- Descriptions for each command and argument.
-- Examples of how to use the commands.
-- Any relevant explanations to improve understanding of the tool.
-- Add icons next to headers for look and feel
-- Provide fully detailed commands and argument and examples
-- Provide AI setup and usage

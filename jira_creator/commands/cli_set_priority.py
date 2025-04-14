@@ -9,4 +9,4 @@ def cli_set_priority(jira, args):
     except SetPriorityError as e:
         msg = f"❌ Failed to set priority: {e}"
         print(msg)
-        raise (SetPriorityError(msg))
+        raise SetPriorityError(msg)

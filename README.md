@@ -1,17 +1,15 @@
-# jira-creator 📝
+# jira-creator
 
 [![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 [![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/commits/main)
 
-Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates and optional AI-enhanced descriptions.
+Generate JIRA issues (stories, bugs, epics, spikes, tasks) speedily with standardized templates and optional AI-enhanced descriptions.
 
----
+## Quick Start (Under 30 Seconds)
 
-## ⚡ Quick Start (Under 30 Seconds) ⏱️
-
-### 1. Create your config file and enable autocomplete. 💻
+### 1. Generate your config file and enable autocomplete.
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -34,121 +32,356 @@ export JIRA_STORY_POINTS_FIELD="customfield_12310243"
 export JIRA_SPRINT_FIELD="customfield_12310940"
 export VOSK_MODEL="/home/daoneill/.vosk/vosk-model-small-en-us-0.15"
 
-# Enable autocomplete
+# Activate autocomplete
 eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira.py/rh-issue/')"
 EOF
 
 source ~/.bashrc.d/jira.sh
 ```
 
-### 2. Link the command-line tool wrapper 🖇️
+### 2. Link the command-line tool wrapper
 
 ```bash
 chmod +x jira_creator/rh-issue-wrapper.sh
 sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
 
-### 3. Run it 🚀
+### 3. Execute it
 
 ```bash
 rh-issue create story "Improve onboarding experience"
 ```
----
 
-## 🧪 Usage & Commands 🛠️
+## Usage & Commands
 
-### 🆕 Create Issues
+# Jira CLI Documentation
 
-Use the `create` command followed by the issue type (bug, story, epic, spike) and the description.
+## ai-helper
+The `ai-helper` command is for soliciting assistance from the AI. 
 
-Use `--edit` to use your `$EDITOR`, and `--dry-run` to print the payload without creating the issue.
+Give a string that describes a sequence of actions, and the AI will support you in executing these actions. To make the AI speak out the response, utilize the `--voice` argument.
 
-```bash
-rh-issue create bug "Fix login crash"
-rh-issue create story "Refactor onboarding flow"
-rh-issue create epic "Unify frontend UI" --edit
-rh-issue create spike "Evaluate GraphQL support" --dry-run
+### Example:
+```
+ai-helper prompt "Create a new issue"
+ai-helper --voice prompt "Create a new issue"
 ```
 
-### 🔁 Change Issue Type
+## create-issue
+The `create-issue` command creates a new issue in JIRA. 
 
-To change an issue type, use the `change` command, followed by the issue key and the new type.
+Specify the issue type (bug, story, epic, task, spike) and the issue title with `type` and `summary` arguments, respectively. Use the `--edit` argument if you want to edit the issue right after creating it. To simulate issue creation without actually creating it, use the `--dry-run` argument.
 
-```bash
-rh-issue change AAP-12345 story
+### Example:
+```
+create-issue type bug summary "Bug in the login page"
+create-issue type story summary "Add a new feature" --edit
+create-issue type epic summary "New epic task" --dry-run
 ```
 
-### 📦 Migrate Issue
+## edit-issue
+The `edit-issue` command edits any existing issue in JIRA.
 
-To migrate an issue, use the `migrate` command followed by the issue key and the new type.
+Give the JIRA issue id/key with the `issue_key` argument. If you want to edit the issue without AI help, use the `--no-ai` argument.
 
-```bash
-rh-issue migrate AAP-54321 story
+### Example:
+```
+edit-issue issue_key "BUG-123"
+edit-issue issue_key "BUG-123" --no-ai
 ```
 
-### ✏️ Edit Description
+## set-priority
+The `set-priority` command changes the priority of any existing issue in JIRA.
 
-To edit the description of an issue, use the `edit` command and the issue key. Use `--no-ai` to disable AI enhancement.
+Provide the JIRA issue id/key with the `issue_key` argument and the priority (normal, major, critical) with the `priority` argument.
 
-```bash
-rh-issue edit AAP-98765
-rh-issue edit AAP-98765 --no-ai
+### Example:
+```
+set-priority issue_key "BUG-123" priority major
 ```
 
-### 🧍 Unassign Issue
+## set-story-epic
+The `set-story-epic` command links a story to an epic in JIRA. 
 
-To unassign an issue, use the `unassign` command followed by the issue key.
+Specify the JIRA story id/key and epic id/key using the `issue_key` and `epic_key` arguments, respectively.
 
-```bash
-rh-issue unassign AAP-12345
+### Example:
+```
+set-story-epic issue_key "STORY-123" epic_key "EPIC-123"
 ```
 
-### 📋 List Issues
+## set-status
+The `set-status` command changes the status of any existing issue in JIRA.
 
-To list issues, use the `list` command. You can filter by project, component, and user.
+Provide the JIRA issue id/key with the `issue_key` argument and the status (Closed, In Progress, Refinement, New) with the `status` argument.
 
-```bash
-rh-issue list
-rh-issue list --project AAP --component api --user jdoe
+### Example:
+```
+set-status issue_key "BUG-123" status In Progress
 ```
 
-### 🏷️ Set Priority
+## change
+The `change` command changes the type of any existing issue in JIRA.
 
-To set the priority of an issue, use the `set-priority` command, followed by the issue key and the new priority.
+Provide the JIRA issue id/key with the `issue_key` argument and the new type (bug, story, epic, task, spike) with the `new_type` argument.
 
-```bash
-rh-issue set-priority AAP-123 High
+### Example:
+```
+change issue_key "TASK-123" new_type bug
 ```
 
-### 📅 Sprint Management
+## migrate
+The `migrate` command transfers any existing issue in JIRA to a different type.
 
-To manage sprints, use the `set-sprint`, `remove-sprint`, and `add-sprint` commands followed by the issue key and the sprint details.
+Provide the JIRA issue id/key with the `issue_key` argument and the new type (bug, story, epic, task, spike) with the `new_type` argument.
 
-```bash
-rh-issue set-sprint AAP-456 1234
-rh-issue remove-sprint AAP-456
-rh-issue add-sprint AAP-456 "Sprint 33"
+### Example:
+```
+migrate issue_key "TASK-123" new_type bug
 ```
 
-### 🚦 Set Status
+## assign
+The `assign` command allocates any existing issue in JIRA to a user.
 
-To set the status of an issue, use the `set-status` command, followed by the issue key and the new status.
+Provide the JIRA issue id/key with the `issue_key` argument and the assignee with the `assignee` argument.
 
-```bash
-rh-issue set-status AAP-123 "In Progress"
+### Example:
+```
+assign issue_key "BUG-123" assignee "John Doe"
 ```
 
----
+## unassign
+The `unassign` command removes an existing issue in JIRA from a user.
 
-## 🤖 AI Provider Support 🧠
+Provide the JIRA issue id/key with the `issue_key` argument.
 
-You can plug in different AI providers by setting `AI_PROVIDER`.
+### Example:
+```
+unassign issue_key "BUG-123"
+```
 
-Check out the following examples of setting up different AI providers:
+## block
+The `block` command halts any existing issue in JIRA.
 
-### ✅ OpenAI
+Provide the JIRA issue id/key with the `issue_key` argument and the reason for blocking the issue with the `reason` argument.
 
-To use OpenAI, set your `AI_API_KEY` and optionally specify an `AI_MODEL`.
+### Example:
+```
+block issue_key "BUG-123" reason "Dependency on another task"
+```
+
+## unblock
+The `unblock` command unblocks any existing issue in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+unblock issue_key "BUG-123"
+```
+
+## vote-story-points
+The `vote-story-points` command votes for the story points of any existing story in JIRA.
+
+Specify the JIRA issue id/key with the `issue_key` argument and the story point estimate (integer) with the `points` argument.
+
+### Example:
+```
+vote-story-points issue_key "STORY-123" points 5
+```
+
+## set-story-points
+The `set-story-points` command sets the story points of any existing story in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument and the story point estimate (integer) with the `points` argument.
+
+### Example:
+```
+set-story-points issue_key "STORY-123" points 8
+```
+
+## add-sprint
+The `add-sprint` command adds any existing issue in JIRA to a sprint.
+
+Provide the JIRA issue id/key with the `issue_key` argument and the name of the sprint with the `sprint_name` argument.
+
+### Example:
+```
+add-sprint issue_key "BUG-123" sprint_name "Sprint 3"
+```
+
+## remove-sprint
+The `remove-sprint` command removes any existing issue in JIRA from a sprint.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+remove-sprint issue_key "BUG-123"
+```
+
+## add-comment
+The `add-comment` command adds a comment to any existing issue in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+add-comment issue_key "BUG-123"
+```
+
+## search
+The `search` command searches for issues in JIRA using a JIRA Query Language (JQL) expression.
+
+Give the JQL expression with the `jql` argument.
+
+### Example:
+```
+search jql "project = 'My Project' AND status = 'In Progress'"
+```
+
+## list-issues
+The `list-issues` command fetches a list of issues in JIRA.
+
+The issues can be filtered by project, component, assignee, status, summary, reporter using `--project`, `--component`, `--assignee`, `--status`, `--summary`, `--reporter` arguments respectively.
+
+### Example:
+```
+list-issues --project "My Project" --assignee "John Doe" --status "In Progress"
+```
+
+## lint
+The `lint` command checks the quality of any existing issue in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+lint issue_key "BUG-123"
+```
+
+## lint-all
+The `lint-all` command checks the quality of all the issues in JIRA.
+
+Issues can be filtered by project, component, assignee, reporter using `--project`, `--component`, `--assignee`, `--reporter` arguments respectively.
+
+### Example:
+```
+lint-all --project "My Project" --assignee "John Doe"
+```
+
+## open-issue
+The `open-issue` command opens any existing issue in JIRA in your default web browser.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+open-issue issue_key "BUG-123"
+```
+
+## view-issue
+The `view-issue` command views the details of any existing issue in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+view-issue issue_key "BUG-123"
+```
+
+## view-user
+The `view-user` command views the details of a user in JIRA.
+
+Provide the JIRA account ID with the `account_id` argument.
+
+### Example:
+```
+view-user account_id "123456"
+```
+
+## search-users
+The `search-users` command searches for users in JIRA.
+
+Provide the search term with the `query` argument.
+
+### Example:
+```
+search-users query "John"
+```
+
+## blocked
+The `blocked` command fetches a list of issues in JIRA that are blocked.
+
+Issues can be filtered by user, project, component using `--user`, `--project`, `--component` arguments respectively.
+
+### Example:
+```
+blocked --user "John Doe" --project "My Project"
+```
+
+## talk
+The `talk` command makes the AI speak out the response.
+
+Use the `--voice` argument to enable this feature.
+
+### Example:
+```
+talk --voice
+```
+
+## add-flag
+The `add-flag` command adds a flag to any existing issue in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+add-flag issue_key "BUG-123"
+```
+
+## remove-flag
+The `remove-flag` command removes a flag from any existing issue in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+remove-flag issue_key "BUG-123"
+```
+
+## set-summary
+The `set-summary` command sets the summary of any existing issue in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument and the summary with the `summary` argument.
+
+### Example:
+```
+set-summary issue_key "BUG-123" summary "New bug in the login page"
+```
+
+## clone-issue
+The `clone-issue` command clones any existing issue in JIRA.
+
+Provide the JIRA issue id/key with the `issue_key` argument.
+
+### Example:
+```
+clone-issue issue_key "BUG-123"
+```
+
+## AI Provider Support
+
+You can plug in various AI providers by setting `AI_PROVIDER`.
+
+Ollama can be used for managing different models
+
+```bash
+mkdir -vp ~/.ollama-models
+docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
+```
+
+### OpenAI
 
 ```bash
 export AI_PROVIDER=openai
@@ -156,9 +389,7 @@ export AI_API_KEY=sk-...
 export AI_MODEL=gpt-4  # Optional
 ```
 
-### 🦙 LLama3
-
-To use LLama3, first pull the model using Docker, then specify the provider, URL, and model.
+### LLama3
 
 ```bash
 docker compose exec ollama ollama pull LLama3
@@ -167,9 +398,7 @@ export AI_URL=http://localhost:11434/api/generate
 export AI_MODEL=LLama3
 ```
 
-### 🧠 DeepSeek
-
-To use DeepSeek, first pull the model using Docker, then specify the provider, URL, and model.
+### DeepSeek
 
 ```bash
 docker compose exec ollama ollama pull deepseek-r1:7b
@@ -178,9 +407,7 @@ export AI_URL=http://localhost:11434/api/generate
 export AI_MODEL=http://localhost:11434/api/generate
 ```
 
-### 🖥 GPT4All
-
-To use GPT4All, install the package via pip and set the provider.
+### GPT4All
 
 ```bash
 pip install gpt4all
@@ -188,9 +415,7 @@ export AI_PROVIDER=gpt4all
 # WIP
 ```
 
-### 🧪 InstructLab
-
-To use InstructLab, specify the provider, URL, and model.
+### InstructLab
 
 ```bash
 export AI_PROVIDER=instructlab
@@ -199,9 +424,7 @@ export AI_MODEL=instructlab
 # WIP
 ```
 
-### 🧠 BART
-
-To use BART, specify the provider and URL.
+### BART
 
 ```bash
 export AI_PROVIDER=bart
@@ -209,19 +432,13 @@ export AI_URL=http://localhost:8000/bart
 # WIP
 ```
 
-### 🪫 Noop
-
-To disable AI enhancement, set the provider as `noop`.
+### Noop
 
 ```bash
 export AI_PROVIDER=noop
 ```
 
----
-
-## 🛠 Dev Setup ⚙️
-
-Install the development dependencies with pipenv.
+## Dev Setup
 
 ```bash
 pipenv install --dev
@@ -229,25 +446,19 @@ pipenv install --dev
 
 ### Testing & Linting
 
-Run tests, linting, and autofix code formatting with Make.
-
 ```bash
 make test
 make lint
-make format  # autofix formatting
+make super-lint
 ```
 
----
-
-## ⚙️ How It Works 📜
+## How It Works
 
 - Loads field definitions from `.tmpl` files under `templates/`
-- Uses `TemplateLoader` to generate Markdown descriptions
-- Optionally applies AI cleanup for readability and structure
+- Uses `TemplateLoader` to create Markdown descriptions
+- Optionally applies AI cleanup for improved readability and structure
 - Sends to JIRA via REST API (or dry-runs it)
 
----
-
-## 📜 License 📚
+## License
 
 This project is licensed under the [Apache License](./LICENSE).

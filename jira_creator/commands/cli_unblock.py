@@ -9,4 +9,4 @@ def cli_unblock(jira, args):
     except UnBlockError as e:
         msg = f"❌ Failed to unblock {args.issue_key}: {e}"
         print(msg)
-        raise (UnBlockError(msg))
+        raise UnBlockError(msg)

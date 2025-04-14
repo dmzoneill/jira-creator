@@ -30,7 +30,7 @@ def get_ai_provider(name: str):
     except AiProviderError as e:
         msg = f"⚠️ Failed to initialize {name} provider: {e}"
         print(AiProviderError)
-        raise (AiProviderError(msg))
+        raise AiProviderError(msg)
 
     from .noop_provider import NoAIProvider
 

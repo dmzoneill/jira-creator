@@ -22,7 +22,7 @@ def fetch_description(jira, issue_key):
     except FetchDescriptionError as e:
         msg = f"❌ Failed to fetch description: {e}"
         print(msg)
-        raise (FetchDescriptionError(msg))
+        raise FetchDescriptionError(msg)
 
 
 def edit_description(original_description):
@@ -114,7 +114,7 @@ def update_jira_description(jira, issue_key, cleaned):
     except UpdateDescriptionError as e:
         msg = f"❌ Update failed: {e}"
         print(msg)
-        raise (UpdateDescriptionError(msg))
+        raise UpdateDescriptionError(msg)
 
 
 def cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args):

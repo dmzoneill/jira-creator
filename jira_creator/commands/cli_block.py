@@ -9,4 +9,4 @@ def cli_block(jira, args):
     except BlockError as e:
         msg = f"❌ Failed to mark {args.issue_key} as blocked: {e}"
         print(msg)
-        raise (BlockError(msg))
+        raise BlockError(msg)

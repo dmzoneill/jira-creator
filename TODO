@@ -2,8 +2,7 @@ Core
   - mask private methods with _ prefix
   - type hardening
   - logging
-  - Type Exceptions
-    - raise exceptions (need grep all files)
+  - Except Statement Exceptions
   - Docstrings
     - fix the docstring script
   - move status enums etc (31 Refinement) to config file
@@ -14,7 +13,6 @@ Core
   - text to speech factory pattern
   - AI state - track issue id
   - readme ascii cinema for readme
-  - readme comprehensive command list 
 
 
 Add

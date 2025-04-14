@@ -12,4 +12,4 @@ def cli_change_type(jira, args):
     except ChangeTypeError as e:
         msg = f"❌ Error: {e}"
         print(msg)
-        raise (ChangeTypeError(msg))
+        raise ChangeTypeError(msg)

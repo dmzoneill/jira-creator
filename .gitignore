@@ -89,3 +89,4 @@ package-lock.json
 # test to voice
 output.mp3
 
+**/snippets/**

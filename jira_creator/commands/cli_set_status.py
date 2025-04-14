@@ -9,4 +9,4 @@ def cli_set_status(jira, args):
     except SetStatusError as e:
         msg = f"❌ Failed to update status: {e}"
         print(msg)
-        raise (SetStatusError(msg))
+        raise SetStatusError(msg)

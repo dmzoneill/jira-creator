@@ -64,4 +64,4 @@ def cli_search(jira, args):
     except SearchError as e:
         msg = f"❌ Failed to search issues: {e}"
         print(msg)
-        raise (SearchError(msg))
+        raise SearchError(msg)

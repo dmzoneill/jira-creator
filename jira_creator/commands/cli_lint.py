@@ -21,4 +21,4 @@ def cli_lint(jira, ai_provider, args):
     except LintError as e:
         msg = f"❌ Failed to lint issue {args.issue_key}: {e}"
         print(msg)
-        raise (LintError(msg))
+        raise LintError(msg)

@@ -11,4 +11,4 @@ def cli_migrate(jira, args):
     except MigrateError as e:
         msg = f"❌ Migration failed: {e}"
         print(msg)
-        raise (MigrateError(msg))
+        raise MigrateError(msg)

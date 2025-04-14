@@ -14,7 +14,7 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
         fields = template.get_fields()
     except FileNotFoundError as e:
         print(f"Error: {e}")
-        raise (FileNotFoundError(e))
+        raise FileNotFoundError(e)
 
     inputs = (
         {field: input(f"{field}: ") for field in fields}
@@ -40,7 +40,7 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
     except AiError as e:
         msg = f"⚠️ AI cleanup failed. Using original text. Error: {e}"
         print(msg)
-        raise (AiError(msg))
+        raise AiError(msg)
 
     payload = jira.build_payload(args.summary, description, args.type)
 
@@ -59,4 +59,4 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
     except CreateIssueError as e:
         msg = f"❌ Failed to create issue: {e}"
         print(msg)
-        raise (CreateIssueError)
+        raise CreateIssueError

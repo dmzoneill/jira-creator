@@ -125,4 +125,4 @@ def cli_lint_all(jira, ai_provider, args):
     except LintAllError as e:
         msg = f"❌ Failed to lint issues: {e}"
         print(msg)
-        raise (LintAllError(msg))
+        raise LintAllError(msg)

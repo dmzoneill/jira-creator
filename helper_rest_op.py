@@ -47,7 +47,7 @@ def improve_text(prompt: str, text: str) -> str:
     if response.status_code == 200:
         return response.json()["choices"][0]["message"]["content"].strip()
     else:
-        raise (Exception("improve text not 200"))
+        raise Exception("improve text not 200")
 
 
 # Function to generate unit tests using OpenAI
@@ -56,7 +56,7 @@ def generate_code(command_name, user_prompt):
     rest_source_file = f"rest/ops/{command_name}.py"
 
     # Define the system prompt for generating unit tests, including example tests
-    system_prompt = f"""
+    system_prompt = """
     You are a helpful assistant that generates code that works
     with the Jira REST interface (mainly v2).
 

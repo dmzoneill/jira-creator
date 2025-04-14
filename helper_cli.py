@@ -47,7 +47,7 @@ def improve_text(prompt: str, text: str) -> str:
     if response.status_code == 200:
         return response.json()["choices"][0]["message"]["content"].strip()
     else:
-        raise (Exception("improve text not 200"))
+        raise Exception("improve text not 200")
 
 
 # Function to generate unit tests using OpenAI
@@ -80,7 +80,7 @@ def generate_code(command_name, user_prompt):
     except AddSprintError as e:
         msg = f"❌ {{e}}"
         print(msg)
-        raise (AddSprintError(msg))
+        raise AddSprintError(msg)
 
     Since you are calling a wrapper function on JiraClient.
     You typically just need to provide an issue key and some additional args.

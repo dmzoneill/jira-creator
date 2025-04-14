@@ -111,7 +111,7 @@ def cli_list_issues(jira, args):
     except ListIssuesError as e:
         msg = f"❌ Failed to list issues: {e}"
         print(msg)
-        raise (ListIssuesError(msg))
+        raise ListIssuesError(msg)
 
 
 # /* jscpd:ignore-end */

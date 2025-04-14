@@ -1,6 +1,6 @@
 def cli_list_sprints(jira, args):
     try:
-        board_id = jira.board_id if "board_id" not in args else args.board_id
+        board_id = jira.board_id if args.board_id else args.board_id
         response = jira.list_sprints(board_id)
         for sprint in response:
             print(f"    - {sprint}")

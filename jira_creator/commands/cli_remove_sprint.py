@@ -9,4 +9,4 @@ def cli_remove_sprint(jira, args):
     except RemoveFromSprintError as e:
         msg = f"❌ Failed to remove sprint: {e}"
         print(msg)
-        raise (RemoveFromSprintError(msg))
+        raise RemoveFromSprintError(msg)

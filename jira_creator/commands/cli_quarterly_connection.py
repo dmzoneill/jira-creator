@@ -42,4 +42,4 @@ def cli_quarterly_connection(jira, ai_provider):
         return True
     except QuarterlyConnectionError as e:
         print(e)
-        raise (QuarterlyConnectionError(e))
+        raise QuarterlyConnectionError(e)

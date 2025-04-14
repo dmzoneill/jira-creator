@@ -1,3 +1,6 @@
+from exceptions.exceptions import SetStatusError
+
+
 def set_status(request_fn, issue_key, target_status):
     transitions = request_fn("GET", f"/rest/api/2/issue/{issue_key}/transitions").get(
         "transitions", []
@@ -12,7 +15,7 @@ def set_status(request_fn, issue_key, target_status):
         print("Valid Transitions:")
         for t in transitions:
             print(t["name"])
-        raise Exception(f"❌ Transition to status '{target_status}' not found")
+        raise SetStatusError(f"❌ Transition to status '{target_status}' not found")
 
     request_fn(
         "POST",

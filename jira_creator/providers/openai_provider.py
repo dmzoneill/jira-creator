@@ -1,5 +1,6 @@
 import requests
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import AiError
 
 
 class OpenAIProvider:
@@ -28,7 +29,7 @@ class OpenAIProvider:
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
 
-        raise Exception(
+        raise AiError(
             f"OpenAI API call failed: {response.status_code} - {response.text}"
         )
 

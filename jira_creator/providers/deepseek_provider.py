@@ -2,6 +2,7 @@ import json
 
 import requests
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import AiError
 
 
 class DeepSeekProvider:
@@ -27,7 +28,7 @@ class DeepSeekProvider:
         )
 
         if response.status_code != 200:
-            raise Exception(
+            raise AiError(
                 f"DeepSeek request failed: {response.status_code} - {response.text}"
             )
 
@@ -40,4 +41,4 @@ class DeepSeekProvider:
             entire_response = entire_response.replace("</think>", "")
             return entire_response
         except json.JSONDecodeError:
-            raise Exception(f"Failed to parse response: {response.text}")
+            raise AiError(f"Failed to parse response: {response.text}")

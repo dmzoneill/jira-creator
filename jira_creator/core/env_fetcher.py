@@ -38,6 +38,8 @@ class EnvFetcher:
         value = (
             os.getenv(var_name, None) if "pytest" not in sys.modules else vars[var_name]
         )
+        default = os.path.join(os.path.dirname(__file__), "../templates")
+        value = default if var_name == "TEMPLATE_DIR" and value is None else value
 
         if not value:
             raise MissingConfigVariable(

@@ -9,4 +9,12 @@ if [ "$count" -ne 1 ]; then
     exit 1
 fi
 
+count=$(grep -r "raise Exce" jira_creator/ | wc -l)
+
+# Check if the count is 1
+if [ "$count" -ne 1 ]; then
+    print "Raising bare exceptions is not allowed"
+    exit 1
+fi
+
 exit 0

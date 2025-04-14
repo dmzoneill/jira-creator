@@ -171,3 +171,7 @@ class GetUserError(BaseException):
 
 class SearchUsersError(BaseException):
     pass
+
+
+class RemoveFlagError(BaseException):
+    pass

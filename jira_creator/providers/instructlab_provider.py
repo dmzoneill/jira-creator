@@ -1,5 +1,6 @@
 import requests
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import AiError
 
 
 class InstructLabProvider:
@@ -21,6 +22,6 @@ class InstructLabProvider:
         )
         if response.status_code == 200:
             return response.json().get("response", "").strip()
-        raise Exception(
+        raise AiError(
             f"InstructLab request failed: {response.status_code} - {response.text}"
         )

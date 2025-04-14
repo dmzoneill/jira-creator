@@ -42,6 +42,11 @@ from commands import (  # isort: skip
     cli_view_issue,
     cli_view_user,
     cli_vote_story_points,
+    cli_add_flag,
+    cli_remove_flag,
+    cli_list_sprints,
+    cli_set_summary,
+    cli_clone_issue,
     # commands entry
 )
 
@@ -245,6 +250,21 @@ class JiraCLI:
         # --- 📊 Reporting ---
         add("quarterly-connection", "Perform a quarterly connection report")
 
+        add_flag = add("add-flag", "Add a flag to a specific issue")
+        add_flag.add_argument("issue_key", help="The key of the issue")
+
+        remove_flag = add("remove-flag", "Remove a flag from a specific issue")
+        remove_flag.add_argument("issue_key", help="The key of the issue")
+
+        add("list-sprints", "Add a flag to a specific issue")
+
+        set_summary = add("set-summary", "Add a flag to a specific issue")
+        set_summary.add_argument("issue_key", help="The key of the issue")
+        set_summary.add_argument("summary", help="The name of the flag to add")
+
+        clone_issue = add("clone-issue", "Add a flag to a specific issue")
+        clone_issue.add_argument("issue_key", help="The key of the issue")
+
         # Add your other subcommands here
 
     def _dispatch_command(self, args: Namespace) -> None:
@@ -351,6 +371,21 @@ class JiraCLI:
 
     def view_user(self, args: Namespace) -> None:
         return cli_view_user(self.jira, args)
+
+    def add_flag(self, args: Namespace) -> None:
+        return cli_add_flag(self.jira, args)
+
+    def remove_flag(self, args: Namespace) -> None:
+        return cli_remove_flag(self.jira, args)
+
+    def list_sprints(self, args: Namespace) -> None:
+        return cli_list_sprints(self.jira, args)
+
+    def set_summary(self, args: Namespace) -> None:
+        return cli_set_summary(self.jira, args)
+
+    def clone_issue(self, args: Namespace) -> None:
+        return cli_clone_issue(self.jira, args)
 
     # add new df here
 

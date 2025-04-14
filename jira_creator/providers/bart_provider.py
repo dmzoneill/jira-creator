@@ -1,5 +1,6 @@
 import requests
 from core.env_fetcher import EnvFetcher
+from exceptions.exceptions import AiError
 
 
 class BARTProvider:
@@ -16,6 +17,4 @@ class BARTProvider:
         if response.status_code == 200:
             return response.json().get("output", "").strip()
 
-        raise Exception(
-            f"BART request failed: {response.status_code} - {response.text}"
-        )
+        raise AiError(f"BART request failed: {response.status_code} - {response.text}")

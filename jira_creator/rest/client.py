@@ -39,6 +39,11 @@ from .ops import (  # isort: skip
     update_description,
     view_issue,
     vote_story_points,
+    add_flag,
+    remove_flag,
+    list_sprints,
+    set_summary,
+    clone_issue,
     # commands entry
 )
 
@@ -325,3 +330,18 @@ class JiraClient:
 
     def view_issue(self, issue_key):
         return view_issue(self._request, issue_key)
+
+    def add_flag(self, issue_key):
+        return add_flag(self._request, issue_key)
+
+    def remove_flag(self, issue_key):
+        return remove_flag(self._request, issue_key)
+
+    def list_sprints(self, board_id):
+        return list_sprints(self._request, board_id)
+
+    def set_summary(self, issue_key):
+        return set_summary(self._request, issue_key)
+
+    def clone_issue(self, issue_key):
+        return clone_issue(self._request, issue_key)

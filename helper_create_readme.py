@@ -1,3 +1,4 @@
+import re
 import ast
 import os
 
@@ -36,11 +37,10 @@ class OpenAIProvider:
             f"OpenAI API call failed: {response.status_code} - {response.text}"
         )
 
-import re
 
 def extract_argparse_commands(cli_script):
     with open(cli_script_path, "r") as f:
-            lines = f.readlines()
+        lines = f.readlines()
 
     formatted_output = []
     current_command = None
@@ -48,7 +48,7 @@ def extract_argparse_commands(cli_script):
 
     # Regex patterns to match the command and argument lines
     command_pattern = re.compile(r'\s*(\w+)\s*=\s*add\("([^"]+)",\s*"([^"]+)"\)')
-    argument_pattern = re.compile(r'\s*(\w+)\.add_argument\(([^)]+)\)')
+    argument_pattern = re.compile(r"\s*(\w+)\.add_argument\(([^)]+)\)")
 
     for line in lines:
         # Check for command definitions (e.g., ai_helper = add("ai-helper", "AI Helper"))
@@ -60,7 +60,7 @@ def extract_argparse_commands(cli_script):
             # Start a new command
             current_command = command_match.group(2)  # Command name (e.g., "ai-helper")
             current_args = []
-        
+
         # Check for argument definitions (e.g., ai_helper.add_argument("prompt", help="A string..."))
         argument_match = argument_pattern.match(line)
         if argument_match:
@@ -71,12 +71,13 @@ def extract_argparse_commands(cli_script):
             if help_match:
                 argument_help = help_match.group(1)
             current_args.append((argument_name, argument_help))
-    
+
     # Don't forget to append the last command and its arguments
     if current_command:
         formatted_output.append(format_command(current_command, current_args))
 
     return "\n\n".join(formatted_output)
+
 
 def format_command(command_name, arguments):
     """Format a command with its arguments into a human-readable string."""

@@ -103,7 +103,7 @@ def generate_readme(cli_script, output_readme):
     openai_provider = OpenAIProvider()
 
     # Step 4: Improve the README content using OpenAI
-    commands_content = openai_provider.improve_text(
+    commands = openai_provider.improve_text(
         """A user will provide you with a list of function signitures.
         Output README markdown **only**
         Be sure to provide:
@@ -116,9 +116,6 @@ def generate_readme(cli_script, output_readme):
         commands,
     )
 
-    # Prepare the final prompt to pass to OpenAI
-    template = template.replace("==COMMANDS==", commands_content)
-
     # Step 4: Improve the README content using OpenAI
     template = openai_provider.improve_text(
         """Update and improve this README template.
@@ -129,6 +126,30 @@ def generate_readme(cli_script, output_readme):
         """,
         template,
     )
+
+    # Prepare the final prompt to pass to OpenAI
+    template = template.replace("==COMMANDS==", commands)
+
+    # # Step 4: Improve the README content using OpenAI
+    # template = openai_provider.improve_text(
+    #     """I need you to create a table of contents for this readme.
+    #     Pleace the TOC at "==TOC==" in the code.
+    #     To achieve the TOC you will need to add anchors before headers.
+    #     Headers are text proceeeded by 1+ # at the start of the line.
+    #     E.g: <a name="desc"></a> and then in the TOC use markdown hyperlink format
+    #     to link to these anchors. E.G "1. [ Description. ](#desc)".
+    #     Here is a full exmaple:
+    #         1. [ Description. ](#desc)
+    #         2. [ Usage tips. ](#usage)
+    #         <a name="desc"></a>
+    #         ## 1. Description
+    #         sometext
+    #         <a name="usage"></a>
+    #         ## 2. Usage tips
+    #         sometext
+    #     """,
+    #     template,
+    # )
 
     # Step 5: Write the new README content to the output file
     with open(output_readme, "w") as f:

@@ -1,6 +1,6 @@
-import re
 import ast
 import os
+import re
 
 import requests
 

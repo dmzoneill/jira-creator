@@ -17,17 +17,14 @@ Core
 
 Add
   - list-blocked
-  - list-sprints
   - get-current-sprint
   - set-summary
   - In Progress or blocked status
-  - add-flag
-  - remove-flag
   - clone / copy issue
 
 Modify 
   - set-satus
-    - move to stop of sprint if (refinement)
+    - move to stop of backlog if (refinement)
 
   - list-issues
     - customer column output
@@ -80,8 +77,8 @@ Modify
   - edit-issue --acceptance-criteria
     - Update acepance criteria from descirption (--ai) or user input
     - create linked issue
-    - move to stop of sprint if (refinement)
+    - move to top of sprint if (refinement)
 
   - create-issue
-    - move to stop of sprint if (refinement)
+    - move to top of sprint if (refinement)
 

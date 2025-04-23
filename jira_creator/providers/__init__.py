@@ -1,7 +1,38 @@
+"""
+This module provides a function to retrieve AI providers based on the specified name. The function takes a name
+parameter, which is a string representing the desired AI provider. It attempts to import the corresponding provider
+class based on the name and returns an instance of that provider.
+
+If the specified provider is not found or if there is an error during initialization, the function falls back to a
+default NoAIProvider and prints a warning message.
+
+The supported AI providers include OpenAI, GPT4All, InstructLab, BART, and DeepSeek. If a provider is not found or if
+there is an error, appropriate warning messages are printed.
+
+Note: The module assumes the existence of provider classes like OpenAIProvider, GPT4AllProvider, InstructLabProvider,
+BARTProvider, DeepSeekProvider, and NoAIProvider in the respective modules.
+
+Usage:
+provider = get_ai_provider("openai")
+provider.do_something()
+
+Returns:
+An instance of the specified AI provider class or a NoAIProvider instance if the specified provider is not found or if
+there is an error during initialization.
+"""
+
 from exceptions.exceptions import AiProviderError
 
 
 def get_ai_provider(name: str):
+    """
+    Converts the input name to lowercase.
+
+    Arguments:
+    - name (str): A string representing the name of an AI provider.
+
+    """
+
     name = name.lower()
 
     try:

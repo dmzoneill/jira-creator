@@ -1,8 +1,32 @@
+"""
+This module defines an IssueType enumeration class with different types of issues such as BUG, EPIC, SPIKE, STORY,
+TASK, COMMENT, DEFAULT, QC, and AIHELPER.
+It also includes a PromptLibrary class with methods to retrieve file contents and generate prompts based on the
+provided issue type.
+The get_prompt method in the PromptLibrary class dynamically generates prompts based on the IssueType provided.
+"""
+
 import os
 from enum import Enum
 
 
 class IssueType(Enum):
+    """
+    This class defines different types of issues that can be used in a project management system.
+
+    Attributes:
+    - BUG (str): Represents a bug type issue.
+    - EPIC (str): Represents an epic type issue.
+    - SPIKE (str): Represents a spike type issue.
+    - STORY (str): Represents a story type issue.
+    - TASK (str): Represents a task type issue.
+    - COMMENT (str): Represents a comment type issue.
+    - DEFAULT (str): Represents a default type issue.
+    - QC (str): Represents a QC type issue.
+    - AIHELPER (str): Represents an AI helper type issue.
+    - TEMPLATE_DIR (str): The directory path for templates used by the project management system.
+    """
+
     BUG = "bug"
     EPIC = "epic"
     SPIKE = "spike"
@@ -18,8 +42,34 @@ TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "../templates")
 
 
 class PromptLibrary:
+    """
+    This class provides methods to retrieve prompt contents from template files based on different issue types.
+
+    Attributes:
+    - No attributes are defined in the class, but the class relies on the following constants and types:
+    - TEMPLATE_DIR: Constant representing the directory where template files are stored.
+    - IssueType: Enum representing different types of issues.
+    Methods:
+    - get_file_contents(full_name): Static method that reads and returns the contents of a template file specified by
+    'full_name'.
+    - get_prompt(issue_type: IssueType) -> str: Static method that generates a prompt message based on the provided
+    'issue_type'. It combines content from multiple template files depending on the issue type and returns the final
+    prompt message as a string.
+    """
+
     @staticmethod
     def get_file_contents(full_name):
+        """
+        Retrieve the contents of a file specified by its full name.
+
+        Arguments:
+        - full_name (str): The full name of the file to retrieve its contents.
+
+        Side Effects:
+        - Reads the contents of the file specified by 'full_name' and stores it in the 'template' variable.
+
+        """
+
         template = ""
         template_path = os.path.join(TEMPLATE_DIR, f"{full_name}.tmpl")
 
@@ -33,6 +83,17 @@ class PromptLibrary:
 
     @staticmethod
     def get_prompt(issue_type: IssueType) -> str:
+        """
+        Return a prompt message based on the provided issue type.
+
+        Arguments:
+        - issue_type (IssueType): An enum representing the type of the issue.
+
+        Return:
+        - str: A prompt message based on the issue type.
+
+        """
+
         # Check if the issue_type is "comment" first
         prompt = ""
         full_name = issue_type.value.lower()

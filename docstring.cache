@@ -1,119 +1,98 @@
 {
-    "/tmp/helper_docstring.py": [
+    "/tmp/helper_docstring.py": [],
+    "jira_creator/commands/cli_set_story_epic.py": [],
+    "jira_creator/commands/cli_list_issues.py": [],
+    "jira_creator/commands/cli_set_acceptance_criteria.py": [],
+    "jira_creator/commands/cli_list_sprints.py": [],
+    "jira_creator/commands/cli_view_user.py": [],
+    "jira_creator/commands/cli_add_comment.py": [],
+    "jira_creator/commands/cli_ai_helper.py": [],
+    "jira_creator/commands/cli_block.py": [],
+    "jira_creator/commands/cli_set_status.py": [],
+    "jira_creator/commands/cli_unblock.py": [],
+    "jira_creator/commands/cli_talk.py": [],
+    "jira_creator/commands/_try_cleanup.py": [],
+    "jira_creator/commands/cli_validate_issue.py": [],
+    "jira_creator/commands/cli_set_summary.py": [],
+    "jira_creator/commands/cli_create_issue.py": [],
+    "jira_creator/commands/cli_search.py": [],
+    "jira_creator/commands/cli_change_type.py": [],
+    "jira_creator/commands/cli_set_story_points.py": [],
+    "jira_creator/commands/cli_set_priority.py": [],
+    "jira_creator/commands/cli_add_sprint.py": [],
+    "jira_creator/commands/cli_search_users.py": [],
+    "jira_creator/commands/cli_edit_issue.py": [
         {
-            "sha1": "b74dce1bb878649ca2687afd3ee45ea749a9b29f",
-            "docstring": "\"\"\"\nThis module provides functionality for generating and managing docstrings in Python files. It includes the `OpenAIProvider` class, which interacts with the OpenAI API to improve text and estimate token usage, and the `Docstring` class, which handles reading a Python file, generating class and function docstrings, and managing a cache of previously generated docstrings.\n\nClasses:\n- OpenAIProvider: Handles API interactions with OpenAI for text improvement and model selection based on token estimation.\n- Docstring: Manages the process of generating docstrings for classes and functions within a specified Python file, including caching and text wrapping.\n\nFunctions:\n- main: Entry point for the script that initializes the `Docstring` class and triggers the docstring generation process for a specified file.\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "618296ae30417e71d379db9f988f355753f27482",
+            "docstring": "\"\"\"\nFetches the description of a Jira issue identified by the given issue key.\n\nArgs:\n    jira (JiraAPI): An instance of JiraAPI used to interact with the Jira service.\n    issue_key (str): The key identifying the Jira issue for which the description needs to be fetched.\n\nReturns:\n    str: The description of the Jira issue.\n\nRaises:\n    FetchDescriptionError: If an error occurs while fetching the description.\n\"\"\"",
+            "last_accessed": 1745435466
         },
         {
-            "sha1": "0c434ec61de073525bd9c8b6eb2af88f759805be",
-            "docstring": "\"\"\"\nClass for interacting with the OpenAI API to improve text using AI models.\n\nAttributes:\n- api_key (str): The API key required for authentication with the OpenAI API.\n- endpoint (str): The API endpoint for sending requests to the OpenAI service.\n- model (str): The AI model to be used for text improvement, default is \"gpt-4\".\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "dc4f1c709b0ddae1f0438e81d0200d047ce1c130",
+            "docstring": "\"\"\"\nSummary:\nPrints the current cleaned description in a loop for linting purposes.\n\nArguments:\n- cleaned (str): The cleaned description that needs to be linted.\n- ai_provider: The AI provider used for linting.\n\nSide Effects:\nPrints the current cleaned description in a loop for linting purposes.\n\"\"\"",
+            "last_accessed": 1745435477
         },
         {
-            "sha1": "7e4f8a543517a63fb5b17edf527ed88aa7dac793",
-            "docstring": "\"\"\"\nInitialize an instance of the Chatbot class.\n\nArguments:\n    None\n\nExceptions:\n    - EnvironmentError: Raised if the environment variable 'AI_API_KEY' is not set.\n\nSide Effects:\n    - Sets the 'api_key' attribute with the value of the 'AI_API_KEY' environment variable.\n    - Raises an exception if the 'AI_API_KEY' environment variable is not set.\n    - Sets the 'endpoint' attribute to the OpenAI chat completions API endpoint.\n    - Sets the 'model' attribute with the value of the 'OPENAI_MODEL' environment variable or defaults to 'gpt-4'.\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "4e262e94e0e57bf557e50fa585222a295d35087d",
+            "docstring": "\"\"\"\nUpdate the description of a Jira issue.\n\nArguments:\n- jira: An instance of the Jira API client.\n- issue_key: A string representing the key of the Jira issue to update.\n- cleaned: A string containing the cleaned description to update the Jira issue with.\n\nExceptions:\n- UpdateDescriptionError: Raised if there is an error while updating the description.\n\nSide Effects:\n- Modifies the description of the specified Jira issue.\n\n\"\"\"",
+            "last_accessed": 1745435477
         },
         {
-            "sha1": "c4647db7552005185e5d5ea1ed669dbf035b2528",
-            "docstring": "\"\"\"\nEstimates the number of tokens in a given text based on a 3 bytes per token estimation.\n\nArguments:\n- text (str): The input text for which tokens need to be estimated.\n\nReturn:\n- int: The estimated number of tokens in the input text.\n\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "a9d1d7eb6e61896a7a32d3e535a4aec6e6217c56",
+            "docstring": "\"\"\"\nEdit an issue's description in a Jira instance using a command-line interface.\n\nArguments:\n- jira (JIRA): A Jira instance to interact with.\n- ai_provider (AIProvider): An AI provider for natural language processing.\n- default_prompt (str): The default prompt message for user input.\n- try_cleanup_fn (function): A function to attempt cleanup operations.\n- args (Namespace): The parsed command-line arguments.\n\nReturn:\n- bool: False if the original description is empty, indicating the issue was not edited.\n\"\"\"",
+            "last_accessed": 1745435477
         },
         {
-            "sha1": "44da5c33af2c2c7c2387d30b5e8fa01c04b1b7e7",
-            "docstring": "\"\"\"\nEstimates tokens based on the input provided and assigns the result to the 'tokens' variable.\n\nArguments:\n- self: The object instance.\n- input: The input data for which tokens need to be estimated.\n\nSide Effects:\n- Modifies the 'tokens' variable by assigning the estimated tokens.\n\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "89186b48084ee980c76aedfe082cdb53e7751087",
+            "docstring": "\"\"\"\nThis module provides functionality for editing Jira issue descriptions using a command-line interface. It includes methods to fetch, edit, and update issue descriptions, as well as validate and lint the descriptions for quality.\n\nKey Functions:\n- fetch_description(jira, issue_key): Retrieves the description of a Jira issue.\n- edit_description(original_description): Opens the issue description in a text editor for user modifications.\n- get_prompt(jira, issue_key, default_prompt): Retrieves a prompt based on the issue type from a prompt library.\n- lint_description_once(cleaned, ai_provider): Validates the cleaned description and prompts the user for additional input if issues are found.\n- lint_description(cleaned, ai_provider): Continuously lints the description until no issues are detected.\n- update_jira_description(jira, issue_key, cleaned): Updates the Jira issue description with the cleaned text.\n- cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args): Main function for editing an issue description, coordinating the fetching, editing, linting, and updating processes.\n\nExceptions:\n- Various exceptions are raised for error handling, including issues related to editing, fetching, and updating descriptions.\n\"\"\"",
+            "last_accessed": 1745435466
         },
         {
-            "sha1": "4de9beceaba1e150e3cf51be4a6a21da331f6dd9",
-            "docstring": "\"\"\"\nImprove the given text using an external API.\n\nArguments:\n- prompt (str): The prompt to provide context for improving the text.\n- text (str): The text to be improved.\n\nReturn:\n- str: The improved version of the input text.\n\nSide Effects:\n- Makes a request to an external API using the provided prompt and text.\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "8db3051a5df0697be315ee2e83708d3b6537b961",
+            "docstring": "\"\"\"\nEdit the description using the default text editor.\n\nArguments:\n- original_description (str): The original description to be edited.\n\nReturn:\n- str: The edited description after modifications.\n\nExceptions:\n- EditDescriptionError: Raised if an error occurs while editing the description.\n\nSide Effects:\n- Opens the default text editor to allow the user to modify the description.\n- Prints an error message if editing the description fails, which is captured in the logs.\n\"\"\"",
+            "last_accessed": 1745435468
         },
         {
-            "sha1": "92f7b73939a35a533ea8dce588f656502233cd6e",
-            "docstring": "\"\"\"\nA class for generating and managing docstrings in Python code files.\n\nAttributes:\n    file_path (str): The path to the Python file from which to read and write lines.\n    lines (list): A list of lines read from the specified file.\n    ai (OpenAIProvider): An instance of OpenAIProvider used to generate docstrings.\n    line_index (int): The current index of the line being processed in the file.\n    cache_file (str): The name of the cache file used to store generated docstrings.\n\nMethods:\n    get_ai_docstring(sys_prompt, user_prompt): Retrieves a generated docstring from the AI or from cache.\n    remove_old_entries(minutes): Removes cached entries that are older than the specified number of minutes.\n    wrap_text(text, max_length=120, indent=0): Wraps text to a specified maximum length with indentation.\n    count_and_divide_whitespace(line): Counts leading whitespace in a line and divides it by four.\n    complete(): Writes the modified lines back to the file and removes old cache entries.\n    generate_class_docstring(): Generates and inserts a docstring for the current class.\n    generate_function_docstring(): Generates and inserts a docstring for the current function.\n    should_add_file_docstring(): Determines if a file-level docstring should be added.\n    generate_file_docstring(): Generates and inserts a file-level docstring if needed.\n    generate_docstrings(): Generates docstrings for classes and functions in the file.\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "f6bbd2ba967f316eb7e625f2cce914faf208623b",
+            "docstring": "\"\"\"\nRetrieve a prompt related to a Jira issue.\n\nArguments:\n- jira: An object representing the Jira instance.\n- issue_key: A string containing the key of the Jira issue.\n- default_prompt: A string representing the default prompt to be used if the Jira prompt cannot be retrieved.\n\nReturn:\n- A string containing the prompt related to the Jira issue. If the prompt cannot be retrieved, the default prompt is returned.\n\nExceptions:\n- GetPromptError: Raised if there is an error while trying to retrieve the Jira prompt.\n\nSide Effects:\n- Prints a message if the Jira prompt cannot be retrieved and the default prompt is used.\n\"\"\"",
+            "last_accessed": 1745435475
         },
         {
-            "sha1": "0fff865f4acb396c4b96606f53df14a98d09da6f",
-            "docstring": "\"\"\"\nInitialize the DocumentProcessor object with the provided file path.\n\nArguments:\n- file_path (str): The path to the file to be processed.\n\nSide Effects:\n- Initializes the file_path attribute with the provided file path.\n- Initializes the lines attribute as an empty list.\n- Initializes the ai attribute with an instance of OpenAIProvider.\n- Initializes the line_index attribute to 0.\n- Initializes the cache_file attribute with 'docstring.cache'.\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "b2df19e8fa6106519a0c90d7a8c0919655eea38a",
+            "docstring": "\"\"\"\nLint a description once using a specified AI provider.\n\nArguments:\n- cleaned (str): The cleaned description to be linted.\n- ai_provider (str): The AI provider to use for linting.\n\nSide Effects:\n- Prints the validation issues found during linting.\n\n\"\"\"",
+            "last_accessed": 1745435477
+        }
+    ],
+    "jira_creator/commands/cli_remove_sprint.py": [],
+    "jira_creator/commands/cli_view_issue.py": [],
+    "jira_creator/commands/cli_open_issue.py": [],
+    "jira_creator/commands/cli_add_flag.py": [],
+    "jira_creator/commands/cli_unassign.py": [],
+    "jira_creator/commands/cli_blocked.py": [],
+    "jira_creator/commands/cli_remove_flag.py": [],
+    "jira_creator/commands/__init__.py": [],
+    "jira_creator/commands/cli_quarterly_connection.py": [],
+    "jira_creator/commands/cli_vote_story_points.py": [],
+    "jira_creator/commands/cli_assign.py": [],
+    "jira_creator/commands/cli_lint.py": [],
+    "jira_creator/commands/cli_clone_issue.py": [],
+    "jira_creator/commands/cli_lint_all.py": [
+        {
+            "sha1": "c86be8bb3ea2183111a58edcbd7941338053f59e",
+            "docstring": "\"\"\"\nLint all Jira issues based on specified criteria.\n\nArguments:\n- jira (JIRA): An instance of the JIRA client.\n- ai_provider (AIProvider): An instance of the AI provider.\n- args (Namespace): A namespace object containing parsed command-line arguments.\n    - args.reporter (str): The reporter of the issues to filter by.\n    - args.assignee (str): The assignee of the issues to filter by.\n    - args.project (str): The project key to filter the issues.\n    - args.component (str): The component to filter the issues.\n\nNo return value.\n\nExceptions:\n- None\n\"\"\"",
+            "last_accessed": 1745435178
+        }
+    ],
+    "jira_creator/commands/cli_migrate.py": [
+        {
+            "sha1": "911ee2cb4700d99126ea478056c7eebaa886072b",
+            "docstring": "\"\"\"\nThis script defines a function 'cli_migrate' that migrates an issue in Jira to a new issue type. \nIt takes Jira instance and command line arguments as input, migrates the issue, and prints the migration details.\nIf the migration fails, it raises a MigrateError with an appropriate error message.\n\"\"\"",
+            "last_accessed": 1745435181
         },
         {
-            "sha1": "99a0ffb3349a5addafb6243a8d5b4b49e478a491",
-            "docstring": "\"\"\"\nLoad cached data from a file.\n\nArguments:\n- self: The object instance.\n  It represents the current instance of the class.\n  \nReturn:\n- dict: A dictionary containing the cached data loaded from the file.\n\nExceptions:\n- FileNotFoundError: If the cache file specified by self.cache_file does not exist.\n- JSONDecodeError: If the cached data cannot be decoded as JSON.\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "429296d83088deef31f1a2cf7e6426cb794ac708",
-            "docstring": "\"\"\"\nSave the cache data to a file.\n\nArguments:\n- cache (dict): A dictionary containing the cache data to be saved.\n\nSide Effects:\n- Modifies the content of the cache file specified by self.cache_file by writing the cache data into it.\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "398d1dc3d3070b2224ec20c313ff1a7caff2289d",
-            "docstring": "\"\"\"\nGenerate a SHA-1 hash value for the provided user prompt.\n\nArguments:\n- self: The instance of the class.\n- user_prompt (str): The user prompt for which the SHA-1 hash will be generated.\n\nReturn:\n- str: The SHA-1 hash value (hexadecimal representation) of the user prompt.\n\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "c3cb864b0c51d8d85e0aa1efee370d3575ba01eb",
-            "docstring": "\"\"\"\nReturn the current timestamp as an integer.\n\nArguments:\n- self: The object instance.\n\nReturn:\n- int: The current timestamp as an integer.\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "0e2cb3896b99e8ad8c494952fcd634530e419d30",
-            "docstring": "\"\"\"\nLoad the current cache from the system to be used in the AI system.\n\nArguments:\n- self: The object instance.\n- sys_prompt (str): The system prompt to be used for AI generation.\n- user_prompt (str): The user prompt to be used for AI generation.\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "81493a322851cff2d18e5aebec88c60fb5c4d3ee",
-            "docstring": "\"\"\"\nRemove entries older than the specified number of minutes.\n        \nArguments:\n- self: The object instance.\n- minutes (int): The number of minutes used as a threshold to determine old entries.\n\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "4835b81939aa430286921508d6f1421e46915bb2",
-            "docstring": "\"\"\"\nWrap the given text to fit within a specified maximum line length with optional indentation.\n\nArguments:\n- text (str): The input text to be wrapped.\n- max_length (int): The maximum length of each line after wrapping (default is 120).\n- indent (int): The number of spaces to indent each line (default is 0).\n\nReturns:\n- None\n\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "2a57dd43bcdb84111f43b3ac66a66a86fbdf44c0",
-            "docstring": "\"\"\"\nCounts the number of leading whitespace characters in a given line and divides it by 4.\n\nArguments:\n- self: the instance of the class\n- line (str): a string representing a line of text\n\nReturn:\n- int: the number of leading whitespace characters divided by 4\n\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "1786fd1fdbcc6ebf5c2bdee3597dc52dd533c9c0",
-            "docstring": "\"\"\"\nWrite the content of the 'lines' attribute to a file specified by 'file_path'.\n    \nArguments:\n- self: the object instance.\n    \nSide Effects:\n- Modifies the content of the file specified by 'file_path' by writing the concatenated content of 'lines' attribute to it.\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "ed14279db62725769b77c45f3002f2590acc971f",
-            "docstring": "\"\"\"\nGenerate a class docstring based on the current line in the lines list.\n\nArguments:\n- self: The object instance.\n  \nSide Effects:\n- Prints the class definition (stripped of trailing whitespace).\n\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "f1fb1ee1297ef189810ac871e794cc8c0427d463",
-            "docstring": "\"\"\"\nRetrieve a line of text from a list of lines stored in the 'lines' attribute of the object, using the current 'line_index' as the index.\n    \nArguments:\n- self: The object instance.\n    \nSide Effects:\n- Modifies the 'line' variable by assigning a line of text from the 'lines' attribute to it.\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "75d2f9a6db8133fb3c8a46e14e13aa1590a1112c",
-            "docstring": "\"\"\"\nThis method processes the content of a file by splitting it into lines and removing any empty lines.\nArguments:\n- self: The object instance.\nReturn: None\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "0369c6a37b293ab164dc73831e20692ec4b6716f",
-            "docstring": "\"\"\"\nGenerate a file-level docstring if needed.\n\nArguments:\n- self: The object instance.\n\nReturns:\n- If a file-level docstring should not be added, returns 0.\n\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "28f96e2334b7d4e1743539274d65da1e12c2940e",
-            "docstring": "\"\"\"\nGenerates a docstring for the current file based on its content.\n\nArguments:\n- self: The instance of the class.\n  \nSide Effects:\n- Modifies the 'line_index' attribute of the instance by assigning the value returned by 'generate_file_docstring()'.\n\"\"\"",
-            "last_accessed": 1745433604
-        },
-        {
-            "sha1": "599d37284bf5574574ee242aa048b0c92bc12178",
-            "docstring": "\"\"\"\nGenerates docstrings for Python files located in a specific directory.\n\nArguments:\n- No arguments.\n\nSide Effects:\n- Modifies Python files in the '/tmp' directory by adding docstrings to functions.\n\n\"\"\"",
-            "last_accessed": 1745433604
+            "sha1": "0215f4709ec99e7b4f6fb3194ce08c88801e4133",
+            "docstring": "\"\"\"\nMigrate an issue in Jira to a new type.\n\nArguments:\n- jira (JiraClient): An instance of the Jira client.\n- args (Namespace): A namespace containing the following attributes:\n    - issue_key (str): The key of the issue to be migrated.\n    - new_type (str): The new type to migrate the issue to.\n\nReturn:\n- str: The new key of the migrated issue.\n\nExceptions:\n- MigrateError: Raised if the migration process fails.\n\nSide Effects:\n- Prints the success message if the migration is successful.\n- Prints the error message if the migration fails.\n\"\"\"",
+            "last_accessed": 1745435184
         }
     ]
 }

@@ -1,3 +1,22 @@
+"""
+This module provides a command-line interface (CLI) function to list issues from a Jira project.
+
+The `cli_list_issues` function retrieves and displays issues based on various filtering options such as project,
+component, reporter, assignee, status, summary, and blocked status. It formats the output into a tabular structure,
+ensuring that the summary column is limited to a specified width for better readability.
+
+The function handles potential errors related to listing issues and prints appropriate messages to the console.
+
+Dependencies:
+- `re`: For regular expression operations.
+- `core.env_fetcher`: To fetch environment variables related to Jira fields.
+- `exceptions.exceptions`: Custom exceptions for error handling.
+
+Usage:
+- Call `cli_list_issues(jira, args)` where `jira` is the Jira client instance and `args` contains the filtering
+criteria.
+"""
+
 import re
 
 from core.env_fetcher import EnvFetcher
@@ -6,6 +25,25 @@ from exceptions.exceptions import ListIssuesError
 
 # /* jscpd:ignore-start */
 def cli_list_issues(jira, args):
+    """
+    Retrieve a list of issues from a Jira instance based on the provided arguments.
+
+    Arguments:
+    - jira (Jira): An instance of the Jira client used to interact with the Jira API.
+    - args (Namespace): A Namespace object containing the following attributes:
+    - project (str): The project key for filtering the issues.
+    - component (str): The component name for filtering the issues.
+    - reporter (str): The reporter's username for filtering the issues.
+    - assignee (str): The assignee's username for filtering the issues.
+
+    Side Effects:
+    - Calls the 'list_issues' method of the Jira client to fetch a list of issues based on the provided arguments.
+    - Depending on the presence of 'reporter' attribute in 'args', the issues are filtered by either 'reporter' or
+    'assignee'.
+
+    Note: This function does not return any value explicitly.
+    """
+
     try:
         if args.reporter:
             issues = jira.list_issues(

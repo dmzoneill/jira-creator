@@ -1,7 +1,26 @@
+"""
+This script defines a function 'cli_search_users' that takes a Jira instance and search arguments as input parameters.
+It attempts to search for users using the provided query and prints the user details if found.
+If no users are found, it prints a warning message. If an error occurs during the search, it raises a SearchUsersError
+exception.
+"""
+
 from exceptions.exceptions import SearchUsersError
 
 
 def cli_search_users(jira, args):
+    """
+    Search for users in Jira based on the provided query.
+
+    Arguments:
+    - jira (JIRA): An instance of the JIRA client.
+    - args (Namespace): A namespace object containing the query to search for users.
+
+    Exceptions:
+    - This function may raise an exception if there is an issue with searching for users in Jira.
+
+    """
+
     try:
         users = jira.search_users(args.query)
 

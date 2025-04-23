@@ -1,3 +1,10 @@
+"""
+This module provides a CLI tool for creating Jira issues with enhanced functionality.
+It includes functions for loading templates, interacting with the user to input data, editing descriptions,
+improving text using AI, building Jira payloads, and creating Jira issues.
+Exceptions are handled for file not found, AI errors, and create issue errors.
+"""
+
 import json
 import os
 import subprocess
@@ -9,6 +16,25 @@ from templates.template_loader import TemplateLoader
 
 
 def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
+    """
+    Creates a new issue in Jira based on a template.
+
+    Arguments:
+    - jira (JIRA): An instance of the JIRA class for interacting with the Jira API.
+    - ai_provider (str): The AI provider to use for generating content.
+    - default_prompt (str): The default prompt to use for the issue description.
+    - template_dir (str): The directory where the issue templates are stored.
+    - args (Namespace): Command-line arguments containing the type of the issue.
+
+    Exceptions:
+    - FileNotFoundError: Raised when the template file specified by 'args.type' is not found in 'template_dir'.
+
+    Side Effects:
+    - Prints an error message if the template file is not found.
+    - Raises a FileNotFoundError exception with the original error message.
+
+    """
+
     try:
         template = TemplateLoader(template_dir, args.type)
         fields = template.get_fields()

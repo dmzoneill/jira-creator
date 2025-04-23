@@ -69,43 +69,10 @@
     "jira_creator/rest/ops/list_sprints.py": [],
     "jira_creator/rest/ops/search_users.py": [],
     "jira_creator/rest/ops/set_sprint.py": [],
-    "jira_creator/rest/ops/list_issues.py": [
-        {
-            "sha1": "bf795f21febfd0bba626d65aa5c9782cada61ede",
-            "docstring": "\"\"\"\nThis module provides a function to list JIRA issues based on specified criteria.\n\nThe 'list_issues' function takes various parameters such as project, component, assignee, status, summary, and others to filter the JIRA issues. It constructs a JQL query based on the parameters provided and retrieves the relevant issues using the JIRA API.\n\nThe function also processes the retrieved issues, extracts sprint information, and adds it to each issue before returning the list of filtered issues.\n\nNote: The function includes JSCPD ignore comments to exclude code blocks from duplication detection.\n\"\"\"",
-            "last_accessed": 1745435705
-        },
-        {
-            "sha1": "f2e5519dc8adb5a07b361f7a4e562af4566416c3",
-            "docstring": "\"\"\"\nRetrieve a list of issues based on specified filters.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- get_current_user_fn (function): A function used to retrieve the current user.\n- project (str): Filter issues by project name.\n- component (str): Filter issues by component name.\n- assignee (str): Filter issues by assignee.\n- status (str): Filter issues by status.\n- summary (str): Filter issues by summary.\n- show_reason (bool): Flag to indicate whether to show the reason for the issue.\n- blocked (bool): Flag to filter blocked issues.\n- unblocked (bool): Flag to filter unblocked issues.\n- reporter (str): Filter issues by reporter.\n\nReturns:\nNone\n\n\"\"\"",
-            "last_accessed": 1745435708
-        }
-    ],
-    "jira_creator/rest/ops/remove_from_sprint.py": [
-        {
-            "sha1": "397a8aac103fdcd80d3907d67be98769e7d4ae9c",
-            "docstring": "\"\"\"\nThis module defines a function 'remove_from_sprint' that is used to remove an issue from a sprint in an Agile project management tool. It takes two parameters: 'request_fn' which is a function for making HTTP requests and 'issue_key' which is the key of the issue to be removed from the sprint. If the issue is successfully removed from the sprint, a success message is printed. If an error occurs during the removal process, a failure message is printed and a 'RemoveFromSprintError' exception is raised with an error message. \n\"\"\"",
-            "last_accessed": 1745435710
-        },
-        {
-            "sha1": "681bb7ba850219aa0b7a0f526fca91057b3d2eac",
-            "docstring": "\"\"\"\nRemoves an issue from the current sprint backlog.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the issue to be removed from the sprint backlog.\n\nExceptions:\n- RemoveFromSprintError: Raised when there is an issue removing the specified issue from the sprint backlog.\n\nSide Effects:\n- If successful, prints a message indicating that the issue has been moved to the backlog.\n- If an error occurs, prints a message indicating the failure and raises a RemoveFromSprintError.\n\n\"\"\"",
-            "last_accessed": 1745435713
-        }
-    ],
-    "jira_creator/rest/ops/clone_issue.py": [
-        {
-            "sha1": "e0a576425c840c4c3914b8818a42be021497a898",
-            "docstring": "\"\"\"\nClones an issue by creating a new flag for the specified issue key.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the issue to be cloned.\n\nReturn:\n- dict: A dictionary representing the response from the request function.\n\n\"\"\"",
-            "last_accessed": 1745435714
-        }
-    ],
+    "jira_creator/rest/ops/list_issues.py": [],
+    "jira_creator/rest/ops/remove_from_sprint.py": [],
+    "jira_creator/rest/ops/clone_issue.py": [],
     "jira_creator/rest/client.py": [
-        {
-            "sha1": "5187f6d7e3ee3624d0a156d157c257733190865a",
-            "docstring": "\"\"\"\nA client for interacting with the Jira API, providing methods to manage issues, sprints, and user interactions.\n\nThis module defines the `JiraClient` class, which encapsulates functionality for:\n- Making requests to the Jira API with proper handling of authentication and error management.\n- Caching field metadata for efficient access.\n- Creating, updating, and managing issues, including adding comments, changing issue types, and setting priorities.\n- Retrieving information about users, issues, and sprints.\n- Utility methods for debugging requests using cURL commands.\n\nDependencies:\n- `requests`: For making HTTP requests to the Jira API.\n- `core.env_fetcher`: For fetching environment variables.\n- `exceptions.exceptions`: Custom exceptions for handling request errors.\n- Various utility functions from the `ops` module for specific Jira operations.\n\nUsage:\nInstantiate the `JiraClient` class and use its methods to interact with Jira. Ensure that the necessary environment variables are set for proper configuration.\n\"\"\"",
-            "last_accessed": 1745435906
-        },
         {
             "sha1": "64b2f9d2d9928db350941fbb26985b5423bb1fb6",
             "docstring": "\"\"\"\nA client for interacting with the Jira API, providing methods to manage issues, projects, and various Jira functionalities.\n\nAttributes:\n    jira_url (str): The base URL for the Jira instance.\n    project_key (str): The key of the project to be managed.\n    affects_version (str): The version that the issues affect.\n    component_name (str): The name of the component related to the issues.\n    priority (str): The priority level for the issues.\n    jpat (str): The Jira Personal Access Token for authentication.\n    epic_field (str): The field used for epics in Jira.\n    board_id (str): The ID of the Jira board.\n    fields_cache_path (str): The file path for caching Jira fields.\n    is_speaking (bool): A flag indicating if the client is in speaking mode.\n\nMethods:\n    generate_curl_command(method, url, headers, json_data=None, params=None): Generates a curl command for debugging API requests.\n    cache_fields(): Caches Jira fields for efficient access, checking the cache's age.\n    get_field_name(field_id): Retrieves the name of a Jira field by its ID.\n    build_payload(summary, description, issue_type): Constructs a payload for creating or updating issues.\n    get_acceptance_criteria(issue_key): Retrieves acceptance criteria for a specified issue.\n    set_acceptance_criteria(issue_key, acceptance_criteria): Sets acceptance criteria for a specified issue.\n    get_description(issue_key): Retrieves the description of a specified issue.\n    update_description(issue_key, new_description): Updates the description of a specified issue.\n    create_issue(payload): Creates a new issue in Jira using the provided payload.\n    change_issue_type(issue_key, new_type): Changes the type of a specified issue.\n    migrate_issue(old_key, new_type): Migrates an issue to a new type.\n    add_comment(issue_key, comment): Adds a comment to a specified issue.\n    get_current_user(): Retrieves the current authenticated user.\n    get_user(str): Retrieves a user by their username or ID.\n    get_issue_type(issue_key): Retrieves the type of a specified issue.\n    unassign_issue(issue_key): Unassigns a specified issue.\n    assign_issue(issue_key, assignee): Assigns a specified issue to a user.\n    list_issues(...): Lists issues based on various optional filters.\n    set_priority(issue_key, priority): Sets the priority of a specified issue.\n    set_sprint(issue_key, sprint_id): Assigns a specified issue to a sprint.\n    remove_from_sprint(issue_key): Removes a specified issue from its sprint.\n    add_to_sprint_by_name(issue_key, sprint_name): Adds a specified issue to a sprint by its name.\n    set_status(issue_key, target_status): Sets the status of a specified issue.\n    set_story_epic(issue_key, epic_key): Assigns an epic to a specified story.\n    vote_story_points(issue_key, points): Votes on story points for a specified issue.\n    set_story_points(issue_key, points): Sets story points for a specified issue.\n    block_issue(issue_key, reason): Blocks a specified issue with a reason.\n    unblock_issue(issue_key): Unblocks a specified issue.\n    blocked(...): Lists blocked issues based on various optional filters.\n    search_issues(jql): Searches for issues using a JQL query.\n    search_users(str): Searches for users based on a string.\n    view_issue(issue_key): Retrieves details of a specified issue.\n    add_flag(issue_key): Adds a flag to a specified issue.\n    remove_flag(issue_key): Removes a flag from a specified issue.\n    list_sprints(board_id): Lists sprints for a specified board.\n    set_summary(issue_key): Sets the summary of a specified issue.\n    clone_issue(issue_key): Clones a specified issue.\n\"\"\"",
@@ -337,6 +304,140 @@
             "sha1": "37d0824823d6976c53e9f4be7ad80ee8cd42e2ce",
             "docstring": "\"\"\"\nReturn a prompt message based on the provided issue type.\n\nArguments:\n- issue_type (IssueType): An enum representing the type of the issue.\n\nReturn:\n- str: A prompt message based on the issue type.\n\n\"\"\"",
             "last_accessed": 1745436004
+        }
+    ],
+    "jira_creator/providers/openai_provider.py": [
+        {
+            "sha1": "36d1ff42c4dae8d7f857be5656608e46d9c12e15",
+            "docstring": "\"\"\"\nThis module provides a class, OpenAIProvider, for interacting with the OpenAI API to improve text based on a given prompt and text. It includes a method, improve_text, that sends a request to the OpenAI API and returns the improved text. The class initializes with API key, endpoint, and model fetched from environment variables using the EnvFetcher class. It also handles exceptions by raising AiError in case of API call failure.\n\"\"\"",
+            "last_accessed": 1745436165
+        },
+        {
+            "sha1": "724f157bfcca89276abcb3fa0e84eed84956abf9",
+            "docstring": "\"\"\"\nThis class provides a wrapper to interact with the OpenAI API for text completion and improvement.\n\nAttributes:\n- api_key (str): The API key used to authenticate requests to the OpenAI API.\n- endpoint (str): The URL endpoint for making requests to the OpenAI API chat completions.\n- model (str): The model identifier used for text completion and improvement.\n    \nMethods:\n- improve_text(prompt: str, text: str) -> str: Sends a request to the OpenAI API to improve the given text based on a prompt. It returns the improved text after processing. Raises an AiError if the API call fails.\n\"\"\"",
+            "last_accessed": 1745436167
+        },
+        {
+            "sha1": "43a7c0a65629a7703b6f82fe0d9f69a3df3d683d",
+            "docstring": "\"\"\"\nInitialize a Chatbot instance with API key, endpoint, and model information.\n\nArguments:\n- self: The Chatbot instance itself.\n\nSide Effects:\n- Sets the API key, endpoint URL, and model information for the Chatbot instance.\n\"\"\"",
+            "last_accessed": 1745436169
+        },
+        {
+            "sha1": "4de9beceaba1e150e3cf51be4a6a21da331f6dd9",
+            "docstring": "\"\"\"\nImproves the given text using an external API.\n\nArguments:\n- prompt (str): The prompt to provide context for improving the text.\n- text (str): The text to be improved.\n\nReturn:\n- str: The improved text after processing with the external API.\n\nSide Effects:\n- Makes a request to an external API using the provided prompt and text.\n\"\"\"",
+            "last_accessed": 1745436170
+        }
+    ],
+    "jira_creator/providers/instructlab_provider.py": [
+        {
+            "sha1": "743e144cf72379bc625dcf682b3d49de162648ea",
+            "docstring": "\"\"\"\nThis module defines a class InstructLabProvider that interacts with an AI service to improve text based on a given prompt. It utilizes the requests library to send a POST request to the specified AI_URL with the provided AI_MODEL. The improve_text method takes a prompt and text as input, combines them, and sends the request to the AI service. It then processes the response and returns the improved text. If the request fails, an AiError exception is raised. \n\"\"\"",
+            "last_accessed": 1745436172
+        },
+        {
+            "sha1": "215e26edfc97766e410218053c492d1a23627c06",
+            "docstring": "\"\"\"\nThis class provides a way to interact with an AI model hosted on a specified URL for improving text generation.\n\nAttributes:\n- url (str): The URL of the AI model server.\n- model (str): The name or identifier of the AI model used for text generation.\n\"\"\"",
+            "last_accessed": 1745436174
+        },
+        {
+            "sha1": "8d5908e311bbc8b216bdcb5dcde7ea8e3ae1d7f2",
+            "docstring": "\"\"\"\nInitialize the class instance with AI-related environment variables.\n\nArguments:\n- self: The class instance itself.\n\nSide Effects:\n- Sets the 'url' attribute to the value of the environment variable \"AI_URL\".\n- Sets the 'model' attribute to the value of the environment variable \"AI_MODEL\".\n\"\"\"",
+            "last_accessed": 1745436176
+        },
+        {
+            "sha1": "688eea4e75bb08180ba9497df851274a218fae46",
+            "docstring": "\"\"\"\nSummary:\nThis method sends a POST request to a specified URL with a given prompt and text to improve the text using a specific model. It then returns the improved text obtained from the response.\n\nArguments:\n- self: The instance of the class.\n- prompt (str): The initial prompt to provide context for improving the text.\n- text (str): The text to be improved based on the provided prompt.\n\nReturn:\nstr: The improved text generated by the AI model in response to the provided prompt and text.\n\nExceptions:\n- AiError: Raised when the POST request to the URL fails, indicating an issue with the AI service. The exception message includes details about the failure, such as the status code and response text.\n\"\"\"",
+            "last_accessed": 1745436178
+        }
+    ],
+    "jira_creator/providers/bart_provider.py": [
+        {
+            "sha1": "d4452a502a45df5e16ab5f8403373eea8679288c",
+            "docstring": "\"\"\"\nThis module defines a BARTProvider class used to interact with an AI service for text improvement. \nIt includes a method improve_text(prompt, text) to enhance text based on the given prompt. \nThe class initializes with a default local endpoint URL, which can be overridden using an environment variable. \nIn case of a successful request, the improve_text method returns the improved text; otherwise, it raises an AiError.\n\"\"\"",
+            "last_accessed": 1745436180
+        },
+        {
+            "sha1": "ea27e865a76cb1e6ba3c0c51fdc3b17a2be3e729",
+            "docstring": "\"\"\"\nBARTProvider class represents a provider for interacting with the BART (Bidirectional and Auto-Regressive Transformers) model. \n\nAttributes:\n- url (str): The URL endpoint to communicate with the BART model, fetched from the environment variable \"AI_URL\".\n- headers (dict): A dictionary containing headers for the HTTP request, defaulting to {\"Content-Type\": \"application/json\"}.\n\nMethods:\n- improve_text(prompt: str, text: str) -> str:\n    Combines the provided prompt and text, sends a POST request to the BART model endpoint with the concatenated text, and returns the improved text generated by the model. If the request fails, it raises an AiError with details of the failure.\n\"\"\"",
+            "last_accessed": 1745436182
+        },
+        {
+            "sha1": "2ace49645843e99d4924f83ec128a95de6f15067",
+            "docstring": "\"\"\"\nInitialize the class with a URL and headers for API requests.\n\nArguments:\n- self: the object instance.\n\nSide Effects:\n- Initializes the 'url' attribute with the value fetched from the environment variable \"AI_URL\".\n- Initializes the 'headers' attribute with a dictionary containing the \"Content-Type\" key set to \"application/json\".\n\"\"\"",
+            "last_accessed": 1745436183
+        },
+        {
+            "sha1": "2e3dc346b5e7855c61f748fd22909de213310273",
+            "docstring": "\"\"\"\nImprove the given text using an API endpoint.\n\nArguments:\n- self: The object instance.\n- prompt (str): The initial prompt or context for the text improvement.\n- text (str): The text to be improved.\n\nReturn:\n- str: The improved text generated by the API.\n\nExceptions:\n- This function may raise exceptions related to the HTTP request or response handling.\n\"\"\"",
+            "last_accessed": 1745436185
+        }
+    ],
+    "jira_creator/providers/deepseek_provider.py": [
+        {
+            "sha1": "65a2bb267268f6b1549887e8770b6cdbab4fae09",
+            "docstring": "\"\"\"\nThis module provides a DeepSeekProvider class for interacting with an AI service to improve text quality.\nThe DeepSeekProvider class initializes with default endpoint values fetched from environment variables.\nIt includes a method improve_text(prompt, text) to send a POST request to the AI service and improve the given text.\nIf successful, it returns the improved text; otherwise, it raises an AiError with details of the failure.\n\"\"\"",
+            "last_accessed": 1745436187
+        },
+        {
+            "sha1": "ab2913de7bd47932c9596e3c881d6dd05b8740d7",
+            "docstring": "\"\"\"\nA class that provides methods to interact with a DeepSeek AI service.\n\nAttributes:\n- url (str): The endpoint URL for the AI service, defaults to a local or proxied endpoint.\n- headers (dict): The headers for the HTTP request, with the Content-Type set to application/json.\n- model (str): The AI model used for processing the text data.\n\"\"\"",
+            "last_accessed": 1745436189
+        },
+        {
+            "sha1": "88af8ab10dbc0e4fd5bf633312145e8769627d07",
+            "docstring": "\"\"\"\nInitialize the AIEndpoint class with default values for URL, headers, and model.\n\nArguments:\n- self: The instance of the class.\n\nSide Effects:\n- Initializes the URL, headers, and model attributes using environment variables fetched by EnvFetcher.\n\"\"\"",
+            "last_accessed": 1745436190
+        },
+        {
+            "sha1": "6d054364dc286b2f0b542b533dcdf814a7882bef",
+            "docstring": "\"\"\"\nConcatenates a given prompt with a text, separated by two new lines.\n\nArguments:\n- prompt (str): The initial prompt to be displayed.\n- text (str): The text to be appended to the prompt.\n\nReturn:\n- str: The combined prompt and text.\n\n\"\"\"",
+            "last_accessed": 1745436192
+        }
+    ],
+    "jira_creator/providers/noop_provider.py": [
+        {
+            "sha1": "66d2debb56d5dcf73c2c0963481018f3af3e1141",
+            "docstring": "\"\"\"\nA class representing a provider for improving text using AI.\n\nAttributes:\n- prompt (str): A string representing the prompt for text improvement.\n- text (str): A string representing the text to be improved.\n\"\"\"",
+            "last_accessed": 1745436193
+        },
+        {
+            "sha1": "dd372d778f3fd49a171c6541f430eb7877e14d55",
+            "docstring": "\"\"\"\nSummary:\nThis function returns the original text as is, indicating that no AI provider is configured or available to improve the text.\n\nArguments:\n- prompt (str): The prompt or message indicating the lack of AI provider.\n- text (str): The original text that is returned as there is no AI provider available.\n\nReturn:\n- str: The original text passed as an argument.\n\n\"\"\"",
+            "last_accessed": 1745436195
+        }
+    ],
+    "jira_creator/providers/__init__.py": [
+        {
+            "sha1": "5830c25a59765301aa21eb8402f0c2551ffbb85e",
+            "docstring": "\"\"\"\nThis module provides a function to retrieve AI providers based on the specified name. The function takes a name parameter, which is a string representing the desired AI provider. It attempts to import the corresponding provider class based on the name and returns an instance of that provider.\n\nIf the specified provider is not found or if there is an error during initialization, the function falls back to a default NoAIProvider and prints a warning message.\n\nThe supported AI providers include OpenAI, GPT4All, InstructLab, BART, and DeepSeek. If a provider is not found or if there is an error, appropriate warning messages are printed.\n\nNote: The module assumes the existence of provider classes like OpenAIProvider, GPT4AllProvider, InstructLabProvider, BARTProvider, DeepSeekProvider, and NoAIProvider in the respective modules.\n\nUsage:\n    provider = get_ai_provider(\"openai\")\n    provider.do_something()\n\nReturns:\n    An instance of the specified AI provider class or a NoAIProvider instance if the specified provider is not found or if there is an error during initialization.\n\"\"\"",
+            "last_accessed": 1745436205
+        },
+        {
+            "sha1": "b96452f2a52608969e2ce8f914a1f490989187a6",
+            "docstring": "\"\"\"\nConverts the input name to lowercase.\n\nArguments:\n- name (str): A string representing the name of an AI provider.\n\n\"\"\"",
+            "last_accessed": 1745436206
+        }
+    ],
+    "jira_creator/providers/gpt4all_provider.py": [
+        {
+            "sha1": "7d73d71aa04b8bd84fea65ceec14bfee2adaf333",
+            "docstring": "\"\"\"\nThis module provides a class GPT4AllProvider that serves as a wrapper for the GPT4All model. \nIt allows improving text by generating an improved version based on the given prompt and text.\nThe GPT4AllProvider class has an __init__ method to initialize the model and an improve_text method to generate improved text.\n\"\"\"",
+            "last_accessed": 1745436209
+        },
+        {
+            "sha1": "035a6d5f600a55d9a094a3957f1658dc4cb5ca0f",
+            "docstring": "\"\"\"\nThis class provides a wrapper to interact with the GPT4All model for text improvement.\n\nAttributes:\n- model_name (str): The name of the GPT4All model to be used, defaults to \"ggml-gpt4all-j-v1.3-groovy\".\n- model: An instance of the GPT4All model initialized with the specified model_name.\n\nMethods:\n- improve_text(prompt: str, text: str) -> str: Takes a prompt and text as input, generates an instruction combining them, uses the GPT4All model to improve the text, and returns the improved version.\n\"\"\"",
+            "last_accessed": 1745436210
+        },
+        {
+            "sha1": "2302146bce1cc3f55e8493b08707defc03f1a684",
+            "docstring": "\"\"\"\nInitialize a new instance of the GPT4AllModel class with the specified model name.\n\nArguments:\n- model_name (str): The name of the GPT4All model to be used. Defaults to \"ggml-gpt4all-j-v1.3-groovy\".\n\nExceptions:\n- GTP4AllError: Raised if there is an error loading the GPT4All model.\n\nSide Effects:\n- Initializes the model attribute with an instance of the GPT4All class using the provided model name.\n\"\"\"",
+            "last_accessed": 1745436213
+        },
+        {
+            "sha1": "2134d45ba44750fe513788e600f38f5bfbb7959b",
+            "docstring": "\"\"\"\nImprove the given text by generating an improved version based on the provided prompt.\n\nArguments:\n- prompt (str): The prompt to be displayed before the text for improvement.\n- text (str): The original text that needs to be improved.\n\nReturn:\n- str: The improved version of the text, maintaining the original structure.\n\nSide Effects:\n- Calls a model to generate the improved text based on the prompt and original text.\n\"\"\"",
+            "last_accessed": 1745436215
         }
     ]
 }

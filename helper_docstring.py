@@ -3,8 +3,9 @@ import argparse
 import hashlib
 import json
 import os
-import requests
 import time
+
+import requests
 
 system_prompt_general = f"""
 You will be provided with a Python code.

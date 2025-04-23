@@ -2,6 +2,16 @@ from unittest.mock import MagicMock
 
 
 def test_set_priority(cli):
+    """
+    Set the priority for a JIRA ticket using the provided CLI object.
+
+    Arguments:
+    - cli (object): The CLI object used to interact with the JIRA system.
+
+    Side Effects:
+    - Modifies the 'jira' attribute of the CLI object by assigning it a MagicMock object.
+    """
+
     cli.jira = MagicMock()
 
     class Args:

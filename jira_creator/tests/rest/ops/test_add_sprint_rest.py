@@ -1,9 +1,26 @@
+"""
+This file contains unit tests for the 'add_to_sprint_by_name' method of a client class.
+The tests cover scenarios where the sprint is successfully found and when it is not found.
+Mock objects are used to simulate the behavior of the '_request' method for sprint lookup and assignment.
+The tests assert the correct behavior of the method by checking the number of method calls and exception messages.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest
 
 
 def test_add_to_sprint_by_name_success(client):
+    """
+    Add a sprint to the client by name successfully.
+
+    Arguments:
+    - client: A client object used to interact with a service.
+
+    Side Effects:
+    - Modifies the client object by adding a sprint to it.
+    """
+
     # Mock the _request method to simulate sprint lookup and assignment
     client._request = MagicMock(
         side_effect=[
@@ -20,6 +37,17 @@ def test_add_to_sprint_by_name_success(client):
 
 
 def test_add_to_sprint_by_name_not_found(client):
+    """
+    Simulate a scenario where a sprint is not found by adding it to the sprint by name.
+
+    Arguments:
+    - client: An object representing the client used to interact with a service.
+
+    Side Effects:
+    - Modifies the _request method of the client object to return an empty list when called.
+
+    """
+
     # Mock the _request method to simulate sprint lookup where the sprint is not found
     client._request = MagicMock(return_value={"values": []})
 

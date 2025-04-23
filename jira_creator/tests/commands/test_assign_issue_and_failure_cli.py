@@ -1,4 +1,24 @@
+"""
+This file contains test functions for the 'assign' method in a CLI tool.
+The 'test_assign_success' function tests the successful assignment of an issue using a mock Jira client, while the
+'test_assign_failure' function tests the failure scenario.
+Each test function sets up a mock Jira client behavior, invokes the 'assign' method with specific arguments, captures
+the output, and asserts the expected output message.
+"""
+
+
 def test_assign_success(cli, capsys):
+    """
+    Assign a success test for the assign_issue method in the Jira CLI.
+
+    Arguments:
+    - cli: An instance of the Jira CLI.
+    - capsys: Pytest fixture for capturing stdout and stderr output.
+
+    Side Effects:
+    - Modifies the assign_issue method in the Jira CLI to always return True.
+    """
+
     cli.jira.assign_issue = lambda k, a: True
 
     class Args:
@@ -11,6 +31,20 @@ def test_assign_success(cli, capsys):
 
 
 def test_assign_failure(cli, capsys):
+    """
+    Assign a failure status to a Jira issue using a mock CLI.
+
+    Arguments:
+    - cli: An object representing the CLI (Command Line Interface).
+    - capsys: A fixture provided by pytest to capture stdout and stderr.
+
+    Exceptions:
+    - None
+
+    Side Effects:
+    - Modifies the assign_issue method of the cli.jira object to always return False.
+    """
+
     cli.jira.assign_issue = lambda k, a: False
 
     class Args:

@@ -1,3 +1,40 @@
+"""
+This module contains a set of unit tests for the `cli_talk` command-line interface functionality,
+which includes audio processing, text communication, and various utility functions.
+
+The tests are structured to verify the behavior of functions such as `flush_queue`,
+`fuzzy_digit_cleanup`, `word_digits_to_numbers`, `combine_consecutive_digits`,
+`normalize_issue_references`, `initialize_recognizer`, `process_audio_data`, and
+`process_text_and_communicate`.
+
+Each test case uses the `pytest` framework and includes mock objects to simulate dependencies
+and control the environment in which the functions are tested. The tests ensure that
+functions handle expected inputs and edge cases correctly, including handling exceptions,
+validating outputs, and confirming that interactions with mocked objects occur as intended.
+
+Functions:
+- test_flush_queue_empty_exception: Tests handling of empty queue exceptions in flush_queue.
+- test_do_once: Tests the do_once function.
+- test_cli_exec: Tests the execution of the CLI talk function.
+- test_fuzzy_digit_cleanup: Tests the fuzzy digit cleanup functionality.
+- test_word_digits_to_numbers: Tests conversion of word digits to numbers.
+- test_combine_consecutive_digits: Tests combining consecutive digits into a single number.
+- test_normalize_issue_references: Tests normalization of issue references in text.
+- test_flush_queue: Tests flushing the queue.
+- test_suppress_stderr: Tests suppression of standard error output.
+- test_initialize_recognizer: Tests initialization of the recognizer.
+- test_process_text_and_communicate_normal_case: Tests normal processing of text and AI communication.
+- test_process_text_and_communicate_stop: Tests processing when 'stop' is the input.
+- test_process_text_and_communicate_too_few_words: Tests processing with insufficient words.
+- test_process_audio_data_valid: Tests valid audio data processing.
+- test_process_audio_data_invalid: Tests handling of invalid audio data.
+- test_process_audio_data_empty_result: Tests handling of empty results from audio processing.
+- test_cli_talk: Tests the main CLI talk function with valid audio.
+- test_cli_talk_invalid_audio: Tests the CLI talk function with invalid audio data.
+- test_cli_talk_breaks_loop: Tests the CLI talk function breaking the loop on successful communication.
+- test_callback: Tests the callback function for audio data handling.
+"""
+
 import queue
 import sys
 from unittest.mock import MagicMock, patch
@@ -22,6 +59,17 @@ from commands.cli_talk import (  # isort: skip
 
 # Test Case: flush_queue - Verifies that the function handles queue.Empty exception
 def test_flush_queue_empty_exception():
+    """
+    Simulate a test scenario to ensure an exception is raised when trying to flush an empty queue.
+
+    Arguments:
+    No arguments.
+
+    Exceptions:
+    No exceptions raised explicitly in this function.
+
+    """
+
     # Create a mock queue and put some items in it
     q = queue.Queue()
     q.put("item1")
@@ -41,10 +89,25 @@ def test_flush_queue_empty_exception():
 
 
 def test_do_once():
+    """
+    This function tests the behavior of the 'do_once' function by asserting that its return value is False.
+    """
+
     assert do_once() is False
 
 
 def test_cli_exec(cli, cli_talk_mocks):
+    """
+    Execute a test for a command line interface function.
+
+    Arguments:
+    - cli: The command line interface function to be tested.
+    - cli_talk_mocks: Mock objects for simulating CLI interaction.
+
+    Side Effects:
+    - Defines a class Args with attributes prompt (str) and voice (bool).
+    """
+
     class Args:
         prompt: str
         voice: bool
@@ -54,6 +117,18 @@ def test_cli_exec(cli, cli_talk_mocks):
 
 # Test Case 1: fuzzy_digit_cleanup
 def test_fuzzy_digit_cleanup():
+    """
+    This function performs fuzzy digit cleanup by replacing fuzzy number words with their corresponding numerical
+    digits.
+
+    Arguments:
+    - text (str): A string containing text with fuzzy number words.
+
+    Return:
+    - str: The input text with fuzzy number words replaced by their numerical digits.
+
+    """
+
     assert fuzzy_digit_cleanup("I have forty apples") == "I have four apples"
     assert fuzzy_digit_cleanup("I have tirty oranges") == "I have three oranges"
     assert fuzzy_digit_cleanup("I see a tree") == "I see a three"
@@ -63,6 +138,17 @@ def test_fuzzy_digit_cleanup():
 
 # Test Case 2: word_digits_to_numbers
 def test_word_digits_to_numbers():
+    """
+    Converts word representations of numbers to actual numerical digits in a given sentence.
+
+    Arguments:
+    - sentence (str): A string containing words representing numbers.
+
+    Return:
+    - str: The input sentence with word numbers converted to numerical digits.
+
+    """
+
     assert word_digits_to_numbers("I have four apples") == "I have 4 apples"
     assert word_digits_to_numbers("I have three oranges") == "I have 3 oranges"
     assert word_digits_to_numbers("I see five trees") == "I see 5 trees"
@@ -73,6 +159,17 @@ def test_word_digits_to_numbers():
 
 # Test Case 3: combine_consecutive_digits
 def test_combine_consecutive_digits():
+    """
+    Combine consecutive digits in a string by removing spaces between them.
+
+    Arguments:
+    - s (str): A string containing digits separated by spaces.
+
+    Return:
+    - str: A new string where consecutive digits are combined without spaces.
+
+    """
+
     assert combine_consecutive_digits("4 3 2 1") == "4321"
     assert combine_consecutive_digits("7 5") == "75"
     assert combine_consecutive_digits("1 2 3") == "123"
@@ -81,6 +178,18 @@ def test_combine_consecutive_digits():
 
 # Test Case 4: normalize_issue_references
 def test_normalize_issue_references():
+    """
+    Summary:
+    Normalize the issue references in a given text.
+
+    Arguments:
+    - text (str): The input text that may contain references to issues.
+
+    Return:
+    - str: The input text with normalized issue references.
+
+    """
+
     assert normalize_issue_references("No issues found here") == "No issues found here"
 
     # Testing case where "issue" is followed by digits
@@ -113,6 +222,14 @@ def test_normalize_issue_references():
 
 # Test Case 6: flush_queue
 def test_flush_queue():
+    """
+    Flushes all items from the queue.
+
+    Arguments:
+    No arguments.
+
+    """
+
     q = queue.Queue()
     q.put("item1")
     q.put("item2")
@@ -124,6 +241,20 @@ def test_flush_queue():
 
 # Test Case 8: suppress_stderr
 def test_suppress_stderr():
+    """
+    Suppresses the standard error output temporarily within a context.
+
+    This function is used as a context manager to suppress any output that would normally be printed to the standard
+    error stream (sys.stderr) within the context block.
+
+    Arguments:
+    No arguments are passed explicitly to this function.
+
+    Side Effects:
+    Temporarily suppresses the standard error output within the context block.
+
+    """
+
     with suppress_stderr():
         print("This should not be printed", file=sys.stderr)
 
@@ -134,6 +265,17 @@ def test_suppress_stderr():
 @patch("commands.cli_talk.Model")
 @patch("commands.cli_talk.KaldiRecognizer")
 def test_initialize_recognizer(MockKaldiRecognizer, MockModel):
+    """
+    Initialize a recognizer for testing purposes using mock objects.
+
+    Arguments:
+    - MockKaldiRecognizer: A mock object representing a Kaldi recognizer.
+    - MockModel: A mock object representing a model.
+
+    Side Effects:
+    - Initializes mock objects for model and recognizer for testing.
+    """
+
     # Setup mocks
     mock_model = MagicMock()
     mock_recognizer = MagicMock()
@@ -154,6 +296,18 @@ def test_initialize_recognizer(MockKaldiRecognizer, MockModel):
 
 # Test Case: process_text_and_communicate - Verifies that the text is processed and AI helper is called
 def test_process_text_and_communicate_normal_case(cli):
+    """
+    Processes the given text input for AI completion and communicates the result via CLI.
+
+    Arguments:
+    - cli (bool): A boolean flag indicating whether to communicate the result via CLI.
+    - text (str): The text input to be processed by the AI for completion.
+    - voice (bool): A boolean flag indicating whether the input text includes voice data.
+
+    Side Effects:
+    - Communicates the processed text result via the Command Line Interface (CLI).
+    """
+
     text = "Test input for AI to complete alot"
     voice = True
 
@@ -179,6 +333,17 @@ def test_process_text_and_communicate_normal_case(cli):
 
 
 def test_process_text_and_communicate_stop(cli):
+    """
+    Processes the given text and communicates the stop command via the provided command line interface.
+
+    Arguments:
+    - cli (CommandLineInterface): The command line interface used to communicate the stop command.
+
+    Side Effects:
+    - Modifies the global variables 'text' and 'voice'.
+
+    """
+
     text = "Stop"
     voice = True
 
@@ -193,6 +358,17 @@ def test_process_text_and_communicate_stop(cli):
 
 
 def test_process_text_and_communicate_too_few_words(cli):
+    """
+    Processes the given text and communicates it using a specified method.
+
+    Arguments:
+    - cli (str): The method used for communication.
+
+    Side Effects:
+    - Modifies the 'text' and 'voice' variables.
+
+    """
+
     text = "Too few words"
     voice = True
 
@@ -207,6 +383,17 @@ def test_process_text_and_communicate_too_few_words(cli):
 
 @patch("json.loads")
 def test_process_audio_data_valid(mock_json_loads):
+    """
+    Process valid audio data using mocked JSON loads function.
+
+    Arguments:
+    - mock_json_loads: A MagicMock object representing the mocked JSON loads function.
+
+    Side Effects:
+    - Creates a MagicMock object 'mock_q'.
+    - Creates a MagicMock object 'mock_rec'.
+    """
+
     # Setup
     mock_q = MagicMock()
     mock_rec = MagicMock()
@@ -230,6 +417,17 @@ def test_process_audio_data_valid(mock_json_loads):
 
 @patch("json.loads")
 def test_process_audio_data_invalid(mock_json_loads):
+    """
+    Processes audio data from a JSON file and performs validation.
+
+    Arguments:
+    - mock_json_loads: A MagicMock object for the json.loads function.
+
+    Side Effects:
+    - Creates a MagicMock object for the q variable.
+    - Creates a MagicMock object for the rec variable.
+    """
+
     # Setup
     mock_q = MagicMock()
     mock_rec = MagicMock()
@@ -252,6 +450,16 @@ def test_process_audio_data_invalid(mock_json_loads):
 
 @patch("json.loads")
 def test_process_audio_data_empty_result(mock_json_loads):
+    """
+    Processes audio data and handles empty results.
+
+    Arguments:
+    - mock_json_loads: A mock object for JSON deserialization.
+
+    Side Effects:
+    - Uses MagicMock objects mock_q and mock_rec for testing purposes.
+    """
+
     # Setup
     mock_q = MagicMock()
     mock_rec = MagicMock()
@@ -277,6 +485,20 @@ def test_process_audio_data_empty_result(mock_json_loads):
 
 @pytest.fixture
 def cli_talk_mocks():
+    """
+    Mocks external dependencies for the CLI talk functionality.
+
+    Arguments:
+    No arguments.
+
+    Side Effects:
+    - Mocks the 'flush_queue', 'process_audio_data', 'process_text_and_communicate', 'RawInputStream', 'do_once',
+    'initialize_recognizer', and 'EnvFetcher.get' functions.
+    - Sets return values for 'get' and 'initialize_recognizer' functions.
+    - Mocks the context manager of the 'RawInputStream' stream.
+
+    """
+
     with (
         patch("commands.cli_talk.flush_queue") as mock_flush_queue,
         patch("commands.cli_talk.process_audio_data") as mock_process_audio_data,
@@ -312,6 +534,16 @@ def cli_talk_mocks():
 
 
 def test_cli_talk(cli_talk_mocks):
+    """
+    Simulates a test case for a CLI talk function with voice feature enabled.
+
+    Arguments:
+    - cli_talk_mocks: A MagicMock object containing mocks for CLI talk functionality.
+
+    Side Effects:
+    - Modifies the `args` object by setting the 'voice' attribute to True.
+    """
+
     # Test case where `args` has 'voice'
     args = MagicMock()
     args.voice = True
@@ -345,6 +577,16 @@ def test_cli_talk(cli_talk_mocks):
 
 
 def test_cli_talk_invalid_audio(cli_talk_mocks):
+    """
+    Test the CLI talk function with invalid audio input.
+
+    Arguments:
+    - cli_talk_mocks: Mock objects for CLI talk function testing.
+
+    Side Effects:
+    - Sets up a mock object for the CLI talk function testing.
+    """
+
     # Test case where `args` has 'voice'
     args = MagicMock()
     args.voice = True
@@ -370,6 +612,16 @@ def test_cli_talk_invalid_audio(cli_talk_mocks):
 
 
 def test_cli_talk_breaks_loop(cli_talk_mocks):
+    """
+    Simulates a test case where the 'voice' argument is set to True in a CLI talk function.
+
+    Arguments:
+    - cli_talk_mocks: Mock object used for testing CLI talk functionality.
+
+    Side Effects:
+    - Initializes a MagicMock object to simulate command line arguments with the 'voice' attribute set to True.
+    """
+
     # Test case where `args` has 'voice'
     args = MagicMock()
     args.voice = True
@@ -401,6 +653,10 @@ def test_cli_talk_breaks_loop(cli_talk_mocks):
 
 
 def test_callback():
+    """
+    Create a mock queue for testing purposes.
+    """
+
     # Create a mock queue
     mock_queue = MagicMock()
 

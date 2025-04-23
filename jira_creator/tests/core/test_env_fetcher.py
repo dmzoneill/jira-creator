@@ -1,3 +1,10 @@
+"""
+This script contains unit tests for the EnvFetcher class in core.env_fetcher module.
+It includes tests for retrieving environment variables from the OS, from the pytest context, and for handling missing
+variables.
+The tests use mock objects to simulate different scenarios.
+"""
+
 from unittest.mock import patch
 
 import pytest
@@ -6,6 +13,21 @@ from exceptions.exceptions import MissingConfigVariable
 
 
 def test_get_env_variable_from_os():
+    """
+    Retrieve an environment variable from the OS environment.
+
+    Arguments:
+    No arguments are passed explicitly, as the function internally fetches an environment variable named "JIRA_URL".
+
+    Return:
+    The function returns the value of the "JIRA_URL" environment variable, which is a string representing the URL
+    "https://real-env.com".
+
+    Side Effects:
+    This function interacts with the OS environment variables to fetch the value of the specified variable.
+
+    """
+
     with (
         patch.dict("os.environ", {"JIRA_URL": "https://real-env.com"}),
         patch.dict("sys.modules", {}, clear=True),
@@ -15,12 +37,31 @@ def test_get_env_variable_from_os():
 
 
 def test_get_env_variable_from_pytest_context():
+    """
+    Retrieve an environment variable using the pytest context.
+
+    Arguments:
+    No arguments.
+
+    Return:
+    No return value.
+
+    Exceptions:
+    No exceptions raised.
+    """
+
     with patch.dict("sys.modules", {"pytest": True}):
         result = EnvFetcher.get("PROJECT_KEY")
         assert result == "XYZ"
 
 
 def test_get_env_variable_raises_if_missing():
+    """
+    This function tests the behavior of the 'get' method of the EnvFetcher class when a requested environment variable
+    is missing. It simulates a real run environment with no environment variables set and asserts that the method
+    raises a MissingConfigVariable exception when attempting to retrieve a missing variable.
+    """
+
     with (
         patch.dict("os.environ", {}, clear=True),
         patch.dict("sys.modules", {}, clear=True),
@@ -32,6 +73,17 @@ def test_get_env_variable_raises_if_missing():
 
 
 def test_fetch_all_returns_expected_vars():
+    """
+    Fetches environment variables for the given keys and returns them as a dictionary.
+
+    Arguments:
+    - keys (list): A list of strings representing the keys of the environment variables to fetch.
+
+    Return:
+    - dict: A dictionary where keys are the input keys and values are the corresponding environment variable values.
+
+    """
+
     with patch.dict("sys.modules", {"pytest": True}):
         result = EnvFetcher.fetch_all(["PROJECT_KEY", "COMPONENT_NAME"])
         assert result["PROJECT_KEY"] == "XYZ"

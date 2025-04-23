@@ -1,9 +1,30 @@
+"""
+This file contains a unit test to validate that the block_issue method of the client class is calling the expected
+fields with the correct payload. The test uses a MagicMock object to mock the _request method of the client and checks
+if it is called once with the appropriate arguments. The payload is constructed using values fetched from the
+EnvFetcher class.
+"""
+
 from unittest.mock import MagicMock
 
 from core.env_fetcher import EnvFetcher
 
 
 def test_block_issue_calls_expected_fields(client):
+    """
+    Summary:
+    Mocks the client's request method and calls the block_issue method with specified parameters.
+
+    Arguments:
+    - client (object): The client object used to interact with an external service.
+
+    Return:
+    This function does not return any value.
+
+    Exceptions:
+    This function does not raise any exceptions.
+    """
+
     client._request = MagicMock()
     client.block_issue("ABC-123", "Waiting for dependency")
 

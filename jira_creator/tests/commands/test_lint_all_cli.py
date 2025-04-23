@@ -1,3 +1,29 @@
+"""
+Unit tests for the linting functionality of a CLI application that interacts with JIRA issues.
+
+This module includes various test cases to validate the behavior of the `lint_all` command and the output formatting of
+the `print_status_table` function. It utilizes the `pytest` framework and employs mocking to simulate JIRA interactions
+and responses.
+
+Key features tested include:
+- Correct output formatting for issues with varying progress statuses.
+- Handling of scenarios with no issues assigned, ensuring appropriate messages are displayed.
+- Validation of lint checks, including cases where issues pass and fail linting criteria.
+- Exception handling for simulated errors during JIRA issue retrieval.
+
+Classes:
+- Args: A simple class to simulate command-line arguments for linting.
+- ArgsReporter: A variant of Args with a specified reporter.
+- ArgsAssignee: A variant of Args with a specified assignee.
+
+Functions:
+- test_print_status_table_with_wrapping: Tests the output of the print_status_table function with wrapped text.
+- test_lint_all_all_pass: Tests the behavior when all issues pass the lint checks.
+- test_lint_all_no_issues: Tests the output when no issues are found.
+- test_lint_all_exception: Tests the behavior when an exception occurs during linting.
+- test_lint_all_with_failures: Tests the output when some issues fail lint checks.
+"""
+
 from unittest.mock import MagicMock, patch
 
 from core.env_fetcher import EnvFetcher
@@ -9,6 +35,16 @@ from commands.cli_lint_all import print_status_table  # isort: skip
 
 # Ensure the Args object has the required 'project' and other attributes
 class Args:
+    """
+    This class represents a set of arguments used for a specific project.
+
+    Attributes:
+    project (str): The name of the project. Default value is "TestProject".
+    component (str): The component related to the project, default value is "analytics-hcc-service".
+    reporter: The user responsible for reporting on the project, default value is None.
+    assignee: The user assigned to work on the project, default value is None.
+    """
+
     project = "TestProject"  # Add the required 'project' attribute
     component = "analytics-hcc-service"
     reporter = None
@@ -16,6 +52,16 @@ class Args:
 
 
 class ArgsReporter:
+    """
+    This class represents an ArgsReporter used for reporting project-related information.
+
+    Attributes:
+    project (str): The name of the project being reported on (e.g., "TestProject").
+    component (str): The specific component within the project (e.g., "analytics-hcc-service").
+    reporter (str): The name of the person reporting on the project (e.g., "test").
+    assignee (NoneType): The person assigned to work on the project, can be None if not assigned yet.
+    """
+
     project = "TestProject"  # Add the required 'project' attribute
     component = "analytics-hcc-service"
     reporter = "test"
@@ -23,6 +69,16 @@ class ArgsReporter:
 
 
 class ArgsAssignee:
+    """
+    This class represents an assignee for a specific project.
+
+    Attributes:
+    project (str): The name of the project the assignee is associated with.
+    component (str): The specific component within the project.
+    reporter: The person responsible for reporting on the project.
+    assignee (str): The name of the assignee for the project.
+    """
+
     project = "TestProject"  # Add the required 'project' attribute
     component = "analytics-hcc-service"
     reporter = None
@@ -30,6 +86,17 @@ class ArgsAssignee:
 
 
 def test_print_status_table_with_wrapping(capsys):
+    """
+    Prints a status table with wrapping functionality for the given data.
+
+    Arguments:
+    - capsys: A pytest fixture for capturing stdout and stderr output.
+
+    Side Effects:
+    - Prints a formatted status table with wrapping functionality for the provided data.
+
+    """
+
     # Prepare the mock data
     failure_statuses = [
         {
@@ -72,6 +139,15 @@ def test_print_status_table_with_wrapping(capsys):
 
 @pytest.mark.timeout(1)  # Timeout after 1 second for safety
 def test_lint_all_all_pass(mock_save_cache, cli, capsys):
+    """
+    Set up a mock cache, CLI, and capture system stdout/stderr for testing purposes.
+    Assign a MagicMock object to the 'jira' attribute of the CLI object.
+    Parameters:
+    - mock_save_cache: Mock object for saving cache.
+    - cli: CLI object for testing.
+    - capsys: Capturing system standard output and error streams.
+    """
+
     cli.jira = MagicMock()
 
     # Mock the AI provider (if used in validation)
@@ -100,6 +176,21 @@ def test_lint_all_all_pass(mock_save_cache, cli, capsys):
 
     # Mock the request function to return the issue details
     def mock_request(method, path, **kwargs):
+        """
+        Simulate a mock request and return a dictionary with predefined fields.
+
+        Arguments:
+        - method (str): The HTTP method used in the request.
+        - path (str): The path or endpoint of the request.
+        - **kwargs: Additional keyword arguments that are not used in this function.
+
+        Return:
+        - dict: A dictionary containing predefined fields such as summary, description, priority, status, assignee, etc.
+
+        Side Effects:
+        - This function does not have any side effects as it only returns a predefined dictionary.
+        """
+
         return {
             "fields": {
                 "summary": "OK",
@@ -163,6 +254,18 @@ def test_lint_all_all_pass(mock_save_cache, cli, capsys):
 
 
 def test_lint_all_no_issues(mock_save_cache, cli, capsys):
+    """
+    Simulate linting all files with no issues.
+
+    Arguments:
+    - mock_save_cache: A MagicMock object for saving cache.
+    - cli: An object representing the CLI.
+    - capsys: A fixture to capture stdout and stderr outputs.
+
+    Side Effects:
+    - Sets up a mock Jira object and its AI provider in the CLI object.
+    """
+
     cli.jira = MagicMock()
     cli.jira.ai_provider = MagicMock()
 
@@ -185,6 +288,19 @@ def test_lint_all_no_issues(mock_save_cache, cli, capsys):
 
 
 def test_lint_all_exception(mock_save_cache, cli, capsys):
+    """
+    Lint all exceptions that occur during the test.
+
+    Arguments:
+    - mock_save_cache: Mock object for saving cache.
+    - cli: Command-line interface object.
+    - capsys: Pytest fixture for capturing stdout and stderr.
+
+    Side Effects:
+    - Modifies the 'jira' attribute of the 'cli' object by assigning a MagicMock object to it.
+    - Modifies the 'ai_provider' attribute of the 'cli.jira' object by assigning a MagicMock object to it.
+    """
+
     cli.jira = MagicMock()
     cli.jira.ai_provider = MagicMock()
 
@@ -198,6 +314,18 @@ def test_lint_all_exception(mock_save_cache, cli, capsys):
 
 
 def test_lint_all_with_failures(mock_save_cache, cli, capsys):
+    """
+    Run linting on all files and handle failures gracefully.
+
+    Arguments:
+    - mock_save_cache: MagicMock object for saving cache.
+    - cli: Command Line Interface object.
+    - capsys: pytest fixture for capturing stdout and stderr.
+
+    Side Effects:
+    - Sets the 'jira' attribute of the 'cli' object to a MagicMock object.
+    """
+
     cli.jira = MagicMock()
 
     # Mock the AI provider (if used in validation)
@@ -229,6 +357,25 @@ def test_lint_all_with_failures(mock_save_cache, cli, capsys):
 
     # Mock the request function to return the issue details
     def mock_request(method, path, **kwargs):
+        """
+        Summary:
+        Simulates a mock HTTP request with the specified method, path, and additional keyword arguments, and returns a
+        dictionary containing simulated response fields.
+
+        Arguments:
+        - method (str): The HTTP method used in the request (e.g., GET, POST).
+        - path (str): The path or endpoint of the request.
+        - **kwargs: Additional keyword arguments that can be used to customize the mock request.
+
+        Return:
+        dict: A dictionary containing simulated response fields such as summary, description, priority, status,
+        assignee, reporter, and custom fields fetched using EnvFetcher.
+
+        Side Effects:
+        - This function does not have any side effects as it only generates a mock response dictionary.
+
+        """
+
         return {
             "fields": {
                 "summary": "OK",

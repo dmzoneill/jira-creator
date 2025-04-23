@@ -76,592 +76,910 @@
     "jira_creator/rest/prompts.py": [],
     "jira_creator/providers/openai_provider.py": [],
     "jira_creator/providers/instructlab_provider.py": [],
-    "jira_creator/providers/bart_provider.py": [
+    "jira_creator/providers/bart_provider.py": [],
+    "jira_creator/providers/deepseek_provider.py": [],
+    "jira_creator/providers/noop_provider.py": [],
+    "jira_creator/providers/__init__.py": [],
+    "jira_creator/providers/gpt4all_provider.py": [],
+    "jira_creator/core/env_fetcher.py": [],
+    "jira_creator/exceptions/exceptions.py": [],
+    "jira_creator/templates/template_loader.py": [],
+    "jira_creator/rh_jira.py": [],
+    "jira_creator/tests/test_main_guard_cli.py": [],
+    "jira_creator/tests/conftest.py": [],
+    "jira_creator/tests/test_conftest.py": [],
+    "jira_creator/tests/rest/test_client.py": [],
+    "jira_creator/tests/rest/test_prompt_library.py": [],
+    "jira_creator/tests/rest/test_get_field_names_client.py": [],
+    "jira_creator/tests/rest/ops/test_clone_issue.py": [],
+    "jira_creator/tests/rest/ops/test_status_transition_not_found_rest.py": [],
+    "jira_creator/tests/rest/ops/test_search_rest.py": [],
+    "jira_creator/tests/rest/ops/test_remove_flag.py": [],
+    "jira_creator/tests/rest/ops/test_set_acceptance_criteria_rest.py": [],
+    "jira_creator/tests/rest/ops/test_priority_rest.py": [],
+    "jira_creator/tests/rest/ops/test_set_summary.py": [],
+    "jira_creator/tests/rest/ops/test_get_update_description_rest.py": [],
+    "jira_creator/tests/rest/ops/test_core_rest.py": [],
+    "jira_creator/tests/rest/ops/test_add_sprint_rest.py": [],
+    "jira_creator/tests/rest/ops/test_vote_story_points_rest.py": [],
+    "jira_creator/tests/rest/ops/test_set_story_epic_rest.py": [],
+    "jira_creator/tests/rest/ops/test_set_acceptance_criteria_cli_rest.py": [],
+    "jira_creator/tests/rest/ops/test_list_issues_defaults_rest.py": [],
+    "jira_creator/tests/rest/ops/test_migrate_no_transitions_rest.py": [],
+    "jira_creator/tests/rest/ops/test_epic_payload_field_rest.py": [],
+    "jira_creator/tests/rest/ops/test_unassign_issue_failure_rest.py": [],
+    "jira_creator/tests/rest/ops/test_lint_issue_rest.py": [],
+    "jira_creator/tests/rest/ops/test_sprint_rest.py": [],
+    "jira_creator/tests/rest/ops/test_search_users.py": [],
+    "jira_creator/tests/rest/ops/test_status_rest.py": [],
+    "jira_creator/tests/rest/ops/test_add_flag.py": [],
+    "jira_creator/tests/rest/ops/test_list_issues_rest.py": [],
+    "jira_creator/tests/rest/ops/test_change_issue_type_rest.py": [],
+    "jira_creator/tests/rest/ops/test_remove_from_sprint_exception_rest.py": [],
+    "jira_creator/tests/rest/ops/test_set_story_points_and_clear_rest.py": [],
+    "jira_creator/tests/rest/ops/test_get_user.py": [],
+    "jira_creator/tests/rest/ops/test_get_acceptance_criteria_rest.py": [],
+    "jira_creator/tests/rest/ops/test_assign_issue_rest.py": [],
+    "jira_creator/tests/rest/ops/test_view_issue_rest.py": [],
+    "jira_creator/tests/rest/ops/test_build_payload_rest.py": [],
+    "jira_creator/tests/rest/ops/test_set_status_rest.py": [],
+    "jira_creator/tests/rest/ops/test_get_blocked_issues_rest.py": [],
+    "jira_creator/tests/rest/ops/test_add_to_sprint_board_check_rest.py": [],
+    "jira_creator/tests/rest/ops/test_transition_fallback_rest.py": [],
+    "jira_creator/tests/rest/ops/test_error_handling_change_type_rest.py": [],
+    "jira_creator/tests/rest/ops/test_get_current_user_rest.py": [],
+    "jira_creator/tests/rest/ops/test_list_sprints.py": [],
+    "jira_creator/tests/rest/ops/test_add_comment_rest.py": [],
+    "jira_creator/tests/rest/ops/test_unblock_issue_rest.py": [],
+    "jira_creator/tests/rest/ops/test_create_issue_rest.py": [],
+    "jira_creator/tests/rest/ops/test_block_issue_rest.py": [],
+    "jira_creator/tests/rest/ops/test_get_issue_type_rest.py": [],
+    "jira_creator/tests/rest/ops/test_unassign_issue_success_rest.py": [],
+    "jira_creator/tests/core/test_env_fetcher.py": [],
+    "jira_creator/tests/commands/test_block_cli.py": [],
+    "jira_creator/tests/commands/test_vote_points_cli.py": [],
+    "jira_creator/tests/commands/test_add_flag_cli.py": [],
+    "jira_creator/tests/commands/test_talk_cli.py": [],
+    "jira_creator/tests/commands/test_list_issues_empty_and_exception_cli.py": [],
+    "jira_creator/tests/commands/test_lint_cli.py": [],
+    "jira_creator/tests/commands/test_create_dry_run_cli.py": [],
+    "jira_creator/tests/commands/test_change_type_prints_cli.py": [],
+    "jira_creator/tests/commands/test_search_with_options_cli.py": [],
+    "jira_creator/tests/commands/test_set_priority_cli.py": [],
+    "jira_creator/tests/commands/test_open_issue_cli.py": [],
+    "jira_creator/tests/commands/test_add_comment_blank_cli.py": [],
+    "jira_creator/tests/commands/test_vote_points_invalid_cli.py": [],
+    "jira_creator/tests/commands/test_edit_issue_cli.py": [],
+    "jira_creator/tests/commands/test_add_comment_ai_fail_cli.py": [],
+    "jira_creator/tests/commands/test_migrate_to_exception_cli.py": [],
+    "jira_creator/tests/commands/test_assign_issue_and_failure_cli.py": [],
+    "jira_creator/tests/commands/test_dispatch_cli.py": [],
+    "jira_creator/tests/commands/test_view_user_cli.py": [],
+    "jira_creator/tests/commands/test_run_cli.py": [],
+    "jira_creator/tests/commands/test_lint_all_cli.py": [],
+    "jira_creator/tests/commands/test_change_type_with_exception_cli.py": [],
+    "jira_creator/tests/commands/test_search_users_cli.py": [],
+    "jira_creator/tests/commands/test_add_comment_exception_cli.py": [
         {
-            "sha1": "d4452a502a45df5e16ab5f8403373eea8679288c",
-            "docstring": "\"\"\"\nThis module defines a BARTProvider class used to interact with an AI service for text improvement. \nIt includes a method improve_text(prompt, text) to enhance text based on the given prompt. \nThe class initializes with a default local endpoint URL, which can be overridden using an environment variable. \nIn case of a successful request, the improve_text method returns the improved text; otherwise, it raises an AiError.\n\"\"\"",
-            "last_accessed": 1745436180
-        },
-        {
-            "sha1": "ea27e865a76cb1e6ba3c0c51fdc3b17a2be3e729",
-            "docstring": "\"\"\"\nBARTProvider class represents a provider for interacting with the BART (Bidirectional and Auto-Regressive Transformers) model. \n\nAttributes:\n- url (str): The URL endpoint to communicate with the BART model, fetched from the environment variable \"AI_URL\".\n- headers (dict): A dictionary containing headers for the HTTP request, defaulting to {\"Content-Type\": \"application/json\"}.\n\nMethods:\n- improve_text(prompt: str, text: str) -> str:\n    Combines the provided prompt and text, sends a POST request to the BART model endpoint with the concatenated text, and returns the improved text generated by the model. If the request fails, it raises an AiError with details of the failure.\n\"\"\"",
-            "last_accessed": 1745436182
-        },
-        {
-            "sha1": "2ace49645843e99d4924f83ec128a95de6f15067",
-            "docstring": "\"\"\"\nInitialize the class with a URL and headers for API requests.\n\nArguments:\n- self: the object instance.\n\nSide Effects:\n- Initializes the 'url' attribute with the value fetched from the environment variable \"AI_URL\".\n- Initializes the 'headers' attribute with a dictionary containing the \"Content-Type\" key set to \"application/json\".\n\"\"\"",
-            "last_accessed": 1745436183
-        },
-        {
-            "sha1": "2e3dc346b5e7855c61f748fd22909de213310273",
-            "docstring": "\"\"\"\nImprove the given text using an API endpoint.\n\nArguments:\n- self: The object instance.\n- prompt (str): The initial prompt or context for the text improvement.\n- text (str): The text to be improved.\n\nReturn:\n- str: The improved text generated by the API.\n\nExceptions:\n- This function may raise exceptions related to the HTTP request or response handling.\n\"\"\"",
-            "last_accessed": 1745436185
+            "sha1": "3704cddd0fc622bf2e5f9ebffed1a8ef8ebd9365",
+            "docstring": "\"\"\"\nMocks the add_comment method of a Jira CLI object to raise an AddCommentError exception for testing purposes.\n\nArguments:\n- cli: Jira CLI object to be tested.\n- capsys: Pytest fixture for capturing stdout and stderr.\n\nExceptions:\n- AddCommentError: Raised when the add_comment method encounters an error.\n\n\"\"\"",
+            "last_accessed": 1745437133
         }
     ],
-    "jira_creator/providers/deepseek_provider.py": [
+    "jira_creator/tests/commands/test_set_story_points_cli.py": [
         {
-            "sha1": "65a2bb267268f6b1549887e8770b6cdbab4fae09",
-            "docstring": "\"\"\"\nThis module provides a DeepSeekProvider class for interacting with an AI service to improve text quality.\nThe DeepSeekProvider class initializes with default endpoint values fetched from environment variables.\nIt includes a method improve_text(prompt, text) to send a POST request to the AI service and improve the given text.\nIf successful, it returns the improved text; otherwise, it raises an AiError with details of the failure.\n\"\"\"",
-            "last_accessed": 1745436187
+            "sha1": "696ed86d67abfc0d1a3b8ce5fc9754735e4f6f25",
+            "docstring": "\"\"\"\nThis file contains unit tests for the 'set_story_points' function in the 'cli' module.\nIt includes tests for successful setting of story points, failure cases, and handling of invalid input values.\nThe tests use MagicMock for mocking and pytest for assertions. The 'SetStoryPointsError' exception is tested for failure cases.\n\"\"\"",
+            "last_accessed": 1745437134
         },
         {
-            "sha1": "ab2913de7bd47932c9596e3c881d6dd05b8740d7",
-            "docstring": "\"\"\"\nA class that provides methods to interact with a DeepSeek AI service.\n\nAttributes:\n- url (str): The endpoint URL for the AI service, defaults to a local or proxied endpoint.\n- headers (dict): The headers for the HTTP request, with the Content-Type set to application/json.\n- model (str): The AI model used for processing the text data.\n\"\"\"",
-            "last_accessed": 1745436189
+            "sha1": "1d3f3fa4a9cd5a0dc42f68bb5c0bd1d0465187e2",
+            "docstring": "\"\"\"\nSet story points for a Jira issue using the CLI.\n\nArguments:\n- cli: An object representing the CLI interface.\n\nSide Effects:\n- Modifies the 'jira' attribute of the 'cli' object by setting the 'set_story_points' attribute to a MagicMock object.\n\"\"\"",
+            "last_accessed": 1745437135
         },
         {
-            "sha1": "88af8ab10dbc0e4fd5bf633312145e8769627d07",
-            "docstring": "\"\"\"\nInitialize the AIEndpoint class with default values for URL, headers, and model.\n\nArguments:\n- self: The instance of the class.\n\nSide Effects:\n- Initializes the URL, headers, and model attributes using environment variables fetched by EnvFetcher.\n\"\"\"",
-            "last_accessed": 1745436190
+            "sha1": "86a42c62f3be1458f638b503fc836ae13f2f0f1c",
+            "docstring": "\"\"\"\nSet the story points for a test case and handle failure scenarios.\n\nArguments:\n- cli (CommandLineInterface): An instance of the CommandLineInterface class used for interacting with the command line.\n- capsys (CaptureFixture): Pytest fixture for capturing stdout and stderr output.\n\nExceptions:\n- No explicit exceptions are raised within this function.\n\nSide Effects:\n- This function interacts with the command line interface (cli) to set story points for a test case.\n- It may output information to stdout or stderr using the capsys fixture.\n\nNote: This function likely handles the scenario where setting story points for a test case fails.\n\"\"\"",
+            "last_accessed": 1745437138
         },
         {
-            "sha1": "6d054364dc286b2f0b542b533dcdf814a7882bef",
-            "docstring": "\"\"\"\nConcatenates a given prompt with a text, separated by two new lines.\n\nArguments:\n- prompt (str): The initial prompt to be displayed.\n- text (str): The text to be appended to the prompt.\n\nReturn:\n- str: The combined prompt and text.\n\n\"\"\"",
-            "last_accessed": 1745436192
+            "sha1": "8bcf7032aa0e2ea1cf56e94d4f78cbeb56fb2e95",
+            "docstring": "\"\"\"\nSet the story points for a specific issue identified by the provided issue key.\n\nArguments:\n- issue_key (str): A string representing the unique key of the issue.\n- points (int): An integer indicating the story points to be set for the issue.\n\nExceptions:\n- SetStoryPointsError: Raised when there is a failure in setting the story points for the issue.\n\nSide Effects:\nRaises a SetStoryPointsError exception with a message indicating a fake failure.\n\"\"\"",
+            "last_accessed": 1745437140
+        },
+        {
+            "sha1": "df3c107d6111a23fe12d5cd3b9b607342ff1c63e",
+            "docstring": "\"\"\"\nSet story points for an issue identified by the given key.\n\nArguments:\n- cli: An instance of the command-line interface.\n- capsys: An object capturing stdout and stderr outputs.\n\nExceptions:\n- ValueError: Raised when the points parameter is not a valid integer.\n\nSide Effects:\nNone\n\"\"\"",
+            "last_accessed": 1745437142
         }
     ],
-    "jira_creator/providers/noop_provider.py": [
+    "jira_creator/tests/commands/test_create_file_not_found_cli.py": [
         {
-            "sha1": "66d2debb56d5dcf73c2c0963481018f3af3e1141",
-            "docstring": "\"\"\"\nA class representing a provider for improving text using AI.\n\nAttributes:\n- prompt (str): A string representing the prompt for text improvement.\n- text (str): A string representing the text to be improved.\n\"\"\"",
-            "last_accessed": 1745436193
+            "sha1": "9419e8f60dce90f80074b0a014bee9696a860644",
+            "docstring": "\"\"\"\nThis module contains test cases for the CLI command responsible for creating issues in a project management system (e.g., JIRA). \n\nIt utilizes the pytest framework to define multiple tests that verify the behavior of the `create_issue` function under various scenarios, including:\n- Handling of `FileNotFoundError` when template files are missing.\n- Proper exception handling when the AI service fails.\n- Successful issue creation with appropriate output verification.\n\nEach test case mocks necessary components to isolate the functionality being tested, ensuring that the tests are reliable and do not depend on external systems or files.\n\"\"\"",
+            "last_accessed": 1745437145
         },
         {
-            "sha1": "dd372d778f3fd49a171c6541f430eb7877e14d55",
-            "docstring": "\"\"\"\nSummary:\nThis function returns the original text as is, indicating that no AI provider is configured or available to improve the text.\n\nArguments:\n- prompt (str): The prompt or message indicating the lack of AI provider.\n- text (str): The original text that is returned as there is no AI provider available.\n\nReturn:\n- str: The original text passed as an argument.\n\n\"\"\"",
-            "last_accessed": 1745436195
+            "sha1": "654fdaf6dc88630df04b9f6d56853c4b14ae78fe",
+            "docstring": "\"\"\"\nMock the TemplateLoader to raise FileNotFoundError when trying to load a template file.\nThis function is used for testing purposes and takes a 'cli' parameter representing the command-line interface.\n\"\"\"",
+            "last_accessed": 1745437146
+        },
+        {
+            "sha1": "aa35139e13e23390f53ff204ce75011913c27cc5",
+            "docstring": "\"\"\"\nSet the template directory path for the CLI to a non-existent directory.\n\nArguments:\n- cli (object): An instance of the CLI class.\n- capsys (object): Pytest fixture for capturing stdout and stderr outputs.\n\nSide Effects:\n- Modifies the template directory path of the CLI instance.\n\"\"\"",
+            "last_accessed": 1745437148
+        },
+        {
+            "sha1": "4fd0b6f80b8b88a8b975fb996fa7d38bef43d6ca",
+            "docstring": "\"\"\"\nHandles exception raised when calling the AI service to improve text.\n\nArguments:\n- cli: An object representing the CLI application.\n- capsys: A fixture provided by pytest to capture stdout and stderr.\n\nExceptions:\n- AiError: Raised when the AI service fails to improve the text.\n\nSide Effects:\n- Modifies the behavior of the AI provider by setting the side effect of raising an AiError when improve_text is called.\n\"\"\"",
+            "last_accessed": 1745437151
+        },
+        {
+            "sha1": "176c1949a39904d1afe703e4e8420c90a477dfb1",
+            "docstring": "\"\"\"\nThis function is a test function for the 'cli_create_issue' command. It mocks the behavior of the TemplateLoader class by using MagicMock and Patch to simulate the loading of a template with specific fields and a rendered description. It is used to test the functionality of creating an issue via the CLI.\n\nArguments:\n- cli: An object representing the CLI interface.\n- capsys: A fixture provided by pytest to capture stdout and stderr outputs during testing.\n\nSide Effects:\n- Modifies the behavior of the TemplateLoader class using MagicMock and Patch to simulate specific template loading and rendering.\n\n\"\"\"",
+            "last_accessed": 1745437153
         }
     ],
-    "jira_creator/providers/__init__.py": [
+    "jira_creator/tests/commands/test_set_priority_input_cli_check_love.py": [
         {
-            "sha1": "5830c25a59765301aa21eb8402f0c2551ffbb85e",
-            "docstring": "\"\"\"\nThis module provides a function to retrieve AI providers based on the specified name. The function takes a name parameter, which is a string representing the desired AI provider. It attempts to import the corresponding provider class based on the name and returns an instance of that provider.\n\nIf the specified provider is not found or if there is an error during initialization, the function falls back to a default NoAIProvider and prints a warning message.\n\nThe supported AI providers include OpenAI, GPT4All, InstructLab, BART, and DeepSeek. If a provider is not found or if there is an error, appropriate warning messages are printed.\n\nNote: The module assumes the existence of provider classes like OpenAIProvider, GPT4AllProvider, InstructLabProvider, BARTProvider, DeepSeekProvider, and NoAIProvider in the respective modules.\n\nUsage:\n    provider = get_ai_provider(\"openai\")\n    provider.do_something()\n\nReturns:\n    An instance of the specified AI provider class or a NoAIProvider instance if the specified provider is not found or if there is an error during initialization.\n\"\"\"",
-            "last_accessed": 1745436205
+            "sha1": "6fb53244f93d330f6900686b8cb3a11eaeecbdc0",
+            "docstring": "\"\"\"\nThis script defines a test function 'test_set_priority_love_input' that tests the 'set_priority' method of a CLI class. The test creates a MagicMock object and a custom Args class with issue key and priority attributes. It then captures the output of the method using StringIO and sys.stdout redirection. Finally, it asserts that the output contains a specific message confirming the priority setting. \n\"\"\"",
+            "last_accessed": 1745437155
         },
         {
-            "sha1": "b96452f2a52608969e2ce8f914a1f490989187a6",
-            "docstring": "\"\"\"\nConverts the input name to lowercase.\n\nArguments:\n- name (str): A string representing the name of an AI provider.\n\n\"\"\"",
-            "last_accessed": 1745436206
+            "sha1": "6844a8f1434e2999a65bf2ef87bf1b74b532ce33",
+            "docstring": "\"\"\"\nSet the Jira priority for the 'love' input in the CLI.\n\nArguments:\n- cli: An instance of the CLI object.\n\nSide Effects:\n- Modifies the 'jira' attribute of the CLI object by assigning a MagicMock object to it.\n\"\"\"",
+            "last_accessed": 1745437156
         }
     ],
-    "jira_creator/providers/gpt4all_provider.py": [
+    "jira_creator/tests/commands/test_remove_sprint_exception_cli.py": [
         {
-            "sha1": "7d73d71aa04b8bd84fea65ceec14bfee2adaf333",
-            "docstring": "\"\"\"\nThis module provides a class GPT4AllProvider that serves as a wrapper for the GPT4All model. \nIt allows improving text by generating an improved version based on the given prompt and text.\nThe GPT4AllProvider class has an __init__ method to initialize the model and an improve_text method to generate improved text.\n\"\"\"",
-            "last_accessed": 1745436209
+            "sha1": "392c7a6df495b3d1ec73a990804f16b813f81d00",
+            "docstring": "\"\"\"\nThis file contains a unit test for the remove_sprint method. It mocks the remove_from_sprint method to raise a RemoveFromSprintError exception and tests the behavior of the remove_sprint method when this exception is raised. The test asserts that the error message \"\u274c Failed to remove sprint\" is displayed when the exception occurs.\n\"\"\"",
+            "last_accessed": 1745437158
         },
         {
-            "sha1": "035a6d5f600a55d9a094a3957f1658dc4cb5ca0f",
-            "docstring": "\"\"\"\nThis class provides a wrapper to interact with the GPT4All model for text improvement.\n\nAttributes:\n- model_name (str): The name of the GPT4All model to be used, defaults to \"ggml-gpt4all-j-v1.3-groovy\".\n- model: An instance of the GPT4All model initialized with the specified model_name.\n\nMethods:\n- improve_text(prompt: str, text: str) -> str: Takes a prompt and text as input, generates an instruction combining them, uses the GPT4All model to improve the text, and returns the improved version.\n\"\"\"",
-            "last_accessed": 1745436210
-        },
-        {
-            "sha1": "2302146bce1cc3f55e8493b08707defc03f1a684",
-            "docstring": "\"\"\"\nInitialize a new instance of the GPT4AllModel class with the specified model name.\n\nArguments:\n- model_name (str): The name of the GPT4All model to be used. Defaults to \"ggml-gpt4all-j-v1.3-groovy\".\n\nExceptions:\n- GTP4AllError: Raised if there is an error loading the GPT4All model.\n\nSide Effects:\n- Initializes the model attribute with an instance of the GPT4All class using the provided model name.\n\"\"\"",
-            "last_accessed": 1745436213
-        },
-        {
-            "sha1": "2134d45ba44750fe513788e600f38f5bfbb7959b",
-            "docstring": "\"\"\"\nImprove the given text by generating an improved version based on the provided prompt.\n\nArguments:\n- prompt (str): The prompt to be displayed before the text for improvement.\n- text (str): The original text that needs to be improved.\n\nReturn:\n- str: The improved version of the text, maintaining the original structure.\n\nSide Effects:\n- Calls a model to generate the improved text based on the prompt and original text.\n\"\"\"",
-            "last_accessed": 1745436215
+            "sha1": "d37e78422f8163ce1a1014d8820e5bafa6841bdb",
+            "docstring": "\"\"\"\nMock the remove_from_sprint method to raise an exception during testing.\n\nArguments:\n- cli (object): The CLI object used for testing.\n- capsys (object): The pytest built-in fixture capsys for capturing stdout and stderr.\n\nExceptions:\n- RemoveFromSprintError: An exception raised when attempting to remove an issue from a sprint.\n\"\"\"",
+            "last_accessed": 1745437160
         }
     ],
-    "jira_creator/core/env_fetcher.py": [
+    "jira_creator/tests/commands/test_script_dry_run_cli.py": [
         {
-            "sha1": "ce3cf8bd19d6b2ec8a59f74561665d0213c26429",
-            "docstring": "\"\"\"\nThis module provides a class, EnvFetcher, to fetch and validate Jira-related environment variables. It includes methods to fetch the value of a specific environment variable and to fetch all required Jira-related environment variables.\n\"\"\"",
-            "last_accessed": 1745436278
+            "sha1": "59ca35c918ae2984c5a3c25092d68f8a9c3f32fc",
+            "docstring": "\"\"\"\nThis script contains a test function to perform a dry run of a JIRA creation script. It sets up the environment variables, creates a temporary template file, and mocks the subprocess.run function to avoid actual execution of the script. The script is then called with specific arguments to simulate a dry run, and the call is checked using a mock assertion.\n\"\"\"",
+            "last_accessed": 1745437162
         },
         {
-            "sha1": "55e945d1dc4c3124573bdff21e5cfe81e1eca96a",
-            "docstring": "\"\"\"\nClass to fetch and validate Jira-related environment variables.\n\nAttributes:\n- JIRA_URL (str): The URL of the Jira instance.\n- PROJECT_KEY (str): The key of the Jira project.\n- AFFECTS_VERSION (str): The affected version of the project.\n- COMPONENT_NAME (str): The name of the component.\n- PRIORITY (str): The priority level of the issue.\n- JPAT (str): The Jira personal access token.\n- JIRA_BOARD_ID (str): The ID of the Jira board.\n- AI_PROVIDER (str): The provider of the AI service.\n- AI_API_KEY (str): The API key for the AI service.\n- AI_MODEL (str): The model used for AI processing.\n- AI_URL (str): The URL for the AI service.\n- JIRA_EPIC_FIELD (str): The custom field for Jira epics.\n- JIRA_ACCEPTANCE_CRITERIA_FIELD (str): The custom field for acceptance criteria.\n- JIRA_BLOCKED_FIELD (str): The custom field for blocked status.\n- JIRA_BLOCKED_REASON_FIELD (str): The custom field for blocked reasons.\n- JIRA_STORY_POINTS_FIELD (str): The custom field for story points.\n- JIRA_SPRINT_FIELD (str): The custom field for sprints.\n- VOSK_MODEL (str): The path to the Vosk model file.\n- TEMPLATE_DIR (str): The directory path for templates.\n\nMethods:\n- get(var_name): Fetches the value of the specified environment variable.\n- fetch_all(env_vars): Fetches all specified Jira-related environment variables.\n\"\"\"",
-            "last_accessed": 1745436282
-        },
-        {
-            "sha1": "875f88794cc3093d4974dc6d70c0a5f563a6ca5f",
-            "docstring": "\"\"\"\nFetches the value of the environment variable.\n\nArguments:\n- var_name (str): The name of the environment variable to retrieve the value for.\n\n\"\"\"",
-            "last_accessed": 1745436283
-        },
-        {
-            "sha1": "f948567ac22be12d46e1d2be2f407e673a29fa60",
-            "docstring": "\"\"\"\nFetches all required Jira-related environment variables.\n\nArguments:\n- env_vars (list): A list of environment variables to fetch.\n\nReturn:\n- dict: A dictionary containing the fetched environment variables as key-value pairs.\n\n\"\"\"",
-            "last_accessed": 1745436284
+            "sha1": "027e0a5a42751fc2d4b7829992adc5a65b912da8",
+            "docstring": "\"\"\"\nRun a test script in dry-run mode with predefined environment variables.\n\nArguments:\n    No arguments.\n\nSide Effects:\n    - Sets up a test environment with predefined environment variables for a dry-run test script.\n\n\"\"\"",
+            "last_accessed": 1745437163
         }
     ],
-    "jira_creator/exceptions/exceptions.py": [
+    "jira_creator/tests/commands/test_set_status_print_cli.py": [
         {
-            "sha1": "5af32349c15c8107524c247ae2724214ddb57142",
-            "docstring": "\"\"\"\nThis module defines a variety of custom exceptions related to Jira operations. Each exception represents a specific error scenario that may occur during Jira interactions. These exceptions are derived from the BaseException class and provide detailed error handling for different situations such as missing configuration variables, errors in setting story epic, listing issues, editing issues, fetching descriptions, assigning/unassigning issues, voting story points, updating descriptions, migrating, opening/viewing issues, adding comments, and various other Jira-related operations.\n\"\"\"",
-            "last_accessed": 1745436291
+            "sha1": "4a168864563c312b385de63faab2657b64efff4a",
+            "docstring": "\"\"\"\nThis script contains a test case for the set_status method in a CLI application.\nIt mocks the set_status method using MagicMock and then calls the set_status method with specific arguments.\nFinally, it asserts that the set_status method was called with the correct arguments.\n\"\"\"",
+            "last_accessed": 1745437164
         },
         {
-            "sha1": "5d2587c81edd03507972cd7a13887de842556b3a",
-            "docstring": "\"\"\"\nBase class for all Jira-related exceptions.\n\"\"\"",
-            "last_accessed": 1745436292
-        },
-        {
-            "sha1": "5eed475798a8011981f50b08b5edf76a73466596",
-            "docstring": "\"\"\"\nRepresents an exception raised when a required Jira environment variable is missing.\n\nAttributes:\n    BaseException: The base exception class in Python.\n\"\"\"",
-            "last_accessed": 1745436292
-        },
-        {
-            "sha1": "63d9162e930733eb292d736daae635b721745ec0",
-            "docstring": "\"\"\"\nThis class represents a custom exception for errors related to setting a story epic.\n\nAttributes:\n    No specific attributes are defined in this class.\n\"\"\"",
-            "last_accessed": 1745436293
-        },
-        {
-            "sha1": "318abe3d57791ddb50404ab92dc8280625c53257",
-            "docstring": "\"\"\"\nThis class represents a custom exception called ListIssuesError.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436294
-        },
-        {
-            "sha1": "44a28d4aeba0cbce64bdae8fdfea7e42e02deaca",
-            "docstring": "\"\"\"\nThis class represents a custom exception for errors related to setting acceptance criteria.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436295
-        },
-        {
-            "sha1": "5dda43d69bec0982c80babc2f343a84dd6d04597",
-            "docstring": "\"\"\"\nThis class represents a custom exception called DispatcherError.\n\nAttributes:\n    - None\n\"\"\"",
-            "last_accessed": 1745436296
-        },
-        {
-            "sha1": "441e46fc0b896fd9e9256d1fc8f63faf5cfdca4d",
-            "docstring": "\"\"\"\nThis class represents a custom exception for errors that occur while trying to edit an issue.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436297
-        },
-        {
-            "sha1": "98deff1d50f9bc25eb04b33882b2a30dddd10cef",
-            "docstring": "\"\"\"\nThis class represents a custom exception for errors that occur during fetching descriptions.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436298
-        },
-        {
-            "sha1": "6f068ffdcedea96f143cbe60cb527ee4bbb99a23",
-            "docstring": "\"\"\"\nThis class represents a custom exception for errors related to editing descriptions.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436299
-        },
-        {
-            "sha1": "75a62ce7cd690593df0b7a0312b5942f0ce6d4df",
-            "docstring": "\"\"\"\nA custom exception class for handling errors related to removing items from a sprint.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436300
-        },
-        {
-            "sha1": "18b730a43f883a7e3af2f247e9b5dbb7c25f8c48",
-            "docstring": "\"\"\"\nThis class represents an exception raised when attempting to change the type of an issue.\n\nAttributes:\n    No attributes are defined for this class.\n\"\"\"",
-            "last_accessed": 1745436301
-        },
-        {
-            "sha1": "52811b9c5e230db5ea2f15fbe454a2f904105e88",
-            "docstring": "\"\"\"\nThis class represents an error that occurs when trying to unassign an issue that is not assigned to anyone.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436302
-        },
-        {
-            "sha1": "31c7f15ae69b1a64691c5ed3727bb6882b88f960",
-            "docstring": "\"\"\"\nThis class represents an error that occurs when trying to assign an issue.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436303
-        },
-        {
-            "sha1": "5411d9762275d03aadff2127a97f228a0e18bd7b",
-            "docstring": "\"\"\"\nThis class represents a custom exception called FetchIssueIDError.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436304
-        },
-        {
-            "sha1": "453e878b8169512e7214d95417627cb2a9698397",
-            "docstring": "\"\"\"\nThis class represents a custom exception for errors related to voting story points.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436305
-        },
-        {
-            "sha1": "eb744253faf5c52066007dd769ea530e293037a3",
-            "docstring": "\"\"\"\nThis class represents an exception raised when there is an error in retrieving a prompt.\n\nAttributes:\n    No attributes are defined explicitly in this class.\n\"\"\"",
-            "last_accessed": 1745436306
-        },
-        {
-            "sha1": "9a6849473f9df3ddd9eedcc2732365c582b77cb9",
-            "docstring": "\"\"\"\nThis class represents an exception that is raised when an error occurs while updating a description.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436307
-        },
-        {
-            "sha1": "5b6274810f984010731f0e666ca749a009b3af94",
-            "docstring": "\"\"\"\nThis class represents a custom exception for migration errors.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436308
-        },
-        {
-            "sha1": "8b1e494f7b0508853cb05079018e70399e6f7f13",
-            "docstring": "\"\"\"\nThis class represents an exception for an open issue.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436308
-        },
-        {
-            "sha1": "e5f13435d557f869611d62ddf5f3e676d3306880",
-            "docstring": "\"\"\"\nThis class represents an error that occurs when viewing an issue fails.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436310
-        },
-        {
-            "sha1": "6ae6e2829981684a5d709edc5fbc6dce7f510007",
-            "docstring": "\"\"\"\nThis class represents an error that occurs when attempting to add a sprint to a project.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436310
-        },
-        {
-            "sha1": "723004b93e15082d77b65ce2debab8314981773c",
-            "docstring": "\"\"\"\nThis class represents a custom exception called SetStatusError.\n\nAttributes:\n    - None\n\"\"\"",
-            "last_accessed": 1745436311
-        },
-        {
-            "sha1": "b0604a66ea1239e793915cd597cf80b3fe854242",
-            "docstring": "\"\"\"\nA custom exception class for handling errors related to blocks in a program.\n\nAttributes:\n    No specific attributes defined.\n\"\"\"",
-            "last_accessed": 1745436312
-        },
-        {
-            "sha1": "140634e3c1f6b4a37d0658135dec0b6700292939",
-            "docstring": "\"\"\"\nThis class represents a custom exception called UnBlockError.\n\nAttributes:\n    - No specific attributes defined.\n\"\"\"",
-            "last_accessed": 1745436313
-        },
-        {
-            "sha1": "707571e9cb9e49c60f2b9025a68912a985c6eedd",
-            "docstring": "\"\"\"\nThis class represents an error that occurs when attempting to add a comment.\n\nAttributes:\n    No specific attributes are defined in this class.\n\"\"\"",
-            "last_accessed": 1745436314
-        },
-        {
-            "sha1": "5fff6700ccf1d3f0e89006aeb0487aec66bb4cea",
-            "docstring": "\"\"\"\nThis class represents a custom exception for AI-related errors.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436315
-        },
-        {
-            "sha1": "770aadc9813b4c17fc16bc539cd5198e98085fcb",
-            "docstring": "\"\"\"\nThis class represents a custom exception for search-related errors.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436316
-        },
-        {
-            "sha1": "1dced806bfb385c4ad64d3f771380663bc7d5f5f",
-            "docstring": "\"\"\"\nThis class represents an error that occurs when creating an issue.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436317
-        },
-        {
-            "sha1": "2dcfed58b742882bb7d0485ace200851313be4aa",
-            "docstring": "\"\"\"\nA custom exception class representing an error that occurred during linting all files.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436318
-        },
-        {
-            "sha1": "41388e5a08788b9bb60471242b6c8f7c39d77a7f",
-            "docstring": "\"\"\"\nThis class represents a custom exception for linting errors.\n\nAttributes:\n    No specific attributes.\n\"\"\"",
-            "last_accessed": 1745436319
-        },
-        {
-            "sha1": "f5c861b60d6b3c8827f432d77d0c68c39447e5c4",
-            "docstring": "\"\"\"\nThis class represents a custom exception called SetPriorityError.\n\nAttributes:\n    - None\n\"\"\"",
-            "last_accessed": 1745436320
-        },
-        {
-            "sha1": "09561ee8879a9340abd1b3ca466bbd763661b918",
-            "docstring": "\"\"\"\nThis class represents an error that occurs when trying to set story points for a task in a project management system.\n\nAttributes:\n    No specific attributes are defined for this class.\n\"\"\"",
-            "last_accessed": 1745436321
-        },
-        {
-            "sha1": "e8e4d949d1656cde22ede5a22e700bbf0639a9eb",
-            "docstring": "\"\"\"\nThis class represents a custom exception for handling type errors during a change operation.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436322
-        },
-        {
-            "sha1": "a80319f3e1b8a915b64d00cec2f66fd9119b316f",
-            "docstring": "\"\"\"\nThis class represents an exception for when a list is blocked from performing an operation.\n\nAttributes:\n    No attributes defined.\n\"\"\"",
-            "last_accessed": 1745436322
-        },
-        {
-            "sha1": "00bea594ac75a250e027a6efb0f76fd80cc25147",
-            "docstring": "\"\"\"\nThis class represents an exception for invalid prompts.\n\nAttributes:\n    No specific attributes.\n\"\"\"",
-            "last_accessed": 1745436323
-        },
-        {
-            "sha1": "fbb120080593000240d90915f70d90cd781a7e7b",
-            "docstring": "\"\"\"\nThis class represents an exception raised when there is an error in making a request to the Jira client.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436324
-        },
-        {
-            "sha1": "c39ff762a4a5d366c9dbaf16693bf1baec4c93b9",
-            "docstring": "\"\"\"\nThis class represents a custom exception for handling connection errors that occur on a quarterly basis.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436326
-        },
-        {
-            "sha1": "a00c2a791b266511fe85475c8ef7f1e46e628560",
-            "docstring": "\"\"\"\nThis class represents a custom error called GTP4AllError that inherits from BaseException.\nIt is used to handle specific exceptions related to the GTP4All system.\n\"\"\"",
-            "last_accessed": 1745436327
-        },
-        {
-            "sha1": "d335fb318bf2c114f949a0a4eb37cbced50c7a79",
-            "docstring": "\"\"\"\nThis class represents an error specific to an AI provider.\n\nAttributes:\n    No specific attributes.\n\"\"\"",
-            "last_accessed": 1745436328
-        },
-        {
-            "sha1": "b962311af0ec171773ea1e1188e0ae0a3209f9d3",
-            "docstring": "\"\"\"\nThis class represents a custom exception for errors that occur in an AI helper application.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436329
-        },
-        {
-            "sha1": "06ac0503ada92dfdb5dc7ce02668b20a2634d238",
-            "docstring": "\"\"\"\nThis class represents a custom exception called GetUserError that can be raised in specific situations.\nAttributes:\n    - None\n\"\"\"",
-            "last_accessed": 1745436330
-        },
-        {
-            "sha1": "c8b6140658deab3ed06dd99bad39ad6c4cf92f4a",
-            "docstring": "\"\"\"\nThis class represents an error that occurs during user search operations.\n\nAttributes:\n    None\n\"\"\"",
-            "last_accessed": 1745436332
-        },
-        {
-            "sha1": "7132aab6aee9572dc0359cbbc0a0e166e2d30c12",
-            "docstring": "\"\"\"\nThis class represents a custom exception for flag removal errors.\n\nAttributes:\n    No attributes are defined for this class.\n\"\"\"",
-            "last_accessed": 1745436333
+            "sha1": "1c566c8abe7aebfd6aaf4585f0d98f485cf37574",
+            "docstring": "\"\"\"\nMock the set_status method for a given CLI object.\n\nArguments:\n- cli (object): The CLI object for which the set_status method is being mocked.\n\nSide Effects:\n- Modifies the set_status method of the jira attribute in the provided CLI object.\n\"\"\"",
+            "last_accessed": 1745437166
         }
     ],
-    "jira_creator/templates/template_loader.py": [
+    "jira_creator/tests/commands/test_add_and_remove_sprint_cli.py": [
         {
-            "sha1": "4f32582f6577582fed2d512589776e7afb3a37a4",
-            "docstring": "\"\"\"\nThis module defines a TemplateLoader class used for loading and rendering templates. The TemplateLoader class has methods for loading a template file, retrieving fields from the template, getting the template content, and rendering a description using provided values. The class takes a template directory and an issue type as input during initialization. The render_description method replaces placeholders in the template with corresponding values from a dictionary. \n\"\"\"",
-            "last_accessed": 1745436341
+            "sha1": "1dc6b3dcd0080168317713fc00216fdbca022b27",
+            "docstring": "\"\"\"\nThis script defines unit tests for the 'add_sprint' and 'remove_sprint' functions in the 'cli' module. \nThe tests use MagicMock to mock certain functionalities. \nEach test creates an 'Args' class instance with specific attributes and then calls the corresponding function in the 'cli' module. \nThe tests verify that the expected functions from the 'cli.jira' object are called once. \n\"\"\"",
+            "last_accessed": 1745437168
         },
         {
-            "sha1": "84f2afcfbcdbe05ddcba902211ffd72ac5fcef84",
-            "docstring": "\"\"\"\nClass for loading and processing template files for generating issue descriptions.\n\nAttributes:\n- template_path (Path): The path to the template file for the specified issue type.\n- fields (List[str]): A list of field names extracted from the template file.\n- template_lines (List[str]): A list of lines comprising the template content.\n\nMethods:\n- __init__(template_dir: Path, issue_type: str): Initializes the TemplateLoader by loading the template file.\n- _load_template(): Private method to read and parse the template file, extracting fields and template content.\n- get_fields(): Returns the list of field names extracted from the template.\n- get_template(): Returns the template content as a single string.\n- render_description(values: dict): Processes the template content by replacing placeholders with provided values and returns the rendered description.\n\"\"\"",
-            "last_accessed": 1745436344
+            "sha1": "b5d2c1451e005527b4ae609f1e8546aefa72072b",
+            "docstring": "\"\"\"\nAdds a sprint to a Jira board using the provided CLI.\n\nArguments:\n- cli (object): An instance of the CLI object used to interact with Jira.\n\nSide Effects:\n- Modifies the 'add_to_sprint_by_name' attribute of the 'cli.jira' object by replacing it with a MagicMock object.\n\"\"\"",
+            "last_accessed": 1745437171
         },
         {
-            "sha1": "a2e6c035e7152edd4d420bcd1ea47d1503de81b9",
-            "docstring": "\"\"\"\nInitialize a new instance of the class with the provided template directory and issue type.\n\nArguments:\n- template_dir (Path): The directory where the template files are stored.\n- issue_type (str): The type of the issue for which the template is being loaded.\n\nExceptions:\n- FileNotFoundError: Raised if the template file corresponding to the provided issue type is not found in the template directory.\n\nSide Effects:\n- Initializes instance variables 'template_path', 'fields', and 'template_lines'.\n- Calls the '_load_template' method to load the template file content.\n\n\"\"\"",
-            "last_accessed": 1745436346
-        },
-        {
-            "sha1": "e22e477198c020564f2477ffc83f3ad727ccb60d",
-            "docstring": "\"\"\"\nLoad a template from a file specified by 'template_path' and extract fields and template lines.\n\nArguments:\n- self: The object instance.\n- template_path (str): The path to the template file to be loaded.\n\nSide Effects:\n- Modifies the 'fields' list attribute by appending extracted field names.\n- Modifies the 'template_lines' list attribute by appending lines of the template.\n\n\"\"\"",
-            "last_accessed": 1745436348
-        },
-        {
-            "sha1": "ee268f5445d005ff30cfda8844bcffdbb0732486",
-            "docstring": "\"\"\"\nSummary:\nRetrieve and return the fields stored in the object.\n\nArguments:\n- self: The object instance.\n\nReturn:\n- The fields stored in the object.\n\n\"\"\"",
-            "last_accessed": 1745436350
-        },
-        {
-            "sha1": "a91882c8f328d84efe8a6fcfcbc93d1628d34fe4",
-            "docstring": "\"\"\"\nReturn the template content as a single string by joining the lines.\n\nArguments:\n- self: The object instance.\n\nReturn:\n- str: A single string representing the template content.\n\n\"\"\"",
-            "last_accessed": 1745436351
-        },
-        {
-            "sha1": "f657f45b1007081a47b6c521180798ee8cfbb136",
-            "docstring": "\"\"\"\nRender the description using a template and provided values.\n\nArguments:\n- self: the object instance\n- values (dict): A dictionary containing placeholder-value pairs to substitute in the template.\n\nReturn:\n- str: The rendered description after replacing all placeholders with corresponding values.\n\n\"\"\"",
-            "last_accessed": 1745436352
+            "sha1": "f60744a2c6f6a98d40ef920e2938d8171d69a181",
+            "docstring": "\"\"\"\nRemove a JIRA issue from the current sprint.\n\nArguments:\n- cli: An object representing the command-line interface.\n\nSide Effects:\n- Modifies the 'remove_from_sprint' attribute of the 'jira' object in the 'cli' object.\n\"\"\"",
+            "last_accessed": 1745437173
         }
     ],
-    "jira_creator/rh_jira.py": [
+    "jira_creator/tests/commands/test_blocked_cli.py": [
         {
-            "sha1": "543ca070e424ae44c22151906a91b6cc882489d7",
-            "docstring": "\"\"\"\nA command-line interface (CLI) tool for managing JIRA issues.\n\nThis script provides a set of commands to interact with JIRA, allowing users to create, edit, and manage issues, as well as perform various operations such as assigning users, adding comments, and managing sprints. It integrates with AI services to assist with issue creation and management.\n\nKey Features:\n- Create, edit, and delete JIRA issues.\n- Assign and unassign users to/from issues.\n- Add comments and manage issue statuses.\n- Search for issues using JIRA Query Language (JQL).\n- Integrate AI assistance for issue handling and suggestions.\n- Lint issues for quality checks and provide feedback.\n- Manage sprints and track progress.\n\nDependencies:\n- core.env_fetcher: For fetching environment variables.\n- exceptions.exceptions: Custom exceptions for error handling.\n- providers: For obtaining AI provider instances.\n- rest.client: JIRA client for making API requests.\n- rest.prompts: For handling prompt templates used in AI interactions.\n\nUsage:\nRun the script from the command line, providing appropriate subcommands and arguments based on the desired action.\n\"\"\"",
-            "last_accessed": 1745436391
+            "sha1": "14d8fa9e8763d1962314652eaeac86bb5d199bad",
+            "docstring": "\"\"\"\nThis module contains test cases for the 'blocked' function in the CLI class.\n\nThe test cases include:\n- test_blocked_issues_found: Tests the scenario where blocked issues are found.\n- test_blocked_no_issues: Tests the scenario where no blocked issues are found.\n- test_blocked_none_blocked: Tests the scenario where there are no blocked issues.\n- test_blocked_exception: Tests the scenario where an exception is raised while listing blocked issues.\n\"\"\"",
+            "last_accessed": 1745437174
         },
         {
-            "sha1": "08dfa67ff444dd49d04109b682bf961ca63147f7",
-            "docstring": "\"\"\"\nA command-line interface (CLI) for interacting with JIRA issues, enabling users to manage issues, perform AI-assisted operations, and execute various JIRA-related tasks.\n\nAttributes:\n    jira (JiraClient): An instance of the JiraClient used to interact with the JIRA API.\n    template_dir (Path): The directory path for templates fetched from the environment.\n    ai_provider: The AI provider instance configured based on environment variables.\n    default_prompt: The default prompt for AI interactions.\n    comment_prompt: The prompt used for adding comments to issues.\n    ai_helper_prompt: The prompt used for AI helper functionalities.\n\nMethods:\n    run(): Starts the CLI and handles command-line arguments.\n    _register_subcommands(subparsers): Registers subcommands for issue management and AI assistance.\n    _dispatch_command(args): Dispatches the command based on parsed arguments.\n    ai_helper(args): Executes the AI helper command.\n    open_issue(args): Opens a JIRA issue in the browser.\n    view_issue(args): Displays a JIRA issue in the console.\n    add_comment(args): Adds a comment to a specified JIRA issue.\n    create_issue(args): Creates a new JIRA issue based on provided parameters.\n    list_issues(args): Lists issues assigned to the user with optional filters.\n    change_type(args): Changes the type of a specified JIRA issue.\n    migrate(args): Migrates a specified issue to a new type.\n    edit_issue(args): Edits the description of a specified JIRA issue.\n    unassign(args): Unassigns a user from a specified JIRA issue.\n    assign(args): Assigns a user to a specified JIRA issue.\n    set_priority(args): Sets the priority of a specified JIRA issue.\n    set_story_epic(args): Sets the epic for a specified story issue.\n    remove_sprint(args): Removes a specified issue from its sprint.\n    add_sprint(args): Adds a specified issue to a sprint.\n    set_status(args): Sets the status of a specified JIRA issue.\n    set_acceptance_criteria(args): Sets the acceptance criteria for a specified issue.\n    vote_story_points(args): Votes on story points for a specified issue.\n    set_story_points(args): Sets story points directly for a specified issue.\n    block(args): Marks a specified issue as blocked.\n    unblock(args): Marks a specified issue as unblocked.\n    validate_issue(fields): Validates issue fields using an AI provider.\n    lint(args): Lints a specified issue for quality.\n    lint_all(args): Lints all issues assigned to the user.\n    blocked(args): Lists blocked issues with optional filters.\n    search(args): Searches for issues using JIRA Query Language (JQL).\n    quarterly_connection(args): Performs a quarterly connection report.\n    search_users(args): Searches for users by a specified term.\n    talk(args): Initiates a conversation with JIRA.\n    view_user(args): Displays user information based on account ID.\n    add_flag(args): Adds a flag to a specified issue.\n    remove_flag(args): Removes a flag from a specified issue.\n    list_sprints(args): Lists available sprints.\n    set_summary(args): Sets the summary for a specified issue.\n    clone_issue(args): Clones a specified issue.\n\"\"\"",
-            "last_accessed": 1745436401
+            "sha1": "755be3fb9b8b5f9d584a622467ad562c41bc0a66",
+            "docstring": "\"\"\"\nA class to store information about project arguments.\n\nAttributes:\n    project (str): The name of the project.\n    component (str): The component related to the project.\n    user (str): The user associated with the project.\n\"\"\"",
+            "last_accessed": 1745437176
         },
         {
-            "sha1": "b63354a05f4dfdc183b28c621fc9720626f0953c",
-            "docstring": "\"\"\"\nInitializes the JiraBot object with required variables and settings.\n\nArguments:\n    None\n\nSide Effects:\n    - Initializes a JiraClient object and assigns it to self.jira.\n    - Fetches required environment variables using EnvFetcher.\n    - Sets the template directory path based on the value retrieved from the environment variables.\n    - Retrieves and sets the AI provider based on the value retrieved from the environment variables.\n    - Sets default prompts for different issue types using PromptLibrary.\n\nReturns:\n    None\n\"\"\"",
-            "last_accessed": 1745436403
+            "sha1": "e71b672a76fd3d4ad9906bff23cc11a0f60d0ca0",
+            "docstring": "\"\"\"\nSet up a mock Jira instance for testing purposes.\n\nArguments:\n- cli: Command Line Interface object.\n- capsys: Pytest fixture for capturing stdout and stderr.\n\nSide Effects:\n- Initializes a MagicMock Jira instance on the cli object for testing.\n\"\"\"",
+            "last_accessed": 1745437178
         },
         {
-            "sha1": "d17a65952e7370fd5ceacbc45f45d26010a3d46f",
-            "docstring": "\"\"\"\nSummary:\nInitialize the argcomplete module for command-line argument completion.\n\nArguments:\n- self: The instance of the class.\n  \nExceptions:\nNone\n\"\"\"",
-            "last_accessed": 1745436404
+            "sha1": "d95ba9b30113a8e28e6bd30ef2f4d9752c103f30",
+            "docstring": "\"\"\"\nSummary:\nSimulates a test scenario where no issues are blocked, using a provided CLI object and capsys for capturing system output.\n\nArguments:\n- cli: An object representing the CLI (Command Line Interface) with a 'jira' attribute.\n- capsys: A pytest fixture for capturing stdout and stderr output during the test.\n\nSide Effects:\n- Modifies the 'jira' attribute of the provided 'cli' object by setting it to a MagicMock.\n- Configures the 'list_issues' method of the 'jira' attribute to return an empty list ([]).\n\"\"\"",
+            "last_accessed": 1745437182
         },
         {
-            "sha1": "b153c620810b6fb31eba22e8a568392d6f047634",
-            "docstring": "\"\"\"\nRegisters subcommands for a given argparse subparsers object.\n\nArguments:\n- subparsers (_SubParsersAction): An instance of the argparse subparsers object to which subcommands will be registered.\n\nSide Effects:\nModifies the subparsers object by registering subcommands for it.\n\"\"\"",
-            "last_accessed": 1745436406
+            "sha1": "6c49e5d3b644029fe486e47443580f4542152c31",
+            "docstring": "\"\"\"\nCheck if there are any blocked issues in JIRA.\n\nArguments:\n- cli: An object representing the command-line interface.\n- capsys: A fixture for capturing stdout and stderr output.\n\nReturn: N/A\n\"\"\"",
+            "last_accessed": 1745437184
         },
         {
-            "sha1": "fecb46ab2d06c9a167293a868518994f572a3025",
-            "docstring": "\"\"\"\nCreates a new subparser with the provided name and help text.\n\nArgs:\n    name (str): The name of the subparser.\n    help_text (str): The help text displayed when using the subparser.\n    aliases (list, optional): A list of alternative names for the subparser. Defaults to None.\n\nReturns:\n    argparse.ArgumentParser: The newly created subparser.\n\n\"\"\"",
-            "last_accessed": 1745436407
+            "sha1": "e7398dc321c24ee1e141a509b4cce7b166905172",
+            "docstring": "\"\"\"\nSimulate a test scenario where a ListBlockedError exception is raised when calling the list_issues method on a Jira client object.\n\nArguments:\n- cli: An object representing a Jira client.\n- capsys: A fixture for capturing stdout and stderr output during testing.\n\nExceptions:\n- ListBlockedError: Raised when an issue is blocked, with an error message indicating the blockage.\n\nSide Effects:\n- Modifies the behavior of the list_issues method of the Jira client object to raise a ListBlockedError.\n\nNote: This function is typically used in testing to handle and test scenarios where specific exceptions are raised.\n\"\"\"",
+            "last_accessed": 1745437186
+        }
+    ],
+    "jira_creator/tests/commands/test_try_cleanup_exception_cli.py": [
+        {
+            "sha1": "1036e70ae29fdabcda72d429c5c5e745ad4b95be",
+            "docstring": "\"\"\"\nSimulates an error scenario by mocking the AI provider's improve_text method.\n\nArguments:\n- cli: An instance of the CLI class.\n\nExceptions:\n- AiError: Raised when the improve_text method of the AI provider encounters an error.\n\"\"\"",
+            "last_accessed": 1745437188
+        }
+    ],
+    "jira_creator/tests/commands/test_migrate_success_print_cli.py": [
+        {
+            "sha1": "9cbf274b36f856573bc21025c35e0f8a0f4bdc0a",
+            "docstring": "\"\"\"\nThis script contains a unit test for the 'migrate' method in a CLI application. It mocks the 'migrate_issue' method and 'jira_url' attribute of a 'cli' object using MagicMock. It also creates a mock 'Args' class with 'issue_key' and 'new_type' attributes. The 'migrate' method is then called with an instance of the 'Args' class for testing purposes.\n\"\"\"",
+            "last_accessed": 1745437190
         },
         {
-            "sha1": "9083c52285a81e86249c6da505fef5ecc9caedf5",
-            "docstring": "\"\"\"\nDispatches a command based on the input arguments.\n\nArguments:\n- self: The instance of the class.\n- args (Namespace): A namespace containing the command to be executed.\n\nExceptions:\n- DispatcherError: Raised when the command execution fails.\n\nSide Effects:\n- Prints an error message if the command execution fails.\n\n\"\"\"",
-            "last_accessed": 1745436409
+            "sha1": "354e2d6bc8f35ce851e367fd35ca797da62fabb7",
+            "docstring": "\"\"\"\nMock the migrate_issue method and set the jira_url for the CLI.\n\nArguments:\n- cli: An instance of the CLI class.\n\nSide Effects:\n- Sets the return value of the migrate_issue method to \"AAP-test_migrate_success_print-0\".\n- Sets the jira_url attribute of the cli.jira instance to \"http://fake\".\n\"\"\"",
+            "last_accessed": 1745437192
+        }
+    ],
+    "jira_creator/tests/commands/test_unassign_cli.py": [
+        {
+            "sha1": "533a559251a3490c1ab9489908db9112d642703d",
+            "docstring": "\"\"\"\nThis script defines two test functions: test_unassign_success and test_unassign_failure. \nEach test function mocks the behavior of unassigning an issue in a Jira system using a lambda function. \nThe test_unassign_success function simulates a successful unassignment by returning True, while test_unassign_failure simulates a failed unassignment by returning False. \nBoth functions then assert the presence of specific output messages in the captured stdout using capsys. \nThese tests are designed to validate the behavior of the unassign method in the provided CLI implementation.\n\"\"\"",
+            "last_accessed": 1745437194
         },
         {
-            "sha1": "9f1274e0a7dda63081cbfc99205650454117f023",
-            "docstring": "\"\"\"\nExecute the AI helper functionality with the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed for the AI helper functionality.\n\nSide Effects:\n- Executes the CLI AI helper function with the current object instance, AI provider, AI helper prompt, and the provided arguments.\n\"\"\"",
-            "last_accessed": 1745436412
+            "sha1": "30a31acea73b3d5f0a1f4c72fbb90ce5b99b1ecf",
+            "docstring": "\"\"\"\nUnassign an issue in Jira successfully.\n\nArguments:\n- cli: An object representing the command-line interface.\n- capsys: A fixture provided by pytest to capture stdout and stderr.\n\nSide Effects:\n- Modifies the unassign_issue method of the Jira object in the cli.\n\n\"\"\"",
+            "last_accessed": 1745437195
         },
         {
-            "sha1": "074aec1cd5b655569824e5f3bbdd6cb1659d72fd",
-            "docstring": "\"\"\"\nOpen an issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to open an issue.\n\nSide Effects:\n- Calls the cli_open_issue function with the provided arguments.\n\n\"\"\"",
-            "last_accessed": 1745436413
+            "sha1": "5d209199b4523b64396a0946c98b91d7c7385037",
+            "docstring": "\"\"\"\nSimulates a failure scenario when trying to unassign an issue in Jira.\n\nArguments:\n- cli: An object representing the CLI.\n- capsys: A fixture provided by pytest to capture stdout and stderr outputs.\n\nNo return value.\n\nSide Effects:\n- Modifies the unassign_issue method of the Jira object to always return False.\n\"\"\"",
+            "last_accessed": 1745437201
+        }
+    ],
+    "jira_creator/tests/commands/test_quarterly_connection.py": [
+        {
+            "sha1": "b52de84e64f7e3195f09ba5059ff80d599131ead",
+            "docstring": "\"\"\"\nThis module contains unit tests for the quarterly connection report functionality in the CLI.\n\nThe tests include:\n- test_quarterly_connection_report_success: Tests the successful execution of the quarterly connection report.\n- test_quarterly_connection_report_no_issues: Tests the scenario where no issues are found for the quarterly connection report.\n- test_quarterly_connection_report_error: Tests the handling of QuarterlyConnectionError during the quarterly connection report.\n\nThese tests mock certain methods and classes using MagicMock and patch to isolate the functionality being tested.\n\"\"\"",
+            "last_accessed": 1745437203
         },
         {
-            "sha1": "345d7d0f292cca17d81fe3125f9be822295d8a99",
-            "docstring": "\"\"\"\nView an issue in Jira using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to view the issue in Jira.\n\nSide Effects:\n- Calls the cli_view_issue function with the Jira object and the provided arguments.\n\n\"\"\"",
-            "last_accessed": 1745436414
+            "sha1": "70e1b5fc420a4a0d12175fa8e3202f5fb47966dc",
+            "docstring": "\"\"\"\nGenerate a quarterly connection report successfully.\n\nArguments:\n- cli: An instance of a command-line interface (CLI) used to interact with the system.\n\nThis function mocks the _register_subcommands and _dispatch_command methods to generate a quarterly connection report successfully.\n\"\"\"",
+            "last_accessed": 1745437205
         },
         {
-            "sha1": "28772b62616bf0c40fd57932c41c0d34b9f8df2c",
-            "docstring": "\"\"\"\nAdds a comment to a Jira issue using the provided arguments.\n\nArguments:\n- self: The instance of the class.\n- args (Namespace): A Namespace object containing the necessary arguments for adding a comment to a Jira issue.\n\nSide Effects:\n- Modifies the Jira issue by adding a comment.\n\n\"\"\"",
-            "last_accessed": 1745436416
+            "sha1": "7c564b508d6eb1339f1002a0b60ac54831c05422",
+            "docstring": "\"\"\"\nGenerates a quarterly connection report without any issues.\n\nArguments:\n- cli: An object representing the command-line interface.\n\nSide Effects:\n- Mocks the _register_subcommands and _dispatch_command methods.\n\n\"\"\"",
+            "last_accessed": 1745437207
         },
         {
-            "sha1": "06a62eee048e013e6dde3b4c39d309bf9e5c1caf",
-            "docstring": "\"\"\"\nCreates an issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing arguments for creating the issue.\n\nSide Effects:\n- Calls the cli_create_issue function with the necessary parameters to create an issue.\n\n\"\"\"",
-            "last_accessed": 1745436418
+            "sha1": "3fba80d0c4df01e440882b40caefe002f4773d36",
+            "docstring": "\"\"\"\nGenerates a quarterly connection report error for a given CLI.\n\nArguments:\n- cli (object): An object representing the CLI for which the report error will be generated.\n\nSide Effects:\n- Mocks the _register_subcommands and _dispatch_command methods internally.\n\n\"\"\"",
+            "last_accessed": 1745437209
+        }
+    ],
+    "jira_creator/tests/commands/test_vote_story_points_exception_cli.py": [
+        {
+            "sha1": "41fda9069b1d70de8e9edb59e1e6597797bc86a8",
+            "docstring": "\"\"\"\nTest script to validate the behavior of the vote_story_points method in the cli module.\n\nThe test simulates an error scenario by mocking the vote_story_points method and raising a VoteStoryPointsError.\nIt asserts that the error message is present in the output when the method is called with specific arguments.\n\nThis script uses pytest for testing and unittest.mock for mocking the method behavior.\n\"\"\"",
+            "last_accessed": 1745437210
         },
         {
-            "sha1": "82884bd27273c7d544e8a7d55d53d57c1f14e163",
-            "docstring": "\"\"\"\nSummary:\nCalls a CLI function to list issues based on the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing parsed arguments.\n\nReturn:\nNone\n\n\"\"\"",
-            "last_accessed": 1745436419
+            "sha1": "9d4092a9a46f184a4fb6991b502f6f7ee74558cf",
+            "docstring": "\"\"\"\nSimulate an error when voting for story points in Jira.\n\nArguments:\n- cli: An instance of the CLI class.\n- capsys: A fixture provided by pytest to capture stdout and stderr.\n\nExceptions:\n- VoteStoryPointsError: Raised when simulating an error while voting for story points in Jira.\n\"\"\"",
+            "last_accessed": 1745437211
+        }
+    ],
+    "jira_creator/tests/commands/test_add_sprint_exception_cli.py": [
+        {
+            "sha1": "4da301f28cc920fe5918e71ff5386bc629a1c94c",
+            "docstring": "\"\"\"\nThis script contains a unit test function test_add_sprint_exception to test the handling of an exception in the add_sprint method of a CLI application. The test mocks the add_to_sprint_by_name method using MagicMock to raise an AddSprintError exception. It then calls the add_sprint method with specific arguments and asserts that the exception is raised. The output is captured, and the presence of an expected failure message is checked. The test is designed to verify the behavior of handling exceptions in the add_sprint method.\n\"\"\"",
+            "last_accessed": 1745437213
         },
         {
-            "sha1": "b697d4ca9b98b91ff0798c05d42565d890680354",
-            "docstring": "\"\"\"\nChange the type of an issue in Jira using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to change the type of the issue in Jira.\n\nExceptions:\n- No exceptions are raised explicitly within this function.\n\nSide Effects:\n- Modifies the type of the specified issue in Jira.\n\n\"\"\"",
-            "last_accessed": 1745436421
+            "sha1": "29509d503e1bc93c94e2a29028667971c5a4b823",
+            "docstring": "\"\"\"\nMock the add_to_sprint_by_name method to raise an exception.\n\nArguments:\n- cli: An object representing the command-line interface.\n- capsys: A fixture provided by pytest to capture stdout and stderr.\n\nExceptions:\n- AddSprintError: Raised when the add_to_sprint_by_name method encounters an error.\n\"\"\"",
+            "last_accessed": 1745437215
+        }
+    ],
+    "jira_creator/tests/commands/test_ai_helper_cli.py": [
+        {
+            "sha1": "f663aa02d84f2f74de705c2bbcd3e1677c8c8f03",
+            "docstring": "\"\"\"\nThis module contains unit tests for the AI helper command line interface (CLI) functionality.\nThe tests cover various aspects of the CLI AI helper, including command dispatching, error handling, and output processing.\n\nKey functions tested:\n- `call_function`: Verifies correct command dispatching.\n- `ask_ai_question`: Tests various scenarios including error handling, valid responses, and invalid JSON.\n- `clean_ai_output`: Ensures proper parsing of AI output.\n- `get_cli_command_metadata`: Validates the correct parsing of command metadata for CLI commands.\n\nThe tests utilize the `pytest` framework and include mocking of dependencies to isolate functionality and control test scenarios.\n\"\"\"",
+            "last_accessed": 1745437218
         },
         {
-            "sha1": "784e95e618abf5710cf575ac972b248e32dbf315",
-            "docstring": "\"\"\"\nMigrates data using the provided arguments.\n\nArguments:\n- self: The object itself.\n- args (Namespace): A Namespace object containing parsed command-line arguments.\n\nSide Effects:\n- Calls the cli_migrate function with the Jira instance and the provided arguments.\n\n\"\"\"",
-            "last_accessed": 1745436423
+            "sha1": "db6be01c0fbfe088940d659a26b9a37f3b03d70e",
+            "docstring": "\"\"\"\nSimulates a test scenario for calling a function.\n\nArguments:\n    No arguments.\n\nReturns:\n    No return value.\n\n\"\"\"",
+            "last_accessed": 1745437220
         },
         {
-            "sha1": "fb62240395ec301493b3c5f23ff043725a369308",
-            "docstring": "\"\"\"\nEdit an issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A namespace object containing the arguments needed for editing the issue.\n\nSide Effects:\n- Modifies the state of the issue in Jira based on the provided arguments.\n\n\"\"\"",
-            "last_accessed": 1745436424
+            "sha1": "df7649fc1342f8dd24e4317d0d53702fc96d7c15",
+            "docstring": "\"\"\"\nExecute a test for an AI helper function using the provided command line interface (CLI).\n\nArguments:\n- cli (object): The command line interface object used for testing.\n\nExceptions:\n- Raises an Exception using pytest if an error occurs during the test execution.\n\"\"\"",
+            "last_accessed": 1745437229
         },
         {
-            "sha1": "ca0146fd0c1ce399c232a69668db481031859eac",
-            "docstring": "\"\"\"\nAttempts to clean up the given text using the AI provider.\n\nArgs:\n    prompt (str): The prompt to be used for cleaning up the text.\n    text (str): The text to be cleaned up.\n\nReturns:\n    str: The cleaned-up text after processing with the AI provider.\n\"\"\"",
-            "last_accessed": 1745436425
+            "sha1": "f28596d60e8d5dd531e4f7e44bdecba9792bba84",
+            "docstring": "\"\"\"\nParses CLI command metadata for a specific CLI.\n\nArguments:\n- cli (object): The Command Line Interface (CLI) object to parse metadata for.\n\n\"\"\"",
+            "last_accessed": 1745437231
         },
         {
-            "sha1": "f567850b728743248304d53ac4ce901c4a7ff3a7",
-            "docstring": "\"\"\"\nUnassigns an issue in Jira.\n\nArguments:\n- self: the object instance\n- args (Namespace): A Namespace object containing the arguments needed to unassign the issue.\n\nExceptions:\n- No explicit exceptions are raised within this function.\n\nSide Effects:\n- Modifies the assignment of the specified Jira issue.\n\n\"\"\"",
-            "last_accessed": 1745436427
+            "sha1": "935917a5ab17f57e804d2ce545556b2ad9cfcfe0",
+            "docstring": "\"\"\"\nClean the output of an AI tool by parsing and converting it into a list of dictionaries.\n\nArguments:\n- raw_valid (str): A string containing JSON-formatted data outputted by an AI tool.\n\nReturn:\n- list: A list of dictionaries representing the parsed data extracted from the input string.\n\nExceptions: \n- None\n\"\"\"",
+            "last_accessed": 1745437233
         },
         {
-            "sha1": "b3cf9df456fd9828de3072c67dc51d9b3bd73a94",
-            "docstring": "\"\"\"\nAssign an issue in Jira to a user.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing command-line arguments.\n\nExceptions: \n- None\n\nSide Effects:\n- Modifies the assignment of an issue in Jira.\n\nReturn: \n- None\n\"\"\"",
-            "last_accessed": 1745436429
+            "sha1": "68fed2d80194d073707880c7b759efcc98f86d29",
+            "docstring": "\"\"\"\nSimulate an exception scenario in the CLI AI helper.\n\nArguments:\n- cli: An instance of the CLI to be tested.\n\nExceptions:\n- AIHelperError: Raised when there is an error fetching metadata.\n\nSide Effects:\n- Modifies the behavior of 'get_cli_command_metadata' to raise an exception.\n\nThe function tests the CLI AI helper by mocking the 'get_cli_command_metadata' function to raise an 'AIHelperError' exception. It then asserts that the exception is raised when the function is called with the provided mocks.\n\"\"\"",
+            "last_accessed": 1745437235
         },
         {
-            "sha1": "ad230ef239f4a8bd92c6e41bae2976650fe5473e",
-            "docstring": "\"\"\"\nSet the priority of a Jira issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to set the priority.\n\nExceptions:\n- No exceptions are raised explicitly within this function.\n\n\"\"\"",
-            "last_accessed": 1745436431
+            "sha1": "420d0f2e46a1ff0f51f4243d5bb285b2735b0b95",
+            "docstring": "\"\"\"\nSimulate asking an AI question and handle error response.\n\nArguments:\n- mock_os_system: A MagicMock object mocking the os.system function.\n- mock_gtts: A MagicMock object mocking the Google Text-to-Speech function.\n\nExceptions: \nNone\n\"\"\"",
+            "last_accessed": 1745437237
         },
         {
-            "sha1": "5c42f6ad629a7412598688da5ced295bfafb297a",
-            "docstring": "\"\"\"\nSet the epic for a story in Jira.\n\nArguments:\n- self: the object instance\n- args (Namespace): A namespace containing the arguments for setting the epic of a story in Jira.\n\nExceptions:\n- None\n\nSide Effects:\n- Modifies the epic of a story in Jira.\n\n\"\"\"",
-            "last_accessed": 1745436433
+            "sha1": "301eb4e33d9c2364bda40b37b2df5cafb00ce1fe",
+            "docstring": "\"\"\"\nSimulates asking an AI system a question without errors.\n\nArguments:\n- mock_os_system: MagicMock object for mocking the OS system.\n- mock_gtts: MagicMock object for mocking the Google Text-to-Speech service.\n\n\"\"\"",
+            "last_accessed": 1745437239
         },
         {
-            "sha1": "4c6345844cb1f8851243e53c6407e49b92d33763",
-            "docstring": "\"\"\"\nRemove a sprint from Jira board.\n\nArguments:\n- self: the instance of the class.\n- args (Namespace): A Namespace object containing parsed arguments from the command line.\n\nExceptions:\n- None\n\nSide Effects:\n- Modifies the Jira board by removing a sprint.\n\n\"\"\"",
-            "last_accessed": 1745436434
+            "sha1": "df02b470e3d2debf058733a11c92f704bb4da2c8",
+            "docstring": "\"\"\"\nSimulates the steps for asking an AI question in a test environment.\n\nArguments:\n- mock_call_function: A MagicMock object representing a function call.\n- mock_os_system: A MagicMock object representing an OS system call.\n- mock_gtts: A MagicMock object representing Google Text-to-Speech.\n\nNo return value.\n\nSide Effects:\n- Initializes mock_client as a MagicMock object.\n- Initializes mock_ai_provider as a MagicMock object with the improve_text method returning a specific JSON string.\n\"\"\"",
+            "last_accessed": 1745437241
         },
         {
-            "sha1": "3e1400762bcfded5859dbf4324d46c3b897c6d25",
-            "docstring": "\"\"\"\nAdds a sprint to a Jira board using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the necessary arguments for adding a sprint.\n\nExceptions:\n- None\n\n\"\"\"",
-            "last_accessed": 1745436436
+            "sha1": "71b4ce110988d91d054d663501900e4de6194f3c",
+            "docstring": "\"\"\"\nSimulate asking an AI question with empty steps.\n\nArguments:\n- mock_os_system: A MagicMock object representing the mocked os.system function.\n- mock_gtts: A MagicMock object representing the mocked gtts library.\n\n\"\"\"",
+            "last_accessed": 1745437243
         },
         {
-            "sha1": "48fe719a09094988c8f9b632d88a8f2ab59548b3",
-            "docstring": "\"\"\"\nSet the status of an issue in Jira using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A namespace containing the arguments needed to set the status of an issue in Jira.\n\nExceptions: \n- None\n\nSide Effects:\n- Modifies the status of an issue in Jira.\n\nReturn:\n- None\n\"\"\"",
-            "last_accessed": 1745436437
+            "sha1": "d416746d5769e1e4cd307e4f8aa2317f2553e5cd",
+            "docstring": "\"\"\"\nSimulates asking an AI question with invalid JSON input.\n\nArguments:\n- mock_os_system: MagicMock object for mocking the os.system function.\n- mock_gtts: MagicMock object for mocking the Google Text-to-Speech function.\n\nSide Effects:\n- Creates a MagicMock object for client simulation.\n- Creates a MagicMock object for AI provider simulation with a method to improve text.\n\n\"\"\"",
+            "last_accessed": 1745437245
         },
         {
-            "sha1": "fc5cfb3f9a0181b8b4ff28fb4047d3b11c03ca8d",
-            "docstring": "\"\"\"\nSet acceptance criteria for a Jira issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the command-line arguments.\n\nExceptions: \nNone\n\nSide Effects: \nCalls the cli_set_acceptance_criteria function with the Jira instance and the provided arguments.\n\nReturn: \nNone\n\"\"\"",
-            "last_accessed": 1745436439
+            "sha1": "7ed805fb9bf1d59e0bbf7b053fe389ec915fe12d",
+            "docstring": "\"\"\"\nSimulate a successful test scenario for a CLI AI helper function.\n\nArguments:\n- mock_ask_ai_question: A mock object for asking AI questions.\n- mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.\n- cli: The CLI object used for testing.\n\nSide Effects:\n- Sets up mock return values for the dependencies to simulate a successful test scenario.\n\"\"\"",
+            "last_accessed": 1745437247
+        }
+    ],
+    "jira_creator/tests/commands/test_add_comment_with_text_cli.py": [
+        {
+            "sha1": "2615f609f63d0109f277c2f0048c938b53acbc37",
+            "docstring": "\"\"\"\nThis script contains a unit test function test_add_comment_with_text that tests the add_comment method of a CLI class. It mocks dependencies using MagicMock from unittest.mock. The test verifies that the add_comment method correctly cleans and adds a comment to a Jira issue, and outputs a success message. \n\"\"\"",
+            "last_accessed": 1745437249
         },
         {
-            "sha1": "769f72cc15ee76191347986de8400772c78d354c",
-            "docstring": "\"\"\"\nCast a vote for story points on a Jira issue.\n\nArguments:\n- self: The current instance of the class.\n- args (Namespace): A namespace object containing parsed command-line arguments.\n\nExceptions:\n- No explicit exceptions are raised by this function.\n\nSide Effects:\n- Calls the 'cli_vote_story_points' function with the Jira instance and provided arguments.\n\n\"\"\"",
-            "last_accessed": 1745436440
+            "sha1": "e012459ece57d6c2e9e85bf845a1811a68cd2bdf",
+            "docstring": "\"\"\"\nAdds a comment with text using the provided CLI object.\n\nArguments:\n- cli (object): The CLI object containing the necessary methods and attributes.\n- capsys (object): The capsys object for capturing stdout and stderr outputs.\n\n\"\"\"",
+            "last_accessed": 1745437250
+        }
+    ],
+    "jira_creator/tests/commands/test_clone_issue_cli.py": [
+        {
+            "sha1": "c616d5479ac24a881c0c240697b99823b60f70ea",
+            "docstring": "\"\"\"\nMocks the 'clone_issue' method in the 'cli.jira' object for testing purposes.\n\nArguments:\n- cli: An object representing the CLI (Command Line Interface).\n- capsys: A fixture provided by pytest to capture stdout and stderr outputs during testing.\n\n\"\"\"",
+            "last_accessed": 1745437252
+        }
+    ],
+    "jira_creator/tests/commands/test_set_summary_cli.py": [
+        {
+            "sha1": "a6de95f10f9c5198011d8f7a092c0399bf4390da",
+            "docstring": "\"\"\"\nSet a summary for a Jira issue using a mocked CLI.\n\nArguments:\n- cli: A mocked CLI object.\n- capsys: A fixture for capturing stdout and stderr outputs.\n\n\"\"\"",
+            "last_accessed": 1745437253
+        }
+    ],
+    "jira_creator/tests/commands/test_register_subcommands_cli.py": [
+        {
+            "sha1": "fa7b3d42d64ae22e7168983195f7eed65f26b34e",
+            "docstring": "\"\"\"\nThis script defines a function test_register_subcommands_does_not_crash(cli) that tests the _register_subcommands method of a CLI class. It creates a dummy parser object using lambda functions to simulate the behavior of the add_parser and add_argument methods. The test function is designed to ensure that the _register_subcommands method does not crash when called with the dummy parser object.\n\"\"\"",
+            "last_accessed": 1745437255
         },
         {
-            "sha1": "40a5d00d76dc30c3e1d9821e75473873b5c16d5f",
-            "docstring": "\"\"\"\nSet the story points for a Jira issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to set story points for a Jira issue.\n\nExceptions:\n- None\n\nSide Effects:\n- Calls the cli_set_story_points function with the Jira instance and provided arguments.\n\nReturn:\n- None\n\"\"\"",
-            "last_accessed": 1745436442
+            "sha1": "53f93ab81a01d99b2aed500b39423db4c724a1b0",
+            "docstring": "\"\"\"\nRegister subcommands for the CLI without crashing.\n\nArguments:\n- cli: An instance of the CLI class.\n\nSide Effects:\n- Modifies the subcommands of the CLI instance by registering them using the provided parser.\n\"\"\"",
+            "last_accessed": 1745437257
+        }
+    ],
+    "jira_creator/tests/commands/test_view_issue_cli.py": [
+        {
+            "sha1": "345c20d5f40287332dcf54a845f4560db4ca2012",
+            "docstring": "\"\"\"\nThis script contains unit tests for the view_issue function in the cli module. It uses MagicMock to mock certain functionalities and pytest for testing exceptions. The tests validate the behavior of viewing an issue and handling exceptions when viewing an issue fails. The tests verify that the correct messages are printed and the expected functions are called with the appropriate arguments.\n\"\"\"",
+            "last_accessed": 1745437258
         },
         {
-            "sha1": "7ce3656c74b145989a5472232b6b01c64c0a4d1f",
-            "docstring": "\"\"\"\nExecute a blocking operation using arguments provided in the Namespace object.\n\nArguments:\n- self: the instance of the class containing the method.\n- args (Namespace): Namespace object containing arguments for the operation.\n\nSide Effects:\n- Executes a blocking operation using the provided arguments.\n\n\"\"\"",
-            "last_accessed": 1745436444
+            "sha1": "28dd1710448a0d2a6c2726c35bcd223bc72355a8",
+            "docstring": "\"\"\"\nSimulate a test scenario for viewing an issue.\n\nArguments:\n- cli: An object representing the command line interface for testing.\n- capsys: An object to capture stdout and stderr during testing.\n\nSide Effects:\n- Initializes a dictionary 'blob' with key-value pairs representing issue details.\n\n\"\"\"",
+            "last_accessed": 1745437260
         },
         {
-            "sha1": "690d3c328a8b146685f911581029349796606506",
-            "docstring": "\"\"\"\nUnblocks an item in Jira using the provided arguments.\n\nArguments:\n- self: the instance of the class.\n- args (Namespace): Namespace object containing the arguments needed to unblock the item in Jira.\n\nSide Effects:\n- Modifies the state of the item in Jira by unblocking it.\n\n\"\"\"",
-            "last_accessed": 1745436445
+            "sha1": "71cda115d372b03a4d4af54c82423d6a37f5a8ac",
+            "docstring": "\"\"\"\nSimulate an exception when viewing an issue in Jira for testing purposes.\n\nArguments:\n- cli: The Jira command line interface object.\n- capsys: The pytest fixture for capturing stdout and stderr.\n\nExceptions:\n- ViewIssueError: Raised when there is a failure while viewing an issue in Jira.\n\n\"\"\"",
+            "last_accessed": 1745437262
+        }
+    ],
+    "jira_creator/tests/commands/test_create_editor_flow_cli.py": [
+        {
+            "sha1": "797f706c0af9d7e5e0004067f1e95f8372829b5d",
+            "docstring": "\"\"\"\nThis script defines a test case for the 'test_create_editor' function. It mocks the 'create_issue' and 'improve_text' methods using MagicMock. It creates a temporary file, writes a description into it, sets arguments for the CLI command, and calls the 'create_issue' method with the provided arguments. After the test, it cleans up the temporary file.\n\"\"\"",
+            "last_accessed": 1745437264
         },
         {
-            "sha1": "02e721d62de22aea50074ce3241f581fa604d546",
-            "docstring": "\"\"\"\nValidates the provided fields for an issue using a CLI validation function.\n    \nArguments:\n- fields (dict[str, str]): A dictionary containing the fields of the issue to be validated.\n- self (implicit): Instance of the class containing the method.\n  \nReturns:\n- None\n\n\"\"\"",
-            "last_accessed": 1745436448
+            "sha1": "3b2b0415c3ba29c51a94d5661c94742fcc9f8e30",
+            "docstring": "\"\"\"\nMock methods related to creating an editor in a testing environment.\n\nArguments:\n- cli: A testing CLI object that allows mocking methods for creating an editor.\n\nSide Effects:\n- Mocks the 'create_issue' method of the Jira client to return a test value.\n- Mocks the 'improve_text' method of the AI provider to return a test value.\n\"\"\"",
+            "last_accessed": 1745437266
+        }
+    ],
+    "jira_creator/tests/commands/test_add_comment_editor_cli.py": [
+        {
+            "sha1": "6e3e404cfc91dd6c0b97ebd1b4f2ca4aa6df77a1",
+            "docstring": "\"\"\"\nThis file contains unit test functions for testing the functionality of adding comments in a CLI application. \nIt includes tests for adding comments with an editor, handling AI exceptions, and ensuring proper method calls and exception handling. \nThe tests utilize mocking for various methods and services to isolate the functionality being tested. \n\"\"\"",
+            "last_accessed": 1745437267
         },
         {
-            "sha1": "db90dc836d68416ec995fee815ae583d01f7dfbb",
-            "docstring": "\"\"\"\nLint the provided arguments using the CLI linter.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the parsed arguments.\n\nSide Effects:\n- Calls the cli_lint function with the provided Jira instance, AI provider, and parsed arguments.\n\n\"\"\"",
-            "last_accessed": 1745436450
+            "sha1": "6b75aa9a9b5de3a3a12ffb6b1de91e1445ad2f92",
+            "docstring": "\"\"\"\nMock the 'add_comment' method and the 'improve_text' method for testing purposes.\n    \nArguments:\n- cli: An object representing the command-line interface.\n\nSide Effects:\n- Modifies the 'add_comment' method of the 'cli.jira' object.\n- Modifies the 'improve_text' method of the 'cli.ai_provider' object.\n\"\"\"",
+            "last_accessed": 1745437269
         },
         {
-            "sha1": "2fcccc365a6681c019b4e3ee8cc0aba020f28c95",
-            "docstring": "\"\"\"\nLint all Jira issues using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing parsed command-line arguments.\n\nSide Effects:\n- Calls cli_lint_all function with Jira instance, AI provider instance, and parsed arguments.\n\n\"\"\"",
-            "last_accessed": 1745436451
+            "sha1": "1315ee13360f2a6304580fccdde4505e354d543e",
+            "docstring": "\"\"\"\nAdd a comment to the CLI using both an editor and AI, with exception handling.\n\nArguments:\n- cli: An instance of the CLI class.\n- capsys: A fixture provided by pytest to capture stdout and stderr.\n\nExceptions:\n- AiError: Raised when the AI service fails.\n\nSide Effects:\n- Modifies the behavior of the AI provider's improve_text method.\n\n\"\"\"",
+            "last_accessed": 1745437271
+        }
+    ],
+    "jira_creator/tests/commands/test_set_priority_exception_cli.py": [
+        {
+            "sha1": "10e86fe2bae7a2d553ebb6366017ec8e39156192",
+            "docstring": "\"\"\"\nThis script contains a unit test function named test_set_priority_error, which tests the set_priority method of a CLI class by mocking the set_priority method to raise a SetPriorityError exception. The test verifies that the exception is raised correctly and that the expected error message is printed. The test uses pytest and unittest.mock modules for testing and mocking functionalities.\n\"\"\"",
+            "last_accessed": 1745437273
         },
         {
-            "sha1": "a9aedccf20377314ea434572607fc0072e16446e",
-            "docstring": "\"\"\"\nCalls a function to block a specific resource using Jira.\n\nArguments:\n- self: the instance of the class\n- args (Namespace): A Namespace object containing the arguments passed to the function.\n\nExceptions:\n- None\n\n\"\"\"",
-            "last_accessed": 1745436453
+            "sha1": "fcae1257bd6bbd8ed1181477be70588a14adf85e",
+            "docstring": "\"\"\"\nSimulate an exception when setting priority in Jira for testing purposes.\n\nArguments:\n- cli: An object representing the CLI (Command Line Interface) for Jira.\n- capsys: A fixture provided by pytest for capturing stdout and stderr outputs during testing.\n\nExceptions:\n- SetPriorityError: Raised when simulating a failure while setting priority in Jira.\n\nSide Effects:\n- Modifies the set_priority method of the Jira client to raise a SetPriorityError.\n\"\"\"",
+            "last_accessed": 1745437275
+        }
+    ],
+    "jira_creator/tests/commands/test_remove_flag_cli.py": [
+        {
+            "sha1": "330b9ba81f302fa269220e6c00659d6b5353161f",
+            "docstring": "\"\"\"\nThis file contains test cases for the 'remove_flag' method in the 'cli' module. \nIt includes tests to check the successful removal of a flag and also to handle exceptions. \nThe tests utilize the 'MagicMock' class from the 'unittest.mock' module and 'pytest' for assertions. \nThe 'test_remove_flag' function mocks the 'remove_flag' method and asserts the output and response. \nThe 'test_remove_flag_exception' function mocks the 'remove_flag' method to raise an exception and verifies the exception handling. \n\"\"\"",
+            "last_accessed": 1745437277
         },
         {
-            "sha1": "6d81560feb5308676c8c46c6314b0b6f0672ced3",
-            "docstring": "\"\"\"\nSearch for items using the Jira API based on the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A namespace object containing the search parameters.\n\nExceptions:\n- None\n\nSide Effects:\n- Calls the 'cli_search' function with the Jira instance and provided arguments.\n\n\"\"\"",
-            "last_accessed": 1745436464
+            "sha1": "c05154946e846401368a386475c430014eb5bf2a",
+            "docstring": "\"\"\"\nSimulate the removal of a flag from a Jira instance using a mock method.\n\nArguments:\n- cli: An object representing the Jira client.\n- capsys: A fixture provided by pytest to capture stdout and stderr outputs.\n\nSide Effects:\n- Sets up a mock method for the remove_flag function in the Jira client object.\n\"\"\"",
+            "last_accessed": 1745437278
         },
         {
-            "sha1": "3cbd3bce0f3e981d1aeb9b9c3e987e8c80df710e",
-            "docstring": "\"\"\"\nExecute a quarterly connection using the provided arguments.\n\nArguments:\n- self: the object instance\n- args (Namespace): A Namespace object containing the arguments for the connection\n\nSide Effects:\n- Calls cli_quarterly_connection function with the Jira and AI provider attributes of the object instance\n\"\"\"",
-            "last_accessed": 1745436466
+            "sha1": "2294d0cd3b93dc90f981bc8634095ef633146940",
+            "docstring": "\"\"\"\nMocks the 'remove_flag' method of a Jira client and sets it to raise an exception when called.\n\nArguments:\n- cli: Jira client object.\n- capsys: Pytest fixture for capturing stdout and stderr.\n\nExceptions:\n- Exception: Raised with message \"Failed\" when the 'remove_flag' method is called.\n\"\"\"",
+            "last_accessed": 1745437281
+        }
+    ],
+    "jira_creator/tests/commands/test_set_story_epic_cli.py": [
+        {
+            "sha1": "5b7a46ff45b1b4f594581819cf3c7eae83fabc23",
+            "docstring": "\"\"\"\nThis file contains unit tests for the set_story_epic function in the CLI module.\n\nThe test_handle_success function tests the successful execution of set_story_epic by mocking the JIRA set_story_epic method and asserting the correct message output and function call arguments.\n\nThe test_set_story_epic_exception function tests the handling of SetStoryEpicError exception by mocking the JIRA set_story_epic method with a side effect and ensuring the exception is raised.\n\nBoth test functions utilize the pytest framework and mock objects for testing the CLI module functionality.\n\"\"\"",
+            "last_accessed": 1745437282
         },
         {
-            "sha1": "7cef856c6932a9c6b184d2f990b36fa49ff59bad",
-            "docstring": "\"\"\"\nSearches for users using the provided arguments.\n\nArguments:\n- self: the object instance\n- args (Namespace): A Namespace object containing the arguments for the search.\n\nSide Effects:\nCalls the 'cli_search_users' function with the 'jira' attribute and the provided arguments.\n\"\"\"",
-            "last_accessed": 1745436468
+            "sha1": "f50fa870d1910133a4b72a9d081ef8296155acb8",
+            "docstring": "\"\"\"\nHandles the success case for a test scenario.\n\nArguments:\n- cli: An object representing the command line interface.\n- capsys: A fixture for capturing stdout and stderr outputs during the test.\n\nSide Effects:\n- Modifies the 'set_story_epic' attribute of the 'jira' object in the 'cli' object using MagicMock.\n\"\"\"",
+            "last_accessed": 1745437285
         },
         {
-            "sha1": "4b8a8ba4cc6116bf87468e1b1f15319e6232bed4",
-            "docstring": "\"\"\"\nExecutes the 'cli_talk' function with the provided arguments.\n\nArguments:\n- self: The instance of the class.\n- args (Namespace): A Namespace object containing the command-line arguments.\n\nSide Effects:\n- Calls the 'cli_talk' function with the provided arguments.\n\"\"\"",
-            "last_accessed": 1745436469
+            "sha1": "7ba87a8f0e0cc77984fe6011b3ea6681c953c343",
+            "docstring": "\"\"\"\nSet a side effect for the mock 'set_story_epic' method of the 'cli.jira' object to raise a 'SetStoryEpicError' exception with message \"fail\".\n\"\"\"",
+            "last_accessed": 1745437286
+        }
+    ],
+    "jira_creator/tests/commands/test_list_prints_cli.py": [
+        {
+            "sha1": "46069e7400e7db8f154671a13e160437bec3928c",
+            "docstring": "\"\"\"\nThis module contains tests for a CLI interface interacting with JIRA issues. It utilizes the unittest framework alongside MagicMock for mocking JIRA responses. \n\nKey components include:\n- A shared dictionary for base issue templates (`base_issue` and `base_issue_2`) that can be modified during tests.\n- A helper function `setup_cli_and_args` that prepares the CLI context and issue data based on provided parameters.\n- Several test functions (`test_list_print`, `test_list_reporter_print`, `test_list_with_filters`, `test_list_with_blocked_filter`, and `test_list_with_unblocked_filter`) that validate the behavior of the CLI when listing issues with various filters and conditions.\n\nThe tests assert expected outputs based on the mocked JIRA issue data and the specified arguments.\n\"\"\"",
+            "last_accessed": 1745437290
         },
         {
-            "sha1": "3a0c2df6f4f584570095dfc96f8448382e0b6972",
-            "docstring": "\"\"\"\nView a user's information using the CLI.\n\nArguments:\n- self: the object instance\n- args (Namespace): A Namespace object containing parsed arguments from the command line.\n\nExceptions: None\n\"\"\"",
-            "last_accessed": 1745436470
+            "sha1": "a1c05b2ef559d3e211d4a23f62e1b62c96e8bc47",
+            "docstring": "\"\"\"\nSetup the Jira mock for the CLI.\n\nArguments:\n- cli (object): The CLI object to which the Jira mock will be assigned.\n- blocked (list): List of blocked items (default is None).\n- unblocked (list): List of unblocked items (default is None).\n- reporter (str): Name of the reporter (default is None).\n- status (str): Status of the items (default is None).\n- summary (str): Summary of the items (default is None).\n- func (function): Function to be executed (default is None).\n\nSide Effects:\n- Modifies the 'jira' attribute of the 'cli' object by assigning it a MagicMock object.\n\"\"\"",
+            "last_accessed": 1745437293
         },
         {
-            "sha1": "4b6867aef4695c24c732e815a8b58a774ad7e7b5",
-            "docstring": "\"\"\"\nAdds a flag to a Jira issue using the provided arguments.\n\nArguments:\n- self: the object instance\n- args (Namespace): Namespace object containing parsed command-line arguments\n\nExceptions:\n- No exceptions are raised by this function.\n\nSide Effects:\n- Modifies the Jira issue by adding a flag.\n\nReturn:\n- None\n\"\"\"",
-            "last_accessed": 1745436472
+            "sha1": "020d217cfa88318fc89e9cf39e6cde5f388bb325",
+            "docstring": "\"\"\"\nPrint a list of issues using the provided CLI.\n\nArguments:\n- cli (object): The CLI object used to interact with the command-line interface.\n- capsys (object): The capsys object used to capture stdout and stderr outputs.\n\nSide Effects:\n- Modifies the behavior of the provided CLI object by listing the retrieved issues.\n\n\"\"\"",
+            "last_accessed": 1745437295
         },
         {
-            "sha1": "f34b9aed9f2774487ba84eb3a9eded2c081e7e76",
-            "docstring": "\"\"\"\nRemove a flag from a Jira issue.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing parsed arguments.\n\nExceptions:\n- No exceptions are raised by this function.\n\nSide Effects:\n- Modifies the Jira issue by removing a flag.\n\n\"\"\"",
-            "last_accessed": 1745436474
+            "sha1": "ccb6f2c13a3c18efc7d610d7615ad9807b78747a",
+            "docstring": "\"\"\"\nPrint a list of reported issues.\n\nArguments:\n- cli: An object representing the command line interface.\n- capsys: A fixture provided by pytest to capture stdout and stderr outputs.\n\nSide Effects:\n- Modifies the summary for a test case.\n- Sets up command line arguments.\n- Retrieves a list of reported issues using the provided CLI object.\n\"\"\"",
+            "last_accessed": 1745437297
         },
         {
-            "sha1": "2cc39ecb0b7e6e504d7af9eeceaddef0e9263f4a",
-            "docstring": "\"\"\"\nSummary:\nList sprints using the provided Jira instance and command-line arguments.\n\nArguments:\n- self: The instance of the class containing the method.\n- args (Namespace): A namespace object containing command-line arguments.\n\nReturn:\nNone\n\n\"\"\"",
-            "last_accessed": 1745436475
+            "sha1": "b4d891bfd00dc4cfcb6cdc0225146bab423a08cc",
+            "docstring": "\"\"\"\nExecute a test for listing Jira issues with filters.\n\nArguments:\n- cli: An instance of the CLI (Command Line Interface) used for interacting with Jira.\n- capsys: Pytest fixture for capturing stdout and stderr output during testing.\n\nSide Effects:\n- Modifies the CLI configuration with specified status and function.\n- Sets up the return value of listing Jira issues to the provided issues.\n- Calls the list_issues method of the CLI instance.\n\nNote: This function is primarily designed for testing purposes and does not have a return value.\n\"\"\"",
+            "last_accessed": 1745437299
         },
         {
-            "sha1": "55a886b5c9dde79e115009c7c61b557ae3b84129",
-            "docstring": "\"\"\"\nSet a summary for a Jira issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to set the summary for a Jira issue.\n\nExceptions: \nNone\n\nSide Effects: \nCalls an external function cli_set_summary() to set the summary for a Jira issue.\n\nReturn: \nNone\n\"\"\"",
-            "last_accessed": 1745436477
+            "sha1": "cce2ab4a30be7c75c102f0a520f5c25a0464cec5",
+            "docstring": "\"\"\"\nFilter and list issues based on a blocked filter.\n\nArguments:\n- cli: An object representing the command-line interface.\n- capsys: A fixture provided by pytest to capture stdout and stderr.\n\nSide Effects:\n- Modifies the behavior of the command-line interface by setting up arguments with a blocked filter.\n- Calls the setup_cli_and_args function to configure the CLI arguments.\n- Sets the return value of cli.jira.list_issues to the provided issues.\n- Invokes the list_issues method of the CLI.\n\n\"\"\"",
+            "last_accessed": 1745437301
         },
         {
-            "sha1": "11fa62248de0144709ad2247b2a1ec323f9da668",
-            "docstring": "\"\"\"\nClones an issue in Jira using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A namespace object containing the arguments needed for cloning the issue.\n\nSide Effects:\n- Clones the specified issue in Jira.\n\n\"\"\"",
-            "last_accessed": 1745436479
+            "sha1": "790cefd8877bd2d3c2210e51660dec2607c3d050",
+            "docstring": "\"\"\"\nFilter and list Jira issues based on the unblocked status.\n\nArguments:\n- cli: An object representing the command-line interface for interacting with Jira.\n- capsys: A pytest fixture for capturing stdout and stderr output.\n\nSide Effects:\n- Modifies the behavior of the Jira CLI by setting up the appropriate arguments and filters.\n- Calls the 'list_issues' method of the Jira CLI to retrieve and display a list of filtered issues.\n\nNote: This function assumes the existence of 'setup_cli_and_args' and 'list_issues' methods within the 'cli' object.\n\"\"\"",
+            "last_accessed": 1745437304
+        }
+    ],
+    "jira_creator/tests/commands/test_set_status_exception_cli.py": [
+        {
+            "sha1": "7bd2024c33c047a63809b15774d0a509cbef6893",
+            "docstring": "\"\"\"\nThis file contains a unit test function to test an exception scenario for the set_status method. The test mocks the set_status method to raise a SetStatusError and verifies that the appropriate error message is printed. The test function uses pytest for assertions and captures the output using capsys.\n\"\"\"",
+            "last_accessed": 1745437306
+        },
+        {
+            "sha1": "cce2db1e19689cbc3b8f1819057d8ccf91e78b4e",
+            "docstring": "\"\"\"\nSet an exception for the set_status method to be raised when called.\n\nArguments:\n- cli: An object representing the CLI.\n- capsys: A fixture for capturing stdout and stderr outputs.\n\nExceptions:\n- SetStatusError: Raised when the set_status method encounters an error with the message \"bad status\".\n\"\"\"",
+            "last_accessed": 1745437308
+        }
+    ],
+    "jira_creator/tests/commands/test_edit_issue_fetch_fail_cli.py": [
+        {
+            "sha1": "543f93a322424320ff2f490dab8cd6ef9ffc3975",
+            "docstring": "\"\"\"\nSimulates a failure scenario when fetching an issue description.\n\nArguments:\n- cli: A CLI object used to interact with Jira.\n\nExceptions:\n- FetchDescriptionError: Raised when there is a failure in fetching the issue description.\n\"\"\"",
+            "last_accessed": 1745437309
+        }
+    ],
+    "jira_creator/tests/commands/test_list_sprints_cli.py": [
+        {
+            "sha1": "15620fc4fe5212b52cc6af63f8fcdbd481f472d2",
+            "docstring": "\"\"\"\nThis file contains unit tests for the list_sprints method in a CLI application. \nThe tests use the pytest framework along with unittest.mock to mock the behavior of the list_sprints method. \nThe test_list_sprints function tests the successful execution of list_sprints, while the test_list_sprints_exception function tests the exception handling when list_sprints raises an exception. \nBoth tests mock the list_sprints method and capture the output using capsys to perform assertions on the expected output.\n\"\"\"",
+            "last_accessed": 1745437311
+        },
+        {
+            "sha1": "b683a9d89e416f413a9740af669323b654da294b",
+            "docstring": "\"\"\"\nMock the list_sprints method for testing purposes.\n\nArguments:\n- cli: The CLI object used to interact with Jira.\n- capsys: The built-in pytest fixture for capturing stdout and stderr.\n\nSide Effects:\n- Mocks the list_sprints method of the Jira CLI object to return a list of sprints [\"Sprint 1\", \"Sprint 2\"] for testing.\n\"\"\"",
+            "last_accessed": 1745437313
+        },
+        {
+            "sha1": "a9f471edecea7a634c3a760323a8e26865964b02",
+            "docstring": "\"\"\"\nMock the list_sprints method to raise an exception when called.\n\nArgs:\n    cli: An object representing the CLI.\n    capsys: A fixture provided by pytest to capture stdout and stderr.\n\nExceptions:\n    Exception: Raised when the list_sprints method is called to simulate a failure.\n\"\"\"",
+            "last_accessed": 1745437315
+        }
+    ],
+    "jira_creator/tests/commands/test_validate_issue_cli.py": [
+        {
+            "sha1": "d5fd4fb8e2a727bbdc3837d859c4601c6534f66b",
+            "docstring": "\"\"\"\nThis module contains unit tests for the CLI validation of Jira issues, specifically focusing on acceptance criteria and description validation. \n\nIt includes helper functions to generate common fields and cached data for testing purposes. The main functionality is tested through various test cases that ensure correct behavior when validating issue fields against expected standards.\n\nKey functions and classes:\n- `generate_fields`: Generates a dictionary of common fields for a Jira issue.\n- `generate_cached_data`: Creates a dictionary simulating cached validation data.\n- `test_load_cache_file_not_found`: Tests the behavior of loading a cache file that does not exist.\n- `test_acceptance_criteria_no_change_but_invalid`: Tests the validation of acceptance criteria when no changes are made but the criteria is invalid.\n- `test_acceptance_criteria_validation`: Validates acceptance criteria when the criteria is considered acceptable.\n- `test_description_no_change_but_invalid`: Tests the validation of descriptions when no changes are made but the description is invalid.\n- `test_cli_validate_issue`: Tests the CLI interface for validating Jira issues.\n\nThis module uses the `unittest.mock` library to mock dependencies and the behavior of external functions.\n\"\"\"",
+            "last_accessed": 1745437322
+        },
+        {
+            "sha1": "294efd09e75f6f646c98a7f533b7223b7eff5fa8",
+            "docstring": "\"\"\"\nGenerate a dictionary with fields for a JIRA issue.\n\nArguments:\n- issue_key (str): The key of the JIRA issue.\n- summary (str): The summary of the JIRA issue (default is \"Test Summary\").\n- description (str): The description of the JIRA issue (default is \"Test Description\").\n- acceptance_criteria (str): The acceptance criteria of the JIRA issue (default is \"Test Acceptance Criteria\").\n\nReturn:\n- dict: A dictionary containing the JIRA fields for the issue.\n\nSide Effects:\n- Uses the EnvFetcher class to retrieve certain field values from the environment.\n\n\"\"\"",
+            "last_accessed": 1745437324
+        },
+        {
+            "sha1": "6278809cf93516c9352aa499e4463511ebee7ef5",
+            "docstring": "\"\"\"\nGenerates cached data hashes based on input fields.\n\nArguments:\n- fields (dict): A dictionary containing various field values.\n- description_hash (str, optional): The hash value of the description field. Defaults to None.\n- summary_hash (str, optional): The hash value of the summary field. Defaults to None.\n- acceptance_criteria_hash (str, optional): The hash value of the acceptance criteria field. Defaults to None.\n- acceptance_criteria_value (str, optional): The value of the acceptance criteria field. Defaults to None.\n- description_value (str, optional): The value of the description field. Defaults to None.\n\nSide Effects:\n- Modifies the input hash values if they are None by calculating the hash of corresponding field values.\n\n\"\"\"",
+            "last_accessed": 1745437328
+        },
+        {
+            "sha1": "15920719810e82043333e8c4bc5cf12ccbf80c04",
+            "docstring": "\"\"\"\nLoad cache from a file, returning an empty dictionary if the file doesn't exist.\n\nArguments:\n    No arguments.\n\nReturn:\n    dict: An empty dictionary representing the cache content.\n\nExceptions:\n    None\n\"\"\"",
+            "last_accessed": 1745437330
+        },
+        {
+            "sha1": "7a4596cc2c87e1a25686c1a5d10f5485890167f2",
+            "docstring": "\"\"\"\nSimulate a test scenario where the acceptance criteria are not changed, but the provided data is invalid.\n\nArguments:\n- mock_load_cache: A mock object for loading cache data.\n- mock_save_cache: A mock object for saving cache data.\n\nSide Effects:\n- Calls the 'improve_text' method of a MagicMock object representing an AI provider with a return value of \"Needs Improvement\".\n\"\"\"",
+            "last_accessed": 1745437332
+        },
+        {
+            "sha1": "e991bf4694fe49d597b1a9e2c41ca03621818b49",
+            "docstring": "\"\"\"\nValidate the acceptance criteria for a test case.\n\nArguments:\n- mock_save_cache: MagicMock object for saving cache data.\n- cli: Command Line Interface (CLI) object for interacting with the command line.\n- capsys: Pytest fixture for capturing stdout and stderr outputs.\n\nSide Effects:\n- Sets up a MagicMock object 'ai_provider' for AI text improvement with a return value of \"OK\".\n\"\"\"",
+            "last_accessed": 1745437334
+        },
+        {
+            "sha1": "bd5923e2e0ed3e1c8b2c35df9a9f5a4e78e2d227",
+            "docstring": "\"\"\"\nSimulate a test scenario where a mock AI provider is used to improve text, returning \"Needs Improvement\".\n\nArguments:\n- mock_save_cache: A mock object for saving cache data.\n- cli: Command Line Interface object.\n- capsys: Pytest fixture capturing stdout and stderr output.\n\nSide Effects:\n- Calls the `improve_text` method on a mock AI provider object.\n\nReturn: N/A\n\"\"\"",
+            "last_accessed": 1745437336
+        },
+        {
+            "sha1": "6fb053dd54d6c67691ed505ecbd692bb46a838ea",
+            "docstring": "\"\"\"\nValidate the CLI input for testing purposes.\n\nArguments:\n- cli: An instance of the CLI object.\n\nSide Effects:\n- Modifies the Args class attributes for issue_key, no_ai, and lint.\n\"\"\"",
+            "last_accessed": 1745437338
+        }
+    ],
+    "jira_creator/tests/commands/test_unblock_cli.py": [
+        {
+            "sha1": "f1546d985b924f78b95e38732127426c860baf83",
+            "docstring": "\"\"\"\nThis file contains unit tests for the 'unblock' command of a CLI tool. \nIt includes two test functions: \n- test_unblock_command_success: tests the successful execution of the 'unblock' command.\n- test_unblock_command_failure: tests the failure scenario of the 'unblock' command when an UnBlockError is raised.\n\nThe tests use MagicMock and pytest to mock and assert the behavior of the CLI tool when unblocking an issue. \n\"\"\"",
+            "last_accessed": 1745437340
+        },
+        {
+            "sha1": "92bee837df9b8d87f671f669ee3babc64ab00678",
+            "docstring": "\"\"\"\nSimulate a successful unblock command test.\n\nArguments:\n- cli: The command-line interface object for testing.\n- capsys: Pytest fixture to capture stdout and stderr.\n\nSide Effects:\n- Initializes a dictionary called 'called' to keep track of function calls.\n\"\"\"",
+            "last_accessed": 1745437342
+        },
+        {
+            "sha1": "0717e224b3d39049daf8b6f6d72370e3b841a3a9",
+            "docstring": "\"\"\"\nSummary:\nUpdates a dictionary called `called` with the provided `issue_key`.\n\nArguments:\n- issue_key (str): The key of the issue to be updated in the `called` dictionary.\n\nSide Effects:\nModifies the `called` dictionary by adding or updating the key specified by `issue_key`.\n\"\"\"",
+            "last_accessed": 1745437344
+        },
+        {
+            "sha1": "302c41ab7e5c41bd3a0a5f84a7913266bde3e15e",
+            "docstring": "\"\"\"\nExecute a test to validate the failure scenario of an unblock command.\n\nArguments:\n- cli (object): An instance of the command line interface (CLI) to interact with the application.\n- capsys (object): A fixture to capture stdout and stderr outputs during the test.\n\nSide Effects:\n- Executes the unblock command in the CLI to trigger a failure scenario for testing purposes.\n\"\"\"",
+            "last_accessed": 1745437350
+        },
+        {
+            "sha1": "3e8f2c1d47a791806c9e29b0dc8cd337bf9578b1",
+            "docstring": "\"\"\"\nSimulate an unblock failure by raising a custom UnBlockError exception.\n\nArguments:\n- issue_key (str): A key representing the issue causing the unblock failure.\n\nExceptions:\n- UnBlockError: Raised to simulate an unblock failure.\n\n\"\"\"",
+            "last_accessed": 1745437352
+        }
+    ],
+    "jira_creator/tests/commands/test_edit_issue_exception_cli.py": [
+        {
+            "sha1": "5ec79e7c77a4cb89646bcb06ca07892eb189a6c6",
+            "docstring": "\"\"\"\nUnit tests for the CLI issue editing functionality in a Jira integration.\n\nThis module contains test cases for editing issue descriptions and handling prompts\nin a Jira CLI application. It uses the pytest framework and mocks various components\nto simulate interactions with Jira and file handling.\n\nKey Features:\n- Tests for updating issue descriptions and handling exceptions.\n- Validation of fallback mechanisms when fetching prompts fails.\n- Mocking of Jira API calls and temporary file operations to isolate tests.\n- Assertions to ensure proper error messages are displayed in the CLI.\n\nTest Cases:\n- `test_edit_issue_update_exception`: Tests the behavior when updating an issue description fails.\n- `test_edit_description_raises_edit_description_error_inline`: Tests the editing of a description and the handling of exceptions.\n- `test_get_prompt_raises_and_falls_back`: Tests the fallback mechanism for getting prompts when there is an error.\n- `test_cli_edit_issue_raises_edit_issue_error`: Tests the behavior when editing an issue raises an error.\n\"\"\"",
+            "last_accessed": 1745437356
+        },
+        {
+            "sha1": "d4a1f2c157123bb3f178d43390031745290988bd",
+            "docstring": "\"\"\"\nUpdates the description of an issue in Jira, mocking Jira internals for testing purposes.\n\nArguments:\n- mock_tmpfile: Mock object for temporary file handling.\n- mock_subprocess: Mock object for subprocess operations.\n- capsys: Pytest fixture for capturing stdout and stderr.\n- cli: Mock object representing the Jira command-line interface.\n\nExceptions:\n- UpdateDescriptionError: Raised when updating the description of the Jira issue fails.\n\n\"\"\"",
+            "last_accessed": 1745437358
+        },
+        {
+            "sha1": "fd494ef39352cde8d707f8ddb7074b8aa0eaf6fb",
+            "docstring": "\"\"\"\nSummary:\nThis function tests that the 'EditDescriptionError' exception is raised inline when editing a description.\n\nArguments:\n- capsys: A pytest fixture that allows capturing stdout and stderr during the test execution.\n\nExceptions:\n- EditDescriptionError: Raised when an error occurs while editing the description.\n\nSide Effects:\n- Modifies the behavior of the 'tempfile.NamedTemporaryFile' and 'subprocess.call' functions to simulate an error scenario during description editing.\n\"\"\"",
+            "last_accessed": 1745437360
+        },
+        {
+            "sha1": "a6f10ff292dc3985fee36d66fddd661daa4b3845",
+            "docstring": "\"\"\"\nThis function is a test case for a scenario where the 'get_issue_type' method of a fake Jira object raises a 'GetPromptError' exception with the message \"could not fetch type\". The test is using the 'capsys' fixture to capture stdout and stderr outputs.\n\"\"\"",
+            "last_accessed": 1745437362
+        },
+        {
+            "sha1": "ca413276c508bc881759ceaa31497087ac9534eb",
+            "docstring": "\"\"\"\nRaises an EditIssueError when editing an issue via CLI.\n\nArguments:\n- cli: An instance of the CLI class.\n\nExceptions:\n- EditIssueError: Raised when an error occurs while editing an issue.\n\nSide Effects:\n- Modifies the state of the issue in the CLI.\n\n\"\"\"",
+            "last_accessed": 1745437364
+        }
+    ],
+    "jira_creator/tests/providers/test_bart_provider.py": [
+        {
+            "sha1": "1fc444fe99fdb5bd67cb5cbee335e9ceaa1f5a0f",
+            "docstring": "\"\"\"\nThis file contains unit tests for the BARTProvider class in the bart_provider module. \nIt includes tests for the initialization of the BARTProvider, successful and failed text improvement scenarios. \nThe tests use mock objects and patches to simulate HTTP requests and responses. \n\"\"\"",
+            "last_accessed": 1745437365
+        },
+        {
+            "sha1": "3d72b74a2276d79fd42a704b0bdcf3ed2f1679ae",
+            "docstring": "\"\"\"\nInitialize a BARTProvider object with a default URL and headers for BART API requests.\n\nArguments:\n    No arguments.\n\nReturns:\n    No return value.\n\nExceptions:\n    No exceptions raised.\n\"\"\"",
+            "last_accessed": 1745437366
+        },
+        {
+            "sha1": "080a17becf6e4ba00296ab1e9b8f74ae8efd853e",
+            "docstring": "\"\"\"\nImproves the text by sending a mock POST request.\n\nArguments:\n- mock_post (MagicMock): A mock object representing a POST request function.\n\nSide Effects:\n- Modifies the mock_post function to return a mock response with status code 200 and JSON data {\"output\": \"Improved text\"}.\n\"\"\"",
+            "last_accessed": 1745437368
+        },
+        {
+            "sha1": "8105c0e923b873d4860bf1c99aafcb981a604724",
+            "docstring": "\"\"\"\nImproves the text of a failed post request response.\n\nArguments:\n- mock_post (MagicMock): A MagicMock object representing the post request function.\n\nSide Effects:\n- Modifies the text of the response to \"Internal Server Error\" and sets the status code to 500.\n\"\"\"",
+            "last_accessed": 1745437370
+        }
+    ],
+    "jira_creator/tests/providers/test_providers_safe_mock.py": [
+        {
+            "sha1": "b37879d95dfe700001831044897890ab40c04cda",
+            "docstring": "\"\"\"\nThis function tests the fallback behavior of the get_ai_provider function when an invalid provider name is provided. It verifies that the returned provider object implements the improve_text method and returns a string result.\n\"\"\"",
+            "last_accessed": 1745437372
+        }
+    ],
+    "jira_creator/tests/providers/test_openai_provider.py": [
+        {
+            "sha1": "229543aa2cf6011502481e654fac171718cdea3d",
+            "docstring": "\"\"\"\nThis file contains unit tests for the OpenAIProvider class in the providers.openai_provider module. It includes tests for the improve_text method, which interacts with the OpenAI API to improve text inputs. The tests cover scenarios where the API call is successful and when it fails, asserting the expected behavior in each case.\n\"\"\"",
+            "last_accessed": 1745437373
+        },
+        {
+            "sha1": "67857e11549bfd8376561f4f40e8ee0a837a3ff7",
+            "docstring": "\"\"\"\nThis function tests the OpenAI provider's text improvement functionality by mocking a response object with a status code of 200 and a JSON payload containing cleaned up text in the \"choices\" field.\n\"\"\"",
+            "last_accessed": 1745437374
+        },
+        {
+            "sha1": "7fba6308cc833748267e217d51c7eefd6de1be0b",
+            "docstring": "\"\"\"\nImprove the text using the OpenAIProvider API, specifically the GPT-3.5 Turbo model.\n\nArguments:\n- No arguments.\n\nExceptions:\n- Raises an exception if there is a failure when calling the OpenAIProvider API.\n\nSide Effects:\n- Modifies the OpenAIProvider instance by setting the API key, model, and endpoint.\n\n\"\"\"",
+            "last_accessed": 1745437377
+        }
+    ],
+    "jira_creator/tests/providers/test_deepseek_provider.py": [
+        {
+            "sha1": "5453fa24cc1d435146c10be02f3d46a11d7bd496",
+            "docstring": "\"\"\"\nThis file contains unit tests for the DeepSeekProvider class. It includes test cases for successful improvement of text, failure cases, and JSON decode error scenarios. The tests use MagicMock and patch from the unittest.mock module, as well as pytest for assertions. The DeepSeekProvider class is mocked to handle different responses from the improve_text method, such as successful improvement, server errors, and invalid JSON responses. Each test case verifies the expected behavior by asserting the results and checking for proper method calls or exceptions raised.\n\"\"\"",
+            "last_accessed": 1745437378
+        },
+        {
+            "sha1": "12c844e9edcdbd718f64c160f14d84b40125e57b",
+            "docstring": "\"\"\"\nImproves text by sending a POST request and receiving a successful response.\n\nArguments:\n- mock_post (MagicMock): A MagicMock object representing a POST request.\n\nReturns:\n- None\n\nSide Effects:\n- Modifies the behavior of the mock_post object to return a successful response with an improved text message.\n\"\"\"",
+            "last_accessed": 1745437381
+        },
+        {
+            "sha1": "8105c0e923b873d4860bf1c99aafcb981a604724",
+            "docstring": "\"\"\"\nImproves text in case of failure.\n\nArguments:\n- mock_post (Mock): A mock object representing a POST request.\n\nSide Effects:\n- Modifies the text of the mock response to \"Internal Server Error\" when the status code is 500.\n\"\"\"",
+            "last_accessed": 1745437383
+        },
+        {
+            "sha1": "b0f5e6fc52041a3b220fc59e980334403cd7ba71",
+            "docstring": "\"\"\"\nSimulate a JSON decoding error when processing a response from a mocked POST request.\n\nArguments:\n- mock_post: A MagicMock object representing a mocked POST request.\n\nExceptions:\n- JSONDecodeError: Raised when there is an issue decoding the JSON response.\n\nSide Effects:\n- Modifies the behavior of the mock POST request response to simulate an invalid JSON response.\n\n\"\"\"",
+            "last_accessed": 1745437387
+        }
+    ],
+    "jira_creator/tests/providers/test_noop_provider.py": [
+        {
+            "sha1": "6bc74e184306ae13deb511872260e63d2d74c315",
+            "docstring": "\"\"\"\nSummary:\nInitialize a NoAIProvider object and test that it returns the original text without any modifications.\n\nArguments:\n- No arguments.\n\nReturn:\nNo return value.\n\n\"\"\"",
+            "last_accessed": 1745437388
+        }
+    ],
+    "jira_creator/tests/providers/test_providers_all_paths.py": [
+        {
+            "sha1": "ab585ace63a21012f359abbeabade33edf3e44a6",
+            "docstring": "\"\"\"\nThis file contains unit tests for the get_ai_provider function, which is responsible for retrieving AI providers based on the provider name provided. The tests cover different scenarios such as successful provider retrieval, failure cases, and handling of import errors. The tests use patching with unittest.mock.patch and pytest.raises to simulate failures and exceptions. The AI providers tested include OpenAIProvider, GPT4AllProvider, InstructLabProvider, BARTProvider, and DeepSeekProvider. In case of failures or import errors, the tests ensure that the appropriate exceptions are raised or handled gracefully. Additionally, the file imports necessary modules and classes from exceptions.exceptions and providers modules.\n\"\"\"",
+            "last_accessed": 1745437390
+        },
+        {
+            "sha1": "6637817f18c388d3e409a6e90eeb85b79c16f3cf",
+            "docstring": "\"\"\"\nThis function tests the `get_ai_provider` function with the input parameter \"openai\". It asserts that the returned provider is an instance of the class `OpenAIProvider`.\n\"\"\"",
+            "last_accessed": 1745437392
+        },
+        {
+            "sha1": "427fa2ccb301501233e38d0beea9293d01dabe3d",
+            "docstring": "\"\"\"\nThis function defines a test case for the GPT4All AI provider by creating a mock class called FailingGPT4AllProvider.\n\"\"\"\n\"\"\"",
+            "last_accessed": 1745437393
+        },
+        {
+            "sha1": "1c43cb748ef6f0b6b0afffe1cff4183c0038d930",
+            "docstring": "\"\"\"\nInitialize the AiProviderError by raising an exception indicating a simulated failure to load GPT4All.\n\"\"\"",
+            "last_accessed": 1745437394
+        },
+        {
+            "sha1": "4dc77ba57b83dbac92a11552930211467d80a379",
+            "docstring": "\"\"\"\nThis function defines a class named FailingInstructLab.\n\"\"\"",
+            "last_accessed": 1745437396
+        },
+        {
+            "sha1": "f9b5a5010ed245ed32129387a02d2fb9ef158d65",
+            "docstring": "\"\"\"\nInitialize the AiProviderError exception.\n\nArguments:\n- self: the instance of the class.\n\nExceptions:\n- AiProviderError: an exception raised with the message \"\ud83d\udca5 boom\".\n\"\"\"",
+            "last_accessed": 1745437397
+        },
+        {
+            "sha1": "ddbad3405139078e99cc2384063580af04d18492",
+            "docstring": "\"\"\"\nThis function tests the get_ai_provider function by verifying if the provider returned for \"bart\" is an instance of the BARTProvider class.\n\"\"\"",
+            "last_accessed": 1745437398
+        },
+        {
+            "sha1": "327b635fa41edac89bd4b1fda1f347bd2507c994",
+            "docstring": "\"\"\"\nRetrieve the AI provider for DeepSeek and validate its type.\n\nArguments:\n- No arguments.\n\nReturn:\n- No return value.\n\nExceptions:\n- AssertionError is raised if the provider type is not DeepSeekProvider.\n\"\"\"",
+            "last_accessed": 1745437400
+        },
+        {
+            "sha1": "da3f400484909d08e827a0950a9a6162d9c6f76a",
+            "docstring": "\"\"\"\nThis function is used to test the behavior of Python when an ImportError occurs during import of a module.\n\"\"\"",
+            "last_accessed": 1745437401
+        },
+        {
+            "sha1": "edd7f741ee46003e106eadb4e2d330cc80168250",
+            "docstring": "\"\"\"\nRaises an ImportError with a message \"simulated import error\".\n\"\"\"",
+            "last_accessed": 1745437403
+        }
+    ],
+    "jira_creator/tests/providers/test_providers_init.py": [
+        {
+            "sha1": "7e6c0af88a1341ed8334edefa9f41cae7d26b6ec",
+            "docstring": "\"\"\"\nGet the AI provider for a specific type and test its functionality with a \"noop\" provider.\n\nArguments:\n- provider (str): The type of AI provider to retrieve. In this case, it is set to \"noop\".\n\nReturn:\n- None\n\n\"\"\"",
+            "last_accessed": 1745437405
+        },
+        {
+            "sha1": "6ac92b3471044b3b8b53db384ab72bad1002b8c5",
+            "docstring": "\"\"\"\nSummary:\nTest function to verify the fallback behavior of an AI provider when a specific provider is not available.\n\nArguments:\n- No arguments are passed to the function.\n\nReturn:\n- No return value.\n\n\"\"\"",
+            "last_accessed": 1745437406
+        }
+    ],
+    "jira_creator/tests/providers/test_instructlab_provider.py": [
+        {
+            "sha1": "21daa74a39d3362c60d844bd3242cbc64f0741e9",
+            "docstring": "\"\"\"\nThis file contains unit tests for the InstructLabProvider class from the instructlab_provider module. \nIt includes tests for initializing the provider with default values, improving text successfully, and handling failure scenarios. \nThe tests use MagicMock and patch from the unittest.mock module, as well as pytest for assertions. \nThe improve_text method of the provider is tested for successful and failed responses from the server. \n\"\"\"",
+            "last_accessed": 1745437408
+        },
+        {
+            "sha1": "a67e628513e9070151848d1fee236297938a2ccb",
+            "docstring": "\"\"\"\nInitialize an InstructLabProvider object with default values for url and model attributes.\n\nArguments:\n    No arguments.\n\nReturn:\n    No return value.\n\nSide Effects:\n    Initializes an InstructLabProvider object with url set to \"http://some/url\" and model set to \"hhhhhhhhhhhhh\".\n\"\"\"",
+            "last_accessed": 1745437409
+        },
+        {
+            "sha1": "c9134f9315f95074953c6524005ddea959bbac49",
+            "docstring": "\"\"\"\nInitialize an InstructLabProvider object for testing purposes.\n\"\"\"",
+            "last_accessed": 1745437410
+        },
+        {
+            "sha1": "0e41d33edbeb9c8118ffbe9a426dde81c3fc346b",
+            "docstring": "\"\"\"\nThis function initializes an instance of the InstructLabProvider class for testing purposes.\n\"\"\"",
+            "last_accessed": 1745437411
+        }
+    ],
+    "jira_creator/tests/providers/test_gpt4all_provider.py": [
+        {
+            "sha1": "cf7ed77026942cf71863b5ef7f41eb0333d3fcdf",
+            "docstring": "\"\"\"\nThis module contains unit tests for the GPT4AllProvider class in the providers.gpt4all_provider module.\n\nThe tests include:\n- test_init_success: Tests the successful initialization of the GPT4AllProvider class.\n- test_init_failure: Tests the failure scenario during the initialization of the GPT4AllProvider class.\n- test_improve_text: Tests the improve_text method of the GPT4AllProvider class.\n\nThese tests use patching and mocking to simulate interactions with the GPT4All model and handle exceptions.\n\nAuthor: Unknown\n\"\"\"",
+            "last_accessed": 1745437413
+        },
+        {
+            "sha1": "83f0b7e1a41bf22aa69eff0bb2a078747213e2e1",
+            "docstring": "\"\"\"\nInitialize a GPT4AllProvider instance with a specified model name and assert its correctness.\n\nArguments:\n- No arguments.\n\nReturn:\n- No return value.\n\nExceptions:\n- No exceptions are raised.\n\nSide Effects:\n- None.\n\"\"\"",
+            "last_accessed": 1745437415
+        },
+        {
+            "sha1": "16ed03be58e292125d148996bbd0fe3e90f3b9b4",
+            "docstring": "\"\"\"\nInitialize GPT4AllProvider with a broken model and test initialization failure.\n\nArguments:\n    - No arguments.\n\nExceptions:\n    - GTP4AllError: Raised when the GPT4All provider encounters an error during initialization.\n\n\"\"\"",
+            "last_accessed": 1745437417
+        },
+        {
+            "sha1": "163c44603c922a19b7edc9669533a3a0a30a3931",
+            "docstring": "\"\"\"\nSummary:\nFunction to test the improvement of text generated by a mock model.\n\nArguments:\n- No arguments.\n\nReturn:\n- None\n\n\"\"\"",
+            "last_accessed": 1745437418
+        }
+    ],
+    "jira_creator/tests/providers/test_openai_provider_fallback_handling.py": [
+        {
+            "sha1": "4a57d619fc4dc2cd3e71ab0e72e8820649b95323",
+            "docstring": "\"\"\"\nThis script defines a test function to validate the response handling of the OpenAIProvider class. It mocks a response object with a status code of 200 and a JSON payload containing a message with content \"\u2713\". The function then replaces the requests.post method with a lambda function that returns the mock response. It creates an instance of the OpenAIProvider class, calls the improve_text method with dummy arguments, and asserts that the result is equal to \"\u2713\".\n\"\"\"",
+            "last_accessed": 1745437420
+        },
+        {
+            "sha1": "3bc6dbc416b5cf409249571fbf2dd207e4d879a9",
+            "docstring": "\"\"\"\nHandles the response from OpenAI API after requesting text improvement.\n\nArguments:\n- No arguments.\n\nReturn:\n- The improved text as a string.\n\nExceptions:\n- No exceptions raised.\n\nSide Effects:\n- Modifies the behavior of the requests.post function to return a mock response.\n\n\"\"\"",
+            "last_accessed": 1745437422
+        }
+    ],
+    "jira_creator/tests/templates/test_template_loader.py": [
+        {
+            "sha1": "721516c6c2c468c0d06e1fe93630e72f1ba34a53",
+            "docstring": "\"\"\"\nThis script contains unit tests for the TemplateLoader class. \nIt tests the functionality of parsing fields, rendering templates, handling file not found errors, and returning joined template strings. \nThe TemplateLoader class is responsible for loading and processing template files with specific fields and templates. \n\"\"\"",
+            "last_accessed": 1745437424
+        },
+        {
+            "sha1": "eac96677d65202eb6eccdaef271d0e4ae57bb223",
+            "docstring": "\"\"\"\nParses fields from a template file.\n\nArguments:\n- tmp_path (path): Path to a temporary directory where the template file will be created.\n\nSide Effects:\n- Creates a template file with predefined fields in the specified temporary directory.\n\"\"\"",
+            "last_accessed": 1745437426
+        },
+        {
+            "sha1": "ed20b905477c516ae1d53e49e4311ab87b5a974e",
+            "docstring": "\"\"\"\nRenders a template with a description field.\n\nArguments:\n- tmp_path (path): Path to a temporary directory where the template file will be created.\n\nSide Effects:\n- Creates a template file in the specified temporary directory with predefined content.\n\n\"\"\"",
+            "last_accessed": 1745437427
+        },
+        {
+            "sha1": "e3221a236a190e61b42bc76fb42c07b83c17b325",
+            "docstring": "\"\"\"\nLoad a test template from a temporary directory and raise a FileNotFoundError if the template file is not found.\n\nArguments:\n- tmp_path (path): Path to a temporary directory where the template should be located.\n\nExceptions:\n- FileNotFoundError: Raised if the template file is not found in the specified directory.\n\"\"\"",
+            "last_accessed": 1745437429
+        },
+        {
+            "sha1": "9c7b07e93070d15aa01318d124f43c5172c49726",
+            "docstring": "\"\"\"\nReturns a joined string from a template file.\n\nArguments:\n- tmp_path (path): Path to a temporary directory where the template file will be created.\n\nSide Effects:\n- Creates a template file with specified content in the temporary directory provided.\n\n\"\"\"",
+            "last_accessed": 1745437431
         }
     ]
 }

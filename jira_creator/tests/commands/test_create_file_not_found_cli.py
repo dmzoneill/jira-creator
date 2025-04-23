@@ -1,3 +1,17 @@
+"""
+This module contains test cases for the CLI command responsible for creating issues in a project management system
+(e.g., JIRA).
+
+It utilizes the pytest framework to define multiple tests that verify the behavior of the `create_issue` function under
+various scenarios, including:
+- Handling of `FileNotFoundError` when template files are missing.
+- Proper exception handling when the AI service fails.
+- Successful issue creation with appropriate output verification.
+
+Each test case mocks necessary components to isolate the functionality being tested, ensuring that the tests are
+reliable and do not depend on external systems or files.
+"""
+
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -6,6 +20,11 @@ from exceptions.exceptions import AiError
 
 
 def test_create_file_not_found(cli):
+    """
+    Mock the TemplateLoader to raise FileNotFoundError when trying to load a template file.
+    This function is used for testing purposes and takes a 'cli' parameter representing the command-line interface.
+    """
+
     # Mock the TemplateLoader to raise FileNotFoundError
     template_loader_mock = MagicMock(side_effect=FileNotFoundError("missing.tmpl"))
     cli.template_loader = template_loader_mock
@@ -23,6 +42,17 @@ def test_create_file_not_found(cli):
 
 
 def test_create_file_not_found_error(cli, capsys):
+    """
+    Set the template directory path for the CLI to a non-existent directory.
+
+    Arguments:
+    - cli (object): An instance of the CLI class.
+    - capsys (object): Pytest fixture for capturing stdout and stderr outputs.
+
+    Side Effects:
+    - Modifies the template directory path of the CLI instance.
+    """
+
     cli.template_dir = Path("non_existent_directory")
 
     # Mock TemplateLoader to raise a FileNotFoundError
@@ -46,6 +76,21 @@ def test_create_file_not_found_error(cli, capsys):
 
 
 def test_create_ai_exception_handling(cli, capsys):
+    """
+    Handles exception raised when calling the AI service to improve text.
+
+    Arguments:
+    - cli: An object representing the CLI application.
+    - capsys: A fixture provided by pytest to capture stdout and stderr.
+
+    Exceptions:
+    - AiError: Raised when the AI service fails to improve the text.
+
+    Side Effects:
+    - Modifies the behavior of the AI provider by setting the side effect of raising an AiError when improve_text is
+    called.
+    """
+
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = AiError("AI service failed")
 
@@ -92,6 +137,21 @@ def test_create_ai_exception_handling(cli, capsys):
 
 
 def test_create(cli, capsys):
+    """
+    This function is a test function for the 'cli_create_issue' command. It mocks the behavior of the TemplateLoader
+    class by using MagicMock and Patch to simulate the loading of a template with specific fields and a rendered
+    description. It is used to test the functionality of creating an issue via the CLI.
+
+    Arguments:
+    - cli: An object representing the CLI interface.
+    - capsys: A fixture provided by pytest to capture stdout and stderr outputs during testing.
+
+    Side Effects:
+    - Modifies the behavior of the TemplateLoader class using MagicMock and Patch to simulate specific template loading
+    and rendering.
+
+    """
+
     with patch("commands.cli_create_issue.TemplateLoader") as MockTemplateLoader:
         mock_template = MagicMock()
         mock_template.get_fields.return_value = ["field1", "field2"]

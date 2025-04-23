@@ -1,3 +1,9 @@
+"""
+This file contains a test case for the add_comment method of a CLI application. It mocks the add_comment method to
+raise an AddCommentError exception and verifies the expected output when the exception is raised. The test case uses
+pytest for testing and unittest.mock for mocking objects.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -5,6 +11,18 @@ from exceptions.exceptions import AddCommentError
 
 
 def test_add_comment_exception(cli, capsys):
+    """
+    Mocks the add_comment method of a Jira CLI object to raise an AddCommentError exception for testing purposes.
+
+    Arguments:
+    - cli: Jira CLI object to be tested.
+    - capsys: Pytest fixture for capturing stdout and stderr.
+
+    Exceptions:
+    - AddCommentError: Raised when the add_comment method encounters an error.
+
+    """
+
     # Mock the add_comment method to raise an exception
     cli.jira.add_comment = MagicMock(side_effect=AddCommentError("fail"))
 

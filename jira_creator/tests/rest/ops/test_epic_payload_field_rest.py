@@ -2,6 +2,15 @@ from unittest.mock import MagicMock
 
 
 def test_epic_field(client):
+    """
+    Mock the environment variable for the epic field in the client by setting the 'fields' attribute to {"nonsense":
+    "Epic Field"}.
+    Parameters:
+    - client: An object representing the client to be tested.
+
+    This function does not have a return value.
+    """
+
     # Mock the environment variable for the epic field
     client.build_payload = MagicMock(
         return_value={"fields": {"nonsense": "Epic Field"}}

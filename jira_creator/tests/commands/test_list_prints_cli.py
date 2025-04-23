@@ -1,3 +1,17 @@
+"""
+This module contains tests for a CLI interface interacting with JIRA issues. It utilizes the unittest framework
+alongside MagicMock for mocking JIRA responses.
+
+Key components include:
+- A shared dictionary for base issue templates (`base_issue` and `base_issue_2`) that can be modified during tests.
+- A helper function `setup_cli_and_args` that prepares the CLI context and issue data based on provided parameters.
+- Several test functions (`test_list_print`, `test_list_reporter_print`, `test_list_with_filters`,
+`test_list_with_blocked_filter`, and `test_list_with_unblocked_filter`) that validate the behavior of the CLI when
+listing issues with various filters and conditions.
+
+The tests assert expected outputs based on the mocked JIRA issue data and the specified arguments.
+"""
+
 from unittest.mock import MagicMock
 
 from core.env_fetcher import EnvFetcher
@@ -41,6 +55,22 @@ def setup_cli_and_args(
     summary=None,
     func=None,
 ):
+    """
+    Setup the Jira mock for the CLI.
+
+    Arguments:
+    - cli (object): The CLI object to which the Jira mock will be assigned.
+    - blocked (list): List of blocked items (default is None).
+    - unblocked (list): List of unblocked items (default is None).
+    - reporter (str): Name of the reporter (default is None).
+    - status (str): Status of the items (default is None).
+    - summary (str): Summary of the items (default is None).
+    - func (function): Function to be executed (default is None).
+
+    Side Effects:
+    - Modifies the 'jira' attribute of the 'cli' object by assigning it a MagicMock object.
+    """
+
     # Setup the Jira mock
     cli.jira = MagicMock()
 
@@ -85,6 +115,18 @@ def setup_cli_and_args(
 
 
 def test_list_print(cli, capsys):
+    """
+    Print a list of issues using the provided CLI.
+
+    Arguments:
+    - cli (object): The CLI object used to interact with the command-line interface.
+    - capsys (object): The capsys object used to capture stdout and stderr outputs.
+
+    Side Effects:
+    - Modifies the behavior of the provided CLI object by listing the retrieved issues.
+
+    """
+
     args, issues = setup_cli_and_args(cli, func="test_list_print")
     cli.jira.list_issues.return_value = issues
     cli.list_issues(args)
@@ -94,6 +136,19 @@ def test_list_print(cli, capsys):
 
 
 def test_list_reporter_print(cli, capsys):
+    """
+    Print a list of reported issues.
+
+    Arguments:
+    - cli: An object representing the command line interface.
+    - capsys: A fixture provided by pytest to capture stdout and stderr outputs.
+
+    Side Effects:
+    - Modifies the summary for a test case.
+    - Sets up command line arguments.
+    - Retrieves a list of reported issues using the provided CLI object.
+    """
+
     # Modify summary for this test case
     summary = "Fix bugs" * 20  # Update summary for this test case
     args, issues = setup_cli_and_args(
@@ -107,6 +162,21 @@ def test_list_reporter_print(cli, capsys):
 
 
 def test_list_with_filters(cli, capsys):
+    """
+    Execute a test for listing Jira issues with filters.
+
+    Arguments:
+    - cli: An instance of the CLI (Command Line Interface) used for interacting with Jira.
+    - capsys: Pytest fixture for capturing stdout and stderr output during testing.
+
+    Side Effects:
+    - Modifies the CLI configuration with specified status and function.
+    - Sets up the return value of listing Jira issues to the provided issues.
+    - Calls the list_issues method of the CLI instance.
+
+    Note: This function is primarily designed for testing purposes and does not have a return value.
+    """
+
     args, issues = setup_cli_and_args(
         cli, status="In Progress", func="test_list_with_filters"
     )
@@ -119,6 +189,21 @@ def test_list_with_filters(cli, capsys):
 
 
 def test_list_with_blocked_filter(cli, capsys):
+    """
+    Filter and list issues based on a blocked filter.
+
+    Arguments:
+    - cli: An object representing the command-line interface.
+    - capsys: A fixture provided by pytest to capture stdout and stderr.
+
+    Side Effects:
+    - Modifies the behavior of the command-line interface by setting up arguments with a blocked filter.
+    - Calls the setup_cli_and_args function to configure the CLI arguments.
+    - Sets the return value of cli.jira.list_issues to the provided issues.
+    - Invokes the list_issues method of the CLI.
+
+    """
+
     args, issues = setup_cli_and_args(
         cli, blocked=True, func="test_list_with_blocked_filter"
     )
@@ -131,6 +216,20 @@ def test_list_with_blocked_filter(cli, capsys):
 
 
 def test_list_with_unblocked_filter(cli, capsys):
+    """
+    Filter and list Jira issues based on the unblocked status.
+
+    Arguments:
+    - cli: An object representing the command-line interface for interacting with Jira.
+    - capsys: A pytest fixture for capturing stdout and stderr output.
+
+    Side Effects:
+    - Modifies the behavior of the Jira CLI by setting up the appropriate arguments and filters.
+    - Calls the 'list_issues' method of the Jira CLI to retrieve and display a list of filtered issues.
+
+    Note: This function assumes the existence of 'setup_cli_and_args' and 'list_issues' methods within the 'cli' object.
+    """
+
     args, issues = setup_cli_and_args(
         cli, unblocked=True, func="test_list_with_unblocked_filter"
     )

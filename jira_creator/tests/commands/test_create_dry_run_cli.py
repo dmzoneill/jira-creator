@@ -1,3 +1,14 @@
+"""
+This file contains unit tests for the create_issue function in the CLI module.
+It includes test cases for creating an issue in dry run mode and for handling exceptions during issue creation.
+Mock objects are used to simulate interactions with the Jira API and user inputs.
+The test_create_dry_run function tests the creation of an issue in dry run mode by mocking Jira API calls and user
+input.
+The test_create_issue_with_exception function tests the handling of exceptions during issue creation by mocking a
+CreateIssueError.
+Both test cases utilize the pytest framework for assertions and mock objects for simulating behavior.
+"""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -5,6 +16,16 @@ from exceptions.exceptions import CreateIssueError
 
 
 def test_create_dry_run(cli):
+    """
+    Set up a mock AI provider for testing purposes.
+
+    Arguments:
+    - cli: An object representing the command line interface.
+
+    Side Effects:
+    - Modifies the `ai_provider` attribute of the `cli` object by assigning a MagicMock object to it.
+    """
+
     cli.ai_provider = MagicMock()
 
     # Mock method: build_payload returns a payload with summary
@@ -25,6 +46,16 @@ def test_create_dry_run(cli):
 
 
 def test_create_issue_with_exception(cli):
+    """
+    Set up a mock AI provider for the CLI to create an issue with an exception.
+
+    Arguments:
+    - cli: An instance of the CLI class that will be used to create an issue with an exception.
+
+    Side Effects:
+    - Modifies the 'ai_provider' attribute of the provided 'cli' instance by setting it to a MagicMock object.
+    """
+
     cli.ai_provider = MagicMock()
 
     # Mock method: build_payload returns a payload with summary

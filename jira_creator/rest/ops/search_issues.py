@@ -1,9 +1,35 @@
+"""
+This module contains a function to search for JIRA issues based on a JQL query.
+
+The 'search_issues' function takes two parameters: 'request_fn' for making HTTP requests and 'jql' for the JIRA Query
+Language query.
+It constructs the necessary parameters for the JIRA API request, including specific fields to retrieve.
+The function then retrieves a list of issues matching the JQL query and processes each issue to extract sprint
+information.
+If an issue is associated with an active sprint, it updates the issue with the active sprint name; otherwise, it sets
+the sprint as 'No active sprint'.
+The function returns a list of processed issues.
+
+Note: This function relies on the 'EnvFetcher' class from 'core.env_fetcher' for fetching environment variables related
+to JIRA fields.
+"""
 import re
 
 from core.env_fetcher import EnvFetcher
 
 
 def search_issues(request_fn, jql):
+    """
+    Search for issues in JIRA based on the provided JQL query.
+    
+    Arguments:
+    - request_fn (function): A function used to make HTTP requests.
+    - jql (str): JIRA Query Language (JQL) query to filter the search results.
+    
+    Return:
+    None
+    """
+
     params = {
         "jql": jql,
         "fields": (

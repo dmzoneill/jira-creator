@@ -76,23 +76,336 @@
     "jira_creator/commands/cli_assign.py": [],
     "jira_creator/commands/cli_lint.py": [],
     "jira_creator/commands/cli_clone_issue.py": [],
-    "jira_creator/commands/cli_lint_all.py": [
+    "jira_creator/commands/cli_lint_all.py": [],
+    "jira_creator/commands/cli_migrate.py": [],
+    "jira_creator/rest/ops/set_priority.py": [
         {
-            "sha1": "c86be8bb3ea2183111a58edcbd7941338053f59e",
-            "docstring": "\"\"\"\nLint all Jira issues based on specified criteria.\n\nArguments:\n- jira (JIRA): An instance of the JIRA client.\n- ai_provider (AIProvider): An instance of the AI provider.\n- args (Namespace): A namespace object containing parsed command-line arguments.\n    - args.reporter (str): The reporter of the issues to filter by.\n    - args.assignee (str): The assignee of the issues to filter by.\n    - args.project (str): The project key to filter the issues.\n    - args.component (str): The component to filter the issues.\n\nNo return value.\n\nExceptions:\n- None\n\"\"\"",
-            "last_accessed": 1745435178
-        }
-    ],
-    "jira_creator/commands/cli_migrate.py": [
-        {
-            "sha1": "911ee2cb4700d99126ea478056c7eebaa886072b",
-            "docstring": "\"\"\"\nThis script defines a function 'cli_migrate' that migrates an issue in Jira to a new issue type. \nIt takes Jira instance and command line arguments as input, migrates the issue, and prints the migration details.\nIf the migration fails, it raises a MigrateError with an appropriate error message.\n\"\"\"",
-            "last_accessed": 1745435181
+            "sha1": "5947feeecf513bd27919aaf11e7a76606ffe89cb",
+            "docstring": "\"\"\"\nA function to set the priority of an issue in a Jira system.\n\n:param request_fn: Function to send HTTP requests.\n:param issue_key: Key of the issue to update.\n:param priority: Priority level to set for the issue (critical, major, normal, minor).\n\"\"\"",
+            "last_accessed": 1745435604
         },
         {
-            "sha1": "0215f4709ec99e7b4f6fb3194ce08c88801e4133",
-            "docstring": "\"\"\"\nMigrate an issue in Jira to a new type.\n\nArguments:\n- jira (JiraClient): An instance of the Jira client.\n- args (Namespace): A namespace containing the following attributes:\n    - issue_key (str): The key of the issue to be migrated.\n    - new_type (str): The new type to migrate the issue to.\n\nReturn:\n- str: The new key of the migrated issue.\n\nExceptions:\n- MigrateError: Raised if the migration process fails.\n\nSide Effects:\n- Prints the success message if the migration is successful.\n- Prints the error message if the migration fails.\n\"\"\"",
-            "last_accessed": 1745435184
+            "sha1": "de1123863bfb564ddbd300c2251c374d93cd3191",
+            "docstring": "\"\"\"\nSet the priority of an issue identified by the given issue key.\n\nArguments:\n- request_fn (function): The function used to make the request.\n- issue_key (str): The unique key identifying the issue.\n- priority (str): The priority level to set for the issue. Should be one of: \"critical\", \"major\", \"normal\", or \"minor\".\n\n\"\"\"",
+            "last_accessed": 1745435606
+        }
+    ],
+    "jira_creator/rest/ops/set_summary.py": [
+        {
+            "sha1": "19c20c8ffa07f29f7e8d7fad85a1c52e548efb3f",
+            "docstring": "\"\"\"\nSets a summary for a specific issue in Jira.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the issue for which the summary will be set.\n\nReturn:\n- dict: A dictionary containing the response from the HTTP POST request.\n\n\"\"\"",
+            "last_accessed": 1745435608
+        }
+    ],
+    "jira_creator/rest/ops/set_status.py": [
+        {
+            "sha1": "0e660914bfae6e3824c44fe980848b832025affa",
+            "docstring": "\"\"\"\nThis module provides a function to set the status of an issue in a Jira system using the provided request function.\n\nFunctions:\n    - set_status(request_fn, issue_key, target_status): Sets the status of the given issue to the provided target status by making API calls using the request function.\n\nRaises:\n    - SetStatusError: Custom exception raised when the target status is not found in the valid transitions for the issue.\n\nNote:\n    - The request function should be capable of making HTTP requests to the Jira API.\n\"\"\"",
+            "last_accessed": 1745435611
+        },
+        {
+            "sha1": "b7f1831dedad2e96e0ee33c953626580d2914640",
+            "docstring": "\"\"\"\nRetrieve the available transitions for a given issue and set its status to a target status.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key identifying the issue to update.\n- target_status (str): The desired status to set for the issue.\n\nReturns: \nThis function does not return anything.\n\n\"\"\"",
+            "last_accessed": 1745435612
+        }
+    ],
+    "jira_creator/rest/ops/add_to_sprint_by_name.py": [
+        {
+            "sha1": "c4bb9a824ebb3a52e022ba9419174bf058fc0e26",
+            "docstring": "\"\"\"\nThis module provides a function to add an issue to a sprint in JIRA.\n\nThe function 'add_to_sprint_by_name' takes four parameters:\n- request_fn: a function for making HTTP requests\n- board_id: the ID of the JIRA board\n- issue_key: the key of the issue to be added to the sprint\n- sprint_name: the name of the sprint to which the issue will be added\n\nIf the 'board_id' is not provided, it raises an AddSprintError indicating that the JIRA_BOARD_ID is not set in the environment.\n\nIt retrieves the list of sprints associated with the board using the 'request_fn' function, then finds the sprint ID corresponding to the provided 'sprint_name'.\n\nIf the sprint ID is not found, it raises an AddSprintError indicating that the sprint with the provided name could not be found.\n\nFinally, it adds the 'issue_key' to the identified sprint using a POST request and prints a success message.\n\nNote: This function assumes the 'request_fn' function is implemented elsewhere to handle HTTP requests.\n\"\"\"",
+            "last_accessed": 1745435615
+        },
+        {
+            "sha1": "9fc1f80ab0f876745596e336d6e0b1691166177a",
+            "docstring": "\"\"\"\nAdd a specified sprint to a JIRA board using its name.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- board_id (str): The ID of the JIRA board to which the sprint will be added.\n- issue_key (str): The key of the JIRA issue to be added to the sprint.\n- sprint_name (str): The name of the sprint to be added to the board.\n\nExceptions:\n- AddSprintError: Raised when the 'board_id' is not provided in the environment variables.\n\n\"\"\"",
+            "last_accessed": 1745435616
+        }
+    ],
+    "jira_creator/rest/ops/assign_issue.py": [
+        {
+            "sha1": "e50cad5f0af50e6cc61a77070586476bba6a42f3",
+            "docstring": "\"\"\"\nThis module provides a function to assign an issue to a specific user using a given request function.\n\nThe assign_issue function takes three parameters:\n- request_fn: a function to make a request (e.g., from requests library)\n- issue_key: the key of the issue to be assigned\n- assignee: the username of the user to whom the issue will be assigned\n\nIf successful, the function returns True. If an AssignIssueError is raised during the process, it prints an error message and raises AssignIssueError with a custom message.\n\"\"\"",
+            "last_accessed": 1745435618
+        },
+        {
+            "sha1": "a80aac5683c06794f060712911dc1114f4c4ecc9",
+            "docstring": "\"\"\"\nAssign the specified issue to the given assignee using the provided request function.\n\nArguments:\n- request_fn (function): The function used to make HTTP requests.\n- issue_key (str): The key identifying the issue to be assigned.\n- assignee (str): The username of the user to whom the issue will be assigned.\n\nReturn:\n- bool: True if the issue was successfully assigned.\n\nExceptions:\n- AssignIssueError: Raised if there is an error while assigning the issue.\n\nSide Effects:\n- Makes an HTTP PUT request to assign the specified issue.\n- Prints an error message if the assignment fails.\n\"\"\"",
+            "last_accessed": 1745435620
+        }
+    ],
+    "jira_creator/rest/ops/unblock_issue.py": [
+        {
+            "sha1": "17b66fef194e0f7ce12a1bcfaeaa3d54dc329a4f",
+            "docstring": "\"\"\"\nThis script defines a function 'unblock_issue' that unblocks a JIRA issue by updating the blocked_field and reason_field in the issue payload. The function takes two parameters: request_fn, a function to make HTTP requests, and issue_key, the key of the JIRA issue to unblock. The function constructs a payload with the updated fields and sends a PUT request to the JIRA API to update the specified issue.\n\"\"\"",
+            "last_accessed": 1745435621
+        },
+        {
+            "sha1": "81c1fec8b7b07c43bb8208aaab866c40bf29cb5c",
+            "docstring": "\"\"\"\nUnblocks a JIRA issue by updating the specified fields.\n\nArguments:\n- request_fn (function): The function used to make requests to the JIRA API.\n- issue_key (str): The key of the JIRA issue to unblock.\n\nSide Effects:\n- Modifies the specified fields in the JIRA issue to unblock it.\n\"\"\"",
+            "last_accessed": 1745435623
+        }
+    ],
+    "jira_creator/rest/ops/blocked.py": [
+        {
+            "sha1": "d12f290156f14bd16db44a4faa7815ee3e6eeabf",
+            "docstring": "\"\"\"\nThis module includes a function called blocked that retrieves a list of issues based on certain criteria and filters out the blocked issues. \nThe function takes a list_issues_fn function as input along with optional project, component, and assignee parameters. \nIt checks each issue for a specific field value (JIRA_BLOCKED_FIELD) to determine if it is blocked. \nIf an issue is blocked, it constructs a dictionary containing key information about the issue like key, status, assignee, reason, and summary.\nThe function returns a list of dictionaries representing the blocked issues.\n\"\"\"",
+            "last_accessed": 1745435625
+        },
+        {
+            "sha1": "6c8739956100c607256b64886317de7a8befaee0",
+            "docstring": "\"\"\"\nRetrieve a list of issues based on specified project, component, and assignee.\n\nArguments:\n- list_issues_fn (function): A function that returns a list of issues based on project, component, and assignee parameters.\n- project (str): The project name to filter the issues. Defaults to None.\n- component (str): The component name to filter the issues. Defaults to None.\n- assignee (str): The assignee name to filter the issues. Defaults to None.\n\nNo return value.\n\nSide Effects:\n- Modifies the 'issues' list by populating it with the filtered list of issues.\n\"\"\"",
+            "last_accessed": 1745435627
+        }
+    ],
+    "jira_creator/rest/ops/set_story_points.py": [
+        {
+            "sha1": "1d2aedbf3458869441cbb2a7b139774dd8953853",
+            "docstring": "\"\"\"\nThis script defines a function set_story_points that updates the story points of a JIRA issue. \nIt takes three parameters: request_fn for making HTTP requests, issue_key for identifying the issue, and points for specifying the new story points value. \nThe function constructs a payload with the new story points value and sends a PUT request to update the issue in JIRA using the provided request_fn. \nThe JIRA field used for story points is fetched from the environment variables using the EnvFetcher class.\n\"\"\"",
+            "last_accessed": 1745435628
+        },
+        {
+            "sha1": "414c65cb086a13a119c174242b02a414ebb8781b",
+            "docstring": "\"\"\"\nSet the story points of a JIRA issue.\n\nArguments:\n- request_fn (function): The function used to make requests to the JIRA API.\n- issue_key (str): The key of the JIRA issue for which the story points need to be set.\n- points (int): The number of story points to set for the issue.\n\nSide Effects:\n- Retrieves the JIRA story points field from the environment using EnvFetcher.\n\nNote: This function is expected to continue with the logic to set the story points for the specified JIRA issue.\n\"\"\"",
+            "last_accessed": 1745435631
+        }
+    ],
+    "jira_creator/rest/ops/view_issue.py": [
+        {
+            "sha1": "22ffc7f026353037bb1d1b56b854b67d020f2834",
+            "docstring": "\"\"\"\nRetrieves and returns the fields of a specific issue using the provided request function.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key identifying the specific issue to retrieve.\n\nReturn:\n- dict: A dictionary containing the fields of the specified issue.\n\n\"\"\"",
+            "last_accessed": 1745435632
+        }
+    ],
+    "jira_creator/rest/ops/update_description.py": [
+        {
+            "sha1": "88259580225e93e5e176ebf7c1cca327782cd2dc",
+            "docstring": "\"\"\"\nUpdates the description of a Jira issue using the provided request function.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the Jira issue to update.\n- new_description (str): The new description to set for the Jira issue.\n\n\"\"\"",
+            "last_accessed": 1745435633
+        }
+    ],
+    "jira_creator/rest/ops/build_payload.py": [
+        {
+            "sha1": "7da7029f7f1062882a7bdc133cbcfea3b9cb4078",
+            "docstring": "\"\"\"\nThis module provides a function to build a payload for creating an issue in a Jira system.\n\nThe build_payload function takes in various parameters such as summary, description, issue_type, project_key, affects_version, component_name, priority, and epic_field. It constructs a payload dictionary with these parameters and returns it.\n\nIf the issue type is an epic, it includes an additional field in the payload using the epic_field parameter.\n\nExample:\npayload = build_payload(\"Bug in Login Page\", \"Fix the issue with the login functionality\", \"Bug\", \"PROJ123\", \"v1.0\", \"Authentication\", \"High\", \"Epic Name\")\n\nReturns:\n{\n    \"fields\": {\n        \"project\": {\"key\": \"PROJ123\"},\n        \"summary\": \"Bug in Login Page\",\n        \"description\": \"Fix the issue with the login functionality\",\n        \"issuetype\": {\"name\": \"Bug\"},\n        \"priority\": {\"name\": \"High\"},\n        \"versions\": [{\"name\": \"v1.0\"}],\n        \"components\": [{\"name\": \"Authentication\"}]\n    }\n}\n\"\"\"",
+            "last_accessed": 1745435636
+        },
+        {
+            "sha1": "452ddadd9499e0822a59126fb88bd1761de94b02",
+            "docstring": "\"\"\"\nBuilds a payload dictionary for creating an issue in a project.\n\nArguments:\n- summary (str): A brief summary or title of the issue.\n- description (str): Detailed description of the issue.\n- issue_type (str): Type of the issue (e.g., Bug, Task, Story).\n- project_key (str): Key of the project where the issue will be created.\n- affects_version (str): Version affected by the issue.\n- component_name (str): Name of the component related to the issue.\n- priority (str): Priority of the issue (e.g., High, Medium, Low).\n- epic_field (str): Field related to the epic the issue belongs to.\n\nReturns:\n- dict: A dictionary representing the payload for creating an issue with the specified details.\n\n\"\"\"",
+            "last_accessed": 1745435640
+        }
+    ],
+    "jira_creator/rest/ops/block_issue.py": [
+        {
+            "sha1": "57fd3a56695beea7cc1d612e4a23308f7b2869e9",
+            "docstring": "\"\"\"\nUpdates a JIRA issue by setting the blocked status and reason.\n\nArguments:\n- request_fn (function): The function used to make requests to JIRA.\n- issue_key (str): The key of the JIRA issue to be updated.\n- reason (str): The reason for blocking the JIRA issue.\n\nSide Effects:\n- Modifies the blocked status and reason fields of the specified JIRA issue.\n\n\"\"\"",
+            "last_accessed": 1745435642
+        }
+    ],
+    "jira_creator/rest/ops/get_acceptance_criteria.py": [
+        {
+            "sha1": "a1b67abc20cbe1501e609fa9a02ee0b9450e8e5f",
+            "docstring": "\"\"\"\nRetrieve the acceptance criteria for a given JIRA issue.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the JIRA issue for which acceptance criteria are needed.\n\nReturn:\n- str: The acceptance criteria for the specified JIRA issue. If not found, an empty string is returned.\n\nExceptions:\n- Raises an exception if there is an issue with the HTTP request or if the acceptance criteria field is not found.\n\nSide Effects:\n- None\n\"\"\"",
+            "last_accessed": 1745435644
+        }
+    ],
+    "jira_creator/rest/ops/get_issue_type.py": [
+        {
+            "sha1": "45b1ee735e67bbcdad11d98ea40695ab2d91ee58",
+            "docstring": "\"\"\"\nRetrieve the type of an issue identified by the given key.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): A string representing the unique key of the issue to retrieve.\n\nReturn:\n- str: A string indicating the type of the issue identified by the provided key.\n\nExceptions:\n- This function does not explicitly handle any exceptions. Any exceptions raised during the HTTP request will propagate.\n\"\"\"",
+            "last_accessed": 1745435647
+        }
+    ],
+    "jira_creator/rest/ops/remove_flag.py": [
+        {
+            "sha1": "9f3aae66b44721b52b1b7c707b06d6dd9a1ceeef",
+            "docstring": "\"\"\"\nRemove a flag from a specific issue on a Jira board.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the issue from which the flag should be removed.\n\nReturn:\n- dict: A dictionary containing the response data from the request.\n\n\"\"\"",
+            "last_accessed": 1745435648
+        }
+    ],
+    "jira_creator/rest/ops/add_flag.py": [
+        {
+            "sha1": "e7336a88644b9a07a0a2e2dcb53fdba40835277f",
+            "docstring": "\"\"\"\nAdd a flag to an issue on a board.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_keys (str): The key of the issue to add the flag to.\n\nReturn:\n- dict: A dictionary containing the response from the HTTP POST request.\n\n\"\"\"",
+            "last_accessed": 1745435650
+        }
+    ],
+    "jira_creator/rest/ops/search_issues.py": [
+        {
+            "sha1": "9fcc7668272caffbde3f6289634c863ef18c0084",
+            "docstring": "\"\"\"\nThis module contains a function to search for JIRA issues based on a JQL query.\n\nThe 'search_issues' function takes two parameters: 'request_fn' for making HTTP requests and 'jql' for the JIRA Query Language query.\nIt constructs the necessary parameters for the JIRA API request, including specific fields to retrieve.\nThe function then retrieves a list of issues matching the JQL query and processes each issue to extract sprint information.\nIf an issue is associated with an active sprint, it updates the issue with the active sprint name; otherwise, it sets the sprint as 'No active sprint'.\nThe function returns a list of processed issues.\n\nNote: This function relies on the 'EnvFetcher' class from 'core.env_fetcher' for fetching environment variables related to JIRA fields.\n\"\"\"",
+            "last_accessed": 1745435652
+        },
+        {
+            "sha1": "5d81c8dfcdc0627199a2223025e602ef15f66285",
+            "docstring": "\"\"\"\nSearch for issues in JIRA based on the provided JQL query.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- jql (str): JIRA Query Language (JQL) query to filter the search results.\n\nReturn: \nNone\n\"\"\"",
+            "last_accessed": 1745435653
+        }
+    ],
+    "jira_creator/rest/ops/vote_story_points.py": [
+        {
+            "sha1": "becd7cc42d6eb3b60f91063e384cf4bda7ffbf9b",
+            "docstring": "\"\"\"\nThis module provides a function to vote on story points for a JIRA issue. It handles fetching the issue ID, constructing the payload, and making the API request to submit the vote. In case of errors during the process, custom exceptions FetchIssueIDError and VoteStoryPointsError are raised and handled accordingly.\n\"\"\"",
+            "last_accessed": 1745435655
+        },
+        {
+            "sha1": "f2280bed728ba77723465ca6581888ebc6eb1fe7",
+            "docstring": "\"\"\"\nVote story points for a given Jira issue.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the Jira issue to vote story points for.\n- points (int): The number of story points to vote for the issue.\n\nExceptions:\n- FetchIssueIDError: Raised when there is an issue fetching the ID of the Jira issue.\n\nSide Effects:\n- Makes an HTTP request to fetch the Jira issue ID.\n- Prints an error message if there is a failure in fetching the issue ID.\n\nNote:\nThis function is responsible for voting story points for a specific Jira issue by using the provided request function to fetch the issue ID.\n\"\"\"",
+            "last_accessed": 1745435658
+        }
+    ],
+    "jira_creator/rest/ops/set_story_epic.py": [
+        {
+            "sha1": "7af176913b13a24e3dd1f25b16964eee40e3a1f2",
+            "docstring": "\"\"\"\nSet the epic for a specific JIRA issue.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the JIRA issue to update.\n- epic_key (str): The key of the epic to set for the issue.\n\nSide Effects:\n- Modifies the JIRA issue specified by 'issue_key' to set the epic to the one specified by 'epic_key'.\n\"\"\"",
+            "last_accessed": 1745435659
+        }
+    ],
+    "jira_creator/rest/ops/get_current_user.py": [
+        {
+            "sha1": "328c714c32fd67740e38a0c3a596fd5b0e79ee67",
+            "docstring": "\"\"\"\nRetrieve the current user's name or account ID.\n\nArguments:\n- request_fn (function): A function used to make a request to an API endpoint.\n\nReturn:\n- str: The name of the current user if available, otherwise the account ID.\n\n\"\"\"",
+            "last_accessed": 1745435661
+        }
+    ],
+    "jira_creator/rest/ops/change_issue_type.py": [
+        {
+            "sha1": "6db8960df40c809784916ab44ac5913ea73c1c8a",
+            "docstring": "\"\"\"\nThis script defines a function 'change_issue_type' that changes the type of a given issue in a Jira instance. It takes three parameters: 'request_fn' for making HTTP requests, 'issue_key' to identify the issue, and 'new_type' to specify the new issue type. \nIt retrieves issue data using the 'request_fn', modifies the type in the payload, and updates the issue type via a PUT request to the Jira API. If the issue is a subtask, it also handles removing the parent link. \nIn case of a 'ChangeIssueTypeError', it raises and logs an exception with an error message.\n\"\"\"",
+            "last_accessed": 1745435663
+        },
+        {
+            "sha1": "721d9c355ddf7bdeddf8d3a7315ca342ea1cb8ef",
+            "docstring": "\"\"\"\nChange the issue type of a Jira issue.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the issue to be updated.\n- new_type (str): The new issue type to assign to the issue.\n\nSide Effects:\n- Modifies the issue type of the specified Jira issue.\n\nExceptions:\n- None\n\"\"\"",
+            "last_accessed": 1745435665
+        }
+    ],
+    "jira_creator/rest/ops/set_acceptance_criteria.py": [
+        {
+            "sha1": "33a18fe9100319bb9ac012d042b8b4d9c2d1b88a",
+            "docstring": "\"\"\"\nThis script defines a function set_acceptance_criteria that updates the acceptance criteria of a JIRA issue. It takes three parameters: request_fn, issue_key, and acceptance_criteria. The function constructs a payload with the acceptance criteria data and performs a PUT request to update the issue in JIRA. It also prints a success message after updating the acceptance criteria.\n\"\"\"",
+            "last_accessed": 1745435667
+        },
+        {
+            "sha1": "17ea63c98092775980f203189451ee2ae5f2870f",
+            "docstring": "\"\"\"\nSet acceptance criteria for a JIRA issue.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the JIRA issue to set acceptance criteria for.\n- acceptance_criteria (str): The acceptance criteria to set for the JIRA issue.\n\n\"\"\"",
+            "last_accessed": 1745435669
+        }
+    ],
+    "jira_creator/rest/ops/get_description.py": [
+        {
+            "sha1": "1a7d8105bce4b4ec54b2419500eb5468546f5784",
+            "docstring": "\"\"\"\nRetrieve the description of a specific issue from a Jira instance.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests. It should accept HTTP method and URL parameters.\n- issue_key (str): The key of the issue for which the description is to be retrieved.\n\nReturn:\n- str: The description of the specified issue. If the description is not available, an empty string is returned.\n\"\"\"",
+            "last_accessed": 1745435671
+        }
+    ],
+    "jira_creator/rest/ops/create_issue.py": [
+        {
+            "sha1": "dec87fd05b306958e0b24df500afb4779552c786",
+            "docstring": "\"\"\"\nCreates an issue by sending a POST request using the provided request function.\n\nArgs:\n    request_fn (function): A function that sends HTTP requests. It is expected to accept at least the following parameters:\n        - method (str): The HTTP method to use (e.g., \"GET\", \"POST\").\n        - url (str): The URL to send the request to.\n        - json (dict): A dictionary containing the payload data to be sent in JSON format.\n\n    payload (dict): A dictionary representing the data to be sent as the payload for creating the issue.\n\nReturns:\n    str: The key of the created issue, or an empty string if the key is not found in the response.\n\n\"\"\"",
+            "last_accessed": 1745435674
+        }
+    ],
+    "jira_creator/rest/ops/migrate_issue.py": [
+        {
+            "sha1": "5990b048d40d4da38b07006269831fe993502267",
+            "docstring": "\"\"\"\nThis script defines a function 'migrate_issue' that facilitates migrating an issue in Jira from one type to another. \nThe function takes several parameters including request_fn for making HTTP requests, jira_url for the Jira instance URL, \nbuild_payload_fn for constructing the payload for the new issue, old_key for the key of the issue to be migrated, and new_type \nfor the type of the new issue. \n\nThe function retrieves information about the old issue, creates a new issue with the specified type and updates the old issue \nwith a comment indicating the migration. It also transitions the old issue to a final state if possible. \n\nThe function returns the key of the newly created issue. \n\"\"\"",
+            "last_accessed": 1745435676
+        },
+        {
+            "sha1": "5813572f1cc4bfdc1ab5b7c6b589184d7a1581fc",
+            "docstring": "\"\"\"\nRetrieve issue details from Jira and prepare data for migration.\n\nArguments:\n- request_fn (function): A function to make HTTP requests.\n- jira_url (str): The base URL of the Jira instance.\n- build_payload_fn (function): A function to construct payload for HTTP requests.\n- old_key (str): The key of the issue to be migrated.\n- new_type (str): The type of the new issue after migration.\n\nReturns: \nThis function does not return any value.\n\n\"\"\"",
+            "last_accessed": 1745435678
+        }
+    ],
+    "jira_creator/rest/ops/add_comment.py": [
+        {
+            "sha1": "b64c342db84e7865b38301950bfae609c723933d",
+            "docstring": "\"\"\"\nSends a POST request to add a comment to a specific issue in Jira.\n\nArguments:\n- request_fn (function): A function used to send HTTP requests.\n- issue_key (str): The key of the issue to which the comment will be added.\n- comment (str): The text of the comment to be added.\n\nReturn:\n- dict: A dictionary representing the response of the POST request.\n\nExceptions:\n- None\n\"\"\"",
+            "last_accessed": 1745435681
+        }
+    ],
+    "jira_creator/rest/ops/unassign_issue.py": [
+        {
+            "sha1": "9798ef9254484c9f0b54045cabd14b9a3e95270b",
+            "docstring": "\"\"\"\nThis module provides a function to unassign an issue in Jira by sending a PUT request to the Jira API.\nIf successful, it returns True. If an error occurs during the unassignment process, it raises an UnassignIssueError.\n\"\"\"",
+            "last_accessed": 1745435682
+        },
+        {
+            "sha1": "f6a465e8624ea798f864a6e93de09f2c2707a3c7",
+            "docstring": "\"\"\"\nUnassigns the assignee from a specified issue.\n\nArguments:\n- request_fn (function): A function used to make API requests.\n- issue_key (str): The key of the issue to unassign.\n\nReturn:\n- bool: True if the issue was successfully unassigned.\n\nExceptions:\n- UnassignIssueError: Raised if there is an issue with unassigning the specified issue.\n\"\"\"",
+            "last_accessed": 1745435684
+        }
+    ],
+    "jira_creator/rest/ops/get_user.py": [
+        {
+            "sha1": "51e79bd0611655b76807b4398ba481661ee47065",
+            "docstring": "\"\"\"\nRetrieves user information by sending a GET request to the specified API endpoint.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- username (str): The username of the user whose information is being retrieved.\n\nReturn:\n- dict: A dictionary containing the user information retrieved from the API.\n\n\"\"\"",
+            "last_accessed": 1745435685
+        }
+    ],
+    "jira_creator/rest/ops/__init__.py": [
+        {
+            "sha1": "8a1e2ec5a5c450a0d5d679505bdc7b07c4b6ff03",
+            "docstring": "\"\"\"\nThis file includes various functions for interacting with an issue tracking system. \nFunctions are available for tasks such as adding comments, flags, assigning issues, blocking/unblocking issues, creating, cloning, and migrating issues, as well as setting and updating various attributes of the issues like acceptance criteria, priority, sprint, status, story epic, story points, and summary. \nAdditionally, functions for listing and searching for issues and users, viewing issues, and getting current user details are provided.\n\"\"\"",
+            "last_accessed": 1745435688
+        }
+    ],
+    "jira_creator/rest/ops/list_sprints.py": [
+        {
+            "sha1": "a3ed74fd5462c60b78e0f9a3a086860362be8cd7",
+            "docstring": "\"\"\"\nRetrieve a list of open sprints for a specified board.\n\nArguments:\n- request_fn: A function used to make HTTP requests.\n- board_id (str): The identifier of the board for which to retrieve the sprints.\n\nReturn:\n- list[str]: A list of names of open sprints associated with the specified board.\n\nExceptions:\n- This function does not raise any exceptions.\n\"\"\"",
+            "last_accessed": 1745435696
+        }
+    ],
+    "jira_creator/rest/ops/search_users.py": [
+        {
+            "sha1": "8fc43121895b5aa69d3ed77156e3eb38e491dea6",
+            "docstring": "\"\"\"\nSearch for users based on a query string.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- query (str): The query string used to search for users by username.\n- max_results (int): The maximum number of results to return (default is 10).\n\nReturn:\n- list: A list of user objects matching the search query.\n\n\"\"\"",
+            "last_accessed": 1745435697
+        }
+    ],
+    "jira_creator/rest/ops/set_sprint.py": [
+        {
+            "sha1": "8b29bfe302cc633c376bfa6e708928d36bf6231b",
+            "docstring": "\"\"\"\nThis script defines a function set_sprint that updates the sprint field of a JIRA issue using the provided request function, issue key, and sprint ID. It constructs a payload with the sprint information and makes a PUT request to the JIRA API endpoint to update the issue. The sprint ID can be None to remove the issue from the sprint. The function relies on the EnvFetcher class from core.env_fetcher to retrieve the JIRA sprint field name.\n\"\"\"",
+            "last_accessed": 1745435699
+        },
+        {
+            "sha1": "dadba80da847d54200c385b3d524fb98e8e5faa7",
+            "docstring": "\"\"\"\nSet the sprint for a specific Jira issue.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the Jira issue to update.\n- sprint_id (int): The ID of the sprint to set for the issue. If sprint_id is not provided (or 0), the issue will be removed from any sprint.\n\nSide Effects:\n- Modifies the sprint field of the specified Jira issue.\n\n\"\"\"",
+            "last_accessed": 1745435703
+        }
+    ],
+    "jira_creator/rest/ops/list_issues.py": [
+        {
+            "sha1": "bf795f21febfd0bba626d65aa5c9782cada61ede",
+            "docstring": "\"\"\"\nThis module provides a function to list JIRA issues based on specified criteria.\n\nThe 'list_issues' function takes various parameters such as project, component, assignee, status, summary, and others to filter the JIRA issues. It constructs a JQL query based on the parameters provided and retrieves the relevant issues using the JIRA API.\n\nThe function also processes the retrieved issues, extracts sprint information, and adds it to each issue before returning the list of filtered issues.\n\nNote: The function includes JSCPD ignore comments to exclude code blocks from duplication detection.\n\"\"\"",
+            "last_accessed": 1745435705
+        },
+        {
+            "sha1": "f2e5519dc8adb5a07b361f7a4e562af4566416c3",
+            "docstring": "\"\"\"\nRetrieve a list of issues based on specified filters.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- get_current_user_fn (function): A function used to retrieve the current user.\n- project (str): Filter issues by project name.\n- component (str): Filter issues by component name.\n- assignee (str): Filter issues by assignee.\n- status (str): Filter issues by status.\n- summary (str): Filter issues by summary.\n- show_reason (bool): Flag to indicate whether to show the reason for the issue.\n- blocked (bool): Flag to filter blocked issues.\n- unblocked (bool): Flag to filter unblocked issues.\n- reporter (str): Filter issues by reporter.\n\nReturns:\nNone\n\n\"\"\"",
+            "last_accessed": 1745435708
+        }
+    ],
+    "jira_creator/rest/ops/remove_from_sprint.py": [
+        {
+            "sha1": "397a8aac103fdcd80d3907d67be98769e7d4ae9c",
+            "docstring": "\"\"\"\nThis module defines a function 'remove_from_sprint' that is used to remove an issue from a sprint in an Agile project management tool. It takes two parameters: 'request_fn' which is a function for making HTTP requests and 'issue_key' which is the key of the issue to be removed from the sprint. If the issue is successfully removed from the sprint, a success message is printed. If an error occurs during the removal process, a failure message is printed and a 'RemoveFromSprintError' exception is raised with an error message. \n\"\"\"",
+            "last_accessed": 1745435710
+        },
+        {
+            "sha1": "681bb7ba850219aa0b7a0f526fca91057b3d2eac",
+            "docstring": "\"\"\"\nRemoves an issue from the current sprint backlog.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the issue to be removed from the sprint backlog.\n\nExceptions:\n- RemoveFromSprintError: Raised when there is an issue removing the specified issue from the sprint backlog.\n\nSide Effects:\n- If successful, prints a message indicating that the issue has been moved to the backlog.\n- If an error occurs, prints a message indicating the failure and raises a RemoveFromSprintError.\n\n\"\"\"",
+            "last_accessed": 1745435713
+        }
+    ],
+    "jira_creator/rest/ops/clone_issue.py": [
+        {
+            "sha1": "e0a576425c840c4c3914b8818a42be021497a898",
+            "docstring": "\"\"\"\nClones an issue by creating a new flag for the specified issue key.\n\nArguments:\n- request_fn (function): A function used to make HTTP requests.\n- issue_key (str): The key of the issue to be cloned.\n\nReturn:\n- dict: A dictionary representing the response from the request function.\n\n\"\"\"",
+            "last_accessed": 1745435714
         }
     ]
 }

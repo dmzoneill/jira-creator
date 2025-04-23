@@ -1,3 +1,11 @@
+"""
+This file includes various functions for interacting with an issue tracking system.
+Functions are available for tasks such as adding comments, flags, assigning issues, blocking/unblocking issues,
+creating, cloning, and migrating issues, as well as setting and updating various attributes of the issues like
+acceptance criteria, priority, sprint, status, story epic, story points, and summary.
+Additionally, functions for listing and searching for issues and users, viewing issues, and getting current user
+details are provided.
+"""
 from .add_comment import add_comment  # noqa
 from .add_flag import add_flag  # noqa
 from .add_to_sprint_by_name import add_to_sprint_by_name  # noqa

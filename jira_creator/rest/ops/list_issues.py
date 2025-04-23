@@ -10,6 +10,7 @@ returning the list of filtered issues.
 
 Note: The function includes JSCPD ignore comments to exclude code blocks from duplication detection.
 """
+
 import re
 
 from core.env_fetcher import EnvFetcher
@@ -31,7 +32,7 @@ def list_issues(
 ):
     """
     Retrieve a list of issues based on specified filters.
-    
+
     Arguments:
     - request_fn (function): A function used to make HTTP requests.
     - get_current_user_fn (function): A function used to retrieve the current user.
@@ -44,10 +45,10 @@ def list_issues(
     - blocked (bool): Flag to filter blocked issues.
     - unblocked (bool): Flag to filter unblocked issues.
     - reporter (str): Filter issues by reporter.
-    
+
     Returns:
     None
-    
+
     """
     jql_parts = []
     jql_parts.append(f'project="{project}"')

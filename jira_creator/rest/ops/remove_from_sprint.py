@@ -5,24 +5,25 @@ which is the key of the issue to be removed from the sprint. If the issue is suc
 success message is printed. If an error occurs during the removal process, a failure message is printed and a
 'RemoveFromSprintError' exception is raised with an error message.
 """
+
 from exceptions.exceptions import RemoveFromSprintError
 
 
 def remove_from_sprint(request_fn, issue_key):
     """
     Removes an issue from the current sprint backlog.
-    
+
     Arguments:
     - request_fn (function): A function used to make HTTP requests.
     - issue_key (str): The key of the issue to be removed from the sprint backlog.
-    
+
     Exceptions:
     - RemoveFromSprintError: Raised when there is an issue removing the specified issue from the sprint backlog.
-    
+
     Side Effects:
     - If successful, prints a message indicating that the issue has been moved to the backlog.
     - If an error occurs, prints a message indicating the failure and raises a RemoveFromSprintError.
-    
+
     """
 
     try:

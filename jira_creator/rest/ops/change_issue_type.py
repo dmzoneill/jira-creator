@@ -6,21 +6,22 @@ It retrieves issue data using the 'request_fn', modifies the type in the payload
 request to the Jira API. If the issue is a subtask, it also handles removing the parent link.
 In case of a 'ChangeIssueTypeError', it raises and logs an exception with an error message.
 """
+
 from exceptions.exceptions import ChangeIssueTypeError
 
 
 def change_issue_type(request_fn, issue_key, new_type):
     """
     Change the issue type of a Jira issue.
-    
+
     Arguments:
     - request_fn (function): A function used to make HTTP requests.
     - issue_key (str): The key of the issue to be updated.
     - new_type (str): The new issue type to assign to the issue.
-    
+
     Side Effects:
     - Modifies the issue type of the specified Jira issue.
-    
+
     Exceptions:
     - None
     """

@@ -7,6 +7,7 @@ If an issue is blocked, it constructs a dictionary containing key information ab
 assignee, reason, and summary.
 The function returns a list of dictionaries representing the blocked issues.
 """
+
 from core.env_fetcher import EnvFetcher
 
 
@@ -14,16 +15,16 @@ from core.env_fetcher import EnvFetcher
 def blocked(list_issues_fn, project=None, component=None, assignee=None):
     """
     Retrieve a list of issues based on specified project, component, and assignee.
-    
+
     Arguments:
     - list_issues_fn (function): A function that returns a list of issues based on project, component, and assignee
     parameters.
     - project (str): The project name to filter the issues. Defaults to None.
     - component (str): The component name to filter the issues. Defaults to None.
     - assignee (str): The assignee name to filter the issues. Defaults to None.
-    
+
     No return value.
-    
+
     Side Effects:
     - Modifies the 'issues' list by populating it with the filtered list of issues.
     """

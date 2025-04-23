@@ -11,20 +11,22 @@ with a comment indicating the migration. It also transitions the old issue to a 
 
 The function returns the key of the newly created issue.
 """
+
+
 def migrate_issue(request_fn, jira_url, build_payload_fn, old_key, new_type):
     """
     Retrieve issue details from Jira and prepare data for migration.
-    
+
     Arguments:
     - request_fn (function): A function to make HTTP requests.
     - jira_url (str): The base URL of the Jira instance.
     - build_payload_fn (function): A function to construct payload for HTTP requests.
     - old_key (str): The key of the issue to be migrated.
     - new_type (str): The type of the new issue after migration.
-    
+
     Returns:
     This function does not return any value.
-    
+
     """
 
     fields = request_fn("GET", f"/rest/api/2/issue/{old_key}")["fields"]

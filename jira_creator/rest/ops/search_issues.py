@@ -13,6 +13,7 @@ The function returns a list of processed issues.
 Note: This function relies on the 'EnvFetcher' class from 'core.env_fetcher' for fetching environment variables related
 to JIRA fields.
 """
+
 import re
 
 from core.env_fetcher import EnvFetcher
@@ -21,11 +22,11 @@ from core.env_fetcher import EnvFetcher
 def search_issues(request_fn, jql):
     """
     Search for issues in JIRA based on the provided JQL query.
-    
+
     Arguments:
     - request_fn (function): A function used to make HTTP requests.
     - jql (str): JIRA Query Language (JQL) query to filter the search results.
-    
+
     Return:
     None
     """

@@ -24,6 +24,8 @@ Returns:
 }
 }
 """
+
+
 def build_payload(
     summary,
     description,
@@ -36,7 +38,7 @@ def build_payload(
 ):
     """
     Builds a payload dictionary for creating an issue in a project.
-    
+
     Arguments:
     - summary (str): A brief summary or title of the issue.
     - description (str): Detailed description of the issue.
@@ -46,10 +48,10 @@ def build_payload(
     - component_name (str): Name of the component related to the issue.
     - priority (str): Priority of the issue (e.g., High, Medium, Low).
     - epic_field (str): Field related to the epic the issue belongs to.
-    
+
     Returns:
     - dict: A dictionary representing the payload for creating an issue with the specified details.
-    
+
     """
     fields = {
         "project": {"key": project_key},

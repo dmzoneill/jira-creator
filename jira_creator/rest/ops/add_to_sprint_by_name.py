@@ -20,22 +20,23 @@ Finally, it adds the 'issue_key' to the identified sprint using a POST request a
 
 Note: This function assumes the 'request_fn' function is implemented elsewhere to handle HTTP requests.
 """
+
 from exceptions.exceptions import AddSprintError
 
 
 def add_to_sprint_by_name(request_fn, board_id, issue_key, sprint_name):
     """
     Add a specified sprint to a JIRA board using its name.
-    
+
     Arguments:
     - request_fn (function): A function used to make HTTP requests.
     - board_id (str): The ID of the JIRA board to which the sprint will be added.
     - issue_key (str): The key of the JIRA issue to be added to the sprint.
     - sprint_name (str): The name of the sprint to be added to the board.
-    
+
     Exceptions:
     - AddSprintError: Raised when the 'board_id' is not provided in the environment variables.
-    
+
     """
 
     if not board_id:

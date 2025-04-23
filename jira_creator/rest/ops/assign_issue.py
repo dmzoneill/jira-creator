@@ -9,24 +9,25 @@ The assign_issue function takes three parameters:
 If successful, the function returns True. If an AssignIssueError is raised during the process, it prints an error
 message and raises AssignIssueError with a custom message.
 """
+
 from exceptions.exceptions import AssignIssueError
 
 
 def assign_issue(request_fn, issue_key, assignee):
     """
     Assign the specified issue to the given assignee using the provided request function.
-    
+
     Arguments:
     - request_fn (function): The function used to make HTTP requests.
     - issue_key (str): The key identifying the issue to be assigned.
     - assignee (str): The username of the user to whom the issue will be assigned.
-    
+
     Return:
     - bool: True if the issue was successfully assigned.
-    
+
     Exceptions:
     - AssignIssueError: Raised if there is an error while assigning the issue.
-    
+
     Side Effects:
     - Makes an HTTP PUT request to assign the specified issue.
     - Prints an error message if the assignment fails.

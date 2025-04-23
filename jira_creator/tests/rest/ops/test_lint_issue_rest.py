@@ -1,9 +1,28 @@
+"""
+This script defines a unit test function test_lint_data_structure(client) that tests the data structure of an issue in
+a JIRA system. The function uses a MagicMock object to simulate the response from a client request to a specific JIRA
+issue. It then performs assertions to validate certain fields in the issue data, such as the status and blocked fields.
+The test ensures that the status field's name is "In Progress" and the blocked field's value is "True". The test is
+designed to be run within a testing framework that supports mocking client requests.
+"""
+
 from unittest.mock import MagicMock
 
 from core.env_fetcher import EnvFetcher
 
 
 def test_lint_data_structure(client):
+    """
+    Lint the data structure of an issue before sending it to a client.
+
+    Arguments:
+    - client (Client): The client object to which the issue data will be sent.
+
+    Side Effects:
+    - Modifies the issue_data dictionary structure to ensure it meets certain requirements before being sent to the
+    client.
+    """
+
     issue_data = {
         "fields": {
             "summary": "",

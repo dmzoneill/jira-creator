@@ -1,3 +1,10 @@
+"""
+This file contains unit test functions for testing the functionality of adding comments in a CLI application.
+It includes tests for adding comments with an editor, handling AI exceptions, and ensuring proper method calls and
+exception handling.
+The tests utilize mocking for various methods and services to isolate the functionality being tested.
+"""
+
 import tempfile
 from unittest.mock import MagicMock, patch
 
@@ -6,6 +13,17 @@ from exceptions.exceptions import AiError
 
 
 def test_add_comment_editor(cli):
+    """
+    Mock the 'add_comment' method and the 'improve_text' method for testing purposes.
+
+    Arguments:
+    - cli: An object representing the command-line interface.
+
+    Side Effects:
+    - Modifies the 'add_comment' method of the 'cli.jira' object.
+    - Modifies the 'improve_text' method of the 'cli.ai_provider' object.
+    """
+
     # Mock the add_comment method and the improve_text method
     cli.jira.add_comment = MagicMock()
     cli.ai_provider.improve_text = MagicMock(return_value="my comment")
@@ -34,6 +52,21 @@ def test_add_comment_editor(cli):
 
 
 def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
+    """
+    Add a comment to the CLI using both an editor and AI, with exception handling.
+
+    Arguments:
+    - cli: An instance of the CLI class.
+    - capsys: A fixture provided by pytest to capture stdout and stderr.
+
+    Exceptions:
+    - AiError: Raised when the AI service fails.
+
+    Side Effects:
+    - Modifies the behavior of the AI provider's improve_text method.
+
+    """
+
     # Mock the AI provider's improve_text method to avoid calling the real AI service
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = AiError("AI service failed")

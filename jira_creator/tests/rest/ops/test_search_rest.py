@@ -1,9 +1,37 @@
+"""
+Unit tests for the JiraClient's search_issues method.
+
+This module contains test cases that validate the behavior of the search_issues method in the JiraClient class.
+It uses the unittest.mock library to mock the _request method, allowing for controlled testing of the method's
+functionality without making actual API calls.
+
+The tests cover scenarios including:
+- Successful issue retrieval with active sprints.
+- Issue retrieval when no sprints are associated with the issues.
+
+Each test verifies that the _request method is called with the correct parameters and checks the output for expected
+values.
+"""
+
 from unittest.mock import MagicMock
 
 from core.env_fetcher import EnvFetcher
 
 
 def test_search_issues(client):
+    """
+    Mock the _request method of JiraClient to simulate fetching issues from Jira for testing purposes.
+
+    Arguments:
+    - client: A JiraClient object used to interact with the Jira API.
+
+    Side Effects:
+    - Modifies the behavior of the _request method of the provided JiraClient object by replacing it with a MagicMock
+    object.
+
+    This function is intended for testing purposes to simulate the response of fetching issues from Jira.
+    """
+
     # Mock the _request method of JiraClient
     # /* jscpd:ignore-start */
     client._request = MagicMock(
@@ -57,6 +85,18 @@ def test_search_issues(client):
 
 
 def test_search_issues_no_sprints(client):
+    """
+    Simulate searching for Jira issues without any sprints.
+
+    Arguments:
+    - client: An instance of JiraClient used to interact with the Jira API.
+
+    Side Effects:
+    - Modifies the _request method of the JiraClient by mocking it with a MagicMock to simulate no sprints in the
+    response.
+
+    """
+
     # Mock the _request method of JiraClient to simulate no sprints
     # /* jscpd:ignore-start */
     client._request = MagicMock(

@@ -1,3 +1,13 @@
+"""
+This module contains test cases for the 'blocked' function in the CLI class.
+
+The test cases include:
+- test_blocked_issues_found: Tests the scenario where blocked issues are found.
+- test_blocked_no_issues: Tests the scenario where no blocked issues are found.
+- test_blocked_none_blocked: Tests the scenario where there are no blocked issues.
+- test_blocked_exception: Tests the scenario where an exception is raised while listing blocked issues.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -6,12 +16,32 @@ from exceptions.exceptions import ListBlockedError
 
 
 class Args:
+    """
+    A class to store information about project arguments.
+
+    Attributes:
+    project (str): The name of the project.
+    component (str): The component related to the project.
+    user (str): The user associated with the project.
+    """
+
     project = None
     component = None
     user = None
 
 
 def test_blocked_issues_found(cli, capsys):
+    """
+    Set up a mock Jira instance for testing purposes.
+
+    Arguments:
+    - cli: Command Line Interface object.
+    - capsys: Pytest fixture for capturing stdout and stderr.
+
+    Side Effects:
+    - Initializes a MagicMock Jira instance on the cli object for testing.
+    """
+
     cli.jira = MagicMock()
 
     cli.jira.list_issues.return_value = [
@@ -47,6 +77,20 @@ def test_blocked_issues_found(cli, capsys):
 
 
 def test_blocked_no_issues(cli, capsys):
+    """
+    Summary:
+    Simulates a test scenario where no issues are blocked, using a provided CLI object and capsys for capturing system
+    output.
+
+    Arguments:
+    - cli: An object representing the CLI (Command Line Interface) with a 'jira' attribute.
+    - capsys: A pytest fixture for capturing stdout and stderr output during the test.
+
+    Side Effects:
+    - Modifies the 'jira' attribute of the provided 'cli' object by setting it to a MagicMock.
+    - Configures the 'list_issues' method of the 'jira' attribute to return an empty list ([]).
+    """
+
     cli.jira = MagicMock()
     cli.jira.list_issues.return_value = []
 
@@ -57,6 +101,16 @@ def test_blocked_no_issues(cli, capsys):
 
 
 def test_blocked_none_blocked(cli, capsys):
+    """
+    Check if there are any blocked issues in JIRA.
+
+    Arguments:
+    - cli: An object representing the command-line interface.
+    - capsys: A fixture for capturing stdout and stderr output.
+
+    Return: N/A
+    """
+
     cli.jira = MagicMock()
     cli.jira.list_issues.return_value = [
         {
@@ -78,6 +132,23 @@ def test_blocked_none_blocked(cli, capsys):
 
 
 def test_blocked_exception(cli, capsys):
+    """
+    Simulate a test scenario where a ListBlockedError exception is raised when calling the list_issues method on a Jira
+    client object.
+
+    Arguments:
+    - cli: An object representing a Jira client.
+    - capsys: A fixture for capturing stdout and stderr output during testing.
+
+    Exceptions:
+    - ListBlockedError: Raised when an issue is blocked, with an error message indicating the blockage.
+
+    Side Effects:
+    - Modifies the behavior of the list_issues method of the Jira client object to raise a ListBlockedError.
+
+    Note: This function is typically used in testing to handle and test scenarios where specific exceptions are raised.
+    """
+
     cli.jira = MagicMock()
     cli.jira.list_issues.side_effect = ListBlockedError("Boom!")
 

@@ -1,3 +1,9 @@
+"""
+This file contains unit tests for the OpenAIProvider class in the providers.openai_provider module. It includes tests
+for the improve_text method, which interacts with the OpenAI API to improve text inputs. The tests cover scenarios
+where the API call is successful and when it fails, asserting the expected behavior in each case.
+"""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -5,6 +11,11 @@ from providers.openai_provider import OpenAIProvider
 
 
 def test_openai_provider_improve_text():
+    """
+    This function tests the OpenAI provider's text improvement functionality by mocking a response object with a status
+    code of 200 and a JSON payload containing cleaned up text in the "choices" field.
+    """
+
     mock_response = type(
         "Response",
         (),
@@ -23,6 +34,20 @@ def test_openai_provider_improve_text():
 
 
 def test_improve_text_raises_on_api_failure():
+    """
+    Improve the text using the OpenAIProvider API, specifically the GPT-3.5 Turbo model.
+
+    Arguments:
+    - No arguments.
+
+    Exceptions:
+    - Raises an exception if there is a failure when calling the OpenAIProvider API.
+
+    Side Effects:
+    - Modifies the OpenAIProvider instance by setting the API key, model, and endpoint.
+
+    """
+
     provider = OpenAIProvider()
     provider.api_key = "fake-key"
     provider.model = "gpt-3.5-turbo"

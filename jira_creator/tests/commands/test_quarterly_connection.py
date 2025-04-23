@@ -1,3 +1,16 @@
+"""
+This module contains unit tests for the quarterly connection report functionality in the CLI.
+
+The tests include:
+- test_quarterly_connection_report_success: Tests the successful execution of the quarterly connection report.
+- test_quarterly_connection_report_no_issues: Tests the scenario where no issues are found for the quarterly connection
+report.
+- test_quarterly_connection_report_error: Tests the handling of QuarterlyConnectionError during the quarterly
+connection report.
+
+These tests mock certain methods and classes using MagicMock and patch to isolate the functionality being tested.
+"""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -5,6 +18,16 @@ from exceptions.exceptions import QuarterlyConnectionError
 
 
 def test_quarterly_connection_report_sucess(cli):
+    """
+    Generate a quarterly connection report successfully.
+
+    Arguments:
+    - cli: An instance of a command-line interface (CLI) used to interact with the system.
+
+    This function mocks the _register_subcommands and _dispatch_command methods to generate a quarterly connection
+    report successfully.
+    """
+
     # Mocking the _register_subcommands and _dispatch_command methods
     class Args:
         issue_key = "AAP-test_edit_with_ai"
@@ -21,6 +44,17 @@ def test_quarterly_connection_report_sucess(cli):
 
 
 def test_quarterly_connection_report_no_issues(cli):
+    """
+    Generates a quarterly connection report without any issues.
+
+    Arguments:
+    - cli: An object representing the command-line interface.
+
+    Side Effects:
+    - Mocks the _register_subcommands and _dispatch_command methods.
+
+    """
+
     # Mocking the _register_subcommands and _dispatch_command methods
     class Args:
         issue_key = "AAP-test_edit_with_ai"
@@ -37,6 +71,17 @@ def test_quarterly_connection_report_no_issues(cli):
 
 
 def test_quarterly_connection_report_error(cli):
+    """
+    Generates a quarterly connection report error for a given CLI.
+
+    Arguments:
+    - cli (object): An object representing the CLI for which the report error will be generated.
+
+    Side Effects:
+    - Mocks the _register_subcommands and _dispatch_command methods internally.
+
+    """
+
     # Mocking the _register_subcommands and _dispatch_command methods
     class Args:
         issue_key = "AAP-test_edit_with_ai"

@@ -1,8 +1,25 @@
+"""
+This script contains unit tests for the TemplateLoader class.
+It tests the functionality of parsing fields, rendering templates, handling file not found errors, and returning joined
+template strings.
+The TemplateLoader class is responsible for loading and processing template files with specific fields and templates.
+"""
+
 import pytest
 from templates.template_loader import TemplateLoader
 
 
 def test_template_loader_parses_fields(tmp_path):
+    """
+    Parses fields from a template file.
+
+    Arguments:
+    - tmp_path (path): Path to a temporary directory where the template file will be created.
+
+    Side Effects:
+    - Creates a template file with predefined fields in the specified temporary directory.
+    """
+
     # Create a simple template file
     template_content = (
         "FIELD|Title\n"
@@ -21,6 +38,17 @@ def test_template_loader_parses_fields(tmp_path):
 
 
 def test_template_loader_renders_description(tmp_path):
+    """
+    Renders a template with a description field.
+
+    Arguments:
+    - tmp_path (path): Path to a temporary directory where the template file will be created.
+
+    Side Effects:
+    - Creates a template file in the specified temporary directory with predefined content.
+
+    """
+
     template_content = (
         "FIELD|Topic\n" "TEMPLATE|Description\n" "You selected: {{Topic}}"
     )
@@ -34,6 +62,16 @@ def test_template_loader_renders_description(tmp_path):
 
 
 def test_template_loader_raises_file_not_found(tmp_path):
+    """
+    Load a test template from a temporary directory and raise a FileNotFoundError if the template file is not found.
+
+    Arguments:
+    - tmp_path (path): Path to a temporary directory where the template should be located.
+
+    Exceptions:
+    - FileNotFoundError: Raised if the template file is not found in the specified directory.
+    """
+
     # Use a temporary directory with no templates inside
     fake_template_dir = tmp_path
     issue_type = "nonexistent"
@@ -45,6 +83,17 @@ def test_template_loader_raises_file_not_found(tmp_path):
 
 
 def test_get_template_returns_joined_string(tmp_path):
+    """
+    Returns a joined string from a template file.
+
+    Arguments:
+    - tmp_path (path): Path to a temporary directory where the template file will be created.
+
+    Side Effects:
+    - Creates a template file with specified content in the temporary directory provided.
+
+    """
+
     template_file = tmp_path / "sample.tmpl"
     template_content = "FIELD|description\nTEMPLATE|\nline1\nline2\nline3"
     template_file.write_text(template_content)

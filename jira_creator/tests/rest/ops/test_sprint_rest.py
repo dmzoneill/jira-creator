@@ -1,9 +1,26 @@
+"""
+This file contains unit test functions for testing the methods set_sprint and remove_from_sprint of a client object.
+The tests use MagicMock to mock the _request method of the client object and assert the expected behavior of the
+methods. The set_sprint method is expected to make a PUT request with specific parameters, while the remove_from_sprint
+method is expected to make a POST request with specific parameters.
+"""
+
 from unittest.mock import MagicMock
 
 from core.env_fetcher import EnvFetcher
 
 
 def test_set_sprint(client):
+    """
+    Set an empty dictionary as the return value for the _request method of the provided client.
+
+    Arguments:
+    - client: An object representing a client.
+
+    Side Effects:
+    - Modifies the return value of the _request method of the client object.
+    """
+
     client._request = MagicMock(return_value={})
 
     client.set_sprint("AAP-test_set_sprint", 42)
@@ -16,6 +33,10 @@ def test_set_sprint(client):
 
 
 def test_remove_from_sprint(client):
+    """
+    Set the _request attribute of the client object to a MagicMock instance that returns an empty dictionary.
+    """
+
     client._request = MagicMock(return_value={})
 
     client.remove_from_sprint("AAP-test_remove_from_sprint")

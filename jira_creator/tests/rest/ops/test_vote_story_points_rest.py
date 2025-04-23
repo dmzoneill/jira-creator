@@ -1,3 +1,16 @@
+"""
+This module contains unit tests for the vote_story_points method in the client class.
+
+The tests cover scenarios where the method succeeds, fails during voting, and fails to fetch the issue ID.
+
+Functions:
+- test_vote_story_points_success(client): Test for successful voting of story points.
+- test_vote_story_points_failure(client, capsys): Test for failure during voting of story points.
+- test_vote_story_points_fetch_issue_id_failure(client, capsys): Test for failure to fetch the issue ID.
+
+Mock objects are used to simulate API responses and exceptions for testing purposes.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -5,6 +18,14 @@ from exceptions.exceptions import FetchIssueIDError, VoteStoryPointsError
 
 
 def test_vote_story_points_success(client):
+    """
+    Retrieve the issue ID for voting on story points.
+
+    Arguments:
+    - client: A client object used to make API requests.
+
+    """
+
     # First call: get issue ID
     mock_issue_response = MagicMock()
     mock_issue_response.status_code = 200
@@ -26,6 +47,20 @@ def test_vote_story_points_success(client):
 
 
 def test_vote_story_points_failure(client, capsys):
+    """
+    This function tests the failure case of voting story points for an issue.
+
+    Arguments:
+    - client: An object representing the client used to interact with an API.
+    - capsys: A fixture provided by pytest to capture stdout and stderr.
+
+    Returns:
+    This function does not return anything.
+
+    Exceptions:
+    This function does not raise any exceptions.
+    """
+
     # First call: get issue ID
     mock_issue_response = MagicMock()
     mock_issue_response.status_code = 200
@@ -47,6 +82,18 @@ def test_vote_story_points_failure(client, capsys):
 
 
 def test_vote_story_points_fetch_issue_id_failure(client, capsys):
+    """
+    Simulate a failure scenario when fetching issue ID for voting on story points.
+
+    Arguments:
+    - client (object): An object representing the client used to make requests.
+    - capsys (object): An object to capture stdout and stderr outputs.
+
+    Exceptions:
+    - FetchIssueIDError: Raised when there is a network error during the request.
+
+    """
+
     # Simulate the first request (GET issue) raising an exception
     client._request.side_effect = FetchIssueIDError("network error")
 

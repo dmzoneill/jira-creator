@@ -1,9 +1,26 @@
+"""
+This file contains a test function to set story epic in a client using a mocked request. The function calls the
+'set_story_epic' method on the client object with specific parameters and then asserts that a PUT request is made with
+the correct payload and endpoint using a mocked '_request' method.
+"""
+
 from unittest.mock import MagicMock
 
 from core.env_fetcher import EnvFetcher
 
 
 def test_set_story_epic_rest(client):
+    """
+    Set the story epic REST endpoint test.
+
+    Arguments:
+    - client: An instance of a client class used to make REST API requests.
+
+    Side Effects:
+    - Modifies the _request attribute of the client by replacing it with a MagicMock object.
+
+    """
+
     client._request = MagicMock(return_value={})
 
     # Call the function to set story points

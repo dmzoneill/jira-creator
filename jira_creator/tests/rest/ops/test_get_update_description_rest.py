@@ -1,7 +1,27 @@
+"""
+This script contains unit tests for the 'get_description' and 'update_description' methods of a client class.
+It uses the unittest.mock library to simulate responses from the client's _request method.
+The test_get_update_description function tests the functionality of retrieving and updating descriptions.
+It asserts that the correct description is returned by get_description and that the description field is updated by
+update_description.
+"""
+
 from unittest.mock import MagicMock
 
 
 def test_get_update_description(client):
+    """
+    Retrieves the description field from a client using a mocked request.
+
+    Arguments:
+    - client: An object representing a client for which the description field needs to be retrieved.
+
+    This function mocks the _request method of the client object to simulate retrieving the description field.
+
+    No return value.
+
+    """
+
     # Mock _request method to simulate getting description
     client._request = MagicMock(return_value={"fields": {"description": "text"}})
 

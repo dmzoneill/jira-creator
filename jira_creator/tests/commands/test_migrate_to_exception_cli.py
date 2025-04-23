@@ -1,3 +1,10 @@
+"""
+This script defines a test function test_migrate_to_exception that tests the migration functionality of a CLI
+application. The test mocks the necessary objects and asserts that the migration process raises a MigrateError
+exception with a specific error message. The test also captures the output and verifies the error message. The script
+uses pytest for testing and unittest.mock for mocking objects.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -5,6 +12,21 @@ from exceptions.exceptions import MigrateError
 
 
 def test_migrate_to_exception(cli, capsys):
+    """
+    Mock the migrate_issue method to raise an exception and test the migration process.
+
+    Arguments:
+    - cli: Command Line Interface object.
+    - capsys: pytest fixture to capture stdout and stderr.
+
+    Exceptions:
+    - MigrateError: Raised when the migrate_issue method fails.
+
+    Side Effects:
+    - Modifies the migrate_issue method to raise an exception.
+    - Sets the jira_url attribute of cli to "http://fake".
+    """
+
     # Mock the migrate_issue method to raise an exception
     cli.jira.migrate_issue = MagicMock(side_effect=MigrateError("fail"))
     cli.jira.jira_url = "http://fake"

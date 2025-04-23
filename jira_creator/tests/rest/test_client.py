@@ -1,3 +1,17 @@
+"""
+Unit tests for the JiraClient class in the rest.client module.
+
+These tests cover various scenarios for the _request method, including:
+- Successful requests with valid JSON responses.
+- Handling of empty responses and different types of HTTP errors (404, 401, 500).
+- Exception handling for network failures and invalid JSON responses.
+- Retry logic for transient server errors.
+- Generation of curl commands for different request configurations.
+
+The tests utilize the pytest framework and mocking capabilities to simulate HTTP requests and responses without making
+actual network calls.
+"""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -10,6 +24,12 @@ from rest.client import JiraClient
 @patch("rest.client.time.sleep")
 @patch("rest.client.requests.request")  # Mock the request to simulate an API response
 def test_request_success_valid_json(mock_request, mock_sleep):
+    """
+    This function is a test function that simulates a successful request to a Jira client with valid JSON response. It
+    takes two mock objects as parameters: mock_request and mock_sleep. It initializes a JiraClient object for testing
+    purposes.
+    """
+
     client = JiraClient()
 
     mock_response = MagicMock()
@@ -28,6 +48,12 @@ def test_request_success_valid_json(mock_request, mock_sleep):
 @patch("rest.client.time.sleep")  # Mock time.sleep to prevent delays in retry logic
 @patch("rest.client.requests.request")  # Mock the request to simulate an empty response
 def test_request_empty_response_content(mock_request, mock_sleep):
+    """
+    This function initializes a JiraClient object for making requests to a Jira server. No arguments are directly
+    passed to the function, but it seems to rely on external dependencies `mock_request` and `mock_sleep` for testing
+    purposes.
+    """
+
     client = JiraClient()
 
     # Simulate an empty response (no content in the body)
@@ -52,6 +78,17 @@ def test_request_empty_response_content(mock_request, mock_sleep):
 @patch("rest.client.time.sleep")
 @patch("rest.client.requests.request")  # Mock the request to simulate a network failure
 def test_request_request_exception(mock_request, mock_sleep):
+    """
+    This function initializes a JiraClient object for making requests to a Jira server.
+
+    Arguments:
+    - mock_request: A mock object for simulating HTTP requests.
+    - mock_sleep: A mock object for simulating sleep time.
+
+    Side Effects:
+    - Initializes a JiraClient object for making requests to a Jira server.
+    """
+
     client = JiraClient()
 
     # Simulate a RequestException being raised
@@ -74,6 +111,13 @@ def test_request_request_exception(mock_request, mock_sleep):
 @patch("rest.client.time.sleep")
 @patch("rest.client.requests.request")  # Mock the request to simulate an empty response
 def test_request_empty_response_text(mock_request, mock_sleep):
+    """
+    This function is a test function that simulates a request for empty response text from a Jira client. It takes two
+    mock objects as arguments: mock_request and mock_sleep. The purpose of this function is to test the behavior of the
+    JiraClient when it receives an empty response text. It initializes a JiraClient object but does not return any
+    value.
+    """
+
     client = JiraClient()
 
     mock_response = MagicMock()
@@ -94,6 +138,12 @@ def test_request_empty_response_text(mock_request, mock_sleep):
     "rest.client.requests.request"
 )  # Mock the request to simulate invalid JSON response
 def test_request_invalid_json_response(mock_request, mock_sleep):
+    """
+    This function is a test function that simulates a request to a Jira API endpoint with invalid JSON response. It
+    takes two mock objects as parameters: mock_request and mock_sleep. The purpose of this function is to test how the
+    JiraClient class handles invalid JSON responses. It initializes a JiraClient object for testing purposes.
+    """
+
     client = JiraClient()
 
     mock_response = MagicMock()
@@ -112,6 +162,17 @@ def test_request_invalid_json_response(mock_request, mock_sleep):
 @patch("rest.client.time.sleep")
 @patch("rest.client.requests.request")  # Mock the request to simulate 404 error
 def test_request_404_error(mock_request, mock_sleep):
+    """
+    Simulates a test scenario where a 404 error response is received during a request.
+
+    Arguments:
+    - mock_request: An object used to mock HTTP requests for testing purposes.
+    - mock_sleep: An object used to mock sleep time for testing purposes.
+
+    Side Effects:
+    - Initializes a JiraClient object for further testing.
+    """
+
     client = JiraClient()
 
     mock_response = MagicMock()
@@ -130,6 +191,19 @@ def test_request_404_error(mock_request, mock_sleep):
 @patch("rest.client.time.sleep")
 @patch("rest.client.requests.request")  # Mock the request to simulate 401 error
 def test_request_401_error(mock_request, mock_sleep):
+    """
+    This function is used to test the behavior of a JiraClient when it receives a 401 error during a request.
+
+    Arguments:
+    - mock_request: A mock object used to simulate the request behavior.
+    - mock_sleep: A mock object used to simulate a sleep operation.
+
+    Side Effects:
+    - Initializes a JiraClient object.
+
+    This function does not have a return value.
+    """
+
     client = JiraClient()
 
     mock_response = MagicMock()
@@ -148,6 +222,17 @@ def test_request_401_error(mock_request, mock_sleep):
 @patch("rest.client.time.sleep")
 @patch("rest.client.requests.request")  # Mock the request to simulate 500 error
 def test_request_500_error(mock_request, mock_sleep):
+    """
+    This function initializes a JiraClient object for testing purposes.
+
+    Arguments:
+    - mock_request: A mock object used for simulating HTTP requests.
+    - mock_sleep: A mock object used for simulating time delays.
+
+    Side Effects:
+    - Initializes a JiraClient object for testing purposes.
+    """
+
     client = JiraClient()
 
     mock_response = MagicMock()
@@ -168,6 +253,15 @@ def test_request_500_error(mock_request, mock_sleep):
     "rest.client.requests.request"
 )  # Mock the request to simulate failure before success
 def test_request_retry_logic(mock_request, mock_sleep):
+    """
+    This function initializes a JiraClient object for handling requests and retries.
+
+    Arguments:
+    - mock_request: A mock object for simulating HTTP requests.
+    - mock_sleep: A mock object for simulating sleep time.
+
+    """
+
     client = JiraClient()
 
     mock_response_1 = MagicMock()
@@ -193,6 +287,16 @@ def test_request_retry_logic(mock_request, mock_sleep):
 # Test Case 1: Generate curl command with headers only (no data, no params)
 @patch("builtins.print")  # Mock print to capture the generated curl command
 def test_generate_curl_command_headers_only(mock_print):
+    """
+    Generate a cURL command with headers only.
+
+    Arguments:
+    - mock_print: A mock object used for printing messages.
+
+    Side Effects:
+    - Initializes a JiraClient object for interacting with Jira API.
+    """
+
     client = JiraClient()
 
     method = "GET"
@@ -211,6 +315,15 @@ def test_generate_curl_command_headers_only(mock_print):
 # Test Case 2: Generate curl command with headers and JSON data
 @patch("builtins.print")  # Mock print to capture the generated curl command
 def test_generate_curl_command_with_json(mock_print):
+    """
+    Generate a cURL command with JSON data for testing purposes.
+
+    Arguments:
+    - mock_print: A mock object used for printing output.
+
+    This function initializes a JiraClient object for further testing.
+    """
+
     client = JiraClient()
 
     method = "POST"
@@ -229,6 +342,16 @@ def test_generate_curl_command_with_json(mock_print):
 # Test Case 3: Generate curl command with headers and query parameters
 @patch("builtins.print")  # Mock print to capture the generated curl command
 def test_generate_curl_command_with_params(mock_print):
+    """
+    This function initializes a JiraClient object.
+
+    Arguments:
+    - mock_print: A mock object for printing (not used in the function).
+
+    Side Effects:
+    - Initializes a JiraClient object.
+    """
+
     client = JiraClient()
 
     method = "GET"
@@ -247,6 +370,17 @@ def test_generate_curl_command_with_params(mock_print):
 # Test Case 4: Generate curl command with headers, JSON data, and query parameters
 @patch("builtins.print")  # Mock print to capture the generated curl command
 def test_generate_curl_command_all(mock_print):
+    """
+    Generate a cURL command for all requests made by a JiraClient.
+
+    Arguments:
+    - mock_print: A mock object for printing, used for testing purposes.
+
+    Side Effects:
+    - Initializes a JiraClient object for interacting with Jira.
+
+    """
+
     client = JiraClient()
 
     method = "POST"
@@ -268,6 +402,11 @@ def test_generate_curl_command_all(mock_print):
     "rest.client.time.sleep"
 )  # Mock time.sleep to prevent actual delays in retry logic
 def test_request_final_return(mock_sleep, mock_request):
+    """
+    This function initializes a JiraClient object for making requests to a Jira server. No arguments are passed to the
+    function.
+    """
+
     client = JiraClient()
 
     # Simulate failed attempts (500 errors) for all retry attempts

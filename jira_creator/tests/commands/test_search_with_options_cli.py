@@ -1,3 +1,22 @@
+"""
+Unit tests for the CLI search and list functionality of a JIRA integration.
+
+This module contains a series of tests that validate the behavior of the CLI's search and list issue functionalities.
+It uses the pytest framework along with unittest.mock to simulate JIRA responses and capture output for verification.
+
+Tests include:
+- Searching for issues based on JQL queries and verifying the correct output is printed.
+- Handling cases where no issues are found and ensuring the appropriate message is displayed.
+- Managing exceptions raised during search operations and confirming error messages are printed.
+- Filtering listed issues by summary to ensure only relevant results are shown.
+
+Dependencies:
+- pytest
+- unittest.mock
+- core.env_fetcher (for environment variable fetching)
+- exceptions.exceptions (for handling specific errors)
+"""
+
 import io
 from unittest.mock import MagicMock, patch
 
@@ -7,6 +26,19 @@ from exceptions.exceptions import SearchError
 
 
 def test_search(cli, mock_search_issues):
+    """
+    Simulate a search functionality for issues using a mock search.
+
+    Arguments:
+    - cli (object): An object representing the command-line interface.
+    - mock_search_issues (object): A mock object used to simulate the search for issues.
+
+    Side Effects:
+    - Prepares the 'Args' object to simulate CLI arguments for the search.
+
+    Note: This function does not have a return value.
+    """
+
     # Prepare the args object to simulate CLI arguments
     class Args:
         jql = "project = AAP AND status = 'In Progress'"
@@ -28,6 +60,16 @@ def test_search(cli, mock_search_issues):
 
 
 def test_search_no_issues(cli):
+    """
+    Simulate a test scenario where the search_issues function returns an empty list of issues.
+
+    Arguments:
+    - cli: An object representing the command-line interface.
+
+    Side Effects:
+    - Modifies the search_issues function of the Jira client to return an empty list of issues.
+    """
+
     # Mock search_issues to return an empty list of issues
     cli.jira.search_issues = MagicMock(return_value=[])
 
@@ -49,6 +91,11 @@ def test_search_no_issues(cli):
 
 
 def test_search_with_exception(cli):
+    """
+    Mock the search_issues method of the provided cli object to raise a SearchError exception with the message "An
+    error occurred".
+    """
+
     # Mock search_issues to raise an exception
     cli.jira.search_issues = MagicMock(side_effect=SearchError("An error occurred"))
 
@@ -71,6 +118,18 @@ def test_search_with_exception(cli):
 
 
 def test_list_with_summary_filter(cli, capsys):
+    """
+    Retrieve and filter a list of JIRA issues based on a provided summary filter.
+
+    Arguments:
+    - cli: An instance of a JIRA command-line interface.
+    - capsys: A fixture to capture stdout and stderr output.
+
+    Return: N/A
+
+    Exceptions: N/A
+    """
+
     # Mock list_issues to return a list of issues
     cli.jira.list_issues.return_value = [
         {

@@ -1,7 +1,25 @@
+"""
+This script defines a test case function to test the get_issue_type method of a client class. The client's _request
+method is mocked using MagicMock to simulate a successful response. The get_issue_type method is called with a sample
+issue key, and the result is asserted to be the expected issue type "Story". Additionally, it checks if the _request
+method was called with the expected arguments.
+"""
+
 from unittest.mock import MagicMock
 
 
 def test_get_issue_type(client):
+    """
+    Simulate getting the type of an issue from a client.
+
+    Arguments:
+    - client: An object representing the client to interact with.
+
+    Side Effects:
+    - Modifies the client by mocking the _request method to return a simulated successful response.
+
+    """
+
     # Mock the _request method to simulate a successful response
     client._request = MagicMock(
         return_value={"fields": {"issuetype": {"name": "Story"}}}

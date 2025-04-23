@@ -1,3 +1,11 @@
+"""
+This file contains a unit test for the 'add_comment' method in the 'cli' module.
+The test case simulates a failure scenario by mocking the 'add_comment' method and causing the 'improve_text' method of
+'ai_provider' to raise an 'AiError' exception.
+The test verifies that the 'AiError' exception is correctly raised and captures the output to check for the expected
+error message.
+"""
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -5,6 +13,11 @@ from exceptions.exceptions import AiError
 
 
 def test_add_comment_ai_fail(cli, capsys):
+    """
+    Mock the add_comment method for testing purposes.
+    This function does not have a return value.
+    """
+
     # Mock the add_comment method
     cli.jira.add_comment = MagicMock()
 

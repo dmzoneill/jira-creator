@@ -1,3 +1,10 @@
+"""
+This script contains a test function to perform a dry run of a JIRA creation script. It sets up the environment
+variables, creates a temporary template file, and mocks the subprocess.run function to avoid actual execution of the
+script. The script is then called with specific arguments to simulate a dry run, and the call is checked using a mock
+assertion.
+"""
+
 import os
 import subprocess
 import tempfile
@@ -6,6 +13,17 @@ from unittest.mock import MagicMock
 
 
 def test_script_dry_run():
+    """
+    Run a test script in dry-run mode with predefined environment variables.
+
+    Arguments:
+    No arguments.
+
+    Side Effects:
+    - Sets up a test environment with predefined environment variables for a dry-run test script.
+
+    """
+
     # Set up environment
     env = os.environ.copy()
     env.update(

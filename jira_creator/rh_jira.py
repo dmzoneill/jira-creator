@@ -1,4 +1,30 @@
 #!/usr/bin/env python3
+"""
+A command-line interface (CLI) tool for managing JIRA issues.
+
+This script provides a set of commands to interact with JIRA, allowing users to create, edit, and manage issues, as
+well as perform various operations such as assigning users, adding comments, and managing sprints. It integrates with
+AI services to assist with issue creation and management.
+
+Key Features:
+- Create, edit, and delete JIRA issues.
+- Assign and unassign users to/from issues.
+- Add comments and manage issue statuses.
+- Search for issues using JIRA Query Language (JQL).
+- Integrate AI assistance for issue handling and suggestions.
+- Lint issues for quality checks and provide feedback.
+- Manage sprints and track progress.
+
+Dependencies:
+- core.env_fetcher: For fetching environment variables.
+- exceptions.exceptions: Custom exceptions for error handling.
+- providers: For obtaining AI provider instances.
+- rest.client: JIRA client for making API requests.
+- rest.prompts: For handling prompt templates used in AI interactions.
+
+Usage:
+Run the script from the command line, providing appropriate subcommands and arguments based on the desired action.
+"""
 import os
 import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
@@ -52,7 +78,77 @@ from commands import (  # isort: skip
 
 
 class JiraCLI:
+    """
+    A command-line interface (CLI) for interacting with JIRA issues, enabling users to manage issues, perform
+    AI-assisted operations, and execute various JIRA-related tasks.
+
+    Attributes:
+    jira (JiraClient): An instance of the JiraClient used to interact with the JIRA API.
+    template_dir (Path): The directory path for templates fetched from the environment.
+    ai_provider: The AI provider instance configured based on environment variables.
+    default_prompt: The default prompt for AI interactions.
+    comment_prompt: The prompt used for adding comments to issues.
+    ai_helper_prompt: The prompt used for AI helper functionalities.
+
+    Methods:
+    run(): Starts the CLI and handles command-line arguments.
+    _register_subcommands(subparsers): Registers subcommands for issue management and AI assistance.
+    _dispatch_command(args): Dispatches the command based on parsed arguments.
+    ai_helper(args): Executes the AI helper command.
+    open_issue(args): Opens a JIRA issue in the browser.
+    view_issue(args): Displays a JIRA issue in the console.
+    add_comment(args): Adds a comment to a specified JIRA issue.
+    create_issue(args): Creates a new JIRA issue based on provided parameters.
+    list_issues(args): Lists issues assigned to the user with optional filters.
+    change_type(args): Changes the type of a specified JIRA issue.
+    migrate(args): Migrates a specified issue to a new type.
+    edit_issue(args): Edits the description of a specified JIRA issue.
+    unassign(args): Unassigns a user from a specified JIRA issue.
+    assign(args): Assigns a user to a specified JIRA issue.
+    set_priority(args): Sets the priority of a specified JIRA issue.
+    set_story_epic(args): Sets the epic for a specified story issue.
+    remove_sprint(args): Removes a specified issue from its sprint.
+    add_sprint(args): Adds a specified issue to a sprint.
+    set_status(args): Sets the status of a specified JIRA issue.
+    set_acceptance_criteria(args): Sets the acceptance criteria for a specified issue.
+    vote_story_points(args): Votes on story points for a specified issue.
+    set_story_points(args): Sets story points directly for a specified issue.
+    block(args): Marks a specified issue as blocked.
+    unblock(args): Marks a specified issue as unblocked.
+    validate_issue(fields): Validates issue fields using an AI provider.
+    lint(args): Lints a specified issue for quality.
+    lint_all(args): Lints all issues assigned to the user.
+    blocked(args): Lists blocked issues with optional filters.
+    search(args): Searches for issues using JIRA Query Language (JQL).
+    quarterly_connection(args): Performs a quarterly connection report.
+    search_users(args): Searches for users by a specified term.
+    talk(args): Initiates a conversation with JIRA.
+    view_user(args): Displays user information based on account ID.
+    add_flag(args): Adds a flag to a specified issue.
+    remove_flag(args): Removes a flag from a specified issue.
+    list_sprints(args): Lists available sprints.
+    set_summary(args): Sets the summary for a specified issue.
+    clone_issue(args): Clones a specified issue.
+    """
+
     def __init__(self) -> None:
+        """
+        Initializes the JiraBot object with required variables and settings.
+
+        Arguments:
+        None
+
+        Side Effects:
+        - Initializes a JiraClient object and assigns it to self.jira.
+        - Fetches required environment variables using EnvFetcher.
+        - Sets the template directory path based on the value retrieved from the environment variables.
+        - Retrieves and sets the AI provider based on the value retrieved from the environment variables.
+        - Sets default prompts for different issue types using PromptLibrary.
+
+        Returns:
+        None
+        """
+
         self.jira: JiraClient = JiraClient()
         required_vars: list[str] = [
             "JPAT",
@@ -80,6 +176,17 @@ class JiraCLI:
         self.ai_helper_prompt = PromptLibrary.get_prompt(IssueType["AIHELPER"])
 
     def run(self) -> None:
+        """
+        Summary:
+        Initialize the argcomplete module for command-line argument completion.
+
+        Arguments:
+        - self: The instance of the class.
+
+        Exceptions:
+        None
+        """
+
         import argcomplete
 
         prog_name: str = os.environ.get("CLI_NAME", os.path.basename(sys.argv[0]))
@@ -96,7 +203,31 @@ class JiraCLI:
         self._dispatch_command(args)
 
     def _register_subcommands(self, subparsers: _SubParsersAction) -> None:
+        """
+        Registers subcommands for a given argparse subparsers object.
+
+        Arguments:
+        - subparsers (_SubParsersAction): An instance of the argparse subparsers object to which subcommands will be
+        registered.
+
+        Side Effects:
+        Modifies the subparsers object by registering subcommands for it.
+        """
+
         def add(name, help_text, aliases=None):
+            """
+            Creates a new subparser with the provided name and help text.
+
+            Args:
+            name (str): The name of the subparser.
+            help_text (str): The help text displayed when using the subparser.
+            aliases (list, optional): A list of alternative names for the subparser. Defaults to None.
+
+            Returns:
+            argparse.ArgumentParser: The newly created subparser.
+
+            """
+
             return subparsers.add_parser(name, help=help_text, aliases=aliases or [])
 
         # --- 🧠 AI Helper ---
@@ -268,6 +399,21 @@ class JiraCLI:
         # Add your other subcommands here
 
     def _dispatch_command(self, args: Namespace) -> None:
+        """
+        Dispatches a command based on the input arguments.
+
+        Arguments:
+        - self: The instance of the class.
+        - args (Namespace): A namespace containing the command to be executed.
+
+        Exceptions:
+        - DispatcherError: Raised when the command execution fails.
+
+        Side Effects:
+        - Prints an error message if the command execution fails.
+
+        """
+
         try:
             getattr(self, args.command.replace("-", "_"))(args)
         except AttributeError as e:
@@ -276,115 +422,594 @@ class JiraCLI:
             raise DispatcherError(msg)
 
     def ai_helper(self, args: Namespace) -> None:
+        """
+        Execute the AI helper functionality with the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments needed for the AI helper functionality.
+
+        Side Effects:
+        - Executes the CLI AI helper function with the current object instance, AI provider, AI helper prompt, and the
+        provided arguments.
+        """
+
         return cli_ai_helper(self, self.ai_provider, self.ai_helper_prompt, args)
 
     def open_issue(self, args: Namespace) -> None:
+        """
+        Open an issue using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments needed to open an issue.
+
+        Side Effects:
+        - Calls the cli_open_issue function with the provided arguments.
+
+        """
+
         return cli_open_issue(args)
 
     def view_issue(self, args: Namespace) -> None:
+        """
+        View an issue in Jira using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments needed to view the issue in Jira.
+
+        Side Effects:
+        - Calls the cli_view_issue function with the Jira object and the provided arguments.
+
+        """
+
         return cli_view_issue(self.jira, args)
 
     def add_comment(self, args: Namespace) -> None:
+        """
+        Adds a comment to a Jira issue using the provided arguments.
+
+        Arguments:
+        - self: The instance of the class.
+        - args (Namespace): A Namespace object containing the necessary arguments for adding a comment to a Jira issue.
+
+        Side Effects:
+        - Modifies the Jira issue by adding a comment.
+
+        """
+
         return cli_add_comment(self.jira, self.ai_provider, self.comment_prompt, args)
 
     def create_issue(self, args: Namespace) -> None:
+        """
+        Creates an issue using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing arguments for creating the issue.
+
+        Side Effects:
+        - Calls the cli_create_issue function with the necessary parameters to create an issue.
+
+        """
+
         return cli_create_issue(
             self.jira, self.ai_provider, self.default_prompt, self.template_dir, args
         )
 
     def list_issues(self, args: Namespace) -> None:
+        """
+        Summary:
+        Calls a CLI function to list issues based on the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing parsed arguments.
+
+        Return:
+        None
+
+        """
+
         return cli_list_issues(self.jira, args)
 
     def change_type(self, args: Namespace) -> None:
+        """
+        Change the type of an issue in Jira using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments needed to change the type of the issue in Jira.
+
+        Exceptions:
+        - No exceptions are raised explicitly within this function.
+
+        Side Effects:
+        - Modifies the type of the specified issue in Jira.
+
+        """
+
         return cli_change_type(self.jira, args)
 
     def migrate(self, args: Namespace) -> None:
+        """
+        Migrates data using the provided arguments.
+
+        Arguments:
+        - self: The object itself.
+        - args (Namespace): A Namespace object containing parsed command-line arguments.
+
+        Side Effects:
+        - Calls the cli_migrate function with the Jira instance and the provided arguments.
+
+        """
+
         return cli_migrate(self.jira, args)
 
     def edit_issue(self, args: Namespace) -> None:
+        """
+        Edit an issue using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A namespace object containing the arguments needed for editing the issue.
+
+        Side Effects:
+        - Modifies the state of the issue in Jira based on the provided arguments.
+
+        """
+
         return cli_edit_issue(
             self.jira, self.ai_provider, self.default_prompt, _try_cleanup, args
         )
 
     def _try_cleanup(self, prompt: str, text: str) -> str:
+        """
+        Attempts to clean up the given text using the AI provider.
+
+        Args:
+        prompt (str): The prompt to be used for cleaning up the text.
+        text (str): The text to be cleaned up.
+
+        Returns:
+        str: The cleaned-up text after processing with the AI provider.
+        """
+
         return _try_cleanup(self.ai_provider, prompt, text)
 
     def unassign(self, args: Namespace) -> None:
+        """
+        Unassigns an issue in Jira.
+
+        Arguments:
+        - self: the object instance
+        - args (Namespace): A Namespace object containing the arguments needed to unassign the issue.
+
+        Exceptions:
+        - No explicit exceptions are raised within this function.
+
+        Side Effects:
+        - Modifies the assignment of the specified Jira issue.
+
+        """
+
         return cli_unassign(self.jira, args)
 
     def assign(self, args: Namespace) -> None:
+        """
+        Assign an issue in Jira to a user.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing command-line arguments.
+
+        Exceptions:
+        - None
+
+        Side Effects:
+        - Modifies the assignment of an issue in Jira.
+
+        Return:
+        - None
+        """
+
         return cli_assign(self.jira, args)
 
     def set_priority(self, args: Namespace) -> None:
+        """
+        Set the priority of a Jira issue using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments needed to set the priority.
+
+        Exceptions:
+        - No exceptions are raised explicitly within this function.
+
+        """
+
         return cli_set_priority(self.jira, args)
 
     def set_story_epic(self, args: Namespace) -> None:
+        """
+        Set the epic for a story in Jira.
+
+        Arguments:
+        - self: the object instance
+        - args (Namespace): A namespace containing the arguments for setting the epic of a story in Jira.
+
+        Exceptions:
+        - None
+
+        Side Effects:
+        - Modifies the epic of a story in Jira.
+
+        """
+
         return cli_set_story_epic(self.jira, args)
 
     def remove_sprint(self, args: Namespace) -> None:
+        """
+        Remove a sprint from Jira board.
+
+        Arguments:
+        - self: the instance of the class.
+        - args (Namespace): A Namespace object containing parsed arguments from the command line.
+
+        Exceptions:
+        - None
+
+        Side Effects:
+        - Modifies the Jira board by removing a sprint.
+
+        """
+
         return cli_remove_sprint(self.jira, args)
 
     def add_sprint(self, args: Namespace) -> None:
+        """
+        Adds a sprint to a Jira board using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the necessary arguments for adding a sprint.
+
+        Exceptions:
+        - None
+
+        """
+
         return cli_add_sprint(self.jira, args)
 
     def set_status(self, args: Namespace) -> None:
+        """
+        Set the status of an issue in Jira using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A namespace containing the arguments needed to set the status of an issue in Jira.
+
+        Exceptions:
+        - None
+
+        Side Effects:
+        - Modifies the status of an issue in Jira.
+
+        Return:
+        - None
+        """
+
         return cli_set_status(self.jira, args)
 
     def set_acceptance_criteria(self, args: Namespace) -> None:
+        """
+        Set acceptance criteria for a Jira issue using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the command-line arguments.
+
+        Exceptions:
+        None
+
+        Side Effects:
+        Calls the cli_set_acceptance_criteria function with the Jira instance and the provided arguments.
+
+        Return:
+        None
+        """
+
         return cli_set_acceptance_criteria(self.jira, args)
 
     def vote_story_points(self, args: Namespace) -> None:
+        """
+        Cast a vote for story points on a Jira issue.
+
+        Arguments:
+        - self: The current instance of the class.
+        - args (Namespace): A namespace object containing parsed command-line arguments.
+
+        Exceptions:
+        - No explicit exceptions are raised by this function.
+
+        Side Effects:
+        - Calls the 'cli_vote_story_points' function with the Jira instance and provided arguments.
+
+        """
+
         return cli_vote_story_points(self.jira, args)
 
     def set_story_points(self, args: Namespace) -> None:
+        """
+        Set the story points for a Jira issue using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments needed to set story points for a Jira issue.
+
+        Exceptions:
+        - None
+
+        Side Effects:
+        - Calls the cli_set_story_points function with the Jira instance and provided arguments.
+
+        Return:
+        - None
+        """
+
         return cli_set_story_points(self.jira, args)
 
     def block(self, args: Namespace) -> None:
+        """
+        Execute a blocking operation using arguments provided in the Namespace object.
+
+        Arguments:
+        - self: the instance of the class containing the method.
+        - args (Namespace): Namespace object containing arguments for the operation.
+
+        Side Effects:
+        - Executes a blocking operation using the provided arguments.
+
+        """
+
         return cli_block(self.jira, args)
 
     def unblock(self, args: Namespace) -> None:
+        """
+        Unblocks an item in Jira using the provided arguments.
+
+        Arguments:
+        - self: the instance of the class.
+        - args (Namespace): Namespace object containing the arguments needed to unblock the item in Jira.
+
+        Side Effects:
+        - Modifies the state of the item in Jira by unblocking it.
+
+        """
+
         return cli_unblock(self.jira, args)
 
     def validate_issue(self, fields: dict[str, str]) -> None:
+        """
+        Validates the provided fields for an issue using a CLI validation function.
+
+        Arguments:
+        - fields (dict[str, str]): A dictionary containing the fields of the issue to be validated.
+        - self (implicit): Instance of the class containing the method.
+
+        Returns:
+        - None
+
+        """
+
         return cli_validate_issue(fields, self.ai_provider)
 
     def lint(self, args: Namespace) -> None:
+        """
+        Lint the provided arguments using the CLI linter.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the parsed arguments.
+
+        Side Effects:
+        - Calls the cli_lint function with the provided Jira instance, AI provider, and parsed arguments.
+
+        """
+
         return cli_lint(self.jira, self.ai_provider, args)
 
     def lint_all(self, args: Namespace) -> None:
+        """
+        Lint all Jira issues using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing parsed command-line arguments.
+
+        Side Effects:
+        - Calls cli_lint_all function with Jira instance, AI provider instance, and parsed arguments.
+
+        """
+
         return cli_lint_all(self.jira, self.ai_provider, args)
 
     def blocked(self, args: Namespace) -> None:
+        """
+        Calls a function to block a specific resource using Jira.
+
+        Arguments:
+        - self: the instance of the class
+        - args (Namespace): A Namespace object containing the arguments passed to the function.
+
+        Exceptions:
+        - None
+
+        """
+
         return cli_blocked(self.jira, args)
 
     def search(self, args: Namespace) -> None:
+        """
+        Search for items using the Jira API based on the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A namespace object containing the search parameters.
+
+        Exceptions:
+        - None
+
+        Side Effects:
+        - Calls the 'cli_search' function with the Jira instance and provided arguments.
+
+        """
+
         return cli_search(self.jira, args)
 
     def quarterly_connection(self, args: Namespace) -> None:
+        """
+        Execute a quarterly connection using the provided arguments.
+
+        Arguments:
+        - self: the object instance
+        - args (Namespace): A Namespace object containing the arguments for the connection
+
+        Side Effects:
+        - Calls cli_quarterly_connection function with the Jira and AI provider attributes of the object instance
+        """
+
         return cli_quarterly_connection(self.jira, self.ai_provider)
 
     def search_users(self, args: Namespace) -> None:
+        """
+        Searches for users using the provided arguments.
+
+        Arguments:
+        - self: the object instance
+        - args (Namespace): A Namespace object containing the arguments for the search.
+
+        Side Effects:
+        Calls the 'cli_search_users' function with the 'jira' attribute and the provided arguments.
+        """
+
         return cli_search_users(self.jira, args)
 
     def talk(self, args: Namespace) -> None:
+        """
+        Executes the 'cli_talk' function with the provided arguments.
+
+        Arguments:
+        - self: The instance of the class.
+        - args (Namespace): A Namespace object containing the command-line arguments.
+
+        Side Effects:
+        - Calls the 'cli_talk' function with the provided arguments.
+        """
+
         return cli_talk(self, args)
 
     def view_user(self, args: Namespace) -> None:
+        """
+        View a user's information using the CLI.
+
+        Arguments:
+        - self: the object instance
+        - args (Namespace): A Namespace object containing parsed arguments from the command line.
+
+        Exceptions: None
+        """
+
         return cli_view_user(self.jira, args)
 
     def add_flag(self, args: Namespace) -> None:
+        """
+        Adds a flag to a Jira issue using the provided arguments.
+
+        Arguments:
+        - self: the object instance
+        - args (Namespace): Namespace object containing parsed command-line arguments
+
+        Exceptions:
+        - No exceptions are raised by this function.
+
+        Side Effects:
+        - Modifies the Jira issue by adding a flag.
+
+        Return:
+        - None
+        """
+
         return cli_add_flag(self.jira, args)
 
     def remove_flag(self, args: Namespace) -> None:
+        """
+        Remove a flag from a Jira issue.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing parsed arguments.
+
+        Exceptions:
+        - No exceptions are raised by this function.
+
+        Side Effects:
+        - Modifies the Jira issue by removing a flag.
+
+        """
+
         return cli_remove_flag(self.jira, args)
 
     def list_sprints(self, args: Namespace) -> None:
+        """
+        Summary:
+        List sprints using the provided Jira instance and command-line arguments.
+
+        Arguments:
+        - self: The instance of the class containing the method.
+        - args (Namespace): A namespace object containing command-line arguments.
+
+        Return:
+        None
+
+        """
+
         return cli_list_sprints(self.jira, args)
 
     def set_summary(self, args: Namespace) -> None:
+        """
+        Set a summary for a Jira issue using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments needed to set the summary for a Jira issue.
+
+        Exceptions:
+        None
+
+        Side Effects:
+        Calls an external function cli_set_summary() to set the summary for a Jira issue.
+
+        Return:
+        None
+        """
+
         return cli_set_summary(self.jira, args)
 
     def clone_issue(self, args: Namespace) -> None:
+        """
+        Clones an issue in Jira using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A namespace object containing the arguments needed for cloning the issue.
+
+        Side Effects:
+        - Clones the specified issue in Jira.
+
+        """
+
         return cli_clone_issue(self.jira, args)
 
     # add new df here

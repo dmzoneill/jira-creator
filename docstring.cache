@@ -72,284 +72,10 @@
     "jira_creator/rest/ops/list_issues.py": [],
     "jira_creator/rest/ops/remove_from_sprint.py": [],
     "jira_creator/rest/ops/clone_issue.py": [],
-    "jira_creator/rest/client.py": [
-        {
-            "sha1": "64b2f9d2d9928db350941fbb26985b5423bb1fb6",
-            "docstring": "\"\"\"\nA client for interacting with the Jira API, providing methods to manage issues, projects, and various Jira functionalities.\n\nAttributes:\n    jira_url (str): The base URL for the Jira instance.\n    project_key (str): The key of the project to be managed.\n    affects_version (str): The version that the issues affect.\n    component_name (str): The name of the component related to the issues.\n    priority (str): The priority level for the issues.\n    jpat (str): The Jira Personal Access Token for authentication.\n    epic_field (str): The field used for epics in Jira.\n    board_id (str): The ID of the Jira board.\n    fields_cache_path (str): The file path for caching Jira fields.\n    is_speaking (bool): A flag indicating if the client is in speaking mode.\n\nMethods:\n    generate_curl_command(method, url, headers, json_data=None, params=None): Generates a curl command for debugging API requests.\n    cache_fields(): Caches Jira fields for efficient access, checking the cache's age.\n    get_field_name(field_id): Retrieves the name of a Jira field by its ID.\n    build_payload(summary, description, issue_type): Constructs a payload for creating or updating issues.\n    get_acceptance_criteria(issue_key): Retrieves acceptance criteria for a specified issue.\n    set_acceptance_criteria(issue_key, acceptance_criteria): Sets acceptance criteria for a specified issue.\n    get_description(issue_key): Retrieves the description of a specified issue.\n    update_description(issue_key, new_description): Updates the description of a specified issue.\n    create_issue(payload): Creates a new issue in Jira using the provided payload.\n    change_issue_type(issue_key, new_type): Changes the type of a specified issue.\n    migrate_issue(old_key, new_type): Migrates an issue to a new type.\n    add_comment(issue_key, comment): Adds a comment to a specified issue.\n    get_current_user(): Retrieves the current authenticated user.\n    get_user(str): Retrieves a user by their username or ID.\n    get_issue_type(issue_key): Retrieves the type of a specified issue.\n    unassign_issue(issue_key): Unassigns a specified issue.\n    assign_issue(issue_key, assignee): Assigns a specified issue to a user.\n    list_issues(...): Lists issues based on various optional filters.\n    set_priority(issue_key, priority): Sets the priority of a specified issue.\n    set_sprint(issue_key, sprint_id): Assigns a specified issue to a sprint.\n    remove_from_sprint(issue_key): Removes a specified issue from its sprint.\n    add_to_sprint_by_name(issue_key, sprint_name): Adds a specified issue to a sprint by its name.\n    set_status(issue_key, target_status): Sets the status of a specified issue.\n    set_story_epic(issue_key, epic_key): Assigns an epic to a specified story.\n    vote_story_points(issue_key, points): Votes on story points for a specified issue.\n    set_story_points(issue_key, points): Sets story points for a specified issue.\n    block_issue(issue_key, reason): Blocks a specified issue with a reason.\n    unblock_issue(issue_key): Unblocks a specified issue.\n    blocked(...): Lists blocked issues based on various optional filters.\n    search_issues(jql): Searches for issues using a JQL query.\n    search_users(str): Searches for users based on a string.\n    view_issue(issue_key): Retrieves details of a specified issue.\n    add_flag(issue_key): Adds a flag to a specified issue.\n    remove_flag(issue_key): Removes a flag from a specified issue.\n    list_sprints(board_id): Lists sprints for a specified board.\n    set_summary(issue_key): Sets the summary of a specified issue.\n    clone_issue(issue_key): Clones a specified issue.\n\"\"\"",
-            "last_accessed": 1745435919
-        },
-        {
-            "sha1": "7fa9fb3dc80f6b9cef7a16a4b93071b94006b70b",
-            "docstring": "\"\"\"\nInitialize a JIRA client with environment variables.\n\nArguments:\n    None\n\nSide Effects:\n    - Sets instance attributes for JIRA URL, project key, affects version, component name, priority, JPAT,\n      epic field, board ID, and fields cache path using environment variables fetched by EnvFetcher.\n    - Sets 'is_speaking' attribute to False.\n\"\"\"",
-            "last_accessed": 1745435921
-        },
-        {
-            "sha1": "1fde4de3c02eca0934c3597f0a58af4b691baac9",
-            "docstring": "\"\"\"\nGenerate a cURL command string based on the provided HTTP method, URL, headers, JSON data, and parameters.\n\nArguments:\n- method (str): The HTTP method to use in the cURL command (e.g., GET, POST).\n- url (str): The URL to which the cURL command will be directed.\n- headers (Dict[str, str]): A dictionary containing the headers to include in the cURL command.\n- json_data (Optional[Dict[str, Any]]): Optional JSON data to include in the cURL command body.\n- params (Optional[Dict[str, str]]): Optional parameters to include in the cURL command.\n\nSide Effects:\n- Modifies the 'parts' list to build the cURL command string.\n\nNote: This function does not return a value.\n\"\"\"",
-            "last_accessed": 1745435924
-        },
-        {
-            "sha1": "b111148e3f8bc794bb4455791dbd839b94b28a8a",
-            "docstring": "\"\"\"\nCore request logic. Returns a tuple (status_code, result).\n\nArguments:\n- method (str): The HTTP method to use for the request (e.g., 'GET', 'POST').\n- url (str): The URL to send the request to.\n- headers (Dict[str, str]): A dictionary containing the request headers.\n- json (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request. Defaults to None.\n- params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request. Defaults to None.\n\nReturn:\n- tuple: A tuple containing the HTTP status code and the parsed JSON result.\n\nExceptions:\n- No exceptions are explicitly raised in this function.\n\"\"\"",
-            "last_accessed": 1745435926
-        },
-        {
-            "sha1": "99d6963c85983028888ca8c19bdec9c08c63c0d6",
-            "docstring": "\"\"\"\nHandles retries and delegates the request to __request.\n\nArguments:\n- method (str): The HTTP method to be used for the request (e.g., 'GET', 'POST').\n- path (str): The endpoint path to be appended to the base URL.\n- json (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request (default is None).\n- params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request (default is None).\n\nReturn:\n- Optional[Dict[str, Any]]: A dictionary representing the response data from the request. Returns None if there is no response.\n\nSide Effects:\n- Constructs the full URL using the base URL and the provided path.\n- Sets the necessary headers for the request, including Authorization and Content-Type.\n\"\"\"",
-            "last_accessed": 1745435928
-        },
-        {
-            "sha1": "15ab84030b2f2f988f742e9ab27878de197928e5",
-            "docstring": "\"\"\"\nSummary:\nChecks if a cache file exists and is less than 24 hours old, then loads and returns the cached data from the file.\n\nArguments:\n- self: The instance of the class.\n  (Assumed to have attributes 'fields_cache_path' specifying the path to the cache file.)\n\nReturn:\n- The cached data loaded from the file as a Python object (e.g., dictionary, list).\n  If the cache file does not exist or is older than 24 hours, the function does not return anything.\n\n\"\"\"",
-            "last_accessed": 1745435930
-        },
-        {
-            "sha1": "210c1e7cf8995cf8e5f742abb6d6cbe557c80fd4",
-            "docstring": "\"\"\"\nRetrieves the field name corresponding to the given field ID.\n\nArguments:\n- self: The object instance.\n- field_id (int): The ID of the field for which the name is to be retrieved.\n\nSide Effects:\n- Updates or loads the fields from cache.\n\n\"\"\"",
-            "last_accessed": 1745435931
-        },
-        {
-            "sha1": "899b231dfc66fd60f0b801f4815f817978b0f09a",
-            "docstring": "\"\"\"\nBuilds a payload for creating an issue in a project with the provided summary, description, and issue type.\n\nArguments:\n- summary (str): A brief summary of the issue.\n- description (str): Detailed description of the issue.\n- issue_type (str): Type of the issue.\n\nReturn: \nThe payload for creating an issue with the specified details and additional project-specific information.\n\n\"\"\"",
-            "last_accessed": 1745435933
-        },
-        {
-            "sha1": "e0b33b5a396c65186aadba1a3c59e2473d5e9f16",
-            "docstring": "\"\"\"\nRetrieves the acceptance criteria for a specific issue identified by the given issue key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key identifying the specific issue for which acceptance criteria are to be retrieved.\n\nReturn:\n- str: The acceptance criteria for the specified issue.\n\n\"\"\"",
-            "last_accessed": 1745435934
-        },
-        {
-            "sha1": "701926edd9af0bd43c3c51e9dd755aaf1925abd1",
-            "docstring": "\"\"\"\nSets the acceptance criteria for a specific issue identified by the given issue key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The unique key identifying the issue.\n- acceptance_criteria (str): The acceptance criteria to be set for the issue.\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435936
-        },
-        {
-            "sha1": "98ae5ea1368df708d8ccb55f87025989b0d2e45c",
-            "docstring": "\"\"\"\nRetrieve the description of a specific issue identified by its key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The unique key of the issue for which the description is requested.\n\nReturn:\n- str: The description of the issue identified by the provided key.\n\n\"\"\"",
-            "last_accessed": 1745435938
-        },
-        {
-            "sha1": "6f0d37cf8bcadec7d29349e5d491b0b154ece8ea",
-            "docstring": "\"\"\"\nUpdates the description of an issue identified by the given issue key.\n\nArgs:\n    self: The object instance.\n    issue_key (str): The unique key of the issue to update.\n    new_description (str): The new description to set for the issue.\n\nReturns:\n    The result of updating the description for the specified issue.\n\n\"\"\"",
-            "last_accessed": 1745435940
-        },
-        {
-            "sha1": "60b7a25e0d0dce4071fa72f63d7a314b57d7baf5",
-            "docstring": "\"\"\"\nCreates an issue using the provided payload.\n\nArguments:\n- self: The object instance.\n- payload: A dictionary containing the information needed to create the issue.\n\nReturn:\n- The result of calling the 'create_issue' function with the request and payload.\n\n\"\"\"",
-            "last_accessed": 1745435941
-        },
-        {
-            "sha1": "8cb3ab030945063700ec2b31c4adfd3886655415",
-            "docstring": "\"\"\"\nChange the type of an issue in Jira.\n\nArguments:\n- self: the object instance\n- issue_key (str): the key of the issue to be modified\n- new_type (str): the new type to assign to the issue\n\nReturn:\n- The result of the change_issue_type function call with the provided parameters.\n\n\"\"\"",
-            "last_accessed": 1745435943
-        },
-        {
-            "sha1": "a66624e9c2bb185cfa7cbf49ec703580c118b54d",
-            "docstring": "\"\"\"\nMigrates an issue in Jira from one type to another.\n\nArguments:\n- self: The object instance.\n- old_key (str): The key of the issue to be migrated.\n- new_type (str): The new type to which the issue will be migrated.\n\nReturn:\n- The result of migrating the issue.\n\n\"\"\"",
-            "last_accessed": 1745435953
-        },
-        {
-            "sha1": "e8c0f43f6038e79195b9ebb94de808c4f4933070",
-            "docstring": "\"\"\"\nAdds a comment to an issue specified by its key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key of the issue to add the comment to.\n- comment (str): The content of the comment to be added.\n\nReturn:\n- The result of adding the comment to the specified issue.\n\n\"\"\"",
-            "last_accessed": 1745435955
-        },
-        {
-            "sha1": "f6ca92ca8e6ca753f0bb33d7c91eb5b1a600a67a",
-            "docstring": "\"\"\"\nSummary:\nRetrieve the current user based on the request provided.\n\nArguments:\n- self: The instance of the class.\n  (self) represents the instance of the class where this method is called.\n  It is used to access attributes and methods within the class.\n\nReturn:\nThe current user retrieved from the request.\nThe type of the returned value is dependent on the implementation of the 'get_current_user' function.\n\n\"\"\"",
-            "last_accessed": 1745435957
-        },
-        {
-            "sha1": "f43318fa76daee0f8399faa1d372cf430bf77f60",
-            "docstring": "\"\"\"\nRetrieve user information based on a provided string.\n\nArguments:\n- self: The object instance.\n- str (str): A string used to retrieve user information.\n\nReturn:\n- The user information retrieved based on the provided string.\n\n\"\"\"",
-            "last_accessed": 1745435958
-        },
-        {
-            "sha1": "e353f00550c3f9144f08b23ac30adc991d4a68c1",
-            "docstring": "\"\"\"\nRetrieve the type of an issue identified by the given issue key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The unique key identifying the issue.\n\nReturn:\n- str: The type of the issue identified by the provided key.\n\n\"\"\"",
-            "last_accessed": 1745435960
-        },
-        {
-            "sha1": "ab06acee77a835c99e5e1d8acb8a070c18097a0b",
-            "docstring": "\"\"\"\nUnassign an issue from a user.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key of the issue to be unassigned.\n\nReturn:\n- The result of unassigning the issue.\n\n\"\"\"",
-            "last_accessed": 1745435961
-        },
-        {
-            "sha1": "d3ec80720c7aa40278a82cc82719a432c29362bb",
-            "docstring": "\"\"\"\nAssign an issue to a specific user.\n\nArguments:\n- self: the object instance\n- issue_key (str): the key of the issue to be assigned\n- assignee (str): the username of the user to whom the issue will be assigned\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435962
-        },
-        {
-            "sha1": "003ac6889f19e6e2ffbcaf9900f4f7b582f3ca08",
-            "docstring": "\"\"\"\nSummary:\nRetrieve a list of issues based on specified filters such as project, component, assignee, status, summary, etc.\n\nArguments:\n- project (str): The project key to filter the issues. If not provided, defaults to the project key of the instance.\n- component (str): The component name to filter the issues. If not provided, defaults to the component name of the instance.\n- assignee (str): The assignee username to filter the issues.\n- status (str): The status of the issues to filter.\n- summary (str): The summary of the issues to filter.\n- show_reason (bool): Flag to indicate whether to show reasons for the issues.\n- blocked (bool): Flag to filter blocked issues.\n- unblocked (bool): Flag to filter unblocked issues.\n- reporter (str): The reporter username to filter the issues.\n\nReturn:\nNone\n\n\"\"\"",
-            "last_accessed": 1745435965
-        },
-        {
-            "sha1": "d41c39f5b1d7f03e8c8b297f16098a485d85ca62",
-            "docstring": "\"\"\"\nSet the priority of an issue in a Jira system.\n\nArguments:\n- self: the instance of the class.\n- issue_key (str): the key of the issue to set the priority for.\n- priority (str): the priority to set for the issue.\n\nReturn:\n- None\n\nExceptions:\n- None\n\"\"\"",
-            "last_accessed": 1745435966
-        },
-        {
-            "sha1": "809faadebd62b73336b915c92a5d3bde6538ea55",
-            "docstring": "\"\"\"\nSet the sprint for a specific issue identified by its key.\n\nArguments:\n- self: the object instance\n- issue_key (str): the key of the issue to set the sprint for\n- sprint_id (int): the ID of the sprint to set for the issue\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435968
-        },
-        {
-            "sha1": "c6c9c0c5f1dd4accd54a0bb7de2e11d7430afb33",
-            "docstring": "\"\"\"\nRemove an issue from the current sprint.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key identifying the issue to be removed from the sprint.\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435969
-        },
-        {
-            "sha1": "4a274a754ab6cf27fb5ed06ed664f3282dc34778",
-            "docstring": "\"\"\"\nAdds an issue to a sprint on a board by name.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key of the issue to be added to the sprint.\n- sprint_name (str): The name of the sprint to which the issue will be added.\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435971
-        },
-        {
-            "sha1": "28acded1f58a02c15d8fc38e30aac8501750325e",
-            "docstring": "\"\"\"\nSet the status of an issue identified by its key to a target status.\n\nArguments:\n- self: the object instance\n- issue_key (str): the key identifying the issue\n- target_status (str): the status to set the issue to\n\nReturn:\n- None\n\nExceptions:\n- None\n\"\"\"",
-            "last_accessed": 1745435973
-        },
-        {
-            "sha1": "8146dd86bc08a3e257ce7b1e0c252bc1e17812a0",
-            "docstring": "\"\"\"\nSets the epic link for a given story in Jira.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key of the story issue to set the epic link for.\n- epic_key (str): The key of the epic to link the story to.\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435974
-        },
-        {
-            "sha1": "a4e0364faa3c98b594ac98e834ed6d9f016aebe2",
-            "docstring": "\"\"\"\nCast a vote for story points on a specific issue.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key of the issue to vote on.\n- points (int): The number of story points to vote for the issue.\n\nReturn: \n- None\n\n\"\"\"",
-            "last_accessed": 1745435975
-        },
-        {
-            "sha1": "d005032edf5bb5df0b7622b356103cc253c55e84",
-            "docstring": "\"\"\"\nSet the story points for a specific issue identified by the given key.\n\nArguments:\n- self: the object instance\n- issue_key (str): the key identifying the specific issue\n- points (int): the number of story points to set for the issue\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435977
-        },
-        {
-            "sha1": "011ded810cc6ce8dcb8628e3a1fa22c388dc8927",
-            "docstring": "\"\"\"\nBlocks an issue by providing a reason for blocking.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key identifying the issue to be blocked.\n- reason (str): The reason for blocking the issue.\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435978
-        },
-        {
-            "sha1": "445edacfcf1f1793a869e521cece2668326bdbd4",
-            "docstring": "\"\"\"\nUnblocks an issue by its key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key identifying the issue to unblock.\n\nReturn:\n- The result of unblocking the issue.\n\n\"\"\"",
-            "last_accessed": 1745435980
-        },
-        {
-            "sha1": "d09a9c9430ce55009ecab65a8e7ceed19bf89a51",
-            "docstring": "\"\"\"\nCalls the 'blocked' function with parameters related to project, component, and assignee.\n\nArguments:\n- project (str): The project name to filter the issues.\n- component (str): The component name to filter the issues.\n- assignee (str): The assignee name to filter the issues.\n\nReturns:\n- The result of the 'blocked' function with the provided parameters.\n\n\"\"\"",
-            "last_accessed": 1745435981
-        },
-        {
-            "sha1": "4e3b365edf9e734b50e208b5cb0dd7d90b0d1cba",
-            "docstring": "\"\"\"\nSearch for issues in Jira based on a JQL query.\n\nArguments:\n- self: the object instance\n- jql (str): the JQL query string used to search for issues in Jira\n\nReturn:\n- The result of the search_issues function, which is not specified in the provided code.\n\n\"\"\"",
-            "last_accessed": 1745435983
-        },
-        {
-            "sha1": "cabf34ced12e8033c3fc0a2ef90498d89134c22c",
-            "docstring": "\"\"\"\nSearch for users based on a given string.\n\nArguments:\n- self: the object instance\n- str (str): the string used to search for users\n\nReturn:\n- The result of the search_users method called with the _request attribute and the provided string.\n\n\"\"\"",
-            "last_accessed": 1745435984
-        },
-        {
-            "sha1": "6ebe89c367c33704bbd93a7f074818f665382dd9",
-            "docstring": "\"\"\"\nView an issue by its key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key of the issue to view.\n\nReturn:\n- The result of viewing the issue.\n\n\"\"\"",
-            "last_accessed": 1745435986
-        },
-        {
-            "sha1": "4aab551026de28e45a2bdd14e41444a72fec173d",
-            "docstring": "\"\"\"\nAdds a flag to an issue identified by the provided issue key.\n\nArgs:\n    self: The object instance.\n    issue_key (str): The key identifying the issue to which the flag will be added.\n\nReturns:\n    The result of adding a flag to the specified issue.\n\n\"\"\"",
-            "last_accessed": 1745435988
-        },
-        {
-            "sha1": "dfae53bd3714a60048ce13aab3dda8fd312d3256",
-            "docstring": "\"\"\"\nRemove a flag from an issue identified by the given issue key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The unique key identifying the issue from which the flag will be removed.\n\nReturn:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435989
-        },
-        {
-            "sha1": "797f93ff72c6ae3f8bc4af36fb0fc8602d04ca68",
-            "docstring": "\"\"\"\nSummary:\nRetrieve a list of sprints associated with a specific board.\n\nArguments:\n- self: The object instance.\n- board_id (int): The unique identifier of the board for which to fetch the list of sprints.\n\nReturn:\nList: A list of sprints associated with the specified board.\n\n\"\"\"",
-            "last_accessed": 1745435991
-        },
-        {
-            "sha1": "023f785b5f827cc109ac2ec3ec9aa9e7c8e51f93",
-            "docstring": "\"\"\"\nSets the summary of an issue identified by the given issue key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key that identifies the issue for which the summary needs to be set.\n\nReturns:\n- None\n\n\"\"\"",
-            "last_accessed": 1745435992
-        },
-        {
-            "sha1": "7be7acab74d9205f31f87887e51a6ea107106a9e",
-            "docstring": "\"\"\"\nClones an issue in the system identified by the given issue key.\n\nArguments:\n- self: The object instance.\n- issue_key (str): The key identifying the issue to be cloned.\n\nReturn:\n- The result of cloning the issue.\n\n\"\"\"",
-            "last_accessed": 1745435994
-        }
-    ],
-    "jira_creator/rest/prompts.py": [
-        {
-            "sha1": "4182ae8a819015a57b8a753f8cdb4bd6dc1d4ebc",
-            "docstring": "\"\"\"\nThis module defines an IssueType enumeration class with different types of issues such as BUG, EPIC, SPIKE, STORY, TASK, COMMENT, DEFAULT, QC, and AIHELPER. \nIt also includes a PromptLibrary class with methods to retrieve file contents and generate prompts based on the provided issue type. \nThe get_prompt method in the PromptLibrary class dynamically generates prompts based on the IssueType provided. \n\"\"\"",
-            "last_accessed": 1745435996
-        },
-        {
-            "sha1": "49d9bc712ee919f2d92b6cb6ae48e5c6e8f6a2ab",
-            "docstring": "\"\"\"\nThis class defines different types of issues that can be used in a project management system.\n\nAttributes:\n- BUG (str): Represents a bug type issue.\n- EPIC (str): Represents an epic type issue.\n- SPIKE (str): Represents a spike type issue.\n- STORY (str): Represents a story type issue.\n- TASK (str): Represents a task type issue.\n- COMMENT (str): Represents a comment type issue.\n- DEFAULT (str): Represents a default type issue.\n- QC (str): Represents a QC type issue.\n- AIHELPER (str): Represents an AI helper type issue.\n- TEMPLATE_DIR (str): The directory path for templates used by the project management system.\n\"\"\"",
-            "last_accessed": 1745436000
-        },
-        {
-            "sha1": "f8b051262f2d621df6094919950edbbbeed4905e",
-            "docstring": "\"\"\"\nThis class provides methods to retrieve prompt contents from template files based on different issue types.\n\nAttributes:\n- No attributes are defined in the class, but the class relies on the following constants and types:\n    - TEMPLATE_DIR: Constant representing the directory where template files are stored.\n    - IssueType: Enum representing different types of issues.\nMethods:\n- get_file_contents(full_name): Static method that reads and returns the contents of a template file specified by 'full_name'.\n- get_prompt(issue_type: IssueType) -> str: Static method that generates a prompt message based on the provided 'issue_type'. It combines content from multiple template files depending on the issue type and returns the final prompt message as a string.\n\"\"\"",
-            "last_accessed": 1745436002
-        },
-        {
-            "sha1": "b94ef2b95d0fbcc7c6f05c97adf2da6068036f6b",
-            "docstring": "\"\"\"\nRetrieve the contents of a file specified by its full name.\n\nArguments:\n- full_name (str): The full name of the file to retrieve its contents.\n\nSide Effects:\n- Reads the contents of the file specified by 'full_name' and stores it in the 'template' variable.\n\n\"\"\"",
-            "last_accessed": 1745436003
-        },
-        {
-            "sha1": "37d0824823d6976c53e9f4be7ad80ee8cd42e2ce",
-            "docstring": "\"\"\"\nReturn a prompt message based on the provided issue type.\n\nArguments:\n- issue_type (IssueType): An enum representing the type of the issue.\n\nReturn:\n- str: A prompt message based on the issue type.\n\n\"\"\"",
-            "last_accessed": 1745436004
-        }
-    ],
-    "jira_creator/providers/openai_provider.py": [
-        {
-            "sha1": "36d1ff42c4dae8d7f857be5656608e46d9c12e15",
-            "docstring": "\"\"\"\nThis module provides a class, OpenAIProvider, for interacting with the OpenAI API to improve text based on a given prompt and text. It includes a method, improve_text, that sends a request to the OpenAI API and returns the improved text. The class initializes with API key, endpoint, and model fetched from environment variables using the EnvFetcher class. It also handles exceptions by raising AiError in case of API call failure.\n\"\"\"",
-            "last_accessed": 1745436165
-        },
-        {
-            "sha1": "724f157bfcca89276abcb3fa0e84eed84956abf9",
-            "docstring": "\"\"\"\nThis class provides a wrapper to interact with the OpenAI API for text completion and improvement.\n\nAttributes:\n- api_key (str): The API key used to authenticate requests to the OpenAI API.\n- endpoint (str): The URL endpoint for making requests to the OpenAI API chat completions.\n- model (str): The model identifier used for text completion and improvement.\n    \nMethods:\n- improve_text(prompt: str, text: str) -> str: Sends a request to the OpenAI API to improve the given text based on a prompt. It returns the improved text after processing. Raises an AiError if the API call fails.\n\"\"\"",
-            "last_accessed": 1745436167
-        },
-        {
-            "sha1": "43a7c0a65629a7703b6f82fe0d9f69a3df3d683d",
-            "docstring": "\"\"\"\nInitialize a Chatbot instance with API key, endpoint, and model information.\n\nArguments:\n- self: The Chatbot instance itself.\n\nSide Effects:\n- Sets the API key, endpoint URL, and model information for the Chatbot instance.\n\"\"\"",
-            "last_accessed": 1745436169
-        },
-        {
-            "sha1": "4de9beceaba1e150e3cf51be4a6a21da331f6dd9",
-            "docstring": "\"\"\"\nImproves the given text using an external API.\n\nArguments:\n- prompt (str): The prompt to provide context for improving the text.\n- text (str): The text to be improved.\n\nReturn:\n- str: The improved text after processing with the external API.\n\nSide Effects:\n- Makes a request to an external API using the provided prompt and text.\n\"\"\"",
-            "last_accessed": 1745436170
-        }
-    ],
-    "jira_creator/providers/instructlab_provider.py": [
-        {
-            "sha1": "743e144cf72379bc625dcf682b3d49de162648ea",
-            "docstring": "\"\"\"\nThis module defines a class InstructLabProvider that interacts with an AI service to improve text based on a given prompt. It utilizes the requests library to send a POST request to the specified AI_URL with the provided AI_MODEL. The improve_text method takes a prompt and text as input, combines them, and sends the request to the AI service. It then processes the response and returns the improved text. If the request fails, an AiError exception is raised. \n\"\"\"",
-            "last_accessed": 1745436172
-        },
-        {
-            "sha1": "215e26edfc97766e410218053c492d1a23627c06",
-            "docstring": "\"\"\"\nThis class provides a way to interact with an AI model hosted on a specified URL for improving text generation.\n\nAttributes:\n- url (str): The URL of the AI model server.\n- model (str): The name or identifier of the AI model used for text generation.\n\"\"\"",
-            "last_accessed": 1745436174
-        },
-        {
-            "sha1": "8d5908e311bbc8b216bdcb5dcde7ea8e3ae1d7f2",
-            "docstring": "\"\"\"\nInitialize the class instance with AI-related environment variables.\n\nArguments:\n- self: The class instance itself.\n\nSide Effects:\n- Sets the 'url' attribute to the value of the environment variable \"AI_URL\".\n- Sets the 'model' attribute to the value of the environment variable \"AI_MODEL\".\n\"\"\"",
-            "last_accessed": 1745436176
-        },
-        {
-            "sha1": "688eea4e75bb08180ba9497df851274a218fae46",
-            "docstring": "\"\"\"\nSummary:\nThis method sends a POST request to a specified URL with a given prompt and text to improve the text using a specific model. It then returns the improved text obtained from the response.\n\nArguments:\n- self: The instance of the class.\n- prompt (str): The initial prompt to provide context for improving the text.\n- text (str): The text to be improved based on the provided prompt.\n\nReturn:\nstr: The improved text generated by the AI model in response to the provided prompt and text.\n\nExceptions:\n- AiError: Raised when the POST request to the URL fails, indicating an issue with the AI service. The exception message includes details about the failure, such as the status code and response text.\n\"\"\"",
-            "last_accessed": 1745436178
-        }
-    ],
+    "jira_creator/rest/client.py": [],
+    "jira_creator/rest/prompts.py": [],
+    "jira_creator/providers/openai_provider.py": [],
+    "jira_creator/providers/instructlab_provider.py": [],
     "jira_creator/providers/bart_provider.py": [
         {
             "sha1": "d4452a502a45df5e16ab5f8403373eea8679288c",
@@ -438,6 +164,504 @@
             "sha1": "2134d45ba44750fe513788e600f38f5bfbb7959b",
             "docstring": "\"\"\"\nImprove the given text by generating an improved version based on the provided prompt.\n\nArguments:\n- prompt (str): The prompt to be displayed before the text for improvement.\n- text (str): The original text that needs to be improved.\n\nReturn:\n- str: The improved version of the text, maintaining the original structure.\n\nSide Effects:\n- Calls a model to generate the improved text based on the prompt and original text.\n\"\"\"",
             "last_accessed": 1745436215
+        }
+    ],
+    "jira_creator/core/env_fetcher.py": [
+        {
+            "sha1": "ce3cf8bd19d6b2ec8a59f74561665d0213c26429",
+            "docstring": "\"\"\"\nThis module provides a class, EnvFetcher, to fetch and validate Jira-related environment variables. It includes methods to fetch the value of a specific environment variable and to fetch all required Jira-related environment variables.\n\"\"\"",
+            "last_accessed": 1745436278
+        },
+        {
+            "sha1": "55e945d1dc4c3124573bdff21e5cfe81e1eca96a",
+            "docstring": "\"\"\"\nClass to fetch and validate Jira-related environment variables.\n\nAttributes:\n- JIRA_URL (str): The URL of the Jira instance.\n- PROJECT_KEY (str): The key of the Jira project.\n- AFFECTS_VERSION (str): The affected version of the project.\n- COMPONENT_NAME (str): The name of the component.\n- PRIORITY (str): The priority level of the issue.\n- JPAT (str): The Jira personal access token.\n- JIRA_BOARD_ID (str): The ID of the Jira board.\n- AI_PROVIDER (str): The provider of the AI service.\n- AI_API_KEY (str): The API key for the AI service.\n- AI_MODEL (str): The model used for AI processing.\n- AI_URL (str): The URL for the AI service.\n- JIRA_EPIC_FIELD (str): The custom field for Jira epics.\n- JIRA_ACCEPTANCE_CRITERIA_FIELD (str): The custom field for acceptance criteria.\n- JIRA_BLOCKED_FIELD (str): The custom field for blocked status.\n- JIRA_BLOCKED_REASON_FIELD (str): The custom field for blocked reasons.\n- JIRA_STORY_POINTS_FIELD (str): The custom field for story points.\n- JIRA_SPRINT_FIELD (str): The custom field for sprints.\n- VOSK_MODEL (str): The path to the Vosk model file.\n- TEMPLATE_DIR (str): The directory path for templates.\n\nMethods:\n- get(var_name): Fetches the value of the specified environment variable.\n- fetch_all(env_vars): Fetches all specified Jira-related environment variables.\n\"\"\"",
+            "last_accessed": 1745436282
+        },
+        {
+            "sha1": "875f88794cc3093d4974dc6d70c0a5f563a6ca5f",
+            "docstring": "\"\"\"\nFetches the value of the environment variable.\n\nArguments:\n- var_name (str): The name of the environment variable to retrieve the value for.\n\n\"\"\"",
+            "last_accessed": 1745436283
+        },
+        {
+            "sha1": "f948567ac22be12d46e1d2be2f407e673a29fa60",
+            "docstring": "\"\"\"\nFetches all required Jira-related environment variables.\n\nArguments:\n- env_vars (list): A list of environment variables to fetch.\n\nReturn:\n- dict: A dictionary containing the fetched environment variables as key-value pairs.\n\n\"\"\"",
+            "last_accessed": 1745436284
+        }
+    ],
+    "jira_creator/exceptions/exceptions.py": [
+        {
+            "sha1": "5af32349c15c8107524c247ae2724214ddb57142",
+            "docstring": "\"\"\"\nThis module defines a variety of custom exceptions related to Jira operations. Each exception represents a specific error scenario that may occur during Jira interactions. These exceptions are derived from the BaseException class and provide detailed error handling for different situations such as missing configuration variables, errors in setting story epic, listing issues, editing issues, fetching descriptions, assigning/unassigning issues, voting story points, updating descriptions, migrating, opening/viewing issues, adding comments, and various other Jira-related operations.\n\"\"\"",
+            "last_accessed": 1745436291
+        },
+        {
+            "sha1": "5d2587c81edd03507972cd7a13887de842556b3a",
+            "docstring": "\"\"\"\nBase class for all Jira-related exceptions.\n\"\"\"",
+            "last_accessed": 1745436292
+        },
+        {
+            "sha1": "5eed475798a8011981f50b08b5edf76a73466596",
+            "docstring": "\"\"\"\nRepresents an exception raised when a required Jira environment variable is missing.\n\nAttributes:\n    BaseException: The base exception class in Python.\n\"\"\"",
+            "last_accessed": 1745436292
+        },
+        {
+            "sha1": "63d9162e930733eb292d736daae635b721745ec0",
+            "docstring": "\"\"\"\nThis class represents a custom exception for errors related to setting a story epic.\n\nAttributes:\n    No specific attributes are defined in this class.\n\"\"\"",
+            "last_accessed": 1745436293
+        },
+        {
+            "sha1": "318abe3d57791ddb50404ab92dc8280625c53257",
+            "docstring": "\"\"\"\nThis class represents a custom exception called ListIssuesError.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436294
+        },
+        {
+            "sha1": "44a28d4aeba0cbce64bdae8fdfea7e42e02deaca",
+            "docstring": "\"\"\"\nThis class represents a custom exception for errors related to setting acceptance criteria.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436295
+        },
+        {
+            "sha1": "5dda43d69bec0982c80babc2f343a84dd6d04597",
+            "docstring": "\"\"\"\nThis class represents a custom exception called DispatcherError.\n\nAttributes:\n    - None\n\"\"\"",
+            "last_accessed": 1745436296
+        },
+        {
+            "sha1": "441e46fc0b896fd9e9256d1fc8f63faf5cfdca4d",
+            "docstring": "\"\"\"\nThis class represents a custom exception for errors that occur while trying to edit an issue.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436297
+        },
+        {
+            "sha1": "98deff1d50f9bc25eb04b33882b2a30dddd10cef",
+            "docstring": "\"\"\"\nThis class represents a custom exception for errors that occur during fetching descriptions.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436298
+        },
+        {
+            "sha1": "6f068ffdcedea96f143cbe60cb527ee4bbb99a23",
+            "docstring": "\"\"\"\nThis class represents a custom exception for errors related to editing descriptions.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436299
+        },
+        {
+            "sha1": "75a62ce7cd690593df0b7a0312b5942f0ce6d4df",
+            "docstring": "\"\"\"\nA custom exception class for handling errors related to removing items from a sprint.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436300
+        },
+        {
+            "sha1": "18b730a43f883a7e3af2f247e9b5dbb7c25f8c48",
+            "docstring": "\"\"\"\nThis class represents an exception raised when attempting to change the type of an issue.\n\nAttributes:\n    No attributes are defined for this class.\n\"\"\"",
+            "last_accessed": 1745436301
+        },
+        {
+            "sha1": "52811b9c5e230db5ea2f15fbe454a2f904105e88",
+            "docstring": "\"\"\"\nThis class represents an error that occurs when trying to unassign an issue that is not assigned to anyone.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436302
+        },
+        {
+            "sha1": "31c7f15ae69b1a64691c5ed3727bb6882b88f960",
+            "docstring": "\"\"\"\nThis class represents an error that occurs when trying to assign an issue.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436303
+        },
+        {
+            "sha1": "5411d9762275d03aadff2127a97f228a0e18bd7b",
+            "docstring": "\"\"\"\nThis class represents a custom exception called FetchIssueIDError.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436304
+        },
+        {
+            "sha1": "453e878b8169512e7214d95417627cb2a9698397",
+            "docstring": "\"\"\"\nThis class represents a custom exception for errors related to voting story points.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436305
+        },
+        {
+            "sha1": "eb744253faf5c52066007dd769ea530e293037a3",
+            "docstring": "\"\"\"\nThis class represents an exception raised when there is an error in retrieving a prompt.\n\nAttributes:\n    No attributes are defined explicitly in this class.\n\"\"\"",
+            "last_accessed": 1745436306
+        },
+        {
+            "sha1": "9a6849473f9df3ddd9eedcc2732365c582b77cb9",
+            "docstring": "\"\"\"\nThis class represents an exception that is raised when an error occurs while updating a description.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436307
+        },
+        {
+            "sha1": "5b6274810f984010731f0e666ca749a009b3af94",
+            "docstring": "\"\"\"\nThis class represents a custom exception for migration errors.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436308
+        },
+        {
+            "sha1": "8b1e494f7b0508853cb05079018e70399e6f7f13",
+            "docstring": "\"\"\"\nThis class represents an exception for an open issue.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436308
+        },
+        {
+            "sha1": "e5f13435d557f869611d62ddf5f3e676d3306880",
+            "docstring": "\"\"\"\nThis class represents an error that occurs when viewing an issue fails.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436310
+        },
+        {
+            "sha1": "6ae6e2829981684a5d709edc5fbc6dce7f510007",
+            "docstring": "\"\"\"\nThis class represents an error that occurs when attempting to add a sprint to a project.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436310
+        },
+        {
+            "sha1": "723004b93e15082d77b65ce2debab8314981773c",
+            "docstring": "\"\"\"\nThis class represents a custom exception called SetStatusError.\n\nAttributes:\n    - None\n\"\"\"",
+            "last_accessed": 1745436311
+        },
+        {
+            "sha1": "b0604a66ea1239e793915cd597cf80b3fe854242",
+            "docstring": "\"\"\"\nA custom exception class for handling errors related to blocks in a program.\n\nAttributes:\n    No specific attributes defined.\n\"\"\"",
+            "last_accessed": 1745436312
+        },
+        {
+            "sha1": "140634e3c1f6b4a37d0658135dec0b6700292939",
+            "docstring": "\"\"\"\nThis class represents a custom exception called UnBlockError.\n\nAttributes:\n    - No specific attributes defined.\n\"\"\"",
+            "last_accessed": 1745436313
+        },
+        {
+            "sha1": "707571e9cb9e49c60f2b9025a68912a985c6eedd",
+            "docstring": "\"\"\"\nThis class represents an error that occurs when attempting to add a comment.\n\nAttributes:\n    No specific attributes are defined in this class.\n\"\"\"",
+            "last_accessed": 1745436314
+        },
+        {
+            "sha1": "5fff6700ccf1d3f0e89006aeb0487aec66bb4cea",
+            "docstring": "\"\"\"\nThis class represents a custom exception for AI-related errors.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436315
+        },
+        {
+            "sha1": "770aadc9813b4c17fc16bc539cd5198e98085fcb",
+            "docstring": "\"\"\"\nThis class represents a custom exception for search-related errors.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436316
+        },
+        {
+            "sha1": "1dced806bfb385c4ad64d3f771380663bc7d5f5f",
+            "docstring": "\"\"\"\nThis class represents an error that occurs when creating an issue.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436317
+        },
+        {
+            "sha1": "2dcfed58b742882bb7d0485ace200851313be4aa",
+            "docstring": "\"\"\"\nA custom exception class representing an error that occurred during linting all files.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436318
+        },
+        {
+            "sha1": "41388e5a08788b9bb60471242b6c8f7c39d77a7f",
+            "docstring": "\"\"\"\nThis class represents a custom exception for linting errors.\n\nAttributes:\n    No specific attributes.\n\"\"\"",
+            "last_accessed": 1745436319
+        },
+        {
+            "sha1": "f5c861b60d6b3c8827f432d77d0c68c39447e5c4",
+            "docstring": "\"\"\"\nThis class represents a custom exception called SetPriorityError.\n\nAttributes:\n    - None\n\"\"\"",
+            "last_accessed": 1745436320
+        },
+        {
+            "sha1": "09561ee8879a9340abd1b3ca466bbd763661b918",
+            "docstring": "\"\"\"\nThis class represents an error that occurs when trying to set story points for a task in a project management system.\n\nAttributes:\n    No specific attributes are defined for this class.\n\"\"\"",
+            "last_accessed": 1745436321
+        },
+        {
+            "sha1": "e8e4d949d1656cde22ede5a22e700bbf0639a9eb",
+            "docstring": "\"\"\"\nThis class represents a custom exception for handling type errors during a change operation.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436322
+        },
+        {
+            "sha1": "a80319f3e1b8a915b64d00cec2f66fd9119b316f",
+            "docstring": "\"\"\"\nThis class represents an exception for when a list is blocked from performing an operation.\n\nAttributes:\n    No attributes defined.\n\"\"\"",
+            "last_accessed": 1745436322
+        },
+        {
+            "sha1": "00bea594ac75a250e027a6efb0f76fd80cc25147",
+            "docstring": "\"\"\"\nThis class represents an exception for invalid prompts.\n\nAttributes:\n    No specific attributes.\n\"\"\"",
+            "last_accessed": 1745436323
+        },
+        {
+            "sha1": "fbb120080593000240d90915f70d90cd781a7e7b",
+            "docstring": "\"\"\"\nThis class represents an exception raised when there is an error in making a request to the Jira client.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436324
+        },
+        {
+            "sha1": "c39ff762a4a5d366c9dbaf16693bf1baec4c93b9",
+            "docstring": "\"\"\"\nThis class represents a custom exception for handling connection errors that occur on a quarterly basis.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436326
+        },
+        {
+            "sha1": "a00c2a791b266511fe85475c8ef7f1e46e628560",
+            "docstring": "\"\"\"\nThis class represents a custom error called GTP4AllError that inherits from BaseException.\nIt is used to handle specific exceptions related to the GTP4All system.\n\"\"\"",
+            "last_accessed": 1745436327
+        },
+        {
+            "sha1": "d335fb318bf2c114f949a0a4eb37cbced50c7a79",
+            "docstring": "\"\"\"\nThis class represents an error specific to an AI provider.\n\nAttributes:\n    No specific attributes.\n\"\"\"",
+            "last_accessed": 1745436328
+        },
+        {
+            "sha1": "b962311af0ec171773ea1e1188e0ae0a3209f9d3",
+            "docstring": "\"\"\"\nThis class represents a custom exception for errors that occur in an AI helper application.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436329
+        },
+        {
+            "sha1": "06ac0503ada92dfdb5dc7ce02668b20a2634d238",
+            "docstring": "\"\"\"\nThis class represents a custom exception called GetUserError that can be raised in specific situations.\nAttributes:\n    - None\n\"\"\"",
+            "last_accessed": 1745436330
+        },
+        {
+            "sha1": "c8b6140658deab3ed06dd99bad39ad6c4cf92f4a",
+            "docstring": "\"\"\"\nThis class represents an error that occurs during user search operations.\n\nAttributes:\n    None\n\"\"\"",
+            "last_accessed": 1745436332
+        },
+        {
+            "sha1": "7132aab6aee9572dc0359cbbc0a0e166e2d30c12",
+            "docstring": "\"\"\"\nThis class represents a custom exception for flag removal errors.\n\nAttributes:\n    No attributes are defined for this class.\n\"\"\"",
+            "last_accessed": 1745436333
+        }
+    ],
+    "jira_creator/templates/template_loader.py": [
+        {
+            "sha1": "4f32582f6577582fed2d512589776e7afb3a37a4",
+            "docstring": "\"\"\"\nThis module defines a TemplateLoader class used for loading and rendering templates. The TemplateLoader class has methods for loading a template file, retrieving fields from the template, getting the template content, and rendering a description using provided values. The class takes a template directory and an issue type as input during initialization. The render_description method replaces placeholders in the template with corresponding values from a dictionary. \n\"\"\"",
+            "last_accessed": 1745436341
+        },
+        {
+            "sha1": "84f2afcfbcdbe05ddcba902211ffd72ac5fcef84",
+            "docstring": "\"\"\"\nClass for loading and processing template files for generating issue descriptions.\n\nAttributes:\n- template_path (Path): The path to the template file for the specified issue type.\n- fields (List[str]): A list of field names extracted from the template file.\n- template_lines (List[str]): A list of lines comprising the template content.\n\nMethods:\n- __init__(template_dir: Path, issue_type: str): Initializes the TemplateLoader by loading the template file.\n- _load_template(): Private method to read and parse the template file, extracting fields and template content.\n- get_fields(): Returns the list of field names extracted from the template.\n- get_template(): Returns the template content as a single string.\n- render_description(values: dict): Processes the template content by replacing placeholders with provided values and returns the rendered description.\n\"\"\"",
+            "last_accessed": 1745436344
+        },
+        {
+            "sha1": "a2e6c035e7152edd4d420bcd1ea47d1503de81b9",
+            "docstring": "\"\"\"\nInitialize a new instance of the class with the provided template directory and issue type.\n\nArguments:\n- template_dir (Path): The directory where the template files are stored.\n- issue_type (str): The type of the issue for which the template is being loaded.\n\nExceptions:\n- FileNotFoundError: Raised if the template file corresponding to the provided issue type is not found in the template directory.\n\nSide Effects:\n- Initializes instance variables 'template_path', 'fields', and 'template_lines'.\n- Calls the '_load_template' method to load the template file content.\n\n\"\"\"",
+            "last_accessed": 1745436346
+        },
+        {
+            "sha1": "e22e477198c020564f2477ffc83f3ad727ccb60d",
+            "docstring": "\"\"\"\nLoad a template from a file specified by 'template_path' and extract fields and template lines.\n\nArguments:\n- self: The object instance.\n- template_path (str): The path to the template file to be loaded.\n\nSide Effects:\n- Modifies the 'fields' list attribute by appending extracted field names.\n- Modifies the 'template_lines' list attribute by appending lines of the template.\n\n\"\"\"",
+            "last_accessed": 1745436348
+        },
+        {
+            "sha1": "ee268f5445d005ff30cfda8844bcffdbb0732486",
+            "docstring": "\"\"\"\nSummary:\nRetrieve and return the fields stored in the object.\n\nArguments:\n- self: The object instance.\n\nReturn:\n- The fields stored in the object.\n\n\"\"\"",
+            "last_accessed": 1745436350
+        },
+        {
+            "sha1": "a91882c8f328d84efe8a6fcfcbc93d1628d34fe4",
+            "docstring": "\"\"\"\nReturn the template content as a single string by joining the lines.\n\nArguments:\n- self: The object instance.\n\nReturn:\n- str: A single string representing the template content.\n\n\"\"\"",
+            "last_accessed": 1745436351
+        },
+        {
+            "sha1": "f657f45b1007081a47b6c521180798ee8cfbb136",
+            "docstring": "\"\"\"\nRender the description using a template and provided values.\n\nArguments:\n- self: the object instance\n- values (dict): A dictionary containing placeholder-value pairs to substitute in the template.\n\nReturn:\n- str: The rendered description after replacing all placeholders with corresponding values.\n\n\"\"\"",
+            "last_accessed": 1745436352
+        }
+    ],
+    "jira_creator/rh_jira.py": [
+        {
+            "sha1": "543ca070e424ae44c22151906a91b6cc882489d7",
+            "docstring": "\"\"\"\nA command-line interface (CLI) tool for managing JIRA issues.\n\nThis script provides a set of commands to interact with JIRA, allowing users to create, edit, and manage issues, as well as perform various operations such as assigning users, adding comments, and managing sprints. It integrates with AI services to assist with issue creation and management.\n\nKey Features:\n- Create, edit, and delete JIRA issues.\n- Assign and unassign users to/from issues.\n- Add comments and manage issue statuses.\n- Search for issues using JIRA Query Language (JQL).\n- Integrate AI assistance for issue handling and suggestions.\n- Lint issues for quality checks and provide feedback.\n- Manage sprints and track progress.\n\nDependencies:\n- core.env_fetcher: For fetching environment variables.\n- exceptions.exceptions: Custom exceptions for error handling.\n- providers: For obtaining AI provider instances.\n- rest.client: JIRA client for making API requests.\n- rest.prompts: For handling prompt templates used in AI interactions.\n\nUsage:\nRun the script from the command line, providing appropriate subcommands and arguments based on the desired action.\n\"\"\"",
+            "last_accessed": 1745436391
+        },
+        {
+            "sha1": "08dfa67ff444dd49d04109b682bf961ca63147f7",
+            "docstring": "\"\"\"\nA command-line interface (CLI) for interacting with JIRA issues, enabling users to manage issues, perform AI-assisted operations, and execute various JIRA-related tasks.\n\nAttributes:\n    jira (JiraClient): An instance of the JiraClient used to interact with the JIRA API.\n    template_dir (Path): The directory path for templates fetched from the environment.\n    ai_provider: The AI provider instance configured based on environment variables.\n    default_prompt: The default prompt for AI interactions.\n    comment_prompt: The prompt used for adding comments to issues.\n    ai_helper_prompt: The prompt used for AI helper functionalities.\n\nMethods:\n    run(): Starts the CLI and handles command-line arguments.\n    _register_subcommands(subparsers): Registers subcommands for issue management and AI assistance.\n    _dispatch_command(args): Dispatches the command based on parsed arguments.\n    ai_helper(args): Executes the AI helper command.\n    open_issue(args): Opens a JIRA issue in the browser.\n    view_issue(args): Displays a JIRA issue in the console.\n    add_comment(args): Adds a comment to a specified JIRA issue.\n    create_issue(args): Creates a new JIRA issue based on provided parameters.\n    list_issues(args): Lists issues assigned to the user with optional filters.\n    change_type(args): Changes the type of a specified JIRA issue.\n    migrate(args): Migrates a specified issue to a new type.\n    edit_issue(args): Edits the description of a specified JIRA issue.\n    unassign(args): Unassigns a user from a specified JIRA issue.\n    assign(args): Assigns a user to a specified JIRA issue.\n    set_priority(args): Sets the priority of a specified JIRA issue.\n    set_story_epic(args): Sets the epic for a specified story issue.\n    remove_sprint(args): Removes a specified issue from its sprint.\n    add_sprint(args): Adds a specified issue to a sprint.\n    set_status(args): Sets the status of a specified JIRA issue.\n    set_acceptance_criteria(args): Sets the acceptance criteria for a specified issue.\n    vote_story_points(args): Votes on story points for a specified issue.\n    set_story_points(args): Sets story points directly for a specified issue.\n    block(args): Marks a specified issue as blocked.\n    unblock(args): Marks a specified issue as unblocked.\n    validate_issue(fields): Validates issue fields using an AI provider.\n    lint(args): Lints a specified issue for quality.\n    lint_all(args): Lints all issues assigned to the user.\n    blocked(args): Lists blocked issues with optional filters.\n    search(args): Searches for issues using JIRA Query Language (JQL).\n    quarterly_connection(args): Performs a quarterly connection report.\n    search_users(args): Searches for users by a specified term.\n    talk(args): Initiates a conversation with JIRA.\n    view_user(args): Displays user information based on account ID.\n    add_flag(args): Adds a flag to a specified issue.\n    remove_flag(args): Removes a flag from a specified issue.\n    list_sprints(args): Lists available sprints.\n    set_summary(args): Sets the summary for a specified issue.\n    clone_issue(args): Clones a specified issue.\n\"\"\"",
+            "last_accessed": 1745436401
+        },
+        {
+            "sha1": "b63354a05f4dfdc183b28c621fc9720626f0953c",
+            "docstring": "\"\"\"\nInitializes the JiraBot object with required variables and settings.\n\nArguments:\n    None\n\nSide Effects:\n    - Initializes a JiraClient object and assigns it to self.jira.\n    - Fetches required environment variables using EnvFetcher.\n    - Sets the template directory path based on the value retrieved from the environment variables.\n    - Retrieves and sets the AI provider based on the value retrieved from the environment variables.\n    - Sets default prompts for different issue types using PromptLibrary.\n\nReturns:\n    None\n\"\"\"",
+            "last_accessed": 1745436403
+        },
+        {
+            "sha1": "d17a65952e7370fd5ceacbc45f45d26010a3d46f",
+            "docstring": "\"\"\"\nSummary:\nInitialize the argcomplete module for command-line argument completion.\n\nArguments:\n- self: The instance of the class.\n  \nExceptions:\nNone\n\"\"\"",
+            "last_accessed": 1745436404
+        },
+        {
+            "sha1": "b153c620810b6fb31eba22e8a568392d6f047634",
+            "docstring": "\"\"\"\nRegisters subcommands for a given argparse subparsers object.\n\nArguments:\n- subparsers (_SubParsersAction): An instance of the argparse subparsers object to which subcommands will be registered.\n\nSide Effects:\nModifies the subparsers object by registering subcommands for it.\n\"\"\"",
+            "last_accessed": 1745436406
+        },
+        {
+            "sha1": "fecb46ab2d06c9a167293a868518994f572a3025",
+            "docstring": "\"\"\"\nCreates a new subparser with the provided name and help text.\n\nArgs:\n    name (str): The name of the subparser.\n    help_text (str): The help text displayed when using the subparser.\n    aliases (list, optional): A list of alternative names for the subparser. Defaults to None.\n\nReturns:\n    argparse.ArgumentParser: The newly created subparser.\n\n\"\"\"",
+            "last_accessed": 1745436407
+        },
+        {
+            "sha1": "9083c52285a81e86249c6da505fef5ecc9caedf5",
+            "docstring": "\"\"\"\nDispatches a command based on the input arguments.\n\nArguments:\n- self: The instance of the class.\n- args (Namespace): A namespace containing the command to be executed.\n\nExceptions:\n- DispatcherError: Raised when the command execution fails.\n\nSide Effects:\n- Prints an error message if the command execution fails.\n\n\"\"\"",
+            "last_accessed": 1745436409
+        },
+        {
+            "sha1": "9f1274e0a7dda63081cbfc99205650454117f023",
+            "docstring": "\"\"\"\nExecute the AI helper functionality with the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed for the AI helper functionality.\n\nSide Effects:\n- Executes the CLI AI helper function with the current object instance, AI provider, AI helper prompt, and the provided arguments.\n\"\"\"",
+            "last_accessed": 1745436412
+        },
+        {
+            "sha1": "074aec1cd5b655569824e5f3bbdd6cb1659d72fd",
+            "docstring": "\"\"\"\nOpen an issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to open an issue.\n\nSide Effects:\n- Calls the cli_open_issue function with the provided arguments.\n\n\"\"\"",
+            "last_accessed": 1745436413
+        },
+        {
+            "sha1": "345d7d0f292cca17d81fe3125f9be822295d8a99",
+            "docstring": "\"\"\"\nView an issue in Jira using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to view the issue in Jira.\n\nSide Effects:\n- Calls the cli_view_issue function with the Jira object and the provided arguments.\n\n\"\"\"",
+            "last_accessed": 1745436414
+        },
+        {
+            "sha1": "28772b62616bf0c40fd57932c41c0d34b9f8df2c",
+            "docstring": "\"\"\"\nAdds a comment to a Jira issue using the provided arguments.\n\nArguments:\n- self: The instance of the class.\n- args (Namespace): A Namespace object containing the necessary arguments for adding a comment to a Jira issue.\n\nSide Effects:\n- Modifies the Jira issue by adding a comment.\n\n\"\"\"",
+            "last_accessed": 1745436416
+        },
+        {
+            "sha1": "06a62eee048e013e6dde3b4c39d309bf9e5c1caf",
+            "docstring": "\"\"\"\nCreates an issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing arguments for creating the issue.\n\nSide Effects:\n- Calls the cli_create_issue function with the necessary parameters to create an issue.\n\n\"\"\"",
+            "last_accessed": 1745436418
+        },
+        {
+            "sha1": "82884bd27273c7d544e8a7d55d53d57c1f14e163",
+            "docstring": "\"\"\"\nSummary:\nCalls a CLI function to list issues based on the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing parsed arguments.\n\nReturn:\nNone\n\n\"\"\"",
+            "last_accessed": 1745436419
+        },
+        {
+            "sha1": "b697d4ca9b98b91ff0798c05d42565d890680354",
+            "docstring": "\"\"\"\nChange the type of an issue in Jira using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to change the type of the issue in Jira.\n\nExceptions:\n- No exceptions are raised explicitly within this function.\n\nSide Effects:\n- Modifies the type of the specified issue in Jira.\n\n\"\"\"",
+            "last_accessed": 1745436421
+        },
+        {
+            "sha1": "784e95e618abf5710cf575ac972b248e32dbf315",
+            "docstring": "\"\"\"\nMigrates data using the provided arguments.\n\nArguments:\n- self: The object itself.\n- args (Namespace): A Namespace object containing parsed command-line arguments.\n\nSide Effects:\n- Calls the cli_migrate function with the Jira instance and the provided arguments.\n\n\"\"\"",
+            "last_accessed": 1745436423
+        },
+        {
+            "sha1": "fb62240395ec301493b3c5f23ff043725a369308",
+            "docstring": "\"\"\"\nEdit an issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A namespace object containing the arguments needed for editing the issue.\n\nSide Effects:\n- Modifies the state of the issue in Jira based on the provided arguments.\n\n\"\"\"",
+            "last_accessed": 1745436424
+        },
+        {
+            "sha1": "ca0146fd0c1ce399c232a69668db481031859eac",
+            "docstring": "\"\"\"\nAttempts to clean up the given text using the AI provider.\n\nArgs:\n    prompt (str): The prompt to be used for cleaning up the text.\n    text (str): The text to be cleaned up.\n\nReturns:\n    str: The cleaned-up text after processing with the AI provider.\n\"\"\"",
+            "last_accessed": 1745436425
+        },
+        {
+            "sha1": "f567850b728743248304d53ac4ce901c4a7ff3a7",
+            "docstring": "\"\"\"\nUnassigns an issue in Jira.\n\nArguments:\n- self: the object instance\n- args (Namespace): A Namespace object containing the arguments needed to unassign the issue.\n\nExceptions:\n- No explicit exceptions are raised within this function.\n\nSide Effects:\n- Modifies the assignment of the specified Jira issue.\n\n\"\"\"",
+            "last_accessed": 1745436427
+        },
+        {
+            "sha1": "b3cf9df456fd9828de3072c67dc51d9b3bd73a94",
+            "docstring": "\"\"\"\nAssign an issue in Jira to a user.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing command-line arguments.\n\nExceptions: \n- None\n\nSide Effects:\n- Modifies the assignment of an issue in Jira.\n\nReturn: \n- None\n\"\"\"",
+            "last_accessed": 1745436429
+        },
+        {
+            "sha1": "ad230ef239f4a8bd92c6e41bae2976650fe5473e",
+            "docstring": "\"\"\"\nSet the priority of a Jira issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to set the priority.\n\nExceptions:\n- No exceptions are raised explicitly within this function.\n\n\"\"\"",
+            "last_accessed": 1745436431
+        },
+        {
+            "sha1": "5c42f6ad629a7412598688da5ced295bfafb297a",
+            "docstring": "\"\"\"\nSet the epic for a story in Jira.\n\nArguments:\n- self: the object instance\n- args (Namespace): A namespace containing the arguments for setting the epic of a story in Jira.\n\nExceptions:\n- None\n\nSide Effects:\n- Modifies the epic of a story in Jira.\n\n\"\"\"",
+            "last_accessed": 1745436433
+        },
+        {
+            "sha1": "4c6345844cb1f8851243e53c6407e49b92d33763",
+            "docstring": "\"\"\"\nRemove a sprint from Jira board.\n\nArguments:\n- self: the instance of the class.\n- args (Namespace): A Namespace object containing parsed arguments from the command line.\n\nExceptions:\n- None\n\nSide Effects:\n- Modifies the Jira board by removing a sprint.\n\n\"\"\"",
+            "last_accessed": 1745436434
+        },
+        {
+            "sha1": "3e1400762bcfded5859dbf4324d46c3b897c6d25",
+            "docstring": "\"\"\"\nAdds a sprint to a Jira board using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the necessary arguments for adding a sprint.\n\nExceptions:\n- None\n\n\"\"\"",
+            "last_accessed": 1745436436
+        },
+        {
+            "sha1": "48fe719a09094988c8f9b632d88a8f2ab59548b3",
+            "docstring": "\"\"\"\nSet the status of an issue in Jira using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A namespace containing the arguments needed to set the status of an issue in Jira.\n\nExceptions: \n- None\n\nSide Effects:\n- Modifies the status of an issue in Jira.\n\nReturn:\n- None\n\"\"\"",
+            "last_accessed": 1745436437
+        },
+        {
+            "sha1": "fc5cfb3f9a0181b8b4ff28fb4047d3b11c03ca8d",
+            "docstring": "\"\"\"\nSet acceptance criteria for a Jira issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the command-line arguments.\n\nExceptions: \nNone\n\nSide Effects: \nCalls the cli_set_acceptance_criteria function with the Jira instance and the provided arguments.\n\nReturn: \nNone\n\"\"\"",
+            "last_accessed": 1745436439
+        },
+        {
+            "sha1": "769f72cc15ee76191347986de8400772c78d354c",
+            "docstring": "\"\"\"\nCast a vote for story points on a Jira issue.\n\nArguments:\n- self: The current instance of the class.\n- args (Namespace): A namespace object containing parsed command-line arguments.\n\nExceptions:\n- No explicit exceptions are raised by this function.\n\nSide Effects:\n- Calls the 'cli_vote_story_points' function with the Jira instance and provided arguments.\n\n\"\"\"",
+            "last_accessed": 1745436440
+        },
+        {
+            "sha1": "40a5d00d76dc30c3e1d9821e75473873b5c16d5f",
+            "docstring": "\"\"\"\nSet the story points for a Jira issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to set story points for a Jira issue.\n\nExceptions:\n- None\n\nSide Effects:\n- Calls the cli_set_story_points function with the Jira instance and provided arguments.\n\nReturn:\n- None\n\"\"\"",
+            "last_accessed": 1745436442
+        },
+        {
+            "sha1": "7ce3656c74b145989a5472232b6b01c64c0a4d1f",
+            "docstring": "\"\"\"\nExecute a blocking operation using arguments provided in the Namespace object.\n\nArguments:\n- self: the instance of the class containing the method.\n- args (Namespace): Namespace object containing arguments for the operation.\n\nSide Effects:\n- Executes a blocking operation using the provided arguments.\n\n\"\"\"",
+            "last_accessed": 1745436444
+        },
+        {
+            "sha1": "690d3c328a8b146685f911581029349796606506",
+            "docstring": "\"\"\"\nUnblocks an item in Jira using the provided arguments.\n\nArguments:\n- self: the instance of the class.\n- args (Namespace): Namespace object containing the arguments needed to unblock the item in Jira.\n\nSide Effects:\n- Modifies the state of the item in Jira by unblocking it.\n\n\"\"\"",
+            "last_accessed": 1745436445
+        },
+        {
+            "sha1": "02e721d62de22aea50074ce3241f581fa604d546",
+            "docstring": "\"\"\"\nValidates the provided fields for an issue using a CLI validation function.\n    \nArguments:\n- fields (dict[str, str]): A dictionary containing the fields of the issue to be validated.\n- self (implicit): Instance of the class containing the method.\n  \nReturns:\n- None\n\n\"\"\"",
+            "last_accessed": 1745436448
+        },
+        {
+            "sha1": "db90dc836d68416ec995fee815ae583d01f7dfbb",
+            "docstring": "\"\"\"\nLint the provided arguments using the CLI linter.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the parsed arguments.\n\nSide Effects:\n- Calls the cli_lint function with the provided Jira instance, AI provider, and parsed arguments.\n\n\"\"\"",
+            "last_accessed": 1745436450
+        },
+        {
+            "sha1": "2fcccc365a6681c019b4e3ee8cc0aba020f28c95",
+            "docstring": "\"\"\"\nLint all Jira issues using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing parsed command-line arguments.\n\nSide Effects:\n- Calls cli_lint_all function with Jira instance, AI provider instance, and parsed arguments.\n\n\"\"\"",
+            "last_accessed": 1745436451
+        },
+        {
+            "sha1": "a9aedccf20377314ea434572607fc0072e16446e",
+            "docstring": "\"\"\"\nCalls a function to block a specific resource using Jira.\n\nArguments:\n- self: the instance of the class\n- args (Namespace): A Namespace object containing the arguments passed to the function.\n\nExceptions:\n- None\n\n\"\"\"",
+            "last_accessed": 1745436453
+        },
+        {
+            "sha1": "6d81560feb5308676c8c46c6314b0b6f0672ced3",
+            "docstring": "\"\"\"\nSearch for items using the Jira API based on the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A namespace object containing the search parameters.\n\nExceptions:\n- None\n\nSide Effects:\n- Calls the 'cli_search' function with the Jira instance and provided arguments.\n\n\"\"\"",
+            "last_accessed": 1745436464
+        },
+        {
+            "sha1": "3cbd3bce0f3e981d1aeb9b9c3e987e8c80df710e",
+            "docstring": "\"\"\"\nExecute a quarterly connection using the provided arguments.\n\nArguments:\n- self: the object instance\n- args (Namespace): A Namespace object containing the arguments for the connection\n\nSide Effects:\n- Calls cli_quarterly_connection function with the Jira and AI provider attributes of the object instance\n\"\"\"",
+            "last_accessed": 1745436466
+        },
+        {
+            "sha1": "7cef856c6932a9c6b184d2f990b36fa49ff59bad",
+            "docstring": "\"\"\"\nSearches for users using the provided arguments.\n\nArguments:\n- self: the object instance\n- args (Namespace): A Namespace object containing the arguments for the search.\n\nSide Effects:\nCalls the 'cli_search_users' function with the 'jira' attribute and the provided arguments.\n\"\"\"",
+            "last_accessed": 1745436468
+        },
+        {
+            "sha1": "4b8a8ba4cc6116bf87468e1b1f15319e6232bed4",
+            "docstring": "\"\"\"\nExecutes the 'cli_talk' function with the provided arguments.\n\nArguments:\n- self: The instance of the class.\n- args (Namespace): A Namespace object containing the command-line arguments.\n\nSide Effects:\n- Calls the 'cli_talk' function with the provided arguments.\n\"\"\"",
+            "last_accessed": 1745436469
+        },
+        {
+            "sha1": "3a0c2df6f4f584570095dfc96f8448382e0b6972",
+            "docstring": "\"\"\"\nView a user's information using the CLI.\n\nArguments:\n- self: the object instance\n- args (Namespace): A Namespace object containing parsed arguments from the command line.\n\nExceptions: None\n\"\"\"",
+            "last_accessed": 1745436470
+        },
+        {
+            "sha1": "4b6867aef4695c24c732e815a8b58a774ad7e7b5",
+            "docstring": "\"\"\"\nAdds a flag to a Jira issue using the provided arguments.\n\nArguments:\n- self: the object instance\n- args (Namespace): Namespace object containing parsed command-line arguments\n\nExceptions:\n- No exceptions are raised by this function.\n\nSide Effects:\n- Modifies the Jira issue by adding a flag.\n\nReturn:\n- None\n\"\"\"",
+            "last_accessed": 1745436472
+        },
+        {
+            "sha1": "f34b9aed9f2774487ba84eb3a9eded2c081e7e76",
+            "docstring": "\"\"\"\nRemove a flag from a Jira issue.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing parsed arguments.\n\nExceptions:\n- No exceptions are raised by this function.\n\nSide Effects:\n- Modifies the Jira issue by removing a flag.\n\n\"\"\"",
+            "last_accessed": 1745436474
+        },
+        {
+            "sha1": "2cc39ecb0b7e6e504d7af9eeceaddef0e9263f4a",
+            "docstring": "\"\"\"\nSummary:\nList sprints using the provided Jira instance and command-line arguments.\n\nArguments:\n- self: The instance of the class containing the method.\n- args (Namespace): A namespace object containing command-line arguments.\n\nReturn:\nNone\n\n\"\"\"",
+            "last_accessed": 1745436475
+        },
+        {
+            "sha1": "55a886b5c9dde79e115009c7c61b557ae3b84129",
+            "docstring": "\"\"\"\nSet a summary for a Jira issue using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A Namespace object containing the arguments needed to set the summary for a Jira issue.\n\nExceptions: \nNone\n\nSide Effects: \nCalls an external function cli_set_summary() to set the summary for a Jira issue.\n\nReturn: \nNone\n\"\"\"",
+            "last_accessed": 1745436477
+        },
+        {
+            "sha1": "11fa62248de0144709ad2247b2a1ec323f9da668",
+            "docstring": "\"\"\"\nClones an issue in Jira using the provided arguments.\n\nArguments:\n- self: The object instance.\n- args (Namespace): A namespace object containing the arguments needed for cloning the issue.\n\nSide Effects:\n- Clones the specified issue in Jira.\n\n\"\"\"",
+            "last_accessed": 1745436479
         }
     ]
 }

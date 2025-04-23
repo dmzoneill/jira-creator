@@ -469,17 +469,38 @@ class Docstring:
         if not self.should_add_file_docstring():
             return 0  # Skip generating file-level docstring if not needed
 
+        shebang = ""
+
         # Check if the first line starts with a shebang (e.g., #! anything)
         if self.lines and self.lines[0].startswith("#!"):
-            # Shebang exists, keep it as is, and insert a newline after it
-            self.lines = (
-                self.lines[0:1] + ["\n"] + self.lines[1:]
-            )  # Insert a newline after shebang
+            # Shebang exists, keep it as is
+            shebang = self.lines[0]
+            self.lines = [shebang] + self.lines[1:]  # Keep shebang as is
         else:
             # Add a default shebang if none exists
             self.lines = ["#!/usr/bin/python\n"] + self.lines
 
-        # Generate file-level docstring
+        # Check if there's already an existing file-level docstring or comment block
+        # We assume the file-level docstring starts with triple quotes (""" or ''') and is at the top
+        docstring_start_index = None
+        docstring_end_index = None
+
+        if self.lines and self.lines[1].strip().startswith('"""'):
+            # If the second line starts with triple quotes, it may be a docstring
+            docstring_start_index = 1  # The docstring starts from line 2
+            for i, line in enumerate(self.lines[2:], start=2):
+                if line.strip().startswith('"""'):
+                    docstring_end_index = i  # End of the docstring
+                    break
+
+        # If a docstring exists, replace it with the new one
+        if docstring_start_index is not None and docstring_end_index is not None:
+            self.lines = (
+                self.lines[:docstring_start_index]
+                + self.lines[docstring_end_index + 1 :]
+            )
+
+        # Generate new file-level docstring
         general_description = self.get_ai_docstring(
             system_prompt_general, "".join(self.lines)
         )
@@ -488,8 +509,8 @@ class Docstring:
         )
         docstring = [line + "\n" for line in general_description]
 
-        # Insert the generated docstring after the shebang (or at the top if no shebang)
-        self.lines = docstring + ["\n"] + self.lines
+        # Insert the generated docstring directly after the shebang (no extra newline)
+        self.lines = [shebang] + docstring + self.lines[1:]
 
         return len(docstring)
 

@@ -1,3 +1,17 @@
+"""
+This module provides a function to interact with Jira by adding comments to an issue. It prompts the user to enter a
+comment either directly or through a text editor if not provided. The comment is then processed by an AI provider to
+improve the text before being added to the specified Jira issue.
+
+Functions:
+- cli_add_comment(jira, ai_provider, comment_prompt, args): Adds a comment to a Jira issue after processing it with an
+AI provider.
+
+Exceptions:
+- AddCommentError: Raised when there is an issue adding a comment to the Jira issue.
+- AiError: Raised when there is an error with the AI processing the comment.
+"""
+
 import os
 import subprocess
 import tempfile
@@ -6,6 +20,24 @@ from exceptions.exceptions import AddCommentError, AiError
 
 
 def cli_add_comment(jira, ai_provider, comment_prompt, args):
+    """
+    Add a comment to a Jira issue via the command line interface.
+
+    Arguments:
+    - jira (JIRA): An instance of the JIRA class for interacting with Jira.
+    - ai_provider (str): The AI provider to use for processing the comment.
+    - comment_prompt (str): The prompt message for entering the comment.
+    - args (argparse.Namespace): Command-line arguments parsed by argparse.
+
+    Side Effects:
+    - If args.text is provided, the comment is set to args.text.
+    - If args.text is not provided, a temporary Markdown file is created with a prompt message.
+    The user is prompted to enter the comment using the default text editor (or vim if not set).
+    The content of the temporary file is then read as the comment.
+
+    Note: This function is designed for command-line interaction to add comments to Jira issues.
+    """
+
     if args.text:
         comment = args.text
     else:

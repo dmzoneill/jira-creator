@@ -1,3 +1,24 @@
+"""
+This module provides functionality to lint Jira issues and print the results in a formatted table. It includes the
+following key components:
+
+1. `print_status_table(failure_statuses)`:
+- Takes a list of failure statuses and prints them in a well-structured table format.
+- Normalizes the status values to display visual indicators (check marks, crosses, etc.) for better readability.
+
+2. `cli_lint_all(jira, ai_provider, args)`:
+- Lints Jira issues based on provided arguments such as project, component, reporter, or assignee.
+- Retrieves issues from Jira, validates them using a specified AI provider, and collects the results.
+- Prints the summary of issues, indicating which passed or failed lint checks, and displays detailed problems for any
+issues that failed.
+
+Exceptions:
+- Raises `LintAllError` when there is a failure in the linting process.
+
+This module is intended for use in a command-line interface (CLI) environment where users can validate Jira issues and
+receive formatted feedback on their status.
+"""
+
 import textwrap
 from collections import OrderedDict
 
@@ -6,6 +27,16 @@ from exceptions.exceptions import LintAllError
 
 
 def print_status_table(failure_statuses):
+    """
+    Collects all unique keys from all rows in the failure_statuses table.
+
+    Arguments:
+    - failure_statuses (list of dict): A list of dictionaries representing failure statuses.
+
+    Returns:
+    None
+    """
+
     # Step 1: Collect all unique keys from all rows
     all_keys = set()
     for row in failure_statuses:
@@ -72,6 +103,24 @@ def print_status_table(failure_statuses):
 
 
 def cli_lint_all(jira, ai_provider, args):
+    """
+    Lint all Jira issues based on specified criteria.
+
+    Arguments:
+    - jira (JIRA): An instance of the JIRA client.
+    - ai_provider (AIProvider): An instance of the AI provider.
+    - args (Namespace): A namespace object containing parsed command-line arguments.
+    - args.reporter (str): The reporter of the issues to filter by.
+    - args.assignee (str): The assignee of the issues to filter by.
+    - args.project (str): The project key to filter the issues.
+    - args.component (str): The component to filter the issues.
+
+    No return value.
+
+    Exceptions:
+    - None
+    """
+
     try:
         if args.reporter:
             issues = jira.list_issues(

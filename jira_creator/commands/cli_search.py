@@ -1,3 +1,13 @@
+"""
+This module provides a CLI search function for querying JIRA issues based on a JQL query.
+
+The 'cli_search' function takes a JIRA client and command-line arguments as input. It searches for issues using the
+provided JQL query, retrieves relevant fields, and displays the results in a tabular format. The function also handles
+exceptions like 'SearchError' and prints appropriate error messages.
+
+Note: This script relies on external modules like 'core.env_fetcher' and 'exceptions.exceptions'.
+"""
+
 import re
 
 from core.env_fetcher import EnvFetcher
@@ -5,6 +15,20 @@ from exceptions.exceptions import SearchError
 
 
 def cli_search(jira, args):
+    """
+    Search for issues in Jira based on the provided JQL query.
+
+    Arguments:
+    - jira: A Jira client object used to communicate with the Jira API.
+    - args: An object containing the parsed command-line arguments.
+    It should have a 'jql' attribute representing the Jira Query Language query.
+
+    Exceptions:
+    - This function may raise exceptions related to the Jira API or invalid queries.
+
+    Note: This function interacts with the Jira API to search for issues based on the provided JQL query.
+    """
+
     try:
         jql = args.jql
         issues = jira.search_issues(jql)

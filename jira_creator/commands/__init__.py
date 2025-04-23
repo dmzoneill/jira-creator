@@ -1,3 +1,12 @@
+"""
+This file includes multiple CLI commands for managing issues and users in a project management system. Each CLI command
+is imported from a corresponding module in the package. The CLI commands cover various functionalities such as adding
+comments, flags, sprints, assigning tasks, editing issues, linting, listing issues and sprints, searching, setting
+criteria, priorities, status, story details, talking, unassigning, unblocking, validating, viewing, and voting on story
+points. These commands provide a comprehensive set of tools for interacting with the project management system via the
+command line interface.
+"""
+
 from ._try_cleanup import _try_cleanup  # noqa
 from .cli_add_comment import cli_add_comment  # noqa
 from .cli_add_flag import cli_add_flag  # noqa

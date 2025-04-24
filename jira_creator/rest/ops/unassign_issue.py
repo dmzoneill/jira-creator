@@ -1,6 +1,19 @@
+#!/usr/bin/env python
 """
 This module provides a function to unassign an issue in Jira by sending a PUT request to the Jira API.
 If successful, it returns True. If an error occurs during the unassignment process, it raises an UnassignIssueError.
+
+The unassign_issue function unassigns the assignee from a specified issue.
+
+Arguments:
+- request_fn (function): A function used to make API requests.
+- issue_key (str): The key of the issue to unassign.
+
+Return:
+- bool: True if the issue was successfully unassigned.
+
+Exceptions:
+- UnassignIssueError: Raised if there is an issue with unassigning the specified issue.
 """
 
 from exceptions.exceptions import UnassignIssueError

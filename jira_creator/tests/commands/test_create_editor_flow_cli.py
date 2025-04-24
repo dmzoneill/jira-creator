@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script defines a test case for the 'test_create_editor' function. It mocks the 'create_issue' and 'improve_text'
 methods using MagicMock. It creates a temporary file, writes a description into it, sets arguments for the CLI command,

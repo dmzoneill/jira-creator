@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module contains pytest fixtures for testing the JiraCLI class and its interactions with the JiraClient.
 
@@ -42,7 +43,7 @@ def client():
     """
 
     client = JiraClient()
-    client._request = MagicMock()
+    client.request = MagicMock()
     return client
 
 
@@ -92,8 +93,8 @@ def patch_tempfile_namedtemporaryfile():
 # Fixture for CLI object
 @pytest.fixture
 def cli(
-    patch_subprocess_call,
-    patch_tempfile_namedtemporaryfile,
+    patch_subprocess_call,  # Applies patch to subprocess.call
+    patch_tempfile_namedtemporaryfile,  # Applies patch to tempfile.NamedTemporaryFile
 ):
     """
     Apply patches to provided functions for testing purposes.
@@ -102,9 +103,6 @@ def cli(
     - patch_subprocess_call (fixture): Patch fixture for subprocess.call function.
     - patch_tempfile_namedtemporaryfile (fixture): Patch fixture for tempfile.NamedTemporaryFile function.
     """
-    patch_subprocess_call  # Applies patch to subprocess.call
-    patch_tempfile_namedtemporaryfile  # Applies patch to tempfile.NamedTemporaryFile
-
     cli = JiraCLI()
     cli.jira = MagicMock()
 
@@ -133,7 +131,6 @@ def mock_search_issues(cli):
     Side Effects:
     - Modifies the behavior of the search_issues method in the Jira CLI by mocking its return value to a predefined
     list of Jira issues.
-
     """
 
     # Mock search_issues to return a list of issues
@@ -187,7 +184,6 @@ def mock_load_cache(mock_cache_path):
 
     Returns:
     - None
-
     """
 
     with patch(
@@ -225,7 +221,6 @@ def mock_load_and_cache_issue(mock_save_cache):
 
     Side Effects:
     - Mocks the 'load_and_cache_issue' function using the provided 'mock_save_cache' object.
-
     """
 
     data = (

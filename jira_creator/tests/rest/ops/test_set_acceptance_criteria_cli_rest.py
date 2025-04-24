@@ -1,10 +1,25 @@
+#!/usr/bin/env python
 """
-This file contains unit tests for the set_acceptance_criteria method in a JiraCLI class.
-It includes tests for both the normal behavior and an exception scenario.
-The tests mock the JiraClient and simulate GET and PUT responses.
-The first test validates the successful setting of acceptance criteria, while the second test checks the handling of a
-SetAcceptanceCriteriaError exception.
-The output of the method calls is captured and assertions are made on the printed messages.
+Unit tests for the `set_acceptance_criteria` method of the `JiraCLI` class.
+
+This module includes two primary test functions to validate the functionality of setting acceptance criteria in a Jira
+context. The tests utilize mocking to simulate interactions with the `JiraClient`, allowing for both successful and
+error scenarios to be tested without requiring actual Jira API calls.
+
+Test Functions:
+- `test_set_acceptance_criteria`: Tests the successful setting of acceptance criteria, verifying that the correct
+output is printed when the operation completes successfully.
+- `test_set_acceptance_criteria_exception`: Tests the handling of a `SetAcceptanceCriteriaError` exception when
+attempting to set acceptance criteria, ensuring that the appropriate error message is printed.
+
+Dependencies:
+- `pytest`: For running the tests and capturing output.
+- `unittest.mock`: For mocking the `JiraClient` interactions.
+- Custom exceptions and environment fetcher from the core application.
+
+Usage:
+Run the tests using pytest to ensure that the `set_acceptance_criteria` method behaves as expected in both normal and
+exceptional cases.
 """
 
 from argparse import Namespace
@@ -34,7 +49,7 @@ def test_set_acceptance_criteria(cli, capsys):
     acceptance_criteria = "Acceptance criteria description"
 
     # Simulate the GET and PUT responses for the JiraClient's _request method
-    cli.jira._request.side_effect = [
+    cli.jira.request.side_effect = [
         {
             "fields": {
                 EnvFetcher.get(
@@ -68,7 +83,6 @@ def test_set_acceptance_criteria_exception(cli, capsys):
 
     Side Effects:
     - Modifies the JiraClient object within the JiraCLI instance.
-
     """
 
     # Mock the JiraClient used within JiraCLI

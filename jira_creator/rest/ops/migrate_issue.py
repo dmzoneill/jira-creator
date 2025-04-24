@@ -1,13 +1,12 @@
+#!/usr/bin/env python
 """
 This script defines a function 'migrate_issue' that facilitates migrating an issue in Jira from one type to another.
 The function takes several parameters including request_fn for making HTTP requests, jira_url for the Jira instance URL,
 build_payload_fn for constructing the payload for the new issue, old_key for the key of the issue to be migrated, and
-new_type
-for the type of the new issue.
+new_type for the type of the new issue.
 
-The function retrieves information about the old issue, creates a new issue with the specified type and updates the old
-issue
-with a comment indicating the migration. It also transitions the old issue to a final state if possible.
+The function retrieves information about the old issue, creates a new issue with the specified type, and updates the old
+issue with a comment indicating the migration. It also transitions the old issue to a final state if possible.
 
 The function returns the key of the newly created issue.
 """
@@ -26,7 +25,6 @@ def migrate_issue(request_fn, jira_url, build_payload_fn, old_key, new_type):
 
     Returns:
     This function does not return any value.
-
     """
 
     fields = request_fn("GET", f"/rest/api/2/issue/{old_key}")["fields"]

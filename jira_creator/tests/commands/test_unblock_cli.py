@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains unit tests for the 'unblock' command of a CLI tool.
 It includes two test functions:
@@ -74,7 +75,6 @@ def test_unblock_command_failure(cli, capsys):
 
         Exceptions:
         - UnBlockError: Raised to simulate an unblock failure.
-
         """
 
         raise UnBlockError("Simulated unblock failure")

@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+"""
+This file contains a function test_vote_story_points_value_error to test a scenario where a ValueError is raised when
+voting for story points. The function takes two arguments:
+1. cli: An instance of the command-line interface.
+2. capsys: A pytest fixture to capture stdout and stderr output.
+
+Within the function, an inner class Args is defined with attributes issue_key and points, representing the issue key
+and non-integer points to be voted on, respectively.
+
+The function tests the system's behavior when a non-integer value is provided for story points during the voting
+process.
+"""
+
+
 def test_vote_story_points_value_error(cli, capsys):
     """
     This function is used to test a specific scenario where a ValueError is raised when attempting to vote for story
@@ -19,4 +34,4 @@ def test_vote_story_points_value_error(cli, capsys):
 
     cli.vote_story_points(Args())
     out = capsys.readouterr().out
-    assert "❌ Points must be an integer." in out
+    assert "❌ Story points must be an integer." in out

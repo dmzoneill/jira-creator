@@ -1,8 +1,15 @@
+#!/usr/bin/env python
 """
-This script contains unit tests for the TemplateLoader class.
-It tests the functionality of parsing fields, rendering templates, handling file not found errors, and returning joined
-template strings.
-The TemplateLoader class is responsible for loading and processing template files with specific fields and templates.
+This module contains unit tests for the `TemplateLoader` class, which is responsible for loading and processing
+template files with specific fields and templates. The tests cover the following functionalities:
+
+- Parsing fields from template files.
+- Rendering templates with provided data.
+- Handling cases where template files are not found.
+- Returning joined strings from template files.
+
+Each test function utilizes the `pytest` framework and operates within a temporary directory to ensure isolation
+and cleanliness during testing.
 """
 
 import pytest
@@ -46,7 +53,6 @@ def test_template_loader_renders_description(tmp_path):
 
     Side Effects:
     - Creates a template file in the specified temporary directory with predefined content.
-
     """
 
     template_content = (
@@ -91,7 +97,6 @@ def test_get_template_returns_joined_string(tmp_path):
 
     Side Effects:
     - Creates a template file with specified content in the temporary directory provided.
-
     """
 
     template_file = tmp_path / "sample.tmpl"

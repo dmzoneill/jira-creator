@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains a test case for the 'get_acceptance_criteria' method in the 'client' class.
 The test mocks the '_request' method to simulate fetching the acceptance criteria field value from JIRA.
@@ -19,11 +20,10 @@ def test_get_acceptance_criteria(client):
 
     This function mocks the _request method of the client object to simulate getting the description, specifically the
     acceptance criteria field.
-
     """
 
     # Mock _request method to simulate getting description
-    client._request = MagicMock(
+    client.request = MagicMock(
         return_value={
             "fields": {EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD"): "text"}
         }

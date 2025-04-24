@@ -1,8 +1,16 @@
+#!/usr/bin/env python
 """
-This script contains unit tests for the 'blocked' method in the 'client' class. The tests cover scenarios where blocked
-issues are found, no blocked issues are found, no issues are present, and an exception is raised during listing issues.
-The 'client' object is mocked using MagicMock for simulating different scenarios. The tests use pytest for assertions
-and exception handling. The 'EnvFetcher' class is used to fetch environment variables related to JIRA issues.
+This module contains unit tests for the `blocked` method of the `client` class, which is responsible for identifying
+blocked issues in a system. The tests cover various scenarios including:
+
+- The presence of blocked issues.
+- The absence of blocked issues.
+- The case where no issues are present.
+- Handling exceptions during the listing of issues.
+
+The tests utilize the `MagicMock` class from the `unittest.mock` module to simulate the behavior of the `client` object,
+allowing for controlled testing environments. The `pytest` framework is used for assertions and exception handling.
+Additionally, the `EnvFetcher` class is employed to retrieve environment variables related to JIRA issue fields.
 """
 
 from unittest.mock import MagicMock
@@ -90,7 +98,6 @@ def test_get_blocked_issues_no_issues(client):
 
     Side Effects:
     - Mocks the 'list_issues' method of the client object to return an empty list.
-
     """
 
     client.list_issues = MagicMock(return_value=[])

@@ -1,8 +1,16 @@
+#!/usr/bin/env python
 """
-This file contains unit test functions for testing the functionality of adding comments in a CLI application.
-It includes tests for adding comments with an editor, handling AI exceptions, and ensuring proper method calls and
-exception handling.
-The tests utilize mocking for various methods and services to isolate the functionality being tested.
+This module contains unit tests for the comment addition functionality in a command-line interface (CLI) application.
+It specifically tests the integration of user input through an editor and the handling of AI-related exceptions.
+
+The tests include:
+- `test_add_comment_editor`: Verifies the addition of a comment using an editor, ensuring that the correct methods are
+called with expected arguments.
+- `test_add_comment_with_editor_and_ai_exception_handling`: Tests the addition of a comment while simulating an AI
+service failure, checking for proper exception handling and output capturing.
+
+Mocking is utilized extensively to isolate the functionality under test, including the use of temporary files and the
+simulation of external service interactions.
 """
 
 import tempfile
@@ -64,7 +72,6 @@ def test_add_comment_with_editor_and_ai_exception_handling(cli, capsys):
 
     Side Effects:
     - Modifies the behavior of the AI provider's improve_text method.
-
     """
 
     # Mock the AI provider's improve_text method to avoid calling the real AI service

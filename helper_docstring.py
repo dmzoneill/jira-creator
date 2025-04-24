@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import time
 
 import requests
@@ -151,6 +152,8 @@ class Docstring:
             with open(self.cache_file, "w") as cache:
                 json.dump({}, cache)
 
+        print(self.file_path)
+
     def _load_cache(self):
         with open(self.cache_file, "r") as cache:
             return json.load(cache)
@@ -262,7 +265,7 @@ class Docstring:
         with open(self.file_path, "w") as file:
             file.write("".join(self.lines))
 
-        self.remove_old_entries(5)
+        self.remove_old_entries(1440 * 14)
 
     def generate_class_docstring(self):
         line = self.lines[self.line_index]
@@ -292,50 +295,41 @@ class Docstring:
             class_docstring[len(class_docstring) - 1] + "\n"
         )
         class_docstring = [line + "\n" for line in class_docstring]
+        class_docstring[len(class_docstring) - 1] = (
+            class_docstring[len(class_docstring) - 1].rstrip() + "\n"
+        )
 
-        # Handle one-liner docstring or multi-line docstring
-        if self.line_index + 1 < len(self.lines):
-            stripped_line = self.lines[self.line_index + 1].strip()
-            if stripped_line.startswith('"""') and stripped_line.endswith('"""'):
-                # This is a one-liner or multi-line docstring (we always replace with a multi-line docstring)
-                self.lines = (
-                    self.lines[: self.line_index + 1]
-                    + class_docstring
-                    + self.lines[self.line_index + 2 :]
-                )
-            else:
-                # Replace the entire docstring if it's multi-line
-                end_index = self.line_index + 1
-                while end_index < len(self.lines) and not self.lines[
-                    end_index
-                ].strip().startswith('"""'):
-                    end_index += 1
-                if (
-                    end_index < len(self.lines)
-                    and self.lines[end_index].strip() == '"""'
-                ):
-                    # Found the end of the docstring, now replace the entire docstring block
-                    self.lines = (
-                        self.lines[: self.line_index + 1]
-                        + class_docstring
-                        + self.lines[end_index + 1 :]
-                    )
-                else:
-                    # If no closing docstring, just insert the new one
-                    self.lines = (
-                        self.lines[: self.line_index + 1]
-                        + class_docstring
-                        + self.lines[self.line_index + 1 :]
-                    )
-        else:
-            # If no docstring exists, simply insert the generated docstring
+        # Check for existing docstring and replace it
+        docstring_start_index = None
+        docstring_end_index = None
+
+        # Look for the class docstring (the second line should start with """ if it's there)
+        if self.lines and self.lines[self.line_index + 1].strip().startswith('"""'):
+            # Docstring exists, find the end of it
+            docstring_start_index = (
+                self.line_index + 1
+            )  # The docstring starts from line after the class definition
+            for i, line in enumerate(
+                self.lines[self.line_index + 2 :], start=self.line_index + 2
+            ):
+                if line.strip().startswith('"""'):
+                    docstring_end_index = i  # End of the docstring
+                    break
+
+        # If a docstring exists, replace it
+        if docstring_start_index is not None and docstring_end_index is not None:
             self.lines = (
-                self.lines[: self.line_index + 1]
-                + class_docstring
-                + self.lines[self.line_index + 1 :]
+                self.lines[:docstring_start_index]
+                + self.lines[docstring_end_index + 1 :]
             )
 
-        self.line_index = self.line_index + len(class_docstring)
+        # Insert the new docstring after the class definition
+        self.lines = (
+            self.lines[: self.line_index + 1]
+            + class_docstring
+            + self.lines[self.line_index + 1 :]
+        )
+
         return True
 
     def generate_function_docstring(self):
@@ -350,30 +344,27 @@ class Docstring:
         spacer_line_plus = "" if indent_line == 0 else " " * ((indent_line + 1) * 4)
 
         t = self.line_index + 1
-        # Collect all self.lines that belong to the function, including "pass" or single-line functions
+        # Collect all self.lines that belong to the function
         while t < len(self.lines):
             starts_with_def = self.lines[t].strip().startswith("def")
 
-            # Same indent level
+            # same indent
             if starts_with_def and self.lines[t].startswith(spacer_line):
                 break
 
-            # Outside indentation level
+            # outside
             if starts_with_def and self.lines[t].startswith(spacer_line_minus):
                 break
 
-            # Nested indentation level
+            # nested
             if starts_with_def and self.lines[t].startswith(spacer_line_plus):
                 pass
-
-            # If the line isn't part of the function, stop processing it
-            if self.lines[t].strip() == "pass" or self.lines[t].strip() == "":
-                break
 
             if self.lines[t].rstrip() != def_definition.strip():
                 prompt_def_code.append(self.lines[t].rstrip())
             t += 1
 
+        # Now that we have the full function signature, we generate the docstring
         indent = self.count_and_divide_whitespace(def_definition) + 1
         def_docstring = self.get_ai_docstring(
             system_prompt_def, "\n".join(prompt_def_code)
@@ -385,11 +376,15 @@ class Docstring:
         if def_definition.strip() == def_docstring[0].strip():
             def_docstring = def_docstring[1:]
         def_docstring = [line + "\n" for line in def_docstring]
+        def_docstring[len(def_docstring) - 1] = (
+            def_docstring[len(def_docstring) - 1].rstrip() + "\n"
+        )
 
         # Handle one-liner docstring or multi-line docstring
         if self.line_index + 1 < len(self.lines):
             stripped_line = self.lines[self.line_index + 1].strip()
-            if stripped_line.startswith('"""') and stripped_line.endswith('"""'):
+            if re.match(r'"""[\s\S]+?"""', stripped_line):
+                # print(" -> Replacing one liner docstring")
                 # This is a one-liner or multi-line docstring (we always replace with a multi-line docstring)
                 self.lines = (
                     self.lines[: self.line_index + 1]
@@ -397,12 +392,14 @@ class Docstring:
                     + self.lines[self.line_index + 2 :]
                 )
             else:
+                # print(" -> Replacing multi-line docstring")
                 # Replace the entire docstring if it's multi-line
-                end_index = self.line_index + 1
+                end_index = self.line_index + 2
                 while end_index < len(self.lines) and not self.lines[
                     end_index
                 ].strip().startswith('"""'):
                     end_index += 1
+
                 if (
                     end_index < len(self.lines)
                     and self.lines[end_index].strip() == '"""'
@@ -412,13 +409,6 @@ class Docstring:
                         self.lines[: self.line_index + 1]
                         + def_docstring
                         + self.lines[end_index + 1 :]
-                    )
-                else:
-                    # If no closing docstring, just insert the new one
-                    self.lines = (
-                        self.lines[: self.line_index + 1]
-                        + def_docstring
-                        + self.lines[self.line_index + 1 :]
                     )
         else:
             # If no docstring exists, simply insert the generated docstring
@@ -472,13 +462,11 @@ class Docstring:
         shebang = ""
 
         # Check if the first line starts with a shebang (e.g., #! anything)
-        if self.lines and self.lines[0].startswith("#!"):
-            # Shebang exists, keep it as is
-            shebang = self.lines[0]
-            self.lines = [shebang] + self.lines[1:]  # Keep shebang as is
+        if self.lines and not self.lines[0].startswith("#!"):
+            self.lines = ["#!/usr/bin/env python\n"] + self.lines
+            shebang = "#!/usr/bin/env python\n"
         else:
-            # Add a default shebang if none exists
-            self.lines = ["#!/usr/bin/python\n"] + self.lines
+            shebang = self.lines[0]
 
         # Check if there's already an existing file-level docstring or comment block
         # We assume the file-level docstring starts with triple quotes (""" or ''') and is at the top
@@ -493,13 +481,6 @@ class Docstring:
                     docstring_end_index = i  # End of the docstring
                     break
 
-        # If a docstring exists, replace it with the new one
-        if docstring_start_index is not None and docstring_end_index is not None:
-            self.lines = (
-                self.lines[:docstring_start_index]
-                + self.lines[docstring_end_index + 1 :]
-            )
-
         # Generate new file-level docstring
         general_description = self.get_ai_docstring(
             system_prompt_general, "".join(self.lines)
@@ -509,12 +490,23 @@ class Docstring:
         )
         docstring = [line + "\n" for line in general_description]
 
-        # Insert the generated docstring directly after the shebang (no extra newline)
-        self.lines = [shebang] + docstring + self.lines[1:]
+        # If a docstring exists, replace it with the new one
+        if docstring_start_index is not None and docstring_end_index is not None:
+            self.lines = (
+                self.lines[:docstring_start_index]
+                + docstring
+                + self.lines[docstring_end_index + 1 :]
+            )
+        else:
+            # Insert the generated docstring directly after the shebang (no extra newline)
+            self.lines = [shebang] + docstring + self.lines[1:]
 
         return len(docstring)
 
     def generate_docstrings(self):
+        if len(self.lines) == 0:
+            return
+
         self.line_index = self.generate_file_docstring()
 
         while self.line_index < len(self.lines):

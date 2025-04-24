@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains unit tests for the PromptLibrary class in the rest.prompts module.
 It includes tests to ensure that prompts exist for all issue types defined in the IssueType enum.
@@ -15,6 +16,20 @@ import pytest  # isort: skip
 def test_prompt_exists_for_all_types():
     """
     Check if a prompt exists for all types in the IssueType enum.
+
+    Arguments:
+    No arguments.
+
+    Return:
+    No return value.
+
+    Exceptions:
+    This function does not raise any exceptions.
+
+    Side Effects:
+    This function asserts the existence and content of prompts for different types in the IssueType enum by interacting
+    with PromptLibrary.
+
     """
 
     # Iterate through all issue types in IssueType enum
@@ -56,7 +71,6 @@ def test_prompt_raises_file_not_found_error():
     Side Effects:
     - Modifies the behavior of os.path.exists to return False, simulating a file not found error.
     - Raises a FileNotFoundError with a specific message pattern when trying to retrieve a prompt.
-
     """
 
     # Mock the TEMPLATE_DIR and os.path.exists to simulate file not found error

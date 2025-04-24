@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains test cases for the 'remove_flag' method in the 'cli' module.
 It includes tests to check the successful removal of a flag and also to handle exceptions.

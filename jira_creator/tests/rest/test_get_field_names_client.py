@@ -1,16 +1,17 @@
+#!/usr/bin/env python
 """
-This file contains test cases for the cache_fields and get_field_name methods of a client class.
+This module contains unit tests for the methods `cache_fields` and `get_field_name` of a client class.
 
-The test_cache_fields_file_exists_and_recent function tests the cache_fields method when the cache file exists and is
-recent. It mocks file existence and modification time checks and verifies the correct fields are returned.
+The tests verify the behavior of the `cache_fields` method under different conditions:
+1. When the cache file exists and is recent, ensuring the correct fields are returned.
+2. When the cache file does not exist or is outdated, checking that the method retrieves fields from an API and creates
+the cache file correctly.
 
-The test_cache_fields_file_does_not_exist_or_old function tests the cache_fields method when the cache file does not
-exist or is old. It mocks file non-existence, simulates a response from an API call, and checks if the cache file is
-created and written correctly.
+Additionally, the `get_field_name` method is tested to confirm it returns the correct field name for a given field ID,
+and `None` for non-existing field IDs.
 
-The test_get_field_name function tests the get_field_name method of the client class. It mocks the cache_fields method
-to return a list of fields, simulates an API call response, and checks if the correct field name is returned for an
-existing field ID and None for a non-existing field ID.
+Each test case uses mocking to simulate file operations and API responses, allowing for isolated testing of the client
+methods without external dependencies.
 """
 
 import json
@@ -49,7 +50,9 @@ def test_cache_fields_file_exists_and_recent(client):
             # Verify the returned fields
             assert fields == [{"id": "1", "name": "Field 1"}]
             # Ensure the file was opened for reading
-            mocked_open.assert_called_once_with(client.fields_cache_path, "r")
+            mocked_open.assert_called_once_with(
+                client.fields_cache_path, "r", encoding="UTF-8"
+            )
 
 
 # Test for cache_fields when the file does not exist or is old
@@ -68,9 +71,9 @@ def test_cache_fields_file_does_not_exist_or_old(client):
 
     # Mock os.path.exists to return False (file doesn't exist)
     with patch("os.path.exists", return_value=False):
-        # Mock _request to return a mock fields response
+        # Mock request to return a mock fields response
         with patch.object(
-            client, "_request", return_value=[{"id": "1", "name": "Field 1"}]
+            client, "request", return_value=[{"id": "1", "name": "Field 1"}]
         ):
             with (
                 patch("os.makedirs"),
@@ -78,14 +81,16 @@ def test_cache_fields_file_does_not_exist_or_old(client):
             ):
                 fields = client.cache_fields()
 
-                # Verify the fields are returned correctly from the _request mock
+                # Verify the fields are returned correctly from the request mock
                 assert fields == [{"id": "1", "name": "Field 1"}]
                 # Ensure the cache directory was created
                 # os.makedirs.assert_called_once_with(
                 #    os.path.dirname(client.fields_cache_path), exist_ok=True
                 # )
                 # Ensure the file was opened for writing
-                mocked_file.assert_called_once_with(client.fields_cache_path, "w")
+                mocked_file.assert_called_once_with(
+                    client.fields_cache_path, "w", encoding="UTF-8"
+                )
 
 
 # Test for get_field_name

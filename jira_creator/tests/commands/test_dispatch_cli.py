@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+"""
+Dispatches an unknown command for testing purposes.
+
+Arguments:
+- cli (object): An object representing the command line interface.
+
+This function is used to test the behavior of dispatching an unknown command in a command line interface.
+"""
 import pytest
 from exceptions.exceptions import DispatcherError
 

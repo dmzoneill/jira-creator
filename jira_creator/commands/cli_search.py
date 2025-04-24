@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a CLI search function for querying JIRA issues based on a JQL query.
 

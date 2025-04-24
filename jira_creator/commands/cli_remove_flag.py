@@ -1,10 +1,12 @@
+#!/usr/bin/env python
 """
 This module contains a function to remove a flag from a Jira issue using the provided Jira instance and command-line
 arguments.
 
 The 'cli_remove_flag' function takes two parameters:
-- jira: the Jira instance to remove the flag from
-- args: the command-line arguments containing the issue key
+- jira: An instance of the Jira API client.
+- args: A dictionary containing the following key:
+- issue_key (str): The key of the issue from which the flag will be removed.
 
 It attempts to remove the flag from the specified issue using the 'jira.remove_flag' method. If successful, it prints a
 success message indicating the flag removal. If an exception occurs during the removal process, it prints an error
@@ -41,7 +43,7 @@ def cli_remove_flag(jira, args):
         response = jira.remove_flag(issue_key)
         print(f"✅ Removed flag from issue '{issue_key}'")
         return response
-    except Exception as e:
+    except RemoveFlagError as e:
         msg = f"❌ Failed to remove flag from issue '{issue_key}': {e}"
         print(msg)
         raise RemoveFlagError(e) from e

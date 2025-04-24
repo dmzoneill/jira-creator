@@ -1,3 +1,22 @@
+#!/usr/bin/env python
+"""
+Unblocks a Jira issue.
+
+Arguments:
+- jira (JIRA): A JIRA instance used to interact with the Jira API.
+- args (Namespace): A namespace object containing parsed command-line arguments. It should have an 'issue_key'
+attribute representing the key of the issue to be unblocked.
+
+Return:
+- bool: True if the issue was successfully unblocked.
+
+Exceptions:
+- UnBlockError: Raised if there was an error while trying to unblock the issue.
+
+Side Effects:
+- Prints a success message if the issue is unblocked successfully.
+- Prints an error message if there is a failure while unblocking the issue.
+"""
 from exceptions.exceptions import UnBlockError
 
 

@@ -1,9 +1,25 @@
+#!/usr/bin/env python
 """
 This module provides a DeepSeekProvider class for interacting with an AI service to improve text quality.
 The DeepSeekProvider class initializes with default endpoint values fetched from environment variables.
 It includes a method improve_text(prompt, text) to send a POST request to the AI service and improve the given text.
 If successful, it returns the improved text; otherwise, it raises an AiError with details of the failure.
+
+The DeepSeekProvider class:
+- url (str): The endpoint URL for the AI service, defaults to a local or proxied endpoint.
+- headers (dict): The headers for the HTTP request, with the Content-Type set to application/json.
+- model (str): The AI model used for processing the text data.
+
+The improve_text method:
+- Concatenates a given prompt with a text, separated by two new lines.
+- Arguments:
+- prompt (str): The initial prompt to be displayed.
+- text (str): The text to be appended to the prompt.
+- Returns:
+- str: The combined prompt and text.
 """
+
+# pylint: disable=too-few-public-methods
 
 import json
 
@@ -48,6 +64,13 @@ class DeepSeekProvider:
 
         Return:
         - str: The combined prompt and text.
+
+        Exceptions:
+        - AiError: Raised if the POST request fails or if there is an issue parsing the JSON response.
+
+        Side Effects:
+        - Sends a POST request using the provided URL, headers, model, and timeout settings.
+        - Modifies the response by removing specific HTML tags ("<think>") if present.
 
         """
 

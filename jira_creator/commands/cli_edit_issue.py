@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides functionality for editing Jira issue descriptions using a command-line interface. It includes
 methods to fetch, edit, and update issue descriptions, as well as validate and lint the descriptions for quality.
@@ -132,6 +133,8 @@ def lint_description_once(cleaned, ai_provider):
 
     Side Effects:
     - Prints the validation issues found during linting.
+    - Prompts the user to provide additional information based on linting problems.
+    - Updates the description using the AI provider if issues are found.
 
     """
 
@@ -169,7 +172,6 @@ def lint_description_once(cleaned, ai_provider):
 
 def lint_description(cleaned, ai_provider):
     """
-    Summary:
     Prints the current cleaned description in a loop for linting purposes.
 
     Arguments:
@@ -210,7 +212,6 @@ def update_jira_description(jira, issue_key, cleaned):
 
     Side Effects:
     - Modifies the description of the specified Jira issue.
-
     """
 
     try:
@@ -236,6 +237,9 @@ def cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args):
 
     Return:
     - bool: False if the original description is empty, indicating the issue was not edited.
+
+    Exceptions:
+    - EditIssueError: Raised if an error occurs during the editing process.
     """
 
     try:

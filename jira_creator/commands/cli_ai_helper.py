@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a command-line interface (CLI) helper for interacting with an AI provider, specifically designed
 to work with Jira. It allows users to query the AI for assistance with Jira commands and execute them accordingly.
@@ -24,6 +25,8 @@ Exceptions:
 - AIHelperError: Custom exception raised for errors related to AI helper operations.
 """
 
+# pylint: disable=protected-access
+
 import argparse
 import json
 import os
@@ -38,21 +41,21 @@ def get_cli_command_metadata():
     """
     Retrieve the command metadata for the Jira Command Line Interface (CLI).
 
-    This function imports the JiraCLI class from the rh_jira module and returns the command metadata associated with it.
+    This function imports the JiraCLI class from the rh_jira module, retrieves the command metadata associated with it,
+    and returns a dictionary containing information about the available commands, their arguments, and help
+    descriptions.
+
+    Args:
+    cli: The cli object used to interact with the AI service.
 
     Returns:
-    None
+    dict: A dictionary where keys are command names and values are dictionaries containing information about the
+    command, including help description and arguments.
 
     """
 
-    from rh_jira import JiraCLI  # ← moved inside
-
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
-
-    # Create CLI instance and register subcommands
-    cli = JiraCLI()
-    cli._register_subcommands(subparsers)
 
     commands = {}
 
@@ -116,6 +119,9 @@ def clean_ai_output(ai_output: str) -> list:
     Return:
     - list: A list of cleaned strings without Markdown-style code block wrappers.
 
+    Exceptions:
+    - ValueError: Raised if the cleaned string cannot be parsed into a JSON object.
+
     """
 
     # Remove any Markdown-style code block wrappers
@@ -130,12 +136,12 @@ def clean_ai_output(ai_output: str) -> list:
         raise ValueError(e) from e
 
 
-def ask_ai_question(client, ai_provider, system_prompt, user_prompt, voice=False):
+def ask_ai_question(cli, ai_provider, system_prompt, user_prompt, voice=False):
     """
     Ask AI a question and generate steps based on the provided prompts.
 
     Args:
-    client: The client object used to interact with the AI service.
+    cli: The cli object used to interact with the AI service.
     ai_provider: The AI provider object that provides the AI capabilities.
     system_prompt: The prompt representing the system's context for the AI question.
     user_prompt: The prompt representing the user's input for the AI question.
@@ -161,36 +167,38 @@ def ask_ai_question(client, ai_provider, system_prompt, user_prompt, voice=False
             return False
         print("Not sure: ")
         print(ai_generated_steps)
-        return
+        return False
 
     if isinstance(ai_generated_steps, list):
         if len(ai_generated_steps) > 0:
             for step in ai_generated_steps:
-                print("AI action: {action}".format(action=step["action"]))
-                print("Action: {action}".format(action=step["function"]))
-                print("   Changes: {changes}".format(changes=step["args"]))
-                call_function(client, step["function"], step["args"])
+                print(f"AI action: {step['action']}")
+                print(f"Action: {step['function']}")
+                print(f"   Changes: {step['args']}")
+                call_function(cli, step["function"], step["args"])
                 if voice:
                     tts = gTTS(text=step["action"], lang="en")
                     tts.save("output.mp3")
                     os.system("mpg123 output.mp3")
-        else:
-            print("No steps generated")
-            return False
+            return True
+        print("No steps generated")
+        return False
+
+    return True
 
 
-def cli_ai_helper(client, ai_provider, system_prompt, args):
+def cli_ai_helper(cli, ai_provider, system_prompt, args):
     """
     Retrieve CLI command metadata using the 'get_cli_command_metadata' function.
 
     Arguments:
-    - client (object): The client object used to interact with the CLI.
+    - cli (object): The cli object used to interact with the CLI.
     - ai_provider (object): The AI provider object responsible for processing AI-related tasks.
     - system_prompt (str): The system prompt displayed to the user.
     - args (list): List of arguments passed to the function.
 
     Exceptions:
-    - None
+    - AIHelperError: Raised when there is an issue inspecting public methods of JiraCLI.
 
     """
 
@@ -205,7 +213,7 @@ def cli_ai_helper(client, ai_provider, system_prompt, args):
                 commands += f"  - {arg['name']} ({'positional' if arg['positional'] else 'optional'}) — {arg['help']}"
 
         ask_ai_question(
-            client,
+            cli,
             ai_provider,
             system_prompt,
             "\n\n" + commands + "\n\nQuestion: " + args.prompt,

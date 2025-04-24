@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a function to interact with Jira by adding comments to an issue. It prompts the user to enter a
 comment either directly or through a text editor if not provided. The comment is then processed by an AI provider to

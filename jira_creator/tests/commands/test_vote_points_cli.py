@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+"""
+Simulate voting for story points in Jira using the provided CLI and capsys fixtures.
+
+Args:
+cli: A fixture representing the command-line interface for Jira.
+capsys: A fixture capturing stdout and stderr output.
+
+Side Effects:
+- Modifies the vote_story_points attribute of the cli.jira object using MagicMock.
+"""
 from unittest.mock import MagicMock
 
 

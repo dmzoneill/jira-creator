@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 A function to retrieve and list sprints from a Jira board using the provided Jira instance and arguments.
 

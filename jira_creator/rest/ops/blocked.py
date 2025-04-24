@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module includes a function called blocked that retrieves a list of issues based on certain criteria and filters
 out the blocked issues.
@@ -6,7 +7,24 @@ It checks each issue for a specific field value (JIRA_BLOCKED_FIELD) to determin
 If an issue is blocked, it constructs a dictionary containing key information about the issue like key, status,
 assignee, reason, and summary.
 The function returns a list of dictionaries representing the blocked issues.
+
+Function 'blocked':
+- Retrieve a list of issues based on specified project, component, and assignee.
+
+Arguments:
+- list_issues_fn (function): A function that returns a list of issues based on project, component, and assignee
+parameters.
+- project (str): The project name to filter the issues. Defaults to None.
+- component (str): The component name to filter the issues. Defaults to None.
+- assignee (str): The assignee name to filter the issues. Defaults to None.
+
+No return value.
+
+Side Effects:
+- Modifies the 'issues' list by populating it with the filtered list of issues.
 """
+
+# pylint: disable=duplicate-code
 
 from core.env_fetcher import EnvFetcher
 
@@ -14,7 +32,7 @@ from core.env_fetcher import EnvFetcher
 # /* jscpd:ignore-start */
 def blocked(list_issues_fn, project=None, component=None, assignee=None):
     """
-    Retrieve a list of issues based on specified project, component, and assignee.
+    Retrieve a list of blocked issues based on specified project, component, and assignee.
 
     Arguments:
     - list_issues_fn (function): A function that returns a list of issues based on project, component, and assignee
@@ -23,7 +41,8 @@ def blocked(list_issues_fn, project=None, component=None, assignee=None):
     - component (str): The component name to filter the issues. Defaults to None.
     - assignee (str): The assignee name to filter the issues. Defaults to None.
 
-    No return value.
+    Return:
+    - List of dictionaries containing details of blocked issues.
 
     Side Effects:
     - Modifies the 'issues' list by populating it with the filtered list of issues.

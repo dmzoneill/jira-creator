@@ -1,9 +1,14 @@
+#!/usr/bin/env python
 """
 This file contains a unit test for the 'add_comment' method in the 'cli' module.
 The test case simulates a failure scenario by mocking the 'add_comment' method and causing the 'improve_text' method of
 'ai_provider' to raise an 'AiError' exception.
 The test verifies that the 'AiError' exception is correctly raised and captures the output to check for the expected
 error message.
+
+The 'test_add_comment_ai_fail' function mocks the 'add_comment' method for testing purposes without a return value. It
+sets up the necessary mocks for 'ai_provider' and verifies that an 'AiError' exception is raised during the test,
+capturing and asserting the expected error message.
 """
 
 from unittest.mock import MagicMock

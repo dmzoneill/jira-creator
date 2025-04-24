@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a function for setting story points in Jira using the command-line interface (CLI).
 

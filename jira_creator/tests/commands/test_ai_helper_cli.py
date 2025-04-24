@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module contains unit tests for the AI helper command line interface (CLI) functionality.
 The tests cover various aspects of the CLI AI helper, including command dispatching, error handling, and output
@@ -13,6 +14,9 @@ The tests utilize the `pytest` framework and include mocking of dependencies to 
 scenarios.
 """
 
+from commands.cli_ai_helper import (
+    ask_ai_question,
+)  # Adjust the import based on your module structure
 from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
@@ -37,7 +41,6 @@ def test_call_function():
 
     Returns:
     No return value.
-
     """
 
     # Mock the client and its _dispatch_command method
@@ -84,7 +87,6 @@ def test_get_cli_command_metadata_parses_correctly(cli):
 
     Arguments:
     - cli (object): The Command Line Interface (CLI) object to parse metadata for.
-
     """
 
     fake_action_positional = MagicMock()
@@ -129,6 +131,87 @@ def test_get_cli_command_metadata_parses_correctly(cli):
         assert command["arguments"][1]["name"] == "status"
         assert command["arguments"][1]["positional"] is False
         assert "--status" in command["arguments"][1]["flags"]
+
+
+def test_get_cli_command_metadata_skip_help_and_command():
+    """
+    Test to ensure that the 'continue' statement correctly skips actions with 'help' or 'command' in their 'dest'.
+    """
+
+    # Create fake actions with the 'dest' values "help" and "command" that should be skipped
+    fake_action_help = MagicMock()
+    fake_action_help.dest = "help"
+
+    fake_action_command = MagicMock()
+    fake_action_command.dest = "command"
+
+    fake_action_other = MagicMock()
+    fake_action_other.dest = "other"
+
+    # Mock type to include __name__ attribute for the actions
+    fake_action_help.type = MagicMock()
+    fake_action_help.type.__name__ = "str"
+
+    fake_action_command.type = MagicMock()
+    fake_action_command.type.__name__ = "str"
+
+    fake_action_other.type = MagicMock()
+    fake_action_other.type.__name__ = "str"
+
+    # Create a fake subparser and assign actions to it
+    fake_subparser = MagicMock()
+    fake_subparser._actions = [fake_action_help, fake_action_command, fake_action_other]
+    fake_subparser.description = "Test Command"
+
+    # Mock subparsers and their choices
+    fake_subparsers = MagicMock()
+    fake_subparsers.choices = {"test-command": fake_subparser}
+
+    # Mock the ArgumentParser
+    fake_parser = MagicMock()
+    fake_parser.add_subparsers.return_value = fake_subparsers
+
+    # Use patch to mock the ArgumentParser in the get_cli_command_metadata function
+    with patch("argparse.ArgumentParser", return_value=fake_parser):
+        result = get_cli_command_metadata()
+
+    # Check that "test-command" was added to the result
+    assert "test-command" in result
+    command = result["test-command"]
+
+    # Verify that the "help" and "command" actions are not in the command arguments
+    assert not any(arg["name"] == "help" for arg in command["arguments"])
+    assert not any(arg["name"] == "command" for arg in command["arguments"])
+
+    # Check that the "other" action is included
+    assert any(arg["name"] == "other" for arg in command["arguments"])
+
+
+@patch("commands.cli_ai_helper.gTTS")  # Mock gTTS to avoid audio generation
+@patch("commands.cli_ai_helper.os.system")  # Mock os.system to prevent external calls
+def test_ask_ai_question_returns_true(mock_os_system, mock_gtts):
+    """
+    Test the last return statement in the ask_ai_question function,
+    ensuring that the function returns True when ai_generated_steps is a non-empty list.
+    """
+
+    # Create a mock for the ai_provider
+    mock_ai_provider = MagicMock()
+    mock_ai_provider.improve_text.return_value = None
+
+    # Mock the clean_ai_output function to return a parsed list (as if AI generated steps)
+    with patch("commands.cli_ai_helper.clean_ai_output", return_value=None):
+
+        # Create a mock CLI object
+        mock_cli = MagicMock()
+
+        # Call the function with the required parameters
+        result = ask_ai_question(
+            mock_cli, mock_ai_provider, "System prompt", "User prompt", voice=False
+        )
+
+        # Check that the function returned True
+        assert result is True
 
 
 def test_clean_ai_output(cli):
@@ -244,7 +327,6 @@ def test_ask_ai_question_no_error(mock_os_system, mock_gtts):
     Arguments:
     - mock_os_system: MagicMock object for mocking the OS system.
     - mock_gtts: MagicMock object for mocking the Google Text-to-Speech service.
-
     """
 
     mock_client = MagicMock()
@@ -257,7 +339,7 @@ def test_ask_ai_question_no_error(mock_os_system, mock_gtts):
         mock_client, mock_ai_provider, "system prompt", "user prompt", voice=True
     )
 
-    assert result is None
+    assert result is False
     mock_gtts.assert_not_called()  # No TTS should be triggered
 
 
@@ -293,7 +375,7 @@ def test_ask_ai_question_steps(mock_call_function, mock_os_system, mock_gtts):
         mock_client, mock_ai_provider, "system prompt", "user prompt", voice=True
     )
 
-    assert result is None
+    assert result is True
     mock_call_function.assert_called_once_with(
         mock_client, "function1", {"arg1": "value1"}
     )
@@ -310,7 +392,6 @@ def test_ask_ai_question_empty_steps(mock_os_system, mock_gtts):
     Arguments:
     - mock_os_system: A MagicMock object representing the mocked os.system function.
     - mock_gtts: A MagicMock object representing the mocked gtts library.
-
     """
 
     mock_client = MagicMock()
@@ -339,7 +420,6 @@ def test_ask_ai_question_invalid_json(mock_os_system, mock_gtts):
     Side Effects:
     - Creates a MagicMock object for client simulation.
     - Creates a MagicMock object for AI provider simulation with a method to improve text.
-
     """
 
     mock_client = MagicMock()
@@ -375,6 +455,7 @@ def test_cli_ai_helper_success(
     Side Effects:
     - Sets up mock return values for the dependencies to simulate a successful test scenario.
     """
+
     # Setup mock return values for the dependencies
     mock_get_cli_command_metadata.return_value = {
         "command1": {

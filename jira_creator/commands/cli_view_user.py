@@ -1,7 +1,16 @@
+#!/usr/bin/env python
 """
 This module provides a function to view user details using a Jira instance.
 It retrieves user information based on the provided account ID and displays it in a sorted manner.
 If an error occurs during the retrieval process, it catches and handles the GetUserError exception.
+
+The function cli_view_user(jira, args) retrieves information about a specific user from Jira.
+It takes two arguments:
+- jira (JiraClient): An instance of the JiraClient class used to interact with the Jira API.
+- args (dict): A dictionary containing the arguments needed to identify the user. It should include the
+'account_id' key representing the unique identifier of the user.
+
+This function may raise exceptions if there are issues with retrieving the user information from Jira.
 """
 
 from exceptions.exceptions import GetUserError
@@ -18,7 +27,6 @@ def cli_view_user(jira, args):
 
     Exceptions:
     - This function may raise exceptions if there are issues with retrieving the user information from Jira.
-
     """
 
     try:

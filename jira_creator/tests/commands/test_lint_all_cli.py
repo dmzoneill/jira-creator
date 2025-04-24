@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Unit tests for the linting functionality of a CLI application that interacts with JIRA issues.
 
@@ -94,7 +95,6 @@ def test_print_status_table_with_wrapping(capsys):
 
     Side Effects:
     - Prints a formatted status table with wrapping functionality for the provided data.
-
     """
 
     # Prepare the mock data
@@ -208,7 +208,7 @@ def test_lint_all_all_pass(mock_save_cache, cli, capsys):
             }
         }
 
-    cli.jira._request = mock_request
+    cli.jira.request = mock_request
 
     # Ensure the Args object has the required 'project' and other attributes
     class Args1:
@@ -324,6 +324,9 @@ def test_lint_all_with_failures(mock_save_cache, cli, capsys):
 
     Side Effects:
     - Sets the 'jira' attribute of the 'cli' object to a MagicMock object.
+    - Sets the 'ai_provider' attribute of the 'cli' object to a MagicMock object with a mocked 'improve_text' method.
+    - Modifies the return value of 'cli.jira.list_issues' to a list of dictionaries representing mocked issues.
+
     """
 
     cli.jira = MagicMock()
@@ -358,7 +361,6 @@ def test_lint_all_with_failures(mock_save_cache, cli, capsys):
     # Mock the request function to return the issue details
     def mock_request(method, path, **kwargs):
         """
-        Summary:
         Simulates a mock HTTP request with the specified method, path, and additional keyword arguments, and returns a
         dictionary containing simulated response fields.
 
@@ -373,7 +375,6 @@ def test_lint_all_with_failures(mock_save_cache, cli, capsys):
 
         Side Effects:
         - This function does not have any side effects as it only generates a mock response dictionary.
-
         """
 
         return {
@@ -395,7 +396,7 @@ def test_lint_all_with_failures(mock_save_cache, cli, capsys):
 
     # /* jscpd:ignore-end */
 
-    cli.jira._request = mock_request
+    cli.jira.request = mock_request
 
     # Patch validate to return problems
     with patch(

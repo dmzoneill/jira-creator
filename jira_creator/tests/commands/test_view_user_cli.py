@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains unit tests for the view_user function in the CLI module.
 It includes tests for printing user fields and handling GetUserError exceptions.
@@ -6,6 +7,18 @@ The test_cli_view_user_prints_user_fields test verifies that user fields are cor
 The test_cli_view_user_raises_and_prints_error test checks if GetUserError exceptions are raised and handled
 appropriately.
 pytest and unittest.mock libraries are imported for testing purposes.
+
+Functions:
+- test_cli_view_user_prints_user_fields(cli, capsys): Prints user fields for a specific user using the CLI.
+- test_cli_view_user_raises_and_prints_error(cli, capsys): Tests the CLI view user functionality by simulating a
+scenario where an error is raised when attempting to get user information from Jira.
+
+Arguments:
+- cli: An object representing the CLI.
+- capsys: A fixture provided by pytest to capture stdout and stderr.
+
+Exceptions:
+- GetUserError: Raised when the simulated scenario encounters an error message "User not found".
 """
 
 from unittest.mock import MagicMock
@@ -24,7 +37,6 @@ def test_cli_view_user_prints_user_fields(cli, capsys):
 
     Side Effects:
     - Prints the user fields for a specific user to the standard output.
-
     """
 
     cli.jira.get_user = MagicMock()
@@ -57,7 +69,6 @@ def test_cli_view_user_raises_and_prints_error(cli, capsys):
 
     Exceptions:
     - GetUserError: Raised when the simulated scenario encounters an error message "User not found".
-
     """
 
     cli.jira.get_user = MagicMock()

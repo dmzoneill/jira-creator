@@ -1,8 +1,23 @@
+#!/usr/bin/env python
 """
 This script defines a function cli_open_issue(args) that opens a JIRA issue in the default web browser using
 subprocess.Popen. It retrieves the JIRA URL from the environment variables using the EnvFetcher class. If an
 OpenIssueError is raised during the process, it prints an error message and raises the exception again.
+
+Function cli_open_issue(args):
+- Opens a JIRA issue in the default web browser using xdg-open.
+- Arguments:
+- args (Namespace): A namespace containing the parsed arguments. It should have an attribute 'issue_key'
+representing the key of the JIRA issue to open.
+- Return:
+- bool: True if the issue was successfully opened in the browser.
+- Exceptions:
+- OpenIssueError: Raised if there is an issue opening the JIRA issue in the browser.
+- Side Effects:
+- Opens the default web browser to display the JIRA issue specified by the 'issue_key'.
 """
+
+# pylint: disable=consider-using-with
 
 import subprocess
 

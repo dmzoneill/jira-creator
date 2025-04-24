@@ -1,9 +1,25 @@
+#!/usr/bin/env python
 """
 This script contains unit tests for the 'assign_issue' function in the 'rest.ops.assign_issue' module.
 The tests cover both success and failure scenarios of the function.
 The 'test_assign_issue_success' function tests the successful assignment of an issue to a user.
 The 'test_assign_issue_failure' function tests the handling of an 'AssignIssueError' exception when assigning an issue
 fails.
+
+Functions:
+- test_assign_issue_success(): Assign an issue to a user.
+Arguments:
+- mock_request (MagicMock): A MagicMock object representing the request.
+- issue_key (str): The key of the issue to be assigned.
+- assignee (str): The username of the user to whom the issue will be assigned.
+
+- test_assign_issue_failure(capsys, client): Assign a failure issue to the client for testing purposes.
+Arguments:
+- capsys (pytest fixture): Pytest fixture for capturing stdout and stderr.
+- client: An instance of a client object.
+Side Effects:
+- Modifies the client's _request attribute by setting it to a MagicMock object with a side effect of raising an
+AssignIssueError with message "fail".
 """
 
 from unittest.mock import MagicMock
@@ -21,7 +37,6 @@ def test_assign_issue_success():
     - mock_request (MagicMock): A MagicMock object representing the request.
     - issue_key (str): The key of the issue to be assigned.
     - assignee (str): The username of the user to whom the issue will be assigned.
-
     """
 
     mock_request = MagicMock()
@@ -48,7 +63,7 @@ def test_assign_issue_failure(capsys, client):
     AssignIssueError with message "fail".
     """
 
-    client._request = MagicMock(side_effect=AssignIssueError("fail"))
+    client.request = MagicMock(side_effect=AssignIssueError("fail"))
 
     with pytest.raises(AssignIssueError):
         client.assign_issue("ABC-123", "johndoe")

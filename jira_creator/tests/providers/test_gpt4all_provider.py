@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module contains unit tests for the GPT4AllProvider class in the providers.gpt4all_provider module.
 
@@ -50,7 +51,6 @@ def test_init_failure():
 
     Exceptions:
     - GTP4AllError: Raised when the GPT4All provider encounters an error during initialization.
-
     """
 
     with patch("providers.gpt4all_provider.GPT4All", side_effect=GTP4AllError("💥")):
@@ -68,7 +68,6 @@ def test_improve_text():
 
     Return:
     - None
-
     """
 
     mock_model = MagicMock()

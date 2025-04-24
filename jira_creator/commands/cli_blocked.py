@@ -1,15 +1,16 @@
+#!/usr/bin/env python
 """
-This module contains a function to fetch and display blocked Jira issues using a CLI interface.
+This module provides a command-line interface (CLI) function for fetching and displaying blocked issues from a Jira
+project.
 
-The 'cli_blocked' function takes two arguments: 'jira' (Jira API connection) and 'args' (CLI arguments).
-It lists all issues based on the provided project, component, and user. If no issues are found, it prints a message and
-returns True.
-If blocked issues are found, it displays details such as key, status, assignee, reason, and summary for each blocked
-issue.
-In case of any errors, it catches and raises a 'ListBlockedError' with an appropriate message.
+The primary function, `cli_blocked`, interfaces with the Jira API to retrieve issues based on specified criteria,
+including project, component, and optionally user. It handles the display of blocked issues, showing relevant details
+such as issue key, status, assignee, reason, and summary. If no issues are found, it notifies the user accordingly. The
+function also manages exceptions by raising a `ListBlockedError` when an error occurs during the issue retrieval
+process.
 
-Note: The code between 'jscpd:ignore-start' and 'jscpd:ignore-end' comments is ignored by the code duplication
-detection tool.
+Note: Sections of code marked with 'jscpd:ignore-start' and 'jscpd:ignore-end' are excluded from code duplication
+checks.
 """
 
 from core.env_fetcher import EnvFetcher
@@ -30,6 +31,13 @@ def cli_blocked(jira, args):
 
     Return:
     - list: A list of blocked issues retrieved based on the specified criteria.
+
+    Exceptions:
+    - ListBlockedError: Raised when there is an error listing blocked issues.
+
+    Side Effects:
+    - Prints information about the retrieved blocked issues and status messages.
+
     """
 
     try:

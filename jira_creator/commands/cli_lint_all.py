@@ -1,23 +1,25 @@
+#!/usr/bin/env python
 """
-This module provides functionality to lint Jira issues and print the results in a formatted table. It includes the
-following key components:
+This module provides functionality to lint Jira issues and display the results in a formatted table. It includes two
+main functions:
 
 1. `print_status_table(failure_statuses)`:
-- Takes a list of failure statuses and prints them in a well-structured table format.
-- Normalizes the status values to display visual indicators (check marks, crosses, etc.) for better readability.
+- Accepts a list of failure statuses and prints them in a structured table format.
+- Normalizes status values for improved readability using visual indicators.
 
 2. `cli_lint_all(jira, ai_provider, args)`:
-- Lints Jira issues based on provided arguments such as project, component, reporter, or assignee.
-- Retrieves issues from Jira, validates them using a specified AI provider, and collects the results.
-- Prints the summary of issues, indicating which passed or failed lint checks, and displays detailed problems for any
-issues that failed.
+- Lints Jira issues based on specified command-line arguments such as project, component, reporter, or assignee.
+- Retrieves issues from Jira, validates them with an AI provider, and summarizes the results.
+- Outputs which issues passed or failed lint checks along with detailed problems for any issues that failed.
 
 Exceptions:
-- Raises `LintAllError` when there is a failure in the linting process.
+- Raises `LintAllError` if there is a failure during the linting process.
 
-This module is intended for use in a command-line interface (CLI) environment where users can validate Jira issues and
-receive formatted feedback on their status.
+This module is designed for use in a command-line interface (CLI) environment, enabling users to validate Jira issues
+and receive formatted feedback on their status.
 """
+
+# pylint: disable=too-many-locals
 
 import textwrap
 from collections import OrderedDict
@@ -118,7 +120,7 @@ def cli_lint_all(jira, ai_provider, args):
     No return value.
 
     Exceptions:
-    - None
+    - LintAllError: Raised if there is an issue during the linting process.
     """
 
     try:
@@ -142,7 +144,7 @@ def cli_lint_all(jira, ai_provider, args):
 
         for issue in issues:
             key = issue["key"]
-            full_issue = jira._request("GET", f"/rest/api/2/issue/{key}")
+            full_issue = jira.request("GET", f"/rest/api/2/issue/{key}")
             fields = full_issue["fields"]
             fields["key"] = issue["key"]
             summary = fields["summary"]

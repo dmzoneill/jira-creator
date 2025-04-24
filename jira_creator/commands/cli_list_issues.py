@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a command-line interface (CLI) function to list issues from a Jira project.
 
@@ -17,6 +18,8 @@ Usage:
 criteria.
 """
 
+# pylint: disable=too-many-locals duplicate-code
+
 import re
 
 from core.env_fetcher import EnvFetcher
@@ -35,13 +38,19 @@ def cli_list_issues(jira, args):
     - component (str): The component name for filtering the issues.
     - reporter (str): The reporter's username for filtering the issues.
     - assignee (str): The assignee's username for filtering the issues.
+    - status (str): The status to filter the issues by.
+    - summary (str): A keyword to filter the issues by their summary.
+    - blocked (bool): A flag to filter for blocked issues.
+    - unblocked (bool): A flag to filter for unblocked issues.
 
     Side Effects:
     - Calls the 'list_issues' method of the Jira client to fetch a list of issues based on the provided arguments.
-    - Depending on the presence of 'reporter' attribute in 'args', the issues are filtered by either 'reporter' or
+    - Depending on the presence of the 'reporter' attribute in 'args', the issues are filtered by either 'reporter' or
     'assignee'.
+    - Prints a formatted table of the filtered issues to the console.
 
-    Note: This function does not return any value explicitly.
+    Exceptions:
+    - Raises ListIssuesError if the attempt to list issues fails.
     """
 
     try:
@@ -60,7 +69,7 @@ def cli_list_issues(jira, args):
 
         if not issues:
             print("No issues found.")
-            return
+            return []
 
         rows = []
         for issue in issues:

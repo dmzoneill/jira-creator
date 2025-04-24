@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script contains unit tests for the 'get_description' and 'update_description' methods of a client class.
 It uses the unittest.mock library to simulate responses from the client's _request method.
@@ -17,13 +18,11 @@ def test_get_update_description(client):
     - client: An object representing a client for which the description field needs to be retrieved.
 
     This function mocks the _request method of the client object to simulate retrieving the description field.
-
     No return value.
-
     """
 
     # Mock _request method to simulate getting description
-    client._request = MagicMock(return_value={"fields": {"description": "text"}})
+    client.request = MagicMock(return_value={"fields": {"description": "text"}})
 
     # Call get_description and assert it returns the correct description
     desc = client.get_description("AAP-test_get_update_description")
@@ -33,7 +32,7 @@ def test_get_update_description(client):
     updated = {}
 
     # Mock _request method to simulate updating description
-    client._request = MagicMock(
+    client.request = MagicMock(
         side_effect=lambda *a, **k: updated.update(k.get("json", {}))
     )
 

@@ -1,12 +1,15 @@
+#!/usr/bin/env python
 """
-This Python file contains unit test functions for testing methods related to changing issue types in a Jira client.
+This module contains unit tests for methods related to changing issue types in a Jira client.
 
-The 'test_change_issue_type' function tests the 'change_issue_type' method by mocking the request method and asserting
-that the GET and PUT requests are made correctly to retrieve and change the issue type.
+The tests include:
+- `test_change_issue_type`: Verifies the functionality of the `change_issue_type` method by mocking the request method
+and ensuring that the correct GET and PUT requests are made to retrieve and change the issue type.
+- `test_change_type_else_block`: Tests the `change_type` method by simulating a failure scenario where the
+`change_issue_type` method returns False, and asserts that the appropriate failure message is printed.
 
-The 'test_change_type_else_block' function tests the 'change_type' method by mocking the necessary arguments and the
-JiraClient's 'change_issue_type' method to simulate a failure scenario. It also captures and asserts the correct output
-message when the change fails.
+Dependencies:
+- unittest.mock: Used for mocking objects and methods during testing.
 """
 
 from unittest.mock import MagicMock, patch
@@ -22,7 +25,6 @@ def test_change_issue_type(client):
     Side Effects:
     - Modifies the behavior of the request method to return issue details with a specific issue type based on the
     method and path provided.
-
     """
 
     # Mock the request method
@@ -33,7 +35,7 @@ def test_change_issue_type(client):
     )
 
     # Assign the mocked _request method to the client
-    client._request = mock_request
+    client.request = mock_request
 
     # Call the method
     client.change_issue_type("AAP-test_change_issue_type", "story")
@@ -61,7 +63,6 @@ def test_change_type_else_block(cli):
 
     Side Effects:
     - Modifies the type of an issue specified by 'issue_key' to the type specified by 'new_type'.
-
     """
 
     # Mocking Args for issue_key and new_type

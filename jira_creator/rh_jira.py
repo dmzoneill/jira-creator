@@ -25,6 +25,7 @@ Dependencies:
 Usage:
 Run the script from the command line, providing appropriate subcommands and arguments based on the desired action.
 """
+# pylint: disable=import-outside-toplevel, too-many-locals, too-many-statements, too-many-public-methods
 import os
 import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
@@ -216,7 +217,7 @@ class JiraCLI:
 
         def add(name, help_text, aliases=None):
             """
-            Creates a new subparser with the provided name and help text.
+            Creates a new subparser for command-line argument parsing.
 
             Args:
             name (str): The name of the subparser.
@@ -225,7 +226,6 @@ class JiraCLI:
 
             Returns:
             argparse.ArgumentParser: The newly created subparser.
-
             """
 
             return subparsers.add_parser(name, help=help_text, aliases=aliases or [])
@@ -411,7 +411,6 @@ class JiraCLI:
 
         Side Effects:
         - Prints an error message if the command execution fails.
-
         """
 
         try:
@@ -446,7 +445,6 @@ class JiraCLI:
 
         Side Effects:
         - Calls the cli_open_issue function with the provided arguments.
-
         """
 
         return cli_open_issue(args)
@@ -461,7 +459,6 @@ class JiraCLI:
 
         Side Effects:
         - Calls the cli_view_issue function with the Jira object and the provided arguments.
-
         """
 
         return cli_view_issue(self.jira, args)
@@ -476,7 +473,6 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the Jira issue by adding a comment.
-
         """
 
         return cli_add_comment(self.jira, self.ai_provider, self.comment_prompt, args)
@@ -491,16 +487,12 @@ class JiraCLI:
 
         Side Effects:
         - Calls the cli_create_issue function with the necessary parameters to create an issue.
-
         """
 
-        return cli_create_issue(
-            self.jira, self.ai_provider, self.default_prompt, self.template_dir, args
-        )
+        return cli_create_issue(self.jira, self.ai_provider, self.template_dir, args)
 
     def list_issues(self, args: Namespace) -> None:
         """
-        Summary:
         Calls a CLI function to list issues based on the provided arguments.
 
         Arguments:
@@ -509,7 +501,6 @@ class JiraCLI:
 
         Return:
         None
-
         """
 
         return cli_list_issues(self.jira, args)
@@ -527,7 +518,6 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the type of the specified issue in Jira.
-
         """
 
         return cli_change_type(self.jira, args)
@@ -542,7 +532,6 @@ class JiraCLI:
 
         Side Effects:
         - Calls the cli_migrate function with the Jira instance and the provided arguments.
-
         """
 
         return cli_migrate(self.jira, args)
@@ -557,7 +546,6 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the state of the issue in Jira based on the provided arguments.
-
         """
 
         return cli_edit_issue(
@@ -586,12 +574,8 @@ class JiraCLI:
         - self: the object instance
         - args (Namespace): A Namespace object containing the arguments needed to unassign the issue.
 
-        Exceptions:
-        - No explicit exceptions are raised within this function.
-
         Side Effects:
         - Modifies the assignment of the specified Jira issue.
-
         """
 
         return cli_unassign(self.jira, args)
@@ -626,7 +610,6 @@ class JiraCLI:
 
         Exceptions:
         - No exceptions are raised explicitly within this function.
-
         """
 
         return cli_set_priority(self.jira, args)
@@ -644,7 +627,6 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the epic of a story in Jira.
-
         """
 
         return cli_set_story_epic(self.jira, args)
@@ -662,7 +644,6 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the Jira board by removing a sprint.
-
         """
 
         return cli_remove_sprint(self.jira, args)
@@ -677,7 +658,6 @@ class JiraCLI:
 
         Exceptions:
         - None
-
         """
 
         return cli_add_sprint(self.jira, args)
@@ -735,7 +715,6 @@ class JiraCLI:
 
         Side Effects:
         - Calls the 'cli_vote_story_points' function with the Jira instance and provided arguments.
-
         """
 
         return cli_vote_story_points(self.jira, args)
@@ -770,7 +749,6 @@ class JiraCLI:
 
         Side Effects:
         - Executes a blocking operation using the provided arguments.
-
         """
 
         return cli_block(self.jira, args)
@@ -785,7 +763,6 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the state of the item in Jira by unblocking it.
-
         """
 
         return cli_unblock(self.jira, args)
@@ -800,7 +777,6 @@ class JiraCLI:
 
         Returns:
         - None
-
         """
 
         return cli_validate_issue(fields, self.ai_provider)
@@ -815,7 +791,6 @@ class JiraCLI:
 
         Side Effects:
         - Calls the cli_lint function with the provided Jira instance, AI provider, and parsed arguments.
-
         """
 
         return cli_lint(self.jira, self.ai_provider, args)
@@ -830,7 +805,6 @@ class JiraCLI:
 
         Side Effects:
         - Calls cli_lint_all function with Jira instance, AI provider instance, and parsed arguments.
-
         """
 
         return cli_lint_all(self.jira, self.ai_provider, args)
@@ -845,7 +819,6 @@ class JiraCLI:
 
         Exceptions:
         - None
-
         """
 
         return cli_blocked(self.jira, args)
@@ -863,7 +836,6 @@ class JiraCLI:
 
         Side Effects:
         - Calls the 'cli_search' function with the Jira instance and provided arguments.
-
         """
 
         return cli_search(self.jira, args)
@@ -874,7 +846,7 @@ class JiraCLI:
 
         Arguments:
         - self: the object instance
-        - args (Namespace): A Namespace object containing the arguments for the connection
+        - _: A Namespace object containing the arguments for the connection
 
         Side Effects:
         - Calls cli_quarterly_connection function with the Jira and AI provider attributes of the object instance
@@ -956,14 +928,12 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the Jira issue by removing a flag.
-
         """
 
         return cli_remove_flag(self.jira, args)
 
     def list_sprints(self, args: Namespace) -> None:
         """
-        Summary:
         List sprints using the provided Jira instance and command-line arguments.
 
         Arguments:
@@ -972,7 +942,6 @@ class JiraCLI:
 
         Return:
         None
-
         """
 
         return cli_list_sprints(self.jira, args)
@@ -1007,7 +976,6 @@ class JiraCLI:
 
         Side Effects:
         - Clones the specified issue in Jira.
-
         """
 
         return cli_clone_issue(self.jira, args)

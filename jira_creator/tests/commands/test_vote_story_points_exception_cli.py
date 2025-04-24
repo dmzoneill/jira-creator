@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Test script to validate the behavior of the vote_story_points method in the cli module.
 
@@ -5,6 +6,11 @@ The test simulates an error scenario by mocking the vote_story_points method and
 It asserts that the error message is present in the output when the method is called with specific arguments.
 
 This script uses pytest for testing and unittest.mock for mocking the method behavior.
+
+Functions:
+- test_vote_story_points_error: Simulate an error when voting for story points in Jira. It takes 'cli' (an instance of
+the CLI class) and 'capsys' (a fixture provided by pytest to capture stdout and stderr) as arguments. It raises a
+VoteStoryPointsError when simulating an error while voting for story points in Jira.
 """
 
 from unittest.mock import MagicMock

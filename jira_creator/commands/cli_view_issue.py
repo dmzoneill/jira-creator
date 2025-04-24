@@ -1,8 +1,20 @@
+#!/usr/bin/env python
 """
 This script defines a function cli_view_issue that retrieves and displays information about a Jira issue. It handles
 custom fields by replacing their keys with their real names using a helper function from the Jira object. The function
 then sorts and prints the issue details. If an exception ViewIssueError is raised during the process, it catches the
 exception, prints an error message, and raises the exception again.
+
+Function cli_view_issue:
+- View a specific issue in JIRA.
+- Arguments:
+- jira: A JIRA client object used to interact with the JIRA API.
+- args: A dictionary containing the following key:
+- issue_key: A string representing the key of the issue to be viewed.
+- Exceptions:
+- This function may raise exceptions if there are issues with accessing or viewing the specified issue in JIRA.
+- Note:
+- This function retrieves and displays information about a specific issue in JIRA using the provided JIRA client object.
 """
 
 from exceptions.exceptions import ViewIssueError

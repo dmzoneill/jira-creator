@@ -1,9 +1,28 @@
+#!/usr/bin/env python
 """
 This module defines a class InstructLabProvider that interacts with an AI service to improve text based on a given
 prompt. It utilizes the requests library to send a POST request to the specified AI_URL with the provided AI_MODEL. The
 improve_text method takes a prompt and text as input, combines them, and sends the request to the AI service. It then
 processes the response and returns the improved text. If the request fails, an AiError exception is raised.
+
+Class InstructLabProvider:
+This class provides a way to interact with an AI model hosted on a specified URL for improving text generation.
+
+Attributes:
+- url (str): The URL of the AI model server.
+- model (str): The name or identifier of the AI model used for text generation.
+
+Methods:
+- __init__(self): Initialize the class instance with AI-related environment variables.
+- improve_text(self, prompt: str, text: str) -> str: Sends a POST request to a specified URL with a given prompt
+and text to improve the text using a specific model. Returns the improved text obtained from the response.
+
+Exceptions:
+- AiError: Raised when the POST request to the URL fails, indicating an issue with the AI service. The exception
+message includes details about the failure, such as the status code and response text.
 """
+
+# pylint: disable=too-few-public-methods
 
 import requests
 from core.env_fetcher import EnvFetcher
@@ -17,6 +36,12 @@ class InstructLabProvider:
     Attributes:
     - url (str): The URL of the AI model server.
     - model (str): The name or identifier of the AI model used for text generation.
+
+    Methods:
+    - __init__(self): Initializes the class instance with AI-related environment variables.
+    - improve_text(self, prompt: str, text: str) -> str: Sends a POST request to a specified URL with a given prompt
+    and text to improve the text using a specific model. It then returns the improved text obtained from the response.
+    Raises AiError if the POST request fails, providing details of the failure.
     """
 
     def __init__(self):

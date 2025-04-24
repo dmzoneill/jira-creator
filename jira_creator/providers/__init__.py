@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a function to retrieve AI providers based on the specified name. The function takes a name
 parameter, which is a string representing the desired AI provider. It attempts to import the corresponding provider
@@ -39,7 +40,14 @@ def get_ai_provider(name: str):
 
     Returns:
     - An instance of the specified AI provider class or a NoAIProvider instance if the specified provider is not found
-      or if there is an error during initialization.
+    or if there is an error during initialization.
+
+    Exceptions:
+    - AiProviderError: Raised if the specified provider is not supported or if there is an error during initialization.
+
+    Side Effects:
+    - May print a warning message if there is a failure to load the provider.
+
     """
     name = name.lower()
 

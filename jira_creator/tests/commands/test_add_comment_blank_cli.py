@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script contains a unit test function test_add_comment_blank that tests the add_comment method of a CLI
 application. It mocks the add_comment method using MagicMock and then calls the method with a blank comment. The test

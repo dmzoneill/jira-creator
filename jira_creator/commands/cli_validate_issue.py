@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides functionality to validate Jira issues based on various criteria, utilizing AI for quality checks
 on specific fields.
@@ -18,6 +19,8 @@ extracting relevant fields, performing validations, and utilizing AI for field q
 The module is designed to be used in a command-line interface context, providing feedback on issues that do not meet
 the specified validation rules.
 """
+
+# pylint: disable=too-many-locals too-many-arguments too-many-positional-arguments
 
 import hashlib
 import json
@@ -46,7 +49,6 @@ def sha256(text):
 
     Return:
     - str: The hexadecimal representation of the SHA-256 hash of the input text.
-
     """
 
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
@@ -67,7 +69,7 @@ def load_cache():
     """
 
     if os.path.exists(get_cache_path()):
-        with open(get_cache_path(), "r") as f:
+        with open(get_cache_path(), "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
@@ -82,7 +84,6 @@ def save_cache(data):
 
     Return:
     This function does not return anything.
-
     """
 
     cache_dir = os.path.dirname(get_cache_path())
@@ -90,7 +91,7 @@ def save_cache(data):
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir, exist_ok=True)  # Ensure directory exists
 
-    with open(get_cache_path(), "w") as f:
+    with open(get_cache_path(), "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
@@ -103,7 +104,6 @@ def load_and_cache_issue(issue_key):
 
     Return:
     - tuple: A tuple containing the cache (dict) and the cached values for the specified issue key (dict).
-
     """
 
     cache = load_cache()
@@ -123,7 +123,6 @@ def validate_progress(status, assignee, problems, issue_status):
 
     Exceptions:
     None
-
     """
 
     if status == "In Progress" and not assignee:
@@ -149,7 +148,6 @@ def validate_epic_link(issue_type, status, epic_link, problems, issue_status):
 
     Side Effects:
     Modifies the 'problems' list and updates the 'issue_status' dictionary based on the validation result.
-
     """
 
     epic_exempt_types = ["Epic"]
@@ -244,7 +242,6 @@ def validate_blocked(blocked_value, blocked_reason, problems, issue_status):
 
     Exceptions:
     None
-
     """
 
     if blocked_value == "True" and not blocked_reason:
@@ -282,7 +279,6 @@ def validate_field_with_ai(
     Side Effects:
     - Modifies the 'problems' list if validation issues are found.
     - Modifies the 'issue_status' dictionary to track the validation status of each field.
-
     """
 
     if field_value:
@@ -308,15 +304,21 @@ def validate_field_with_ai(
 
 def cli_validate_issue(fields, ai_provider):
     """
-    Validate the fields of an issue using an AI provider.
+    Validate the fields of an issue using an AI provider to ensure compliance with specified criteria.
 
     Arguments:
     - fields (dict): A dictionary containing the fields of the issue to be validated.
     - ai_provider (str): The name or identifier of the AI provider used for validation.
 
+    Return:
+    - tuple: A tuple containing two elements:
+    - problems (list): A list of validation issues encountered during the process.
+    - issue_status (dict): A dictionary tracking the validation status of each field.
+
     Side Effects:
     - Initializes an empty list 'problems' to store validation issues.
     - Initializes an empty dictionary 'issue_status' to track the validation status of each field.
+    - Modifies a cache to store validation results for the issue.
     """
 
     problems = []

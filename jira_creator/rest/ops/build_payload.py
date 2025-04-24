@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a function to build a payload for creating an issue in a Jira system.
 
@@ -23,7 +24,10 @@ Returns:
 "components": [{"name": "Authentication"}]
 }
 }
+
 """
+
+# pylint: disable=too-many-arguments too-many-positional-arguments
 
 
 def build_payload(
@@ -51,8 +55,8 @@ def build_payload(
 
     Returns:
     - dict: A dictionary representing the payload for creating an issue with the specified details.
-
     """
+
     fields = {
         "project": {"key": project_key},
         "summary": summary,

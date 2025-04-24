@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module contains unit tests for the 'open_issue' method in the CLI class.
 The tests include scenarios for successful execution and exception handling.
@@ -50,7 +51,7 @@ def test_open_issue_exception_handling(cli):
     - cli (str): The command-line interface (CLI) tool used to open the issue.
 
     Exceptions:
-    - None
+    - OpenIssueError: Raised when there is a failure to open the issue using the CLI tool.
 
     """
 

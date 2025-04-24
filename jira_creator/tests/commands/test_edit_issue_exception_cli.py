@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Unit tests for the CLI issue editing functionality in a Jira integration.
 
@@ -46,7 +47,6 @@ def test_edit_issue_update_exception(mock_tmpfile, mock_subprocess, capsys, cli)
 
     Exceptions:
     - UpdateDescriptionError: Raised when updating the description of the Jira issue fails.
-
     """
 
     # Mock Jira internals
@@ -157,7 +157,6 @@ def test_cli_edit_issue_raises_edit_issue_error(cli):
 
     Side Effects:
     - Modifies the state of the issue in the CLI.
-
     """
 
     class Args:

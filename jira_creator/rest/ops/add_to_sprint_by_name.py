@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a function to add an issue to a sprint in JIRA.
 
@@ -36,7 +37,6 @@ def add_to_sprint_by_name(request_fn, board_id, issue_key, sprint_name):
 
     Exceptions:
     - AddSprintError: Raised when the 'board_id' is not provided in the environment variables.
-
     """
 
     if not board_id:

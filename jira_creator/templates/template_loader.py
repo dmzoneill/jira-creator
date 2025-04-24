@@ -1,9 +1,16 @@
+#!/usr/bin/env python
 """
-This module defines a TemplateLoader class used for loading and rendering templates. The TemplateLoader class has
-methods for loading a template file, retrieving fields from the template, getting the template content, and rendering a
-description using provided values. The class takes a template directory and an issue type as input during
-initialization. The render_description method replaces placeholders in the template with corresponding values from a
-dictionary.
+This module provides the TemplateLoader class for loading and rendering templates used in generating issue descriptions.
+
+The TemplateLoader class allows for the initialization with a specific template directory and issue type, and includes
+methods to:
+- Load a template file and extract field names and content.
+- Retrieve the list of fields defined in the template.
+- Get the complete template content as a string.
+- Render a description by replacing placeholders in the template with values from a provided dictionary.
+
+Usage of this module is intended for applications that require dynamic generation of text based on templates, such as
+issue tracking systems or reporting tools.
 """
 
 from pathlib import Path
@@ -43,7 +50,6 @@ class TemplateLoader:
         Side Effects:
         - Initializes instance variables 'template_path', 'fields', and 'template_lines'.
         - Calls the '_load_template' method to load the template file content.
-
         """
 
         self.template_path = template_dir / f"{issue_type}.tmpl"
@@ -65,11 +71,10 @@ class TemplateLoader:
         Side Effects:
         - Modifies the 'fields' list attribute by appending extracted field names.
         - Modifies the 'template_lines' list attribute by appending lines of the template.
-
         """
 
         in_template = False
-        with open(self.template_path, "r") as f:
+        with open(self.template_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.rstrip("\n")
                 if line.startswith("FIELD|"):
@@ -81,7 +86,6 @@ class TemplateLoader:
 
     def get_fields(self):
         """
-        Summary:
         Retrieve and return the fields stored in the object.
 
         Arguments:
@@ -89,7 +93,6 @@ class TemplateLoader:
 
         Return:
         - The fields stored in the object.
-
         """
 
         return self.fields
@@ -103,7 +106,6 @@ class TemplateLoader:
 
         Return:
         - str: A single string representing the template content.
-
         """
 
         return "\n".join(self.template_lines)
@@ -118,7 +120,6 @@ class TemplateLoader:
 
         Return:
         - str: The rendered description after replacing all placeholders with corresponding values.
-
         """
 
         description = ""

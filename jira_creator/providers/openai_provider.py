@@ -1,9 +1,24 @@
+#!/usr/bin/env python
 """
 This module provides a class, OpenAIProvider, for interacting with the OpenAI API to improve text based on a given
 prompt and text. It includes a method, improve_text, that sends a request to the OpenAI API and returns the improved
 text. The class initializes with API key, endpoint, and model fetched from environment variables using the EnvFetcher
 class. It also handles exceptions by raising AiError in case of API call failure.
+
+Class OpenAIProvider:
+This class provides a wrapper to interact with the OpenAI API for text completion and improvement.
+
+Attributes:
+- api_key (str): The API key used to authenticate requests to the OpenAI API.
+- endpoint (str): The URL endpoint for making requests to the OpenAI API chat completions.
+- model (str): The model identifier used for text completion and improvement.
+
+Methods:
+- improve_text(prompt: str, text: str) -> str: Sends a request to the OpenAI API to improve the given text based on
+a prompt. It returns the improved text after processing. Raises an AiError if the API call fails.
 """
+
+# pylint: disable=too-few-public-methods
 
 import requests
 from core.env_fetcher import EnvFetcher

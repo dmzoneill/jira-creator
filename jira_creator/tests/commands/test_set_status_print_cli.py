@@ -1,7 +1,15 @@
+#!/usr/bin/env python
 """
 This script contains a test case for the set_status method in a CLI application.
 It mocks the set_status method using MagicMock and then calls the set_status method with specific arguments.
 Finally, it asserts that the set_status method was called with the correct arguments.
+
+Functions:
+- test_set_status_print(cli): Mocks the set_status method for a given CLI object and asserts the correct arguments
+passed to set_status.
+
+Side Effects:
+- Modifies the set_status method of the jira attribute in the provided CLI object.
 """
 
 from unittest.mock import MagicMock

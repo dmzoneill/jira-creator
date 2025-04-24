@@ -253,7 +253,7 @@ class JiraClient:
 
         except RequestException as e:
             print(f"⚠️ Request error: {e}")
-            raise JiraClientRequestError(f"Request failed: {e}")
+            raise JiraClientRequestError(e) from e
 
     def _request(
         self,

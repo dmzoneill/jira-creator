@@ -38,4 +38,4 @@ def cli_vote_story_points(jira, args):
     except VoteStoryPointsError as e:
         msg = f"❌ Failed to vote on story points: {e}"
         print(msg)
-        raise VoteStoryPointsError(msg)
+        raise VoteStoryPointsError(e) from e

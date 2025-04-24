@@ -54,7 +54,7 @@ def test_init_failure():
     """
 
     with patch("providers.gpt4all_provider.GPT4All", side_effect=GTP4AllError("💥")):
-        with pytest.raises(GTP4AllError, match="Failed to load GPT4All model: 💥"):
+        with pytest.raises(GTP4AllError):
             GPT4AllProvider("broken-model")
 
 

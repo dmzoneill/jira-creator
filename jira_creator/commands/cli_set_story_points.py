@@ -49,4 +49,4 @@ def cli_set_story_points(jira, args):
     except SetStoryPointsError as e:
         msg = f"❌ Failed to set story points: {e}"
         print(msg)
-        raise SetStoryPointsError(msg)
+        raise SetStoryPointsError(e) from e

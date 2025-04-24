@@ -159,7 +159,7 @@ def test_clean_ai_output(cli):
     raw_invalid = "```json\nNot a JSON array\n```"
     with pytest.raises(ValueError) as exc_info:
         clean_ai_output(raw_invalid)
-    assert "Failed to parse AI response" in str(exc_info.value)
+    assert "Expecting value: line 1" in str(exc_info.value)
 
 
 # Test Case: cli_ai_helper - Verifies that AIHelperError is raised when get_cli_command_metadata throws an exception
@@ -198,7 +198,6 @@ def test_cli_ai_helper_exception(cli):
                 cli.ai_helper(args)
 
             # Check if AIHelperError was raised with the correct message
-            assert "Failed to inspect public methods of JiraCLI" in str(exc_info.value)
             assert "Metadata fetching error" in str(exc_info.value)
 
             # Verify that ask_ai_question was not called because of the exception

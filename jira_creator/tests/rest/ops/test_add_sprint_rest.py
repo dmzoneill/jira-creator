@@ -8,6 +8,7 @@ The tests assert the correct behavior of the method by checking the number of me
 from unittest.mock import MagicMock
 
 import pytest
+from exceptions.exceptions import AddSprintError
 
 
 def test_add_to_sprint_by_name_success(client):
@@ -52,7 +53,7 @@ def test_add_to_sprint_by_name_not_found(client):
     client._request = MagicMock(return_value={"values": []})
 
     # Try to add the issue to a non-existent sprint and check for the exception
-    with pytest.raises(Exception) as exc:
+    with pytest.raises(AddSprintError) as exc:
         client.add_to_sprint_by_name(
             "AAP-test_add_to_sprint_by_name_not_found", "Nonexistent Sprint"
         )

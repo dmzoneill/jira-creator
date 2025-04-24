@@ -43,4 +43,4 @@ def assign_issue(request_fn, issue_key, assignee):
     except AssignIssueError as e:
         msg = f"❌ Failed to assign issue {issue_key}: {e}"
         print(msg)
-        raise AssignIssueError(msg)
+        raise AssignIssueError(e) from e

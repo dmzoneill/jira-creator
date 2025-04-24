@@ -127,9 +127,7 @@ def clean_ai_output(ai_output: str) -> list:
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError as e:
-        raise ValueError(
-            f"Failed to parse AI response as JSON: {e}\nRaw cleaned text:\n{cleaned}"
-        )
+        raise ValueError(e) from e
 
 
 def ask_ai_question(client, ai_provider, system_prompt, user_prompt, voice=False):
@@ -161,10 +159,9 @@ def ask_ai_question(client, ai_provider, system_prompt, user_prompt, voice=False
                 tts.save("output.mp3")
                 os.system("mpg123 output.mp3")
             return False
-        else:
-            print("Not sure: ")
-            print(ai_generated_steps)
-            return
+        print("Not sure: ")
+        print(ai_generated_steps)
+        return
 
     if isinstance(ai_generated_steps, list):
         if len(ai_generated_steps) > 0:
@@ -219,4 +216,4 @@ def cli_ai_helper(client, ai_provider, system_prompt, args):
     except AIHelperError as e:
         msg = f"❌ Failed to inspect public methods of JiraCLI: {e}"
         print(msg)
-        raise AIHelperError(msg)
+        raise AIHelperError(e) from e

@@ -29,4 +29,4 @@ def cli_set_story_epic(jira, args):
     except SetStoryEpicError as e:
         msg = f"❌ Failed to set epic: {e}"
         print(msg)
-        raise SetStoryEpicError(msg)
+        raise SetStoryEpicError(e) from e

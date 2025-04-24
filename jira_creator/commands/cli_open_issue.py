@@ -36,4 +36,4 @@ def cli_open_issue(args):
     except OpenIssueError as e:
         msg = f"❌ Failed to open issue {args.issue_key}: {e}"
         print(msg)
-        raise OpenIssueError(msg)
+        raise OpenIssueError(e) from e

@@ -38,7 +38,7 @@ def cli_quarterly_connection(jira, ai_provider):
 
         if issues is None or len(issues) == 0:
             print("❌ No issues found for the given JQL.")
-            return
+            return None
 
         system_prompt = PromptLibrary.get_prompt(IssueType.QC)
 
@@ -65,4 +65,4 @@ def cli_quarterly_connection(jira, ai_provider):
         return True
     except QuarterlyConnectionError as e:
         print(e)
-        raise QuarterlyConnectionError(e)
+        raise QuarterlyConnectionError(e) from e

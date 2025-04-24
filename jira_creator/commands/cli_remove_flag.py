@@ -44,4 +44,4 @@ def cli_remove_flag(jira, args):
     except Exception as e:
         msg = f"❌ Failed to remove flag from issue '{issue_key}': {e}"
         print(msg)
-        raise RemoveFlagError(msg)
+        raise RemoveFlagError(e) from e

@@ -41,10 +41,10 @@ def cli_lint(jira, ai_provider, args):
             for p in problems:
                 print(f" - {p}")
             return problems
-        else:
-            print(f"✅ {args.issue_key} passed all lint checks")
-            return problems
+
+        print(f"✅ {args.issue_key} passed all lint checks")
+        return problems
     except LintError as e:
         msg = f"❌ Failed to lint issue {args.issue_key}: {e}"
         print(msg)
-        raise LintError(msg)
+        raise LintError(e) from e

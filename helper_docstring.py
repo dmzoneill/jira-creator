@@ -466,8 +466,8 @@ class Docstring:
 
     def generate_file_docstring(self):
         # Check if we should add a file-level docstring
-        if not self.should_add_file_docstring():
-            return 0  # Skip generating file-level docstring if not needed
+        # if not self.should_add_file_docstring():
+        #     return 0  # Skip generating file-level docstring if not needed
 
         shebang = ""
 

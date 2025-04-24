@@ -10,6 +10,7 @@ exception handling.
 from unittest.mock import MagicMock
 
 import pytest
+from exceptions.exceptions import RemoveFlagError
 
 
 def test_remove_flag(cli, capsys):
@@ -51,10 +52,10 @@ def test_remove_flag_exception(cli, capsys):
     """
 
     # Mock the list_sprints method
-    cli.jira.remove_flag = MagicMock(side_effect=Exception("Failed"))
+    cli.jira.remove_flag = MagicMock(side_effect=RemoveFlagError("Failed"))
 
     class Args:
         issue_key = "dummy_issue_key"
 
-    with pytest.raises(Exception):
+    with pytest.raises(RemoveFlagError):
         cli.remove_flag(Args())

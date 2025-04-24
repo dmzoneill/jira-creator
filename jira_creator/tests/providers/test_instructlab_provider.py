@@ -9,6 +9,7 @@ The improve_text method of the provider is tested for successful and failed resp
 from unittest.mock import MagicMock, patch
 
 import pytest
+from exceptions.exceptions import AiError
 from providers.instructlab_provider import InstructLabProvider
 
 
@@ -66,7 +67,7 @@ def test_improve_text_failure():
     with patch(
         "providers.instructlab_provider.requests.post", return_value=mock_response
     ):
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(AiError) as exc_info:
             provider.improve_text("Prompt", "Input text")
 
     assert "InstructLab request failed: 500 - Server error" in str(exc_info.value)

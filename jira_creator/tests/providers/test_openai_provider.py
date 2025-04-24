@@ -7,6 +7,7 @@ where the API call is successful and when it fails, asserting the expected behav
 from unittest.mock import MagicMock, patch
 
 import pytest
+from exceptions.exceptions import AiError
 from providers.openai_provider import OpenAIProvider
 
 
@@ -58,7 +59,7 @@ def test_improve_text_raises_on_api_failure():
     mock_response.text = "Internal Server Error"
 
     with patch("providers.openai_provider.requests.post", return_value=mock_response):
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(AiError) as exc_info:
             provider.improve_text("test prompt", "test input")
 
     assert "OpenAI API call failed: 500 - Internal Server Error" in str(exc_info.value)

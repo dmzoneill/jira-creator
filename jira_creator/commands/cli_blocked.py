@@ -84,7 +84,7 @@ def cli_blocked(jira, args):
     except ListBlockedError as e:
         msg = f"❌ Failed to list blocked issues: {e}"
         print(msg)
-        raise ListBlockedError(msg)
+        raise ListBlockedError(e) from e
 
 
 # /* jscpd:ignore-end */

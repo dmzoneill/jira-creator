@@ -23,47 +23,41 @@ there is an error during initialization.
 
 from exceptions.exceptions import AiProviderError
 
+from .bart_provider import BARTProvider
+from .deepseek_provider import DeepSeekProvider
+from .gpt4all_provider import GPT4AllProvider
+from .instructlab_provider import InstructLabProvider
+from .openai_provider import OpenAIProvider
+
 
 def get_ai_provider(name: str):
     """
-    Converts the input name to lowercase.
+    Converts the input name to lowercase and returns the corresponding AI provider.
 
     Arguments:
     - name (str): A string representing the name of an AI provider.
 
+    Returns:
+    - An instance of the specified AI provider class or a NoAIProvider instance if the specified provider is not found
+      or if there is an error during initialization.
     """
-
     name = name.lower()
 
+    # Map the provider name to the corresponding class
+    provider_map = {
+        "openai": OpenAIProvider,
+        "gpt4all": GPT4AllProvider,
+        "instructlab": InstructLabProvider,
+        "bart": BARTProvider,
+        "deepseek": DeepSeekProvider,
+    }
+
     try:
-        if name == "openai":
-            from .openai_provider import OpenAIProvider
-
-            return OpenAIProvider()
-        elif name == "gpt4all":
-            from .gpt4all_provider import GPT4AllProvider
-
-            return GPT4AllProvider()
-        elif name == "instructlab":
-            from .instructlab_provider import InstructLabProvider
-
-            return InstructLabProvider()
-        elif name == "bart":
-            from .bart_provider import BARTProvider
-
-            return BARTProvider()
-        elif name == "deepseek":
-            from .deepseek_provider import DeepSeekProvider
-
-            return DeepSeekProvider()
-    except ImportError as e:
-        print(f"⚠️ Could not import {name} provider: {e}")
-    except AiProviderError as e:
-        msg = f"⚠️ Failed to initialize {name} provider: {e}"
-        print(AiProviderError)
-        raise AiProviderError(msg)
-
-    from .noop_provider import NoAIProvider
-
-    print("⚠️ Falling back to NoAIProvider.")
-    return NoAIProvider()
+        # Look up the provider by name and return an instance
+        if name in provider_map:
+            provider_class = provider_map[name]
+            return provider_class()
+        raise AiProviderError(f"Unsupported provider: {name}")
+    except (ImportError, AiProviderError) as e:
+        print(f"⚠️ Failed to load provider {name}: {e}")
+        raise AiProviderError(e) from e

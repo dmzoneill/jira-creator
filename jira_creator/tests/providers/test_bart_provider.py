@@ -7,6 +7,7 @@ The tests use mock objects and patches to simulate HTTP requests and responses.
 from unittest.mock import MagicMock, patch
 
 import pytest
+from exceptions.exceptions import AiError
 from providers.bart_provider import BARTProvider
 
 
@@ -72,6 +73,6 @@ def test_improve_text_failure(mock_post):
 
     provider = BARTProvider()
     with pytest.raises(
-        Exception, match="BART request failed: 500 - Internal Server Error"
+        AiError, match="BART request failed: 500 - Internal Server Error"
     ):
         provider.improve_text("Prompt", "Text")

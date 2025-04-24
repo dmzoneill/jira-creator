@@ -1,22 +1,21 @@
+#!/usr/bin/env python
 """
-This file contains unit tests for the lint command flags errors, success, and exceptions in the CLI application.
+Unit tests for the lint command of a CLI application, focusing on error handling, success scenarios, and exception
+management.
 
-The tests include scenarios where lint issues are found, all lint checks pass successfully, and an exception is raised
-during linting.
+This module includes three main test functions:
 
-The tests utilize the pytest framework and mock objects for testing. The tests cover various scenarios such as checking
-issue fields, improving text, handling exceptions, and verifying the output messages.
+1. `test_lint_command_flags_errors`: Tests the lint command with a JIRA issue containing various lint issues. It
+asserts that the correct error messages are displayed for each identified issue.
 
-The test_lint_command_flags_errors function checks for lint issues in a fake JIRA issue with specific field values and
-asserts the expected error messages.
+2. `test_lint_command_success`: Tests the lint command with a valid JIRA issue that passes all lint checks. It verifies
+that the success message is displayed correctly.
 
-The test_lint_command_success function tests a clean JIRA issue with all fields properly set, ensuring the lint check
-passes successfully.
+3. `test_lint_command_exception`: Simulates an exception during the linting process by raising a `LintError`. It checks
+that the appropriate error message is displayed when the exception occurs.
 
-The test_lint_command_exception function simulates a fetch failure by raising a LintError during linting and verifies
-the appropriate error message is displayed.
-
-Please ensure all dependencies are properly installed before running these tests.
+The tests utilize the pytest framework and mock objects to simulate the behavior of the command-line interface and JIRA
+API. Ensure that all dependencies are installed before running the tests.
 """
 
 from unittest.mock import MagicMock
@@ -59,7 +58,7 @@ def test_lint_command_flags_errors(mock_save_cache, cli, capsys):
         }
     }
 
-    cli.jira._request.return_value = fake_issue
+    cli.jira.request.return_value = fake_issue
 
     class Args:
         issue_key = "AAP-test_lint_command_flags_errors"
@@ -109,7 +108,7 @@ def test_lint_command_success(mock_save_cache, cli, capsys):
         }
     }
 
-    cli.jira._request.return_value = clean_issue
+    cli.jira.request.return_value = clean_issue
 
     class Args:
         issue_key = "AAP-test_lint_command_success"
@@ -135,7 +134,7 @@ def test_lint_command_exception(mock_save_cache, cli, capsys):
     # ✅ Fix: Mock ai_provider on cli directly
     cli.ai_provider = MagicMock()
     cli.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
-    cli.jira._request.side_effect = LintError("Simulated fetch failure")
+    cli.jira.request.side_effect = LintError("Simulated fetch failure")
 
     class Args:
         issue_key = "AAP-test_lint_command_exception"

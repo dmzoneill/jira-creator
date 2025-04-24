@@ -1,8 +1,21 @@
+#!/usr/bin/env python
 """
-This file contains unit tests for the 'set_story_points' function in the 'cli' module.
-It includes tests for successful setting of story points, failure cases, and handling of invalid input values.
-The tests use MagicMock for mocking and pytest for assertions. The 'SetStoryPointsError' exception is tested for
-failure cases.
+Unit tests for the 'set_story_points' function in the 'cli' module.
+
+This module includes tests to verify the functionality of setting story points for Jira issues through the command line
+interface (CLI). It covers various scenarios including successful setting of story points, handling of exceptions, and
+validation of input values.
+
+Key Features:
+- Tests for successful story point assignment.
+- Tests for failure cases using mocked methods.
+- Validation of input types to ensure correct data types are used.
+- Utilizes pytest for testing framework and assertions.
+- Implements MagicMock for mocking dependencies.
+
+Exceptions tested:
+- SetStoryPointsError: Raised during failure scenarios when setting story points fails.
+- ValueError: Raised when an invalid non-integer value is provided for story points.
 """
 
 from unittest.mock import MagicMock

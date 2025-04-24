@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Unit tests for the CLI search and list functionality of a JIRA integration.
 

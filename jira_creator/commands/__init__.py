@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file includes multiple CLI commands for managing issues and users in a project management system. Each CLI command
 is imported from a corresponding module in the package. The CLI commands cover various functionalities such as adding

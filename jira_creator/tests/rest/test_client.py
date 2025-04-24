@@ -1,15 +1,18 @@
+#!/usr/bin/env python
 """
 Unit tests for the JiraClient class in the rest.client module.
 
-These tests cover various scenarios for the _request method, including:
+This module contains unit tests that validate the functionality of the JiraClient's _request method,
+covering various scenarios including:
+
 - Successful requests with valid JSON responses.
 - Handling of empty responses and different types of HTTP errors (404, 401, 500).
 - Exception handling for network failures and invalid JSON responses.
 - Retry logic for transient server errors.
 - Generation of curl commands for different request configurations.
 
-The tests utilize the pytest framework and mocking capabilities to simulate HTTP requests and responses without making
-actual network calls.
+The tests utilize the pytest framework along with mocking to simulate HTTP requests and responses,
+ensuring that no actual network calls are made during testing.
 """
 
 from unittest.mock import MagicMock, patch
@@ -39,7 +42,7 @@ def test_request_success_valid_json(mock_request, mock_sleep):
 
     mock_request.return_value = mock_response
 
-    result = client._request("GET", "/rest/api/2/issue/ISSUE-123")
+    result = client.request("GET", "/rest/api/2/issue/ISSUE-123")
     assert result == {"key": "value"}
     mock_request.assert_called_once()
 
@@ -49,9 +52,19 @@ def test_request_success_valid_json(mock_request, mock_sleep):
 @patch("rest.client.requests.request")  # Mock the request to simulate an empty response
 def test_request_empty_response_content(mock_request, mock_sleep):
     """
-    This function initializes a JiraClient object for making requests to a Jira server. No arguments are directly
-    passed to the function, but it seems to rely on external dependencies `mock_request` and `mock_sleep` for testing
-    purposes.
+    This function initializes a JiraClient object for making requests to a Jira server. It relies on external
+    dependencies `mock_request` and `mock_sleep` for testing purposes.
+
+    No arguments are directly passed to the function. It simulates an empty response (no content in the body) from the
+    Jira server using mock objects.
+
+    The function makes a request to the Jira server with the specified method and endpoint
+    ("/rest/api/2/issue/ISSUE-EMPTY"). It expects an empty dictionary as a result.
+
+    The function does not have a return value but asserts that the result is an empty dictionary. It also verifies that
+    the request function was called once and the sleep function was not called.
+
+    No exceptions are raised by this function.
     """
 
     client = JiraClient()
@@ -66,7 +79,7 @@ def test_request_empty_response_content(mock_request, mock_sleep):
     mock_request.return_value = mock_response
 
     # Call the function
-    result = client._request("GET", "/rest/api/2/issue/ISSUE-EMPTY")
+    result = client.request("GET", "/rest/api/2/issue/ISSUE-EMPTY")
 
     # Ensure the result is an empty dictionary as per the logic
     assert result == {}
@@ -96,7 +109,7 @@ def test_request_request_exception(mock_request, mock_sleep):
 
     # Call the function and check if the exception is raised
     with pytest.raises(JiraClientRequestError) as exc_info:
-        client._request("GET", "/rest/api/2/issue/ISSUE-NETWORKERROR")
+        client.request("GET", "/rest/api/2/issue/ISSUE-NETWORKERROR")
 
     # Verify that the JiraClientRequestError is raised with the correct message
     assert str(exc_info.value) == "Network error"
@@ -127,7 +140,7 @@ def test_request_empty_response_text(mock_request, mock_sleep):
 
     mock_request.return_value = mock_response
 
-    result = client._request("GET", "/rest/api/2/issue/ISSUE-EMPTY")
+    result = client.request("GET", "/rest/api/2/issue/ISSUE-EMPTY")
     assert result == {}
     mock_request.assert_called_once()
 
@@ -153,7 +166,7 @@ def test_request_invalid_json_response(mock_request, mock_sleep):
 
     mock_request.return_value = mock_response
 
-    result = client._request("GET", "/rest/api/2/issue/ISSUE-BADJSON")
+    result = client.request("GET", "/rest/api/2/issue/ISSUE-BADJSON")
     assert result == {}  # falls back to empty dict
     mock_request.assert_called_once()
 
@@ -183,7 +196,7 @@ def test_request_404_error(mock_request, mock_sleep):
     mock_request.return_value = mock_response
 
     with pytest.raises(JiraClientRequestError):
-        client._request("GET", "/rest/api/2/issue/ISSUE-404")
+        client.request("GET", "/rest/api/2/issue/ISSUE-404")
     mock_request.call_count == 3
 
 
@@ -214,7 +227,7 @@ def test_request_401_error(mock_request, mock_sleep):
     mock_request.return_value = mock_response
 
     with pytest.raises(JiraClientRequestError):
-        client._request("GET", "/rest/api/2/issue/ISSUE-401")
+        client.request("GET", "/rest/api/2/issue/ISSUE-401")
     mock_request.call_count == 3
 
 
@@ -223,7 +236,8 @@ def test_request_401_error(mock_request, mock_sleep):
 @patch("rest.client.requests.request")  # Mock the request to simulate 500 error
 def test_request_500_error(mock_request, mock_sleep):
     """
-    This function initializes a JiraClient object for testing purposes.
+    This function tests the retry logic of a JiraClient object by simulating a 500 error response during an HTTP
+    request.
 
     Arguments:
     - mock_request: A mock object used for simulating HTTP requests.
@@ -243,7 +257,7 @@ def test_request_500_error(mock_request, mock_sleep):
     mock_request.return_value = mock_response
 
     with pytest.raises(JiraClientRequestError):
-        client._request("GET", "/rest/api/2/issue/ISSUE-500")
+        client.request("GET", "/rest/api/2/issue/ISSUE-500")
     mock_request.call_count == 3
 
 
@@ -259,7 +273,6 @@ def test_request_retry_logic(mock_request, mock_sleep):
     Arguments:
     - mock_request: A mock object for simulating HTTP requests.
     - mock_sleep: A mock object for simulating sleep time.
-
     """
 
     client = JiraClient()
@@ -279,7 +292,7 @@ def test_request_retry_logic(mock_request, mock_sleep):
 
     mock_request.side_effect = [mock_response_1, mock_response_2, mock_response_3]
 
-    result = client._request("GET", "/rest/api/2/issue/ISSUE-RETRY")
+    result = client.request("GET", "/rest/api/2/issue/ISSUE-RETRY")
     assert result == {"key": "value"}
     assert mock_request.call_count == 3
 
@@ -378,7 +391,6 @@ def test_generate_curl_command_all(mock_print):
 
     Side Effects:
     - Initializes a JiraClient object for interacting with Jira.
-
     """
 
     client = JiraClient()
@@ -403,8 +415,19 @@ def test_generate_curl_command_all(mock_print):
 )  # Mock time.sleep to prevent actual delays in retry logic
 def test_request_final_return(mock_sleep, mock_request):
     """
-    This function initializes a JiraClient object for making requests to a Jira server. No arguments are passed to the
-    function.
+    This function initializes a JiraClient object for making requests to a Jira server. It simulates failed attempts
+    (500 errors) for all retry attempts to test the retry mechanism. The function does not take any arguments.
+
+    Side Effects:
+    - The function simulates retries by setting up mock responses with status code 500 and "Server error" text.
+    - It uses mock objects to simulate requests and sleep.
+
+    Exceptions:
+    - The function raises a JiraClientRequestError when the JiraClient's _request method is called with a specific
+    endpoint.
+
+    The function ensures that the final result is an empty dictionary, verifies that the request was retried 3 times,
+    and checks that the sleep function was called twice with a 2-second delay before retrying.
     """
 
     client = JiraClient()
@@ -429,7 +452,7 @@ def test_request_final_return(mock_sleep, mock_request):
 
     with pytest.raises(JiraClientRequestError):
         # Call the function
-        result = client._request("GET", "/rest/api/2/issue/ISSUE-RETRY")
+        result = client.request("GET", "/rest/api/2/issue/ISSUE-RETRY")
 
     # Ensure the final result is an empty dictionary
     assert result == {}

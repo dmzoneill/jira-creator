@@ -1,7 +1,13 @@
+#!/usr/bin/env python
 """
 This file contains unit tests for the BARTProvider class in the bart_provider module.
 It includes tests for the initialization of the BARTProvider, successful and failed text improvement scenarios.
 The tests use mock objects and patches to simulate HTTP requests and responses.
+
+Functions:
+- test_bart_provider_init(): Initialize a BARTProvider object with a default URL and headers for BART API requests.
+- test_improve_text_success(mock_post): Improves the text by sending a mock POST request.
+- test_improve_text_failure(mock_post): Improves the text of a failed post request response.
 """
 
 from unittest.mock import MagicMock, patch

@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+"""
+Test function to verify the behavior of adding a sprint to a board with a specified name.
+
+This function sets the board_id attribute of the client to None for testing purposes and then checks if an
+AddSprintError exception is raised when the board_id is not set. It utilizes pytest for testing.
+
+Arguments:
+- client: An object representing a client with a board_id attribute.
+
+This function does not return any value.
+"""
 import pytest
 from exceptions.exceptions import AddSprintError
 

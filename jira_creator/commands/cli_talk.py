@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides functionality for processing audio input and converting spoken digit words into numerical
 representations, while also handling issue references in a specified format.
@@ -51,8 +52,6 @@ def suppress_stderr():
 
     No arguments are taken.
 
-    This function does not return any value.
-
     Exceptions:
     This function does not raise any exceptions.
 
@@ -60,7 +59,7 @@ def suppress_stderr():
     Temporarily suppresses stderr output.
     """
 
-    with open(os.devnull, "w") as devnull:
+    with open(os.devnull, "w", encoding="utf-8") as devnull:
         old_stderr = os.dup(2)
         os.dup2(devnull.fileno(), 2)
         try:
@@ -111,7 +110,6 @@ def fuzzy_digit_cleanup(text: str) -> str:
 
     Return:
     - str: A string with fuzzy digits replaced by their correct counterparts.
-
     """
 
     tokens = text.split()
@@ -151,7 +149,6 @@ def combine_consecutive_digits(text: str) -> str:
 
     Return:
     - str: A string with consecutive digits combined without spaces.
-
     """
 
     tokens = text.split()
@@ -238,7 +235,6 @@ def flush_queue(q):
 
     Exceptions:
     - No exceptions are raised within the function.
-
     """
 
     while not q.empty():
@@ -257,7 +253,6 @@ def do_once():
 
     Return:
     bool: False
-
     """
 
     return False
@@ -272,7 +267,6 @@ def initialize_recognizer():
 
     Return:
     KaldiRecognizer: A KaldiRecognizer object initialized with the VOSK model.
-
     """
 
     model = Model(EnvFetcher.get("VOSK_MODEL"))
@@ -305,7 +299,12 @@ def process_text_and_communicate(text, cli, voice):
 
     print("Talking to AI: " + text)
 
+    # pylint: disable=too-few-public-methods
     class Args:
+        """
+        Argparse namespace class
+        """
+
         prompt: str
         voice: bool
 
@@ -327,7 +326,6 @@ def process_audio_data(q, rec):
 
     Return:
     - str or None: The recognized text from the audio data, or None if the recognition fails.
-
     """
 
     data = q.get()
@@ -343,7 +341,7 @@ def process_audio_data(q, rec):
     return original.strip()
 
 
-def callback(indata, frames, time, status, q):
+def callback(indata, _, __, ___, q):
     """
     Handles the callback for the audio stream.
 
@@ -372,7 +370,7 @@ def cli_talk(cli, args):
 
     q = queue.Queue()
 
-    voice = True if hasattr(args, "voice") else False
+    voice = bool(hasattr(args, "voice"))
 
     with suppress_stderr():
         rec = initialize_recognizer()
@@ -387,7 +385,7 @@ def cli_talk(cli, args):
             ),
         ):
             print("Listening: ")
-            while True and do_once() is False:
+            while do_once() is False:
                 text = process_audio_data(q, rec)
                 if text and process_text_and_communicate(text, cli, voice):
                     break

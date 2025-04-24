@@ -1,9 +1,11 @@
+#!/usr/bin/env python
 """
-This file contains unit tests for the DeepSeekProvider class. It includes test cases for successful improvement of
-text, failure cases, and JSON decode error scenarios. The tests use MagicMock and patch from the unittest.mock module,
-as well as pytest for assertions. The DeepSeekProvider class is mocked to handle different responses from the
-improve_text method, such as successful improvement, server errors, and invalid JSON responses. Each test case verifies
-the expected behavior by asserting the results and checking for proper method calls or exceptions raised.
+Unit tests for the DeepSeekProvider class, focusing on the improve_text method. This module includes test cases for
+successful text improvement, handling of server errors, and scenarios involving JSON decoding errors. The tests utilize
+unittest.mock's MagicMock and patch to simulate various responses from the improve_text method, allowing for the
+verification of expected behaviors, method calls, and exception handling. The pytest framework is employed for
+assertions
+and error checking.
 """
 
 import json
@@ -58,6 +60,8 @@ def test_improve_text_failure(mock_post):
 
     Side Effects:
     - Modifies the text of the mock response to "Internal Server Error" when the status code is 500.
+    - Raises AiError with a specific message if the DeepSeek request fails.
+
     """
 
     mock_response = MagicMock()
@@ -85,7 +89,6 @@ def test_improve_text_json_decode_error(mock_post):
 
     Side Effects:
     - Modifies the behavior of the mock POST request response to simulate an invalid JSON response.
-
     """
 
     mock_response = MagicMock()

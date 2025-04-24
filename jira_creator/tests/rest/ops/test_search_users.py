@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script defines a unit test function test_search_users_returns_expected_data(client) that tests the search_users
 method of a client object. The function sets up a mock response for the client's _request method and then calls the
@@ -18,19 +19,18 @@ def test_search_users_returns_expected_data(client):
 
     Side Effects:
     - Modifies the client's _request attribute to return mock user data.
-
     """
 
     mock_users = [
         {"name": "daoneill", "displayName": "David O'Neill"},
         {"name": "jdoe", "displayName": "John Doe"},
     ]
-    client._request = MagicMock(return_value=mock_users)
+    client.request = MagicMock(return_value=mock_users)
 
     results = client.search_users("daoneill")
 
     assert results == mock_users
-    client._request.assert_called_once_with(
+    client.request.assert_called_once_with(
         "GET",
         "/rest/api/2/user/search",
         params={"username": "daoneill", "maxResults": 10},

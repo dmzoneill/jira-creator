@@ -1,9 +1,16 @@
+#!/usr/bin/env python
 """
-This module defines an IssueType enumeration class with different types of issues such as BUG, EPIC, SPIKE, STORY,
-TASK, COMMENT, DEFAULT, QC, and AIHELPER.
-It also includes a PromptLibrary class with methods to retrieve file contents and generate prompts based on the
-provided issue type.
-The get_prompt method in the PromptLibrary class dynamically generates prompts based on the IssueType provided.
+This module provides an enumeration for various issue types used in project management, including BUG, EPIC, SPIKE,
+STORY, TASK, COMMENT, DEFAULT, QC, and AIHELPER. It also contains the PromptLibrary class, which offers functionality
+to retrieve file contents and generate prompts based on the specified issue type.
+
+Classes:
+- IssueType: An enumeration that defines different types of issues.
+- PromptLibrary: A class that provides methods to read template files and generate prompts based on issue types.
+
+Functions:
+- get_file_contents(full_name): Reads and returns the contents of a specified template file.
+- get_prompt(issue_type: IssueType) -> str: Generates a prompt message based on the provided issue type.
 """
 
 import os
@@ -49,6 +56,7 @@ class PromptLibrary:
     - No attributes are defined in the class, but the class relies on the following constants and types:
     - TEMPLATE_DIR: Constant representing the directory where template files are stored.
     - IssueType: Enum representing different types of issues.
+
     Methods:
     - get_file_contents(full_name): Static method that reads and returns the contents of a template file specified by
     'full_name'.
@@ -67,7 +75,6 @@ class PromptLibrary:
 
         Side Effects:
         - Reads the contents of the file specified by 'full_name' and stores it in the 'template' variable.
-
         """
 
         template = ""
@@ -91,7 +98,6 @@ class PromptLibrary:
 
         Return:
         - str: A prompt message based on the issue type.
-
         """
 
         # Check if the issue_type is "comment" first
@@ -112,7 +118,7 @@ class PromptLibrary:
             prompt = PromptLibrary.get_file_contents(full_name)
         elif issue_type == IssueType.QC:
             prompt = PromptLibrary.get_file_contents(full_name)
-        elif issue_type in [issue_type for issue_type in IssueType]:
+        elif issue_type in list(IssueType):
             prompt = PromptLibrary.get_file_contents(
                 "generic"
             ) + PromptLibrary.get_file_contents("rules")

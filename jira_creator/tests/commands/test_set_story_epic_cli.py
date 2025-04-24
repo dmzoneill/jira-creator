@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains unit tests for the set_story_epic function in the CLI module.
 

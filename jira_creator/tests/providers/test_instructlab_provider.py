@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains unit tests for the InstructLabProvider class from the instructlab_provider module.
 It includes tests for initializing the provider with default values, improving text successfully, and handling failure
@@ -55,7 +56,10 @@ def test_improve_text_success():
 
 def test_improve_text_failure():
     """
-    This function initializes an instance of the InstructLabProvider class for testing purposes.
+    This function tests the error handling of the improve_text method in the InstructLabProvider class. It initializes
+    an instance of the InstructLabProvider class and simulates a server error response during the text improvement
+    process. The function raises an AiError exception with a specific error message if the server responds with an HTTP
+    status code of 500.
     """
 
     provider = InstructLabProvider()

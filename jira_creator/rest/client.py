@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 A client for interacting with the Jira API, providing methods to manage issues, sprints, and user interactions.
 
@@ -18,6 +19,9 @@ Usage:
 Instantiate the `JiraClient` class and use its methods to interact with Jira. Ensure that the necessary environment
 variables are set for proper configuration.
 """
+# pylint: disable=too-many-locals, too-many-statements, too-many-positional-arguments
+# pylint: disable=too-many-public-methods, too-many-instance-attributes, too-many-arguments
+# pylint: disable=import-outside-toplevel,
 
 import json
 import os
@@ -75,56 +79,56 @@ class JiraClient:
     functionalities.
 
     Attributes:
-    jira_url (str): The base URL for the Jira instance.
-    project_key (str): The key of the project to be managed.
-    affects_version (str): The version that the issues affect.
-    component_name (str): The name of the component related to the issues.
-    priority (str): The priority level for the issues.
-    jpat (str): The Jira Personal Access Token for authentication.
-    epic_field (str): The field used for epics in Jira.
-    board_id (str): The ID of the Jira board.
-    fields_cache_path (str): The file path for caching Jira fields.
-    is_speaking (bool): A flag indicating if the client is in speaking mode.
+    - jira_url (str): The base URL for the Jira instance.
+    - project_key (str): The key of the project to be managed.
+    - affects_version (str): The version that the issues affect.
+    - component_name (str): The name of the component related to the issues.
+    - priority (str): The priority level for the issues.
+    - jpat (str): The Jira Personal Access Token for authentication.
+    - epic_field (str): The field used for epics in Jira.
+    - board_id (str): The ID of the Jira board.
+    - fields_cache_path (str): The file path for caching Jira fields.
+    - is_speaking (bool): A flag indicating if the client is in speaking mode.
 
     Methods:
-    generate_curl_command(method, url, headers, json_data=None, params=None): Generates a curl command for debugging
+    - generate_curl_command(method, url, headers, json_data=None, params=None): Generates a curl command for debugging
     API requests.
-    cache_fields(): Caches Jira fields for efficient access, checking the cache's age.
-    get_field_name(field_id): Retrieves the name of a Jira field by its ID.
-    build_payload(summary, description, issue_type): Constructs a payload for creating or updating issues.
-    get_acceptance_criteria(issue_key): Retrieves acceptance criteria for a specified issue.
-    set_acceptance_criteria(issue_key, acceptance_criteria): Sets acceptance criteria for a specified issue.
-    get_description(issue_key): Retrieves the description of a specified issue.
-    update_description(issue_key, new_description): Updates the description of a specified issue.
-    create_issue(payload): Creates a new issue in Jira using the provided payload.
-    change_issue_type(issue_key, new_type): Changes the type of a specified issue.
-    migrate_issue(old_key, new_type): Migrates an issue to a new type.
-    add_comment(issue_key, comment): Adds a comment to a specified issue.
-    get_current_user(): Retrieves the current authenticated user.
-    get_user(str): Retrieves a user by their username or ID.
-    get_issue_type(issue_key): Retrieves the type of a specified issue.
-    unassign_issue(issue_key): Unassigns a specified issue.
-    assign_issue(issue_key, assignee): Assigns a specified issue to a user.
-    list_issues(...): Lists issues based on various optional filters.
-    set_priority(issue_key, priority): Sets the priority of a specified issue.
-    set_sprint(issue_key, sprint_id): Assigns a specified issue to a sprint.
-    remove_from_sprint(issue_key): Removes a specified issue from its sprint.
-    add_to_sprint_by_name(issue_key, sprint_name): Adds a specified issue to a sprint by its name.
-    set_status(issue_key, target_status): Sets the status of a specified issue.
-    set_story_epic(issue_key, epic_key): Assigns an epic to a specified story.
-    vote_story_points(issue_key, points): Votes on story points for a specified issue.
-    set_story_points(issue_key, points): Sets story points for a specified issue.
-    block_issue(issue_key, reason): Blocks a specified issue with a reason.
-    unblock_issue(issue_key): Unblocks a specified issue.
-    blocked(...): Lists blocked issues based on various optional filters.
-    search_issues(jql): Searches for issues using a JQL query.
-    search_users(str): Searches for users based on a string.
-    view_issue(issue_key): Retrieves details of a specified issue.
-    add_flag(issue_key): Adds a flag to a specified issue.
-    remove_flag(issue_key): Removes a flag from a specified issue.
-    list_sprints(board_id): Lists sprints for a specified board.
-    set_summary(issue_key): Sets the summary of a specified issue.
-    clone_issue(issue_key): Clones a specified issue.
+    - cache_fields(): Caches Jira fields for efficient access, checking the cache's age.
+    - get_field_name(field_id): Retrieves the name of a Jira field by its ID.
+    - build_payload(summary, description, issue_type): Constructs a payload for creating or updating issues.
+    - get_acceptance_criteria(issue_key): Retrieves acceptance criteria for a specified issue.
+    - set_acceptance_criteria(issue_key, acceptance_criteria): Sets acceptance criteria for a specified issue.
+    - get_description(issue_key): Retrieves the description of a specified issue.
+    - update_description(issue_key, new_description): Updates the description of a specified issue.
+    - create_issue(payload): Creates a new issue in Jira using the provided payload.
+    - change_issue_type(issue_key, new_type): Changes the type of a specified issue.
+    - migrate_issue(old_key, new_type): Migrates an issue to a new type.
+    - add_comment(issue_key, comment): Adds a comment to a specified issue.
+    - get_current_user(): Retrieves the current authenticated user.
+    - get_user(str): Retrieves a user by their username or ID.
+    - get_issue_type(issue_key): Retrieves the type of a specified issue.
+    - unassign_issue(issue_key): Unassigns a specified issue.
+    - assign_issue(issue_key, assignee): Assigns a specified issue to a user.
+    - list_issues(...): Lists issues based on various optional filters.
+    - set_priority(issue_key, priority): Sets the priority of a specified issue.
+    - set_sprint(issue_key, sprint_id): Assigns a specified issue to a sprint.
+    - remove_from_sprint(issue_key): Removes a specified issue from its sprint.
+    - add_to_sprint_by_name(issue_key, sprint_name): Adds a specified issue to a sprint by its name.
+    - set_status(issue_key, target_status): Sets the status of a specified issue.
+    - set_story_epic(issue_key, epic_key): Assigns an epic to a specified story.
+    - vote_story_points(issue_key, points): Votes on story points for a specified issue.
+    - set_story_points(issue_key, points): Sets story points for a specified issue.
+    - block_issue(issue_key, reason): Blocks a specified issue with a reason.
+    - unblock_issue(issue_key): Unblocks a specified issue.
+    - blocked(...): Lists blocked issues based on various optional filters.
+    - search_issues(jql): Searches for issues using a JQL query.
+    - search_users(str): Searches for users based on a string.
+    - view_issue(issue_key): Retrieves details of a specified issue.
+    - add_flag(issue_key): Adds a flag to a specified issue.
+    - remove_flag(issue_key): Removes a flag from a specified issue.
+    - list_sprints(board_id): Lists sprints for a specified board.
+    - set_summary(issue_key): Sets the summary of a specified issue.
+    - clone_issue(issue_key): Clones a specified issue.
     """
 
     def __init__(self):
@@ -151,14 +155,7 @@ class JiraClient:
         self.fields_cache_path = os.path.expanduser("~/.config/rh-issue/fields.json")
         self.is_speaking = False
 
-    def generate_curl_command(
-        self,
-        method: str,
-        url: str,
-        headers: Dict[str, str],
-        json_data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, str]] = None,
-    ) -> None:
+    def generate_curl_command(self, method, url, headers, json_data=None, params=None):
         """
         Generate a cURL command string based on the provided HTTP method, URL, headers, JSON data, and parameters.
 
@@ -198,12 +195,12 @@ class JiraClient:
 
         print("\n🔧 You can debug with this curl command:\n" + command)
 
-    def __request(
+    def _request(
         self,
         method: str,
         url: str,
         headers: Dict[str, str],
-        json: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
     ) -> tuple:
         """
@@ -213,9 +210,10 @@ class JiraClient:
         - method (str): The HTTP method to use for the request (e.g., 'GET', 'POST').
         - url (str): The URL to send the request to.
         - headers (Dict[str, str]): A dictionary containing the request headers.
-        - json (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request. Defaults to None.
-        - params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request. Defaults to
-        None.
+        - json_data (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request.
+          Defaults to None.
+        - params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request.
+          Defaults to None.
 
         Return:
         - tuple: A tuple containing the HTTP status code and the parsed JSON result.
@@ -225,7 +223,7 @@ class JiraClient:
         """
         try:
             response = requests.request(
-                method, url, headers=headers, json=json, params=params, timeout=10
+                method, url, headers=headers, json=json_data, params=params, timeout=10
             )
             # Status code checks and JSON parsing
             if response.status_code == 404:
@@ -255,22 +253,23 @@ class JiraClient:
             print(f"⚠️ Request error: {e}")
             raise JiraClientRequestError(e) from e
 
-    def _request(
+    def request(
         self,
         method: str,
         path: str,
-        json: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
-        Handles retries and delegates the request to __request.
+        Handles retries and delegates the request to _request.
 
         Arguments:
         - method (str): The HTTP method to be used for the request (e.g., 'GET', 'POST').
         - path (str): The endpoint path to be appended to the base URL.
-        - json (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request (default is None).
-        - params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request (default is
-        None).
+        - json_data (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request
+          (default is None).
+        - params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request
+          (default is None).
 
         Return:
         - Optional[Dict[str, Any]]: A dictionary representing the response data from the request. Returns None if there
@@ -280,6 +279,7 @@ class JiraClient:
         - Constructs the full URL using the base URL and the provided path.
         - Sets the necessary headers for the request, including Authorization and Content-Type.
         """
+
         url = f"{self.jira_url}{path}"
         headers = {
             "Authorization": f"Bearer {self.jpat}",
@@ -290,8 +290,8 @@ class JiraClient:
         delay = 2
 
         for attempt in range(retries):
-            status_code, result = self.__request(
-                method, url, headers, json=json, params=params
+            status_code, result = self._request(
+                method, url, headers, json_data=json_data, params=params
             )
 
             if 200 <= status_code < 300:  # Handle all 2xx status codes as success
@@ -303,7 +303,7 @@ class JiraClient:
             else:
                 # Generate a cURL command for debugging failed requests
                 self.generate_curl_command(
-                    method, url, headers, json_data=json, params=params
+                    method, url, headers, json_data=json_data, params=params
                 )
 
                 print(f"Attempt {attempt + 1}: Final failure, raising error")
@@ -326,23 +326,22 @@ class JiraClient:
         Return:
         - The cached data loaded from the file as a Python object (e.g., dictionary, list).
         If the cache file does not exist or is older than 24 hours, the function does not return anything.
-
         """
 
         # Check if the cache file exists and is less than 24 hours old
         if os.path.exists(self.fields_cache_path):
             file_age = time.time() - os.path.getmtime(self.fields_cache_path)
             if file_age < 86400:  # 86400 seconds = 24 hours
-                with open(self.fields_cache_path, "r") as f:
+                with open(self.fields_cache_path, "r", encoding="UTF-8") as f:
                     return json.load(f)
 
         # If the file doesn't exist or is older than 24 hours, update it
-        fields = self._request("GET", "/rest/api/2/field")
+        fields = self.request("GET", "/rest/api/2/field")
 
         # Make sure the directory exists
         os.makedirs(os.path.dirname(self.fields_cache_path), exist_ok=True)
 
-        with open(self.fields_cache_path, "w") as f:
+        with open(self.fields_cache_path, "w", encoding="UTF-8") as f:
             json.dump(fields, f, indent=4)
 
         return fields
@@ -357,7 +356,6 @@ class JiraClient:
 
         Side Effects:
         - Updates or loads the fields from cache.
-
         """
 
         # Cache the fields (loads from cache or updates if necessary)
@@ -381,7 +379,6 @@ class JiraClient:
 
         Return:
         The payload for creating an issue with the specified details and additional project-specific information.
-
         """
 
         return build_payload(
@@ -405,10 +402,9 @@ class JiraClient:
 
         Return:
         - str: The acceptance criteria for the specified issue.
-
         """
 
-        return get_acceptance_criteria(self._request, issue_key)
+        return get_acceptance_criteria(self.request, issue_key)
 
     def set_acceptance_criteria(self, issue_key, acceptance_criteria):
         """
@@ -421,10 +417,9 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return set_acceptance_criteria(self._request, issue_key, acceptance_criteria)
+        return set_acceptance_criteria(self.request, issue_key, acceptance_criteria)
 
     def get_description(self, issue_key):
         """
@@ -436,10 +431,9 @@ class JiraClient:
 
         Return:
         - str: The description of the issue identified by the provided key.
-
         """
 
-        return get_description(self._request, issue_key)
+        return get_description(self.request, issue_key)
 
     def update_description(self, issue_key, new_description):
         """
@@ -452,10 +446,9 @@ class JiraClient:
 
         Returns:
         The result of updating the description for the specified issue.
-
         """
 
-        return update_description(self._request, issue_key, new_description)
+        return update_description(self.request, issue_key, new_description)
 
     def create_issue(self, payload):
         """
@@ -467,10 +460,9 @@ class JiraClient:
 
         Return:
         - The result of calling the 'create_issue' function with the request and payload.
-
         """
 
-        return create_issue(self._request, payload)
+        return create_issue(self.request, payload)
 
     def change_issue_type(self, issue_key, new_type):
         """
@@ -483,10 +475,9 @@ class JiraClient:
 
         Return:
         - The result of the change_issue_type function call with the provided parameters.
-
         """
 
-        return change_issue_type(self._request, issue_key, new_type)
+        return change_issue_type(self.request, issue_key, new_type)
 
     def migrate_issue(self, old_key, new_type):
         """
@@ -499,11 +490,10 @@ class JiraClient:
 
         Return:
         - The result of migrating the issue.
-
         """
 
         return migrate_issue(
-            self._request, self.jira_url, self.build_payload, old_key, new_type
+            self.request, self.jira_url, self.build_payload, old_key, new_type
         )
 
     def add_comment(self, issue_key, comment):
@@ -517,14 +507,12 @@ class JiraClient:
 
         Return:
         - The result of adding the comment to the specified issue.
-
         """
 
-        return add_comment(self._request, issue_key, comment)
+        return add_comment(self.request, issue_key, comment)
 
     def get_current_user(self):
         """
-        Summary:
         Retrieve the current user based on the request provided.
 
         Arguments:
@@ -535,25 +523,23 @@ class JiraClient:
         Return:
         The current user retrieved from the request.
         The type of the returned value is dependent on the implementation of the 'get_current_user' function.
-
         """
 
-        return get_current_user(self._request)
+        return get_current_user(self.request)
 
-    def get_user(self, str):
+    def get_user(self, str_user):
         """
         Retrieve user information based on a provided string.
 
         Arguments:
         - self: The object instance.
-        - str (str): A string used to retrieve user information.
+        - str_user (str): A string used to retrieve user information.
 
         Return:
         - The user information retrieved based on the provided string.
-
         """
 
-        return get_user(self._request, str)
+        return get_user(self.request, str_user)
 
     def get_issue_type(self, issue_key):
         """
@@ -565,10 +551,9 @@ class JiraClient:
 
         Return:
         - str: The type of the issue identified by the provided key.
-
         """
 
-        return get_issue_type(self._request, issue_key)
+        return get_issue_type(self.request, issue_key)
 
     def unassign_issue(self, issue_key):
         """
@@ -580,10 +565,9 @@ class JiraClient:
 
         Return:
         - The result of unassigning the issue.
-
         """
 
-        return unassign_issue(self._request, issue_key)
+        return unassign_issue(self.request, issue_key)
 
     def assign_issue(self, issue_key, assignee):
         """
@@ -596,10 +580,9 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return assign_issue(self._request, issue_key, assignee)
+        return assign_issue(self.request, issue_key, assignee)
 
     def list_issues(
         self,
@@ -608,13 +591,11 @@ class JiraClient:
         assignee=None,
         status=None,
         summary=None,
-        show_reason=False,
-        blocked=False,
-        unblocked=False,
+        issues_blocked=False,
+        issues_unblocked=False,
         reporter=None,
     ):
         """
-        Summary:
         Retrieve a list of issues based on specified filters such as project, component, assignee, status, summary, etc.
 
         Arguments:
@@ -632,22 +613,21 @@ class JiraClient:
 
         Return:
         None
-
         """
+
         component = component if component is not None else self.component_name
         project = project if project is not None else self.project_key
 
         return list_issues(
-            self._request,
+            self.request,
             self.get_current_user,
             project,
             component,
             assignee,
             status,
             summary,
-            show_reason,
-            blocked,
-            unblocked,
+            issues_blocked,
+            issues_unblocked,
             reporter,
         )
 
@@ -667,7 +647,7 @@ class JiraClient:
         - None
         """
 
-        return set_priority(self._request, issue_key, priority)
+        return set_priority(self.request, issue_key, priority)
 
     def set_sprint(self, issue_key, sprint_id):
         """
@@ -680,10 +660,9 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return set_sprint(self._request, issue_key, sprint_id)
+        return set_sprint(self.request, issue_key, sprint_id)
 
     def remove_from_sprint(self, issue_key):
         """
@@ -695,10 +674,9 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return remove_from_sprint(self._request, issue_key)
+        return remove_from_sprint(self.request, issue_key)
 
     def add_to_sprint_by_name(self, issue_key, sprint_name):
         """
@@ -711,11 +689,10 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
         return add_to_sprint_by_name(
-            self._request, self.board_id, issue_key, sprint_name
+            self.request, self.board_id, issue_key, sprint_name
         )
 
     def set_status(self, issue_key, target_status):
@@ -734,7 +711,7 @@ class JiraClient:
         - None
         """
 
-        return set_status(self._request, issue_key, target_status)
+        return set_status(self.request, issue_key, target_status)
 
     def set_story_epic(self, issue_key, epic_key):
         """
@@ -747,10 +724,9 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return set_story_epic(self._request, issue_key, epic_key)
+        return set_story_epic(self.request, issue_key, epic_key)
 
     def vote_story_points(self, issue_key, points):
         """
@@ -763,10 +739,9 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return vote_story_points(self._request, issue_key, points)
+        return vote_story_points(self.request, issue_key, points)
 
     def set_story_points(self, issue_key, points):
         """
@@ -779,10 +754,9 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return set_story_points(self._request, issue_key, points)
+        return set_story_points(self.request, issue_key, points)
 
     def block_issue(self, issue_key, reason):
         """
@@ -795,10 +769,9 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return block_issue(self._request, issue_key, reason)
+        return block_issue(self.request, issue_key, reason)
 
     def unblock_issue(self, issue_key):
         """
@@ -810,10 +783,9 @@ class JiraClient:
 
         Return:
         - The result of unblocking the issue.
-
         """
 
-        return unblock_issue(self._request, issue_key)
+        return unblock_issue(self.request, issue_key)
 
     def blocked(self, project=None, component=None, assignee=None):
         """
@@ -826,7 +798,6 @@ class JiraClient:
 
         Returns:
         - The result of the 'blocked' function with the provided parameters.
-
         """
 
         return blocked(self.list_issues, project, component, assignee)
@@ -841,25 +812,23 @@ class JiraClient:
 
         Return:
         - The result of the search_issues function, which is not specified in the provided code.
-
         """
 
-        return search_issues(self._request, jql)
+        return search_issues(self.request, jql)
 
-    def search_users(self, str):
+    def search_users(self, str_user):
         """
         Search for users based on a given string.
 
         Arguments:
         - self: the object instance
-        - str (str): the string used to search for users
+        - str_user (str): the string used to search for users
 
         Return:
-        - The result of the search_users method called with the _request attribute and the provided string.
-
+        - The result of the search_users method called with the request attribute and the provided string.
         """
 
-        return search_users(self._request, str)
+        return search_users(self.request, str_user)
 
     def view_issue(self, issue_key):
         """
@@ -871,10 +840,9 @@ class JiraClient:
 
         Return:
         - The result of viewing the issue.
-
         """
 
-        return view_issue(self._request, issue_key)
+        return view_issue(self.request, issue_key)
 
     def add_flag(self, issue_key):
         """
@@ -886,10 +854,9 @@ class JiraClient:
 
         Returns:
         The result of adding a flag to the specified issue.
-
         """
 
-        return add_flag(self._request, issue_key)
+        return add_flag(self.request, issue_key)
 
     def remove_flag(self, issue_key):
         """
@@ -901,14 +868,12 @@ class JiraClient:
 
         Return:
         - None
-
         """
 
-        return remove_flag(self._request, issue_key)
+        return remove_flag(self.request, issue_key)
 
     def list_sprints(self, board_id):
         """
-        Summary:
         Retrieve a list of sprints associated with a specific board.
 
         Arguments:
@@ -917,25 +882,24 @@ class JiraClient:
 
         Return:
         List: A list of sprints associated with the specified board.
-
         """
 
-        return list_sprints(self._request, board_id)
+        return list_sprints(self.request, board_id)
 
-    def set_summary(self, issue_key):
+    def set_summary(self, issue_key, summary):
         """
         Sets the summary of an issue identified by the given issue key.
 
         Arguments:
         - self: The object instance.
         - issue_key (str): The key that identifies the issue for which the summary needs to be set.
+        - summary (str): The new summary.
 
         Returns:
         - None
-
         """
 
-        return set_summary(self._request, issue_key)
+        return set_summary(self.request, issue_key, summary)
 
     def clone_issue(self, issue_key):
         """
@@ -947,7 +911,6 @@ class JiraClient:
 
         Return:
         - The result of cloning the issue.
-
         """
 
-        return clone_issue(self._request, issue_key)
+        return clone_issue(self.request, issue_key)

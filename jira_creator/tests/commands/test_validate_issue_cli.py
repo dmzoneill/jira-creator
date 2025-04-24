@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module contains unit tests for the CLI validation of Jira issues, specifically focusing on acceptance criteria and
 description validation.
@@ -46,7 +47,6 @@ def generate_fields(
 
     Side Effects:
     - Uses the EnvFetcher class to retrieve certain field values from the environment.
-
     """
     return {
         "key": issue_key,
@@ -84,8 +84,8 @@ def generate_cached_data(
 
     Side Effects:
     - Modifies the input hash values if they are None by calculating the hash of corresponding field values.
-
     """
+
     if description_hash is None:
         description_hash = sha256(fields["description"])
     if summary_hash is None:

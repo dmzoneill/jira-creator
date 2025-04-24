@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Unit tests for the JiraClient's search_issues method.
 
@@ -34,7 +35,7 @@ def test_search_issues(client):
 
     # Mock the _request method of JiraClient
     # /* jscpd:ignore-start */
-    client._request = MagicMock(
+    client.request = MagicMock(
         return_value={
             "issues": [
                 {
@@ -61,7 +62,7 @@ def test_search_issues(client):
     issues = client.search_issues(jql)
 
     # Assert that the _request method was called with the correct arguments
-    client._request.assert_called_once_with(
+    client.request.assert_called_once_with(
         "GET",
         "/rest/api/2/search",
         params={
@@ -94,12 +95,11 @@ def test_search_issues_no_sprints(client):
     Side Effects:
     - Modifies the _request method of the JiraClient by mocking it with a MagicMock to simulate no sprints in the
     response.
-
     """
 
     # Mock the _request method of JiraClient to simulate no sprints
     # /* jscpd:ignore-start */
-    client._request = MagicMock(
+    client.request = MagicMock(
         return_value={
             "issues": [
                 {
@@ -125,7 +125,7 @@ def test_search_issues_no_sprints(client):
     issues = client.search_issues(jql)
 
     # Assert that the _request method was called with the correct arguments
-    client._request.assert_called_once_with(
+    client.request.assert_called_once_with(
         "GET",
         "/rest/api/2/search",
         params={

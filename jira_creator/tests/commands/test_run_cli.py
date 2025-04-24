@@ -1,7 +1,9 @@
+#!/usr/bin/env python
 """
-This script defines a test function to test the run method of a CLI class. It uses unittest.mock to create a MagicMock
-object and patch the sys.argv and os.environ for testing purposes. The test function sets up a fake subcommand and
-asserts that the dispatch_command method is called once during the run.
+This script defines a test function to test the run method of a CLI class using unittest.mock for mocking objects.
+The test function sets up a mock for the _dispatch_command method of the provided cli object and asserts its call
+during run.
+It also includes a fake_register function to add a 'fake' sub-command for testing purposes.
 """
 
 import os

@@ -1,14 +1,16 @@
+#!/usr/bin/env python
 """
-This module contains unit tests for the quarterly connection report functionality in the CLI.
+This module contains unit tests for the quarterly connection report functionality in the command-line interface (CLI).
 
-The tests include:
-- test_quarterly_connection_report_success: Tests the successful execution of the quarterly connection report.
-- test_quarterly_connection_report_no_issues: Tests the scenario where no issues are found for the quarterly connection
-report.
-- test_quarterly_connection_report_error: Tests the handling of QuarterlyConnectionError during the quarterly
+The tests included in this module cover various scenarios for generating quarterly connection reports:
+- `test_quarterly_connection_report_success`: Verifies successful execution of the quarterly connection report.
+- `test_quarterly_connection_report_no_issues`: Checks the behavior when no issues are found for the quarterly
 connection report.
+- `test_quarterly_connection_report_error`: Tests the handling of `QuarterlyConnectionError` during the report
+generation process.
 
-These tests mock certain methods and classes using MagicMock and patch to isolate the functionality being tested.
+The tests utilize mocking techniques, specifically `MagicMock` and `patch`, to isolate and control the behavior of
+methods and classes involved in the report generation.
 """
 
 from unittest.mock import MagicMock, patch
@@ -52,7 +54,6 @@ def test_quarterly_connection_report_no_issues(cli):
 
     Side Effects:
     - Mocks the _register_subcommands and _dispatch_command methods.
-
     """
 
     # Mocking the _register_subcommands and _dispatch_command methods
@@ -79,7 +80,6 @@ def test_quarterly_connection_report_error(cli):
 
     Side Effects:
     - Mocks the _register_subcommands and _dispatch_command methods internally.
-
     """
 
     # Mocking the _register_subcommands and _dispatch_command methods

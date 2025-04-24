@@ -9,8 +9,6 @@ def format_command_name(command_name):
 
 
 # Function to create the necessary files based on the command name
-
-
 def create_files(command_name):
     # Format the command name to be used in the subparser and other places
     formatted_command = format_command_name(command_name)

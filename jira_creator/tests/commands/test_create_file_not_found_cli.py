@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module contains test cases for the CLI command responsible for creating issues in a project management system
 (e.g., JIRA).
@@ -23,6 +24,16 @@ def test_create_file_not_found(cli):
     """
     Mock the TemplateLoader to raise FileNotFoundError when trying to load a template file.
     This function is used for testing purposes and takes a 'cli' parameter representing the command-line interface.
+
+    Arguments:
+    - cli (object): The command-line interface object to be tested.
+
+    Exceptions:
+    - FileNotFoundError: Raised when the TemplateLoader fails to load a template file.
+
+    Side Effects:
+    - Modifies the TemplateLoader to raise FileNotFoundError when attempting to load a template file.
+    - Captures the exit and asserts that the correct exception is raised during the test.
     """
 
     # Mock the TemplateLoader to raise FileNotFoundError
@@ -51,6 +62,13 @@ def test_create_file_not_found_error(cli, capsys):
 
     Side Effects:
     - Modifies the template directory path of the CLI instance.
+
+    Exceptions:
+    - FileNotFoundError: Raised when the template file is not found.
+
+    The function sets the template directory path of the CLI instance to a non-existent directory and then mocks the
+    TemplateLoader to raise a FileNotFoundError. It creates a mock Args object, calls the cli.create_issue() method
+    with Args, and asserts that the expected error message is printed.
     """
 
     cli.template_dir = Path("non_existent_directory")
@@ -149,7 +167,6 @@ def test_create(cli, capsys):
     Side Effects:
     - Modifies the behavior of the TemplateLoader class using MagicMock and Patch to simulate specific template loading
     and rendering.
-
     """
 
     with patch("commands.cli_create_issue.TemplateLoader") as MockTemplateLoader:

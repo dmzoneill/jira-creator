@@ -1,12 +1,13 @@
+#!/usr/bin/env python
 """
-This module contains unit tests for the vote_story_points method in the client class.
+This module contains unit tests for the `vote_story_points` method in the client class.
 
 The tests cover scenarios where the method succeeds, fails during voting, and fails to fetch the issue ID.
 
 Functions:
-- test_vote_story_points_success(client): Test for successful voting of story points.
-- test_vote_story_points_failure(client, capsys): Test for failure during voting of story points.
-- test_vote_story_points_fetch_issue_id_failure(client, capsys): Test for failure to fetch the issue ID.
+- `test_vote_story_points_success(client)`: Tests successful voting of story points.
+- `test_vote_story_points_failure(client, capsys)`: Tests failure during voting of story points.
+- `test_vote_story_points_fetch_issue_id_failure(client, capsys)`: Tests failure to fetch the issue ID.
 
 Mock objects are used to simulate API responses and exceptions for testing purposes.
 """
@@ -23,7 +24,6 @@ def test_vote_story_points_success(client):
 
     Arguments:
     - client: A client object used to make API requests.
-
     """
 
     # First call: get issue ID
@@ -38,12 +38,12 @@ def test_vote_story_points_success(client):
     mock_vote_response.text = '{"status": "ok"}'
     mock_vote_response.json.return_value = {"status": "ok"}
 
-    client._request.side_effect = [mock_issue_response, mock_vote_response]
+    client.request.side_effect = [mock_issue_response, mock_vote_response]
 
     client.vote_story_points("ISSUE-123", 3)
 
     # Assert the request was made twice
-    assert client._request.call_count == 2
+    assert client.request.call_count == 2
 
 
 def test_vote_story_points_failure(client, capsys):
@@ -72,7 +72,7 @@ def test_vote_story_points_failure(client, capsys):
     mock_vote_response.status_code = 400
     mock_vote_response.text = '{"error": "bad request"}'
 
-    client._request.side_effect = [mock_issue_response, mock_vote_response]
+    client.request.side_effect = [mock_issue_response, mock_vote_response]
 
     with pytest.raises(VoteStoryPointsError):
         client.vote_story_points("ISSUE-123", 3)
@@ -91,11 +91,10 @@ def test_vote_story_points_fetch_issue_id_failure(client, capsys):
 
     Exceptions:
     - FetchIssueIDError: Raised when there is a network error during the request.
-
     """
 
     # Simulate the first request (GET issue) raising an exception
-    client._request.side_effect = FetchIssueIDError("network error")
+    client.request.side_effect = FetchIssueIDError("network error")
 
     with pytest.raises(FetchIssueIDError):
         client.vote_story_points("ISSUE-123", 3)

@@ -1,9 +1,10 @@
+#!/usr/bin/env python
 """
-This module defines a variety of custom exceptions related to Jira operations. Each exception represents a specific
-error scenario that may occur during Jira interactions. These exceptions are derived from the BaseException class and
-provide detailed error handling for different situations such as missing configuration variables, errors in setting
-story epic, listing issues, editing issues, fetching descriptions, assigning/unassigning issues, voting story points,
-updating descriptions, migrating, opening/viewing issues, adding comments, and various other Jira-related operations.
+This module defines a collection of custom exceptions for handling various error scenarios encountered during
+interactions with Jira. Each exception class extends the BaseException class and targets specific issues such as
+missing configuration variables, errors in setting story epics, listing and editing issues, managing descriptions,
+assigning/unassigning issues, voting on story points, and other Jira-related operations. The structured approach
+to exception handling allows for clearer error management and debugging in applications that integrate with Jira.
 """
 
 
@@ -12,7 +13,7 @@ class MissingConfigVariable(BaseException):
     Represents an exception raised when a required Jira environment variable is missing.
 
     Attributes:
-    BaseException: The base exception class in Python.
+    - BaseException: The base exception class in Python.
     """
 
 
@@ -84,7 +85,7 @@ class RemoveFromSprintError(BaseException):
     A custom exception class for handling errors related to removing items from a sprint.
 
     Attributes:
-    None
+    - None
     """
 
 
@@ -255,7 +256,7 @@ class LintAllError(BaseException):
     A custom exception class representing an error that occurred during linting all files.
 
     Attributes:
-    None
+    - None
     """
 
 
@@ -319,7 +320,7 @@ class JiraClientRequestError(BaseException):
     This class represents an exception raised when there is an error in making a request to the Jira client.
 
     Attributes:
-    None
+    - None
     """
 
 

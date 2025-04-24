@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file includes various functions for interacting with an issue tracking system.
 Functions are available for tasks such as adding comments, flags, assigning issues, blocking/unblocking issues,

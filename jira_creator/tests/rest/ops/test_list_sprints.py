@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Test the functionality of listing sprints for a given board using a client object.
 
@@ -28,7 +29,7 @@ def test_list_sprints(client):
         ]
     }
     request_mock = MagicMock(return_value=values)
-    client._request = request_mock
+    client.request = request_mock
     board_id = "dummy_board_id"
 
     response = client.list_sprints(board_id)

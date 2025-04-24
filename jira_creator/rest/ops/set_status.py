@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a function to set the status of an issue in a Jira system using the provided request function.
 
@@ -26,6 +27,14 @@ def set_status(request_fn, issue_key, target_status):
 
     Returns:
     This function does not return anything.
+
+    Exceptions:
+    - SetStatusError: Raised if the target status is not found in the available transitions.
+
+    Side Effects:
+    - Modifies the status of the specified issue.
+    - Prints the available transitions if the target status is not found.
+    - Prints a success message after changing the status of the issue.
 
     """
 

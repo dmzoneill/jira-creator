@@ -1,15 +1,16 @@
+#!/usr/bin/env python
 """
-This module contains tests for a CLI interface interacting with JIRA issues. It utilizes the unittest framework
-alongside MagicMock for mocking JIRA responses.
+This module contains unit tests for a command-line interface (CLI) that interacts with JIRA issues.
+It utilizes the `unittest` framework along with `MagicMock` for simulating JIRA responses.
 
-Key components include:
-- A shared dictionary for base issue templates (`base_issue` and `base_issue_2`) that can be modified during tests.
-- A helper function `setup_cli_and_args` that prepares the CLI context and issue data based on provided parameters.
+Key Features:
+- Shared base issue templates (`base_issue` and `base_issue_2`) for use in tests.
+- A helper function `setup_cli_and_args` that configures the CLI context and issue data based on specified parameters.
 - Several test functions (`test_list_print`, `test_list_reporter_print`, `test_list_with_filters`,
-`test_list_with_blocked_filter`, and `test_list_with_unblocked_filter`) that validate the behavior of the CLI when
-listing issues with various filters and conditions.
+`test_list_with_blocked_filter`, and `test_list_with_unblocked_filter`) that verify the CLI's behavior
+when listing issues with various filters and conditions.
 
-The tests assert expected outputs based on the mocked JIRA issue data and the specified arguments.
+Each test function captures the output of the CLI and asserts expected results based on the mocked JIRA issue data.
 """
 
 from unittest.mock import MagicMock
@@ -124,7 +125,6 @@ def test_list_print(cli, capsys):
 
     Side Effects:
     - Modifies the behavior of the provided CLI object by listing the retrieved issues.
-
     """
 
     args, issues = setup_cli_and_args(cli, func="test_list_print")
@@ -201,7 +201,6 @@ def test_list_with_blocked_filter(cli, capsys):
     - Calls the setup_cli_and_args function to configure the CLI arguments.
     - Sets the return value of cli.jira.list_issues to the provided issues.
     - Invokes the list_issues method of the CLI.
-
     """
 
     args, issues = setup_cli_and_args(

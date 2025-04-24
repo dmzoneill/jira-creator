@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module provides a function to assign an issue to a specific user using a given request function.
 

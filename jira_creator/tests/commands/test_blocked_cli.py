@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module contains test cases for the 'blocked' function in the CLI class.
 
@@ -6,6 +7,8 @@ The test cases include:
 - test_blocked_no_issues: Tests the scenario where no blocked issues are found.
 - test_blocked_none_blocked: Tests the scenario where there are no blocked issues.
 - test_blocked_exception: Tests the scenario where an exception is raised while listing blocked issues.
+
+Additionally, it defines an Args class to store project-related arguments, including project name, component, and user.
 """
 
 from unittest.mock import MagicMock

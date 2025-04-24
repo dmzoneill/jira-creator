@@ -1,20 +1,19 @@
+#!/usr/bin/env python
 """
-This module contains a set of unit tests for the Jira issue editing and validation commands in a CLI application. It
-uses the pytest framework for testing and includes various test functions to ensure the functionality of editing issue
-descriptions, validating issue fields, and handling AI-assisted improvements.
+This module provides unit tests for the Jira issue editing and validation commands within a command-line interface
+(CLI) application. Utilizing the pytest framework, it tests various functionalities including editing issue
+descriptions, validating fields, and integrating AI-assisted enhancements.
 
 Key functionalities tested include:
-- Creation of cache directories for issue data.
+- Cache directory creation for issue data.
 - Editing issue descriptions with and without AI assistance.
-- Validating various fields of Jira issues such as progress, epic link, sprint, priority, and story points.
-- Fetching descriptions from Jira and updating them based on user input or AI suggestions.
-- Linting descriptions to ensure they meet certain criteria.
+- Validation of Jira issue fields such as progress, epic link, sprint, priority, and story points.
+- Fetching and updating issue descriptions based on user input or AI suggestions.
+- Linting descriptions to ensure they meet specified criteria.
 
-Mocking is extensively used to simulate interactions with Jira and the AI provider, allowing for isolated testing of
-the logic without requiring actual network calls or user input.
-
-The tests are designed to cover both successful and failure scenarios to ensure robustness and reliability of the
-command implementations.
+The tests employ mocking to simulate interactions with Jira and the AI provider, enabling isolated testing of logic
+without actual network calls or user input. Coverage includes both successful and failure scenarios to ensure the
+robustness and reliability of command implementations.
 """
 
 import os
@@ -63,7 +62,6 @@ def test_cache_directory_creation(mock_cache_path, mock_save_cache):
     - Mocks the get_cache_path function to return the mock cache path.
     - Checks the condition where the cache directory doesn't exist.
     - Mocks the open function to prevent actual file system interactions.
-
     """
 
     # Set up the mock cache path and patch os.makedirs
@@ -117,7 +115,6 @@ def test_edit_issue_executes(cli):
     - Modifies the description of an issue identified by the key "FAKE-123" by calling the edit_issue method of the CLI
     object.
     - Asserts that the update_description method of the Jira object within the CLI object is called exactly once.
-
     """
 
     args = type("Args", (), {"issue_key": "FAKE-123", "no_ai": False, "lint": False})()
@@ -155,12 +152,11 @@ def test_validate_progress():
     Validate the progress of an issue tracker test.
 
     Arguments:
-    - No arguments taken.
+    - No arguments are taken.
 
     Side Effects:
     - Initializes an empty list 'problems' to store any encountered issues.
     - Initializes an empty dictionary 'issue_status' to track the status of each issue.
-
     """
 
     problems = []
@@ -241,7 +237,6 @@ def test_validate_priority():
 
     Side Effects:
     - Modifies the 'problems' list and 'issue_status' dictionary in the test environment.
-
     """
 
     problems = []
@@ -296,7 +291,6 @@ def test_validate_blocked():
     Side Effects:
     - Initializes an empty list 'problems' to store any blocked issues.
     - Initializes an empty dictionary 'issue_status' to track the status of each issue.
-
     """
 
     problems = []
@@ -366,13 +360,9 @@ def test_validate_field_with_ai_invalid():
     """
     Validate a field using an AI provider and handle invalid cases.
 
-    Arguments:
-    - No explicit arguments.
-
     Side Effects:
     - Modifies the global state by patching the 'ai_provider' to return a MagicMock object.
     - Initializes 'problems' list, 'issue_status' dictionary, and 'cached_field_hash' to empty values.
-
     """
 
     # Patch ai_provider to return the MagicMock object
@@ -503,7 +493,6 @@ def test_update_jira_description():
 
     Side Effects:
     - Modifies the description of a Jira issue using a mocked Jira object.
-
     """
 
     jira_mock = MagicMock()
@@ -572,6 +561,15 @@ def test_lint_description():
     """
     This function is a test case for linting a description using a mock AI provider. It creates a MagicMock object to
     simulate an AI provider and sets up a mock method `improve_text` that returns a cleaned description when called.
+
+    Arguments:
+    - No arguments are passed explicitly to this function.
+
+    Side Effects:
+    - The function sets up mock objects to simulate interactions with an AI provider and validation process.
+
+    Returns:
+    - No return value explicitly specified as the function is a test case.
     """
 
     ai_provider_mock = MagicMock()
@@ -624,7 +622,6 @@ def test_edit_description():
 
     Arguments:
     - original_description (str): The original description of the test.
-
     """
 
     original_description = "Test description"
@@ -646,6 +643,17 @@ def test_edit_description():
 def test_lint_description_once_no_issues():
     """
     Mock the AI provider's improve_text method to return a cleaned description.
+
+    Arguments:
+    - cleaned (str): The original description to be cleaned.
+    - ai_provider_mock (MagicMock): A mock object of the AI provider to simulate the improve_text method.
+
+    Return:
+    - tuple: A tuple containing the cleaned description (str) and a boolean indicating whether any issues were found
+    (False in this case).
+
+    Side Effects:
+    - Calls the validate function to simulate no issues found in the description.
     """
 
     # Mock the AI provider's improve_text method
@@ -810,7 +818,6 @@ def test_cli_edit_issue_returns_early_on_empty_description():
 
     Returns:
     - No return value.
-
     """
 
     fake_jira = MagicMock()

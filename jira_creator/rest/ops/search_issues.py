@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This module contains a function to search for JIRA issues based on a JQL query.
 
@@ -14,6 +15,8 @@ Note: This function relies on the 'EnvFetcher' class from 'core.env_fetcher' for
 to JIRA fields.
 """
 
+# pylint: disable=duplicate-code
+
 import re
 
 from core.env_fetcher import EnvFetcher
@@ -28,7 +31,9 @@ def search_issues(request_fn, jql):
     - jql (str): JIRA Query Language (JQL) query to filter the search results.
 
     Return:
-    None
+    - list: A list of dictionaries representing the searched JIRA issues. Each dictionary contains information about
+    the issue, including summary, status, assignee, priority, story points, sprint, and blocked status.
+
     """
 
     params = {

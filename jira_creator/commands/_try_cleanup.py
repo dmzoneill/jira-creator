@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+"""
+This script defines a function '_try_cleanup' that attempts to clean up text using an AI provider.
+
+The function takes three arguments:
+- ai_provider (AiProvider): An AI provider object used to improve text.
+- prompt (str): A prompt or context for the text improvement process.
+- text (str): The text to be cleaned up.
+
+It returns:
+- str: The cleaned up text.
+
+It raises an AiError exception if the AI cleanup process fails.
+"""
 from exceptions.exceptions import AiError
 
 

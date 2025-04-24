@@ -1,13 +1,16 @@
+#!/usr/bin/env python
 """
-This module contains unit tests for the functionality of a client that interacts with an issue tracking system,
-specifically for listing issues based on various parameters.
+This module contains unit tests for a client interacting with an issue tracking system, specifically focusing on
+the functionality of listing issues based on various parameters such as assignee, reporter, status, summary,
+and sprint conditions (blocked and unblocked).
 
-The tests utilize mocking to simulate API responses for different scenarios, including filtering issues by assignee,
-reporter, status, summary, and sprint conditions (both blocked and unblocked).
+The tests utilize mocking to simulate API responses for different scenarios, ensuring that the client behaves as
+expected under various conditions. Each test verifies that the returned issues are in the expected format and
+contain the correct data.
 
 Functions:
-- `mock_client_request(client, mock_return_value)`: Mocks the behavior of the client to return predefined responses for
-specific API requests.
+- `mock_client_request(client, mock_return_value)`: Mocks the behavior of the client to return predefined
+responses for specific API requests.
 - `test_list_issues(client)`: Tests listing issues by assignee.
 - `test_list_issues_reporter(client)`: Tests listing issues by reporter.
 - `test_list_issues_with_status(client)`: Tests listing issues filtered by status.
@@ -15,10 +18,8 @@ specific API requests.
 - `test_list_issues_with_blocked(client)`: Tests listing issues that are marked as blocked.
 - `test_list_issues_with_unblocked(client)`: Tests listing issues that are marked as unblocked.
 - `test_list_issues_with_none_sprints(client)`: Tests listing issues when the sprint field is None or missing.
-- `test_list_issues_with_sprint_regex_matching(client)`: Tests listing issues with sprint data that matches a specific
-regex pattern.
-
-Each test asserts that the returned issues are in the expected format and contain the correct data.
+- `test_list_issues_with_sprint_regex_matching(client)`: Tests listing issues with sprint data that matches a
+specific regex pattern.
 """
 
 from unittest.mock import MagicMock
@@ -53,13 +54,12 @@ def mock_client_request(client, mock_return_value):
 
         Return:
         - mock_return_value: The value returned when the method is "GET" and the path contains "search".
-
         """
 
         if method == "GET" and "search" in path:
             return mock_return_value
 
-    client._request = MagicMock(side_effect=mock_request)
+    client.request = MagicMock(side_effect=mock_request)
 
 
 def test_list_issues(client):
@@ -71,7 +71,6 @@ def test_list_issues(client):
 
     Side Effects:
     - Calls the mock_client_request function with the client object and a dictionary containing a list of issues.
-
     """
 
     mock_client_request(client, {"issues": [{"key": "AAP-test_list_issues"}]})
@@ -93,7 +92,6 @@ def test_list_issues_reporter(client):
     Side Effects:
     - Calls the mock_client_request function with the provided client object and a dictionary containing a list of
     issues.
-
     """
 
     mock_client_request(client, {"issues": [{"key": "AAP-test_list_issues_reporter"}]})
@@ -114,7 +112,6 @@ def test_list_issues_with_status(client):
 
     Side Effects:
     - Modifies the client by sending a request to retrieve a list of issues with a specific status.
-
     """
 
     mock_client_request(
@@ -139,7 +136,6 @@ def test_list_issues_with_summary(client):
 
     Side Effects:
     - Calls the mock_client_request function to retrieve a list of issues with a specific key.
-
     """
 
     mock_client_request(
@@ -164,7 +160,6 @@ def test_list_issues_with_blocked(client):
 
     Side Effects:
     - Modifies the client by requesting a list of issues with a specific key.
-
     """
 
     mock_client_request(
@@ -172,7 +167,7 @@ def test_list_issues_with_blocked(client):
     )
 
     issues = client.list_issues(
-        project="AAP", component="platform", assignee="user123", blocked=True
+        project="AAP", component="platform", assignee="user123", issues_blocked=True
     )
 
     # Assert that the issues returned are a list and contain the correct key
@@ -193,7 +188,6 @@ def test_list_issues_with_unblocked(client):
 
     Side Effects:
     - Calls the mock_client_request function to retrieve a list of issues for the specified client.
-
     """
 
     mock_client_request(
@@ -201,7 +195,7 @@ def test_list_issues_with_unblocked(client):
     )
 
     issues = client.list_issues(
-        project="AAP", component="platform", assignee="user123", unblocked=True
+        project="AAP", component="platform", assignee="user123", issues_unblocked=True
     )
 
     assert isinstance(issues, list)
@@ -227,7 +221,6 @@ def test_list_issues_with_none_sprints(client):
 
     def mock_request(method, path, **kwargs):
         """
-        Summary:
         Simulates a mock request to a server with the provided HTTP method and path. If the method is 'GET' and the
         path contains 'search', it returns mock data for an issue with specific fields set.
 
@@ -265,7 +258,7 @@ def test_list_issues_with_none_sprints(client):
                 ]
             }
 
-    client._request = MagicMock(side_effect=mock_request)
+    client.request = MagicMock(side_effect=mock_request)
 
     issues = client.list_issues(project="AAP", component="platform", assignee="user123")
 
@@ -286,7 +279,6 @@ def test_list_issues_with_sprint_regex_matching(client):
 
     Exceptions:
     - None
-
     """
 
     def mock_request(method, path, **kwargs):
@@ -332,7 +324,7 @@ def test_list_issues_with_sprint_regex_matching(client):
                 ]
             }
 
-    client._request = MagicMock(side_effect=mock_request)
+    client.request = MagicMock(side_effect=mock_request)
 
     issues = client.list_issues(project="AAP", component="platform", assignee="user123")
 

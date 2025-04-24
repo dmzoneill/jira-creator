@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script contains unit tests for the EnvFetcher class in core.env_fetcher module.
 It includes tests for retrieving environment variables from the OS, from the pytest context, and for handling missing
@@ -25,7 +26,6 @@ def test_get_env_variable_from_os():
 
     Side Effects:
     This function interacts with the OS environment variables to fetch the value of the specified variable.
-
     """
 
     with (
@@ -60,6 +60,18 @@ def test_get_env_variable_raises_if_missing():
     This function tests the behavior of the 'get' method of the EnvFetcher class when a requested environment variable
     is missing. It simulates a real run environment with no environment variables set and asserts that the method
     raises a MissingConfigVariable exception when attempting to retrieve a missing variable.
+
+    Arguments:
+    No arguments.
+
+    Exceptions:
+    - MissingConfigVariable: Raised when the 'get' method of the EnvFetcher class is called with a missing variable.
+
+    Side Effects:
+    - Modifies the environment variables and sys.modules to simulate a scenario with no environment variables set.
+
+    Return:
+    No return value.
     """
 
     with (
@@ -81,7 +93,6 @@ def test_fetch_all_returns_expected_vars():
 
     Return:
     - dict: A dictionary where keys are the input keys and values are the corresponding environment variable values.
-
     """
 
     with patch.dict("sys.modules", {"pytest": True}):

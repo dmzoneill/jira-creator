@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains unit tests for the create_issue function in the CLI module.
 It includes test cases for creating an issue in dry run mode and for handling exceptions during issue creation.

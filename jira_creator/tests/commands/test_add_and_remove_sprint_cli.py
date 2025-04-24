@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This script defines unit tests for the 'add_sprint' and 'remove_sprint' functions in the 'cli' module.
 The tests use MagicMock to mock certain functionalities.

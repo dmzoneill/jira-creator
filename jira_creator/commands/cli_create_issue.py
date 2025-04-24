@@ -1,8 +1,17 @@
+#!/usr/bin/env python
 """
-This module provides a CLI tool for creating Jira issues with enhanced functionality.
-It includes functions for loading templates, interacting with the user to input data, editing descriptions,
-improving text using AI, building Jira payloads, and creating Jira issues.
-Exceptions are handled for file not found, AI errors, and create issue errors.
+This module provides a command-line interface (CLI) tool for creating and managing Jira issues with enhanced features.
+
+Key functionalities include:
+- Loading issue templates from a specified directory.
+- Interacting with users to gather input for issue creation.
+- Editing issue descriptions prior to submission.
+- Utilizing AI to improve text descriptions.
+- Building payloads for Jira API requests.
+- Handling exceptions related to file operations, AI processing, and issue creation.
+
+The main function, `cli_create_issue`, orchestrates the process of creating a new Jira issue based on user input and
+templates, while managing potential errors and providing informative output.
 """
 
 import json
@@ -15,14 +24,13 @@ from rest.prompts import IssueType, PromptLibrary
 from templates.template_loader import TemplateLoader
 
 
-def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
+def cli_create_issue(jira, ai_provider, template_dir, args):
     """
     Creates a new issue in Jira based on a template.
 
     Arguments:
     - jira (JIRA): An instance of the JIRA class for interacting with the Jira API.
     - ai_provider (str): The AI provider to use for generating content.
-    - default_prompt (str): The default prompt to use for the issue description.
     - template_dir (str): The directory where the issue templates are stored.
     - args (Namespace): Command-line arguments containing the type of the issue.
 
@@ -32,6 +40,7 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
     Side Effects:
     - Prints an error message if the template file is not found.
     - Raises a FileNotFoundError exception with the original error message.
+    - Prints warnings or errors related to AI cleanup failure or issue creation failure.
 
     """
 
@@ -76,7 +85,7 @@ def cli_create_issue(jira, ai_provider, default_prompt, template_dir, args):
         print(description)
         print("---- Payload ----")
         print(json.dumps(payload, indent=2))
-        return
+        return None
 
     try:
         key = jira.create_issue(payload)

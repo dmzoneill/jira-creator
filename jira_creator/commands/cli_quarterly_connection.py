@@ -1,7 +1,24 @@
+#!/usr/bin/env python
 """
 This script defines a function cli_quarterly_connection that builds an employee report based on JIRA issues. It
 searches for issues within the last 90 days, retrieves relevant information, and processes it using a PromptLibrary. In
 case of a QuarterlyConnectionError, it handles the exception and re-raises it.
+
+Functions:
+- cli_quarterly_connection: Builds a quarterly employee report based on JIRA issues assigned to the current user.
+
+Arguments:
+- jira: A JIRA API client for interacting with JIRA issues.
+- ai_provider: An AI provider for generating insights from the JIRA issues.
+
+Exceptions:
+- Raises exceptions if there are any issues with searching JIRA issues.
+
+Side Effects:
+- Prints "Building employee report".
+
+Note: This function fetches JIRA issues created, resolved, updated, or commented on by the current user within the
+last 90 days.
 """
 
 import time

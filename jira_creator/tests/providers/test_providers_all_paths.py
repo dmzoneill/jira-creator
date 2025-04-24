@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains unit tests for the get_ai_provider function, which is responsible for retrieving AI providers based
 on the provider name provided. The tests cover different scenarios such as successful provider retrieval, failure
@@ -6,6 +7,12 @@ failures and exceptions. The AI providers tested include OpenAIProvider, GPT4All
 BARTProvider, and DeepSeekProvider. In case of failures or import errors, the tests ensure that the appropriate
 exceptions are raised or handled gracefully. Additionally, the file imports necessary modules and classes from
 exceptions.exceptions and providers modules.
+
+The file includes test functions like test_get_ai_provider_openai, test_get_ai_provider_bart,
+test_get_ai_provider_deepseek,
+and test_unknown_provider to verify the behavior of get_ai_provider function for different provider names. Each test
+function asserts the type of provider returned matches the expected provider class. The test_unknown_provider function
+verifies that an AiProviderError is raised when an unknown provider name is provided.
 """
 
 from unittest.mock import patch
@@ -55,7 +62,9 @@ def test_get_ai_provider_deepseek():
 
 def test_unknown_provider():
     """
-    This function is used to test for unknown provider
+    This function is used to test for unknown provider by attempting to retrieve an AI provider with an unknown name.
+    It uses pytest to check if an AiProviderError is raised when attempting to get the AI provider with the name
+    "unknown".
     """
 
     # Patch the BARTProvider in the correct module path

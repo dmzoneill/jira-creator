@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This file contains test cases for the set_status method in a client class.
 The test_set_status_valid_transition function tests the method with a valid transition to 'In Progress' status.
@@ -20,18 +21,17 @@ def test_set_status_valid_transition(client):
 
     Side Effects:
     - Modifies the status of the client to a valid transition.
-
     """
 
     # Mock response for GET and POST requests
     transitions = {"transitions": [{"name": "In Progress", "id": "31"}]}
-    client._request.return_value = transitions  # First call is GET, second is POST
+    client.request.return_value = transitions  # First call is GET, second is POST
 
     # Call the set_status method
     client.set_status("AAP-test_set_status_valid_transition", "In Progress")
 
     # Assert that _request was called twice (GET and POST)
-    assert client._request.call_count == 2
+    assert client.request.call_count == 2
 
 
 def test_set_status_invalid_transition(client):
@@ -47,7 +47,7 @@ def test_set_status_invalid_transition(client):
 
     # Mock response for GET and POST requests
     transitions = {"transitions": [{"name": "In Progress", "id": "31"}]}
-    client._request.return_value = transitions  # First call is GET, second is POST
+    client.request.return_value = transitions  # First call is GET, second is POST
 
     # Use pytest.raises to capture the exception
     with pytest.raises(
@@ -56,4 +56,4 @@ def test_set_status_invalid_transition(client):
         client.set_status("AAP-test_set_status_invalid_transition", "Done")
 
     # Ensure _request was called twice (GET and POST)
-    assert client._request.call_count == 1
+    assert client.request.call_count == 1

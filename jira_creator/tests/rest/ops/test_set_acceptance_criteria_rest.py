@@ -1,8 +1,15 @@
+#!/usr/bin/env python
 """
 This script defines a test function 'test_set_acceptance_criteria' that tests the functionality of setting acceptance
 criteria for a JIRA issue using a provided client. The function simulates GET and PUT responses, calls the
 'set_acceptance_criteria' method of the client, captures the output, and asserts that the output contains an expected
 success message. The test function takes 'capsys' and 'client' as parameters and utilizes a mocked client request.
+
+The 'test_set_acceptance_criteria' function sets acceptance criteria for a specified test issue identified by
+'issue_key'.
+It takes 'capsys' as a pytest fixture for capturing stdout and stderr output, and 'client' as an instance of the client
+used to interact with the issue tracking system. The function has the side effect of setting the acceptance criteria for
+the test issue.
 """
 
 from core.env_fetcher import EnvFetcher
@@ -18,14 +25,13 @@ def test_set_acceptance_criteria(capsys, client):
 
     Side Effects:
     - Sets the acceptance criteria for a test issue identified by 'issue_key'.
-
     """
 
     issue_key = "AAP-test_set_acceptance_criteria"
     acceptance_criteria = "Acceptance criteria description"
 
     # Simulate the GET and PUT responses correctly
-    client._request.side_effect = [
+    client.request.side_effect = [
         {
             "fields": {
                 EnvFetcher.get(

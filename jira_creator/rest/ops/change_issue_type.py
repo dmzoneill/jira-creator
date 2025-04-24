@@ -37,4 +37,4 @@ def change_issue_type(request_fn, issue_key, new_type):
     except ChangeIssueTypeError as e:
         msg = f"❌ Failed to change issue type: {e}"
         print(msg)
-        raise ChangeIssueTypeError(msg)
+        raise ChangeIssueTypeError(e) from e

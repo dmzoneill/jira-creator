@@ -10,6 +10,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+from exceptions.exceptions import AiError
 from providers.deepseek_provider import DeepSeekProvider
 
 
@@ -66,7 +67,7 @@ def test_improve_text_failure(mock_post):
 
     provider = DeepSeekProvider()
     with pytest.raises(
-        Exception, match="DeepSeek request failed: 500 - Internal Server Error"
+        AiError, match="DeepSeek request failed: 500 - Internal Server Error"
     ):
         provider.improve_text("Fix grammar", "bad grammar sentence")
 
@@ -99,5 +100,5 @@ def test_improve_text_json_decode_error(mock_post):
     provider = DeepSeekProvider()
 
     # Assert that an exception is raised when the response is not a valid JSON
-    with pytest.raises(Exception, match="Failed to parse response: Invalid JSON"):
+    with pytest.raises(AiError):
         provider.improve_text("Fix grammar", "bad grammar sentence")

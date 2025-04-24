@@ -48,4 +48,4 @@ def cli_view_issue(jira, args):
     except ViewIssueError as e:
         msg = f"❌ Unable to view issue: {e}"
         print(msg)
-        raise ViewIssueError(msg)
+        raise ViewIssueError(e) from e

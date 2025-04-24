@@ -36,4 +36,4 @@ def remove_from_sprint(request_fn, issue_key):
     except RemoveFromSprintError as e:
         msg = f"❌ Failed to remove from sprint: {e}"
         print(msg)
-        raise RemoveFromSprintError(msg)
+        raise RemoveFromSprintError(e) from e

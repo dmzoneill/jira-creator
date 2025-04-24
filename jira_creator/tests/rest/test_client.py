@@ -99,7 +99,7 @@ def test_request_request_exception(mock_request, mock_sleep):
         client._request("GET", "/rest/api/2/issue/ISSUE-NETWORKERROR")
 
     # Verify that the JiraClientRequestError is raised with the correct message
-    assert str(exc_info.value) == "Request failed: Network error"
+    assert str(exc_info.value) == "Network error"
 
     # Ensure that the exception handling block is covered
     mock_request.assert_called_once()

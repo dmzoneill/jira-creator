@@ -40,7 +40,7 @@ class GPT4AllProvider:
         try:
             self.model = GPT4All(model_name)
         except GTP4AllError as e:
-            raise GTP4AllError(RuntimeError(f"Failed to load GPT4All model: {e}"))
+            raise GTP4AllError(e) from e
 
     def improve_text(self, prompt: str, text: str) -> str:
         """

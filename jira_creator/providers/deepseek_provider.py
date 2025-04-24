@@ -78,5 +78,5 @@ class DeepSeekProvider:
             entire_response = entire_response.replace("<think>", "")
             entire_response = entire_response.replace("</think>", "")
             return entire_response
-        except json.JSONDecodeError:
-            raise AiError(f"Failed to parse response: {response.text}")
+        except json.JSONDecodeError as e:
+            raise AiError(e) from e

@@ -34,7 +34,7 @@ def vote_story_points(request_fn, issue_key, points):
     except FetchIssueIDError as e:
         msg = f"❌ Failed to fetch issue ID for {issue_key}: {e}"
         print(msg)
-        raise FetchIssueIDError(msg)
+        raise FetchIssueIDError(e) from e
 
     payload = {"issueId": issue_id, "vote": points}
 
@@ -53,4 +53,4 @@ def vote_story_points(request_fn, issue_key, points):
     except (VoteStoryPointsError, VoteStoryPointsError) as e:
         msg = f"❌ Failed to vote on story points: {e}"
         print(msg)
-        raise VoteStoryPointsError(msg)
+        raise VoteStoryPointsError(e) from e

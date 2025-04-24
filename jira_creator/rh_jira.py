@@ -419,7 +419,7 @@ class JiraCLI:
         except AttributeError as e:
             msg: str = f"❌ Command failed: {e}"
             print(msg)
-            raise DispatcherError(msg)
+            raise DispatcherError(e) from e
 
     def ai_helper(self, args: Namespace) -> None:
         """
@@ -868,7 +868,7 @@ class JiraCLI:
 
         return cli_search(self.jira, args)
 
-    def quarterly_connection(self, args: Namespace) -> None:
+    def quarterly_connection(self, _: Namespace) -> None:
         """
         Execute a quarterly connection using the provided arguments.
 

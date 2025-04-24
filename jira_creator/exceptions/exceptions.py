@@ -6,16 +6,6 @@ story epic, listing issues, editing issues, fetching descriptions, assigning/una
 updating descriptions, migrating, opening/viewing issues, adding comments, and various other Jira-related operations.
 """
 
-# exceptions/jira_exceptions.py
-
-
-class BaseException(Exception):
-    """
-    Base class for all Jira-related exceptions.
-    """
-
-    pass
-
 
 class MissingConfigVariable(BaseException):
     """
@@ -24,8 +14,6 @@ class MissingConfigVariable(BaseException):
     Attributes:
     BaseException: The base exception class in Python.
     """
-
-    pass
 
 
 class SetStoryEpicError(BaseException):
@@ -36,8 +24,6 @@ class SetStoryEpicError(BaseException):
     No specific attributes are defined in this class.
     """
 
-    pass
-
 
 class ListIssuesError(BaseException):
     """
@@ -46,8 +32,6 @@ class ListIssuesError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class SetAcceptanceCriteriaError(BaseException):
@@ -58,8 +42,6 @@ class SetAcceptanceCriteriaError(BaseException):
     None
     """
 
-    pass
-
 
 class DispatcherError(BaseException):
     """
@@ -68,8 +50,6 @@ class DispatcherError(BaseException):
     Attributes:
     - None
     """
-
-    pass
 
 
 class EditIssueError(BaseException):
@@ -80,8 +60,6 @@ class EditIssueError(BaseException):
     None
     """
 
-    pass
-
 
 class FetchDescriptionError(BaseException):
     """
@@ -90,8 +68,6 @@ class FetchDescriptionError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class EditDescriptionError(BaseException):
@@ -102,8 +78,6 @@ class EditDescriptionError(BaseException):
     None
     """
 
-    pass
-
 
 class RemoveFromSprintError(BaseException):
     """
@@ -112,8 +86,6 @@ class RemoveFromSprintError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class ChangeIssueTypeError(BaseException):
@@ -124,8 +96,6 @@ class ChangeIssueTypeError(BaseException):
     No attributes are defined for this class.
     """
 
-    pass
-
 
 class UnassignIssueError(BaseException):
     """
@@ -134,8 +104,6 @@ class UnassignIssueError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class AssignIssueError(BaseException):
@@ -146,8 +114,6 @@ class AssignIssueError(BaseException):
     None
     """
 
-    pass
-
 
 class FetchIssueIDError(BaseException):
     """
@@ -156,8 +122,6 @@ class FetchIssueIDError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class VoteStoryPointsError(BaseException):
@@ -168,8 +132,6 @@ class VoteStoryPointsError(BaseException):
     None
     """
 
-    pass
-
 
 class GetPromptError(BaseException):
     """
@@ -178,8 +140,6 @@ class GetPromptError(BaseException):
     Attributes:
     No attributes are defined explicitly in this class.
     """
-
-    pass
 
 
 class UpdateDescriptionError(BaseException):
@@ -190,8 +150,6 @@ class UpdateDescriptionError(BaseException):
     None
     """
 
-    pass
-
 
 class MigrateError(BaseException):
     """
@@ -200,8 +158,6 @@ class MigrateError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class OpenIssueError(BaseException):
@@ -212,8 +168,6 @@ class OpenIssueError(BaseException):
     None
     """
 
-    pass
-
 
 class ViewIssueError(BaseException):
     """
@@ -222,8 +176,6 @@ class ViewIssueError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class AddSprintError(BaseException):
@@ -234,8 +186,6 @@ class AddSprintError(BaseException):
     None
     """
 
-    pass
-
 
 class SetStatusError(BaseException):
     """
@@ -244,8 +194,6 @@ class SetStatusError(BaseException):
     Attributes:
     - None
     """
-
-    pass
 
 
 class BlockError(BaseException):
@@ -256,8 +204,6 @@ class BlockError(BaseException):
     No specific attributes defined.
     """
 
-    pass
-
 
 class UnBlockError(BaseException):
     """
@@ -266,8 +212,6 @@ class UnBlockError(BaseException):
     Attributes:
     - No specific attributes defined.
     """
-
-    pass
 
 
 class AddCommentError(BaseException):
@@ -278,8 +222,6 @@ class AddCommentError(BaseException):
     No specific attributes are defined in this class.
     """
 
-    pass
-
 
 class AiError(BaseException):
     """
@@ -288,8 +230,6 @@ class AiError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class SearchError(BaseException):
@@ -300,8 +240,6 @@ class SearchError(BaseException):
     None
     """
 
-    pass
-
 
 class CreateIssueError(BaseException):
     """
@@ -310,8 +248,6 @@ class CreateIssueError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class LintAllError(BaseException):
@@ -322,8 +258,6 @@ class LintAllError(BaseException):
     None
     """
 
-    pass
-
 
 class LintError(BaseException):
     """
@@ -333,8 +267,6 @@ class LintError(BaseException):
     No specific attributes.
     """
 
-    pass
-
 
 class SetPriorityError(BaseException):
     """
@@ -343,8 +275,6 @@ class SetPriorityError(BaseException):
     Attributes:
     - None
     """
-
-    pass
 
 
 class SetStoryPointsError(BaseException):
@@ -356,8 +286,6 @@ class SetStoryPointsError(BaseException):
     No specific attributes are defined for this class.
     """
 
-    pass
-
 
 class ChangeTypeError(BaseException):
     """
@@ -366,8 +294,6 @@ class ChangeTypeError(BaseException):
     Attributes:
     None
     """
-
-    pass
 
 
 class ListBlockedError(BaseException):
@@ -378,8 +304,6 @@ class ListBlockedError(BaseException):
     No attributes defined.
     """
 
-    pass
-
 
 class InvalidPromptError(BaseException):
     """
@@ -388,8 +312,6 @@ class InvalidPromptError(BaseException):
     Attributes:
     No specific attributes.
     """
-
-    pass
 
 
 class JiraClientRequestError(BaseException):
@@ -400,8 +322,6 @@ class JiraClientRequestError(BaseException):
     None
     """
 
-    pass
-
 
 class QuarterlyConnectionError(BaseException):
     """
@@ -411,16 +331,12 @@ class QuarterlyConnectionError(BaseException):
     None
     """
 
-    pass
-
 
 class GTP4AllError(BaseException):
     """
     This class represents a custom error called GTP4AllError that inherits from BaseException.
     It is used to handle specific exceptions related to the GTP4All system.
     """
-
-    pass
 
 
 class AiProviderError(BaseException):
@@ -431,8 +347,6 @@ class AiProviderError(BaseException):
     No specific attributes.
     """
 
-    pass
-
 
 class AIHelperError(BaseException):
     """
@@ -442,8 +356,6 @@ class AIHelperError(BaseException):
     None
     """
 
-    pass
-
 
 class GetUserError(BaseException):
     """
@@ -451,8 +363,6 @@ class GetUserError(BaseException):
     Attributes:
     - None
     """
-
-    pass
 
 
 class SearchUsersError(BaseException):
@@ -463,8 +373,6 @@ class SearchUsersError(BaseException):
     None
     """
 
-    pass
-
 
 class RemoveFlagError(BaseException):
     """
@@ -473,5 +381,3 @@ class RemoveFlagError(BaseException):
     Attributes:
     No attributes are defined for this class.
     """
-
-    pass

@@ -29,4 +29,4 @@ def unassign_issue(request_fn, issue_key):
     except UnassignIssueError as e:
         msg = f"❌ Failed to unassign issue {issue_key}: {e}"
         print(msg)
-        raise UnassignIssueError(msg)
+        raise UnassignIssueError(e) from e

@@ -22,4 +22,4 @@ def _try_cleanup(ai_provider, prompt, text):
     except AiError as e:
         msg = f"⚠️ AI cleanup failed: {e}"
         print(msg)
-        raise AiError(msg)
+        raise AiError(e) from e

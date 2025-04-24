@@ -8,6 +8,7 @@ It uses pytest.raises to capture the exception and asserts that the _request met
 """
 
 import pytest
+from exceptions.exceptions import SetStatusError
 
 
 def test_set_status_valid_transition(client):
@@ -49,7 +50,9 @@ def test_set_status_invalid_transition(client):
     client._request.return_value = transitions  # First call is GET, second is POST
 
     # Use pytest.raises to capture the exception
-    with pytest.raises(Exception, match="❌ Transition to status 'Done' not found"):
+    with pytest.raises(
+        SetStatusError, match="❌ Transition to status 'Done' not found"
+    ):
         client.set_status("AAP-test_set_status_invalid_transition", "Done")
 
     # Ensure _request was called twice (GET and POST)

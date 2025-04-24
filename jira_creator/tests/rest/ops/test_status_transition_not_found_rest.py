@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+from exceptions.exceptions import SetStatusError
 
 
 def test_status_transition_missing(client):
@@ -15,5 +16,5 @@ def test_status_transition_missing(client):
     client._request.return_value = {"transitions": []}
 
     # Assert that an exception is raised when trying to set a status
-    with pytest.raises(Exception, match="Transition to status 'done' not found"):
+    with pytest.raises(SetStatusError, match="Transition to status 'done' not found"):
         client.set_status("AAP-test_status_transition_missing", "done")

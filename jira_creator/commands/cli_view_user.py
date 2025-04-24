@@ -30,4 +30,4 @@ def cli_view_user(jira, args):
     except GetUserError as e:
         msg = f"❌ Unable to retrieve user: {e}"
         print(msg)
-        raise GetUserError(msg)
+        raise GetUserError(msg) from e

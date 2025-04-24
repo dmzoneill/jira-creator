@@ -57,7 +57,7 @@ def cli_add_comment(jira, ai_provider, comment_prompt, args):
     except AiError as e:
         msg = f"⚠️ AI cleanup failed. Using raw comment. Error: {e}"
         print(msg)
-        raise AiError(msg)
+        raise AiError(msg) from e
 
     try:
         jira.add_comment(args.issue_key, cleaned)
@@ -66,4 +66,4 @@ def cli_add_comment(jira, ai_provider, comment_prompt, args):
     except AddCommentError as e:
         msg = f"❌ Failed to add comment: {e}"
         print(msg)
-        raise AddCommentError(msg)
+        raise AddCommentError(e) from e

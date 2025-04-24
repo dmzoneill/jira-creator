@@ -37,4 +37,4 @@ def cli_search_users(jira, args):
     except SearchUsersError as e:
         msg = f"❌ Unable to search users: {e}"
         print(msg)
-        raise SearchUsersError(msg)
+        raise SearchUsersError(e) from e

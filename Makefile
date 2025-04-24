@@ -97,6 +97,11 @@ lint: print-header
 	@echo "\n========== shellcheck Finished =========="
 	./node_modules/jscpd/bin/jscpd -p "**/*.py" $$PWD
 	@echo "\n========== jscpd Finished =========="
+	- @{ \
+		export PYTHONPATH=$$PWD/jira_creator; \
+		pylint jira_creator/; \
+	}
+	@echo "\n========== pylint Finished =========="
 
 # --- Coverage ---
 .PHONY: coverage

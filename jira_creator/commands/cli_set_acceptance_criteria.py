@@ -30,4 +30,4 @@ def cli_set_acceptance_criteria(jira, args):
     except SetAcceptanceCriteriaError as e:
         msg = f"❌ Failed to set acceptance criteria: {e}"
         print(msg)
-        raise SetAcceptanceCriteriaError(msg)
+        raise SetAcceptanceCriteriaError(e) from e

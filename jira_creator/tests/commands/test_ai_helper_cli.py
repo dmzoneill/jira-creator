@@ -14,13 +14,13 @@ The tests utilize the `pytest` framework and include mocking of dependencies to 
 scenarios.
 """
 
-from commands.cli_ai_helper import (
-    ask_ai_question,
-)  # Adjust the import based on your module structure
 from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
 import pytest
+from commands.cli_ai_helper import (
+    ask_ai_question,
+)  # Adjust the import based on your module structure
 from exceptions.exceptions import AIHelperError
 
 from commands.cli_ai_helper import (  # isort: skip

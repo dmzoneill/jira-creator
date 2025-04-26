@@ -657,7 +657,7 @@ class JiraClient:
         """
         return remove_from_sprint(self.request, issue_key)
 
-    def add_to_sprint(self, issue_key: str, sprint_name: str) -> None:
+    def add_to_sprint(self, issue_key: str, sprint_name: str, assignee: str) -> None:
         """
         Add an issue to a sprint on a board.
 
@@ -668,7 +668,9 @@ class JiraClient:
         Side Effects:
         Modifies the sprint by adding the specified issue to it.
         """
-        return add_to_sprint(self.request, self.board_id, issue_key, sprint_name)
+        return add_to_sprint(
+            self.request, self.board_id, issue_key, sprint_name, assignee
+        )
 
     def set_status(self, issue_key: str, target_status: str) -> None:
         """

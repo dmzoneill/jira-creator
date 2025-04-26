@@ -30,6 +30,7 @@ def test_add_sprint(cli):
     class Args:
         issue_key = "AAP-test_add_to_sprint"
         sprint_name = "Sprint 1"
+        assignee = "user1"
 
     cli.add_to_sprint(Args())
     cli.jira.add_to_sprint.assert_called_once()

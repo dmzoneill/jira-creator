@@ -273,6 +273,9 @@ class JiraCLI:
         add_to_sprint = add("add-to-sprint", "Add issue to sprint by name")
         add_to_sprint.add_argument("issue_key", help="The Jira issue id/key")
         add_to_sprint.add_argument("sprint_name", help="The name of the sprint")
+        add_to_sprint.add_argument(
+            "--assignee", help="Assign it to a specific user (default to current user)"
+        )
 
         remove_sprint = add("remove-sprint", "Remove issue from its sprint")
         remove_sprint.add_argument("issue_key", help="The Jira issue id/key")

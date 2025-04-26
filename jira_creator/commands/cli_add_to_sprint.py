@@ -27,7 +27,7 @@ def cli_add_to_sprint(jira: JiraClient, args: Namespace) -> bool:
 
     Arguments:
     - jira (JIRA): An instance of the JIRA client.
-    - args (Namespace): A namespace object containing 'issue_key' and 'sprint_name' attributes.
+    - args (Namespace): A namespace object containing 'issue_key', 'sprint_name' and 'assignee' attributes.
 
     Return:
     - bool: True if the issue was successfully added to the sprint.
@@ -41,7 +41,7 @@ def cli_add_to_sprint(jira: JiraClient, args: Namespace) -> bool:
     """
 
     try:
-        jira.add_to_sprint(args.issue_key, args.sprint_name)
+        jira.add_to_sprint(args.issue_key, args.sprint_name, args.assignee)
         print(f"✅ Added to sprint '{args.sprint_name}'")
         return True
     except AddSprintError as e:

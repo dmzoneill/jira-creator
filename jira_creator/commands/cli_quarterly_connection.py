@@ -25,12 +25,14 @@ import time
 from typing import Any, List, Optional
 
 from exceptions.exceptions import QuarterlyConnectionError
-from rest.prompts import IssueType, PromptLibrary
-from rest.client import JiraClient
 from providers.AiProvider import AiProvider
+from rest.client import JiraClient
+from rest.prompts import IssueType, PromptLibrary
 
 
-def cli_quarterly_connection(jira: JiraClient, ai_provider: AiProvider) -> Optional[bool]:
+def cli_quarterly_connection(
+    jira: JiraClient, ai_provider: AiProvider
+) -> Optional[bool]:
     """
     Builds a quarterly employee report based on JIRA issues assigned to the current user.
 
@@ -50,8 +52,10 @@ def cli_quarterly_connection(jira: JiraClient, ai_provider: AiProvider) -> Optio
 
     try:
         print("Building employee report")
-        jql: str = "(created >= -90d OR resolutionDate >= -90d OR" \
-                   " updated >= -90d OR comment ~ currentUser()) AND assignee = currentUser()"
+        jql: str = (
+            "(created >= -90d OR resolutionDate >= -90d OR"
+            " updated >= -90d OR comment ~ currentUser()) AND assignee = currentUser()"
+        )
         issues: List[dict] = jira.search_issues(jql)
 
         if issues is None or len(issues) == 0:

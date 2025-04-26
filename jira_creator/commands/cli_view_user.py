@@ -13,10 +13,12 @@ It takes two arguments:
 This function may raise exceptions if there are issues with retrieving the user information from Jira.
 """
 
+from argparse import Namespace
+from typing import Any, Dict
+
 from exceptions.exceptions import GetUserError
-from typing import Dict, Any
 from rest.client import JiraClient
-from argparse import Namespace 
+
 
 def cli_view_user(jira: JiraClient, args: Namespace) -> Dict[str, Any]:
     """

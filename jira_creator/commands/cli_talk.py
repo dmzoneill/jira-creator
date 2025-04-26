@@ -34,8 +34,8 @@ import contextlib
 import json
 import os
 import queue
-from typing import Optional, Any
 from argparse import Namespace
+from typing import Any, Optional
 
 import sounddevice
 from core.env_fetcher import EnvFetcher
@@ -248,7 +248,9 @@ def process_audio_data(q: queue.Queue, rec: KaldiRecognizer) -> Optional[str]:
     return original.strip()
 
 
-def callback(indata: bytes, frames: int, time: object, status: object, q: queue.Queue) -> None:
+def callback(
+    indata: bytes, frames: int, time: object, status: object, q: queue.Queue
+) -> None:
     """
     Handles the callback for the audio stream.
     """

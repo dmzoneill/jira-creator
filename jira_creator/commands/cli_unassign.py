@@ -11,8 +11,10 @@ It returns a boolean value:
 - False otherwise.
 """
 
-from rest.client import JiraClient
 from argparse import Namespace
+
+from rest.client import JiraClient
+
 
 def cli_unassign(jira: JiraClient, args: Namespace) -> bool:
     """

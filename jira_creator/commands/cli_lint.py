@@ -20,12 +20,13 @@ propagate.
 - Note: This function does not have a return value.
 """
 
+from argparse import Namespace
+from typing import Any, Dict, List
+
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintError
-from typing import Any, Dict, List
-from rest.client import JiraClient
-from argparse import Namespace
 from providers.AiProvider import AiProvider
+from rest.client import JiraClient
 
 
 def cli_lint(jira: JiraClient, ai_provider: AiProvider, args: Namespace) -> List[str]:
@@ -47,7 +48,9 @@ def cli_lint(jira: JiraClient, ai_provider: AiProvider, args: Namespace) -> List
     Note: This function does not have a return value.
     """
     try:
-        issue: Dict[str, Any] = jira.request("GET", f"/rest/api/2/issue/{args.issue_key}")
+        issue: Dict[str, Any] = jira.request(
+            "GET", f"/rest/api/2/issue/{args.issue_key}"
+        )
         fields: Dict[str, Any] = issue["fields"]
         fields["key"] = args.issue_key
 

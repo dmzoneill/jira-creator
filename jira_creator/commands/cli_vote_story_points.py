@@ -18,9 +18,10 @@ Function 'cli_vote_story_points':
 - ValueError: Raised when the provided story points cannot be converted to an integer.
 """
 
+from argparse import Namespace
+
 from exceptions.exceptions import VoteStoryPointsError
 from rest.client import JiraClient
-from argparse import Namespace
 
 
 def cli_vote_story_points(jira: JiraClient, args: Namespace) -> bool:

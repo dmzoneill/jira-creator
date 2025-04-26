@@ -24,17 +24,19 @@ formatted feedback on Jira issues.
 # pylint: disable=too-many-locals
 
 import textwrap
-from collections import OrderedDict
-from typing import List, Dict, Any, Union
-from rest.client import JiraClient
 from argparse import Namespace
-from providers.AiProvider import AiProvider
+from collections import OrderedDict
+from typing import Any, Dict, List, Union
 
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintAllError
+from providers.AiProvider import AiProvider
+from rest.client import JiraClient
 
 
-def print_status_table(failure_statuses: List[Dict[str, Union[str, bool, None]]]) -> None:
+def print_status_table(
+    failure_statuses: List[Dict[str, Union[str, bool, None]]],
+) -> None:
     """
     Collects all unique keys from all rows in the failure_statuses table.
 
@@ -103,7 +105,9 @@ def print_status_table(failure_statuses: List[Dict[str, Union[str, bool, None]]]
     print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
 
 
-def cli_lint_all(jira: JiraClient, ai_provider: AiProvider, args: Namespace) -> List[Dict[str, Any]]:
+def cli_lint_all(
+    jira: JiraClient, ai_provider: AiProvider, args: Namespace
+) -> List[Dict[str, Any]]:
     """
     Lint all Jira issues based on specified criteria.
 

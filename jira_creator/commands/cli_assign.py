@@ -15,8 +15,10 @@ Side Effects:
 - Prints a message indicating whether the issue assignment was successful or not.
 """
 
-from rest.client import JiraClient
 from argparse import Namespace
+
+from rest.client import JiraClient
+
 
 def cli_assign(jira: JiraClient, args: Namespace) -> bool:
     """

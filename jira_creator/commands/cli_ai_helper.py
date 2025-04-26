@@ -32,11 +32,11 @@ import json
 import os
 import re
 from argparse import Namespace
-from typing import Dict, Any, List, Union
-from providers.AiProvider import AiProvider
+from typing import Any, Dict, List, Union
 
 from exceptions.exceptions import AIHelperError
 from gtts import gTTS
+from providers.AiProvider import AiProvider
 
 
 def get_cli_command_metadata() -> Dict[str, Dict[str, Any]]:
@@ -126,7 +126,13 @@ def clean_ai_output(ai_output: str) -> Union[List[Any], None]:
         raise ValueError(e) from e
 
 
-def ask_ai_question(cli: Any, ai_provider: AiProvider, system_prompt: str, user_prompt: str, voice: bool = False) -> bool:
+def ask_ai_question(
+    cli: Any,
+    ai_provider: AiProvider,
+    system_prompt: str,
+    user_prompt: str,
+    voice: bool = False,
+) -> bool:
     """
     Ask AI a question and generate steps based on the provided prompts.
 
@@ -174,7 +180,9 @@ def ask_ai_question(cli: Any, ai_provider: AiProvider, system_prompt: str, user_
     return True
 
 
-def cli_ai_helper(cli: Any, ai_provider: Any, system_prompt: str, args: Namespace) -> bool:
+def cli_ai_helper(
+    cli: Any, ai_provider: Any, system_prompt: str, args: Namespace
+) -> bool:
     """
     Retrieve CLI command metadata using the 'get_cli_command_metadata' function.
 

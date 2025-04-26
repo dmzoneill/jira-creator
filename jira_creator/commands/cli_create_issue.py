@@ -18,17 +18,19 @@ import json
 import os
 import subprocess
 import tempfile
-from typing import Any, Dict, Optional
-from rest.client import JiraClient
 from argparse import Namespace
-from providers.AiProvider import AiProvider
+from typing import Any, Dict, Optional
 
 from exceptions.exceptions import AiError, CreateIssueError
+from providers.AiProvider import AiProvider
+from rest.client import JiraClient
 from rest.prompts import IssueType, PromptLibrary
 from templates.template_loader import TemplateLoader
 
 
-def cli_create_issue(jira: JiraClient, ai_provider: AiProvider, template_dir: str, args: Namespace) -> Optional[str]:
+def cli_create_issue(
+    jira: JiraClient, ai_provider: AiProvider, template_dir: str, args: Namespace
+) -> Optional[str]:
     """
     Creates a new issue in Jira based on a template.
 

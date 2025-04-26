@@ -11,9 +11,11 @@ Return:
 - dict: The response from adding a flag to the specified Jira issue.
 """
 
-from typing import Dict, Any
-from rest.client import JiraClient
 from argparse import Namespace
+from typing import Any, Dict
+
+from rest.client import JiraClient
+
 
 def cli_clone_issue(jira: JiraClient, args: Namespace) -> Dict[str, Any]:
     """

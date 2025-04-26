@@ -17,9 +17,10 @@ Side Effects:
 - Prints a success message if the issue is unblocked successfully.
 - Prints an error message if there is a failure while unblocking the issue.
 """
+from argparse import Namespace
+
 from exceptions.exceptions import UnBlockError
 from rest.client import JiraClient
-from argparse import Namespace
 
 
 def cli_unblock(jira: JiraClient, args: Namespace) -> bool:

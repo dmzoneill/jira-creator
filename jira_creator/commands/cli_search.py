@@ -23,12 +23,12 @@ variable fetching and exception handling, respectively.
 """
 
 import re
-from typing import Any, List, Tuple, Union
-from rest.client import JiraClient
 from argparse import Namespace
+from typing import Any, List, Tuple, Union
 
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import SearchError
+from rest.client import JiraClient
 
 
 def cli_search(jira: JiraClient, args: Namespace) -> Union[List[Any], bool]:

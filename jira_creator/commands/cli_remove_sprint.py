@@ -16,9 +16,10 @@ Side Effects:
 - Prints a success message if the issue is removed from the sprint.
 - Prints an error message and raises a RemoveFromSprintError if removal fails.
 """
+from argparse import Namespace
+
 from exceptions.exceptions import RemoveFromSprintError
 from rest.client import JiraClient
-from argparse import Namespace
 
 
 def cli_remove_sprint(jira: JiraClient, args: Namespace) -> bool:

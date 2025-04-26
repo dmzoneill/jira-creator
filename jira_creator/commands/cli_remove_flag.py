@@ -15,10 +15,12 @@ message and raises a 'RemoveFlagError' with details of the failure.
 Note: The 'RemoveFlagError' exception is imported from 'exceptions.exceptions' module.
 """
 
+from argparse import Namespace
+from typing import Any, Dict
+
 from exceptions.exceptions import RemoveFlagError
 from rest.client import JiraClient
-from argparse import Namespace
-from typing import Dict, Any
+
 
 def cli_remove_flag(jira: JiraClient, args: Namespace) -> Any:
     """

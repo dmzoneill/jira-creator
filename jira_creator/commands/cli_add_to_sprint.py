@@ -18,7 +18,7 @@ Side effects include:
 from argparse import Namespace
 
 from exceptions.exceptions import AddSprintError
-from rest.client import JiraClient  # Assuming JIRA is imported from the jira package
+from rest.client import JiraClient
 
 
 def cli_add_to_sprint(jira: JiraClient, args: Namespace) -> bool:

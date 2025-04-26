@@ -15,9 +15,10 @@ Side Effects:
 - Modifies the blocked status and reason fields of the specified JIRA issue.
 """
 from core.env_fetcher import EnvFetcher
+from typing import Callable
 
 
-def block_issue(request_fn, issue_key, reason):
+def block_issue(request_fn: Callable[[str, str, dict], None], issue_key: str, reason: str) -> None:
     """
     Updates a JIRA issue by setting the blocked status and reason.
 
@@ -33,7 +34,7 @@ def block_issue(request_fn, issue_key, reason):
     blocked_field = EnvFetcher.get("JIRA_BLOCKED_FIELD")
     reason_field = EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD")
 
-    payload = {}
+    payload: dict = {}
     payload[blocked_field] = {}
     payload[blocked_field]["value"] = True
     payload[reason_field] = reason

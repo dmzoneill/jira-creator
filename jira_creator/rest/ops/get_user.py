@@ -3,7 +3,7 @@
 Retrieves user information by sending a GET request to the specified API endpoint.
 
 Arguments:
-- request_fn (function): A function used to make HTTP requests.
+- request_fn (Callable[[str, str], dict]): A function used to make HTTP requests.
 - username (str): The username of the user whose information is being retrieved.
 
 Return:
@@ -11,12 +11,14 @@ Return:
 """
 
 
-def get_user(request_fn, username: str) -> dict:
+from typing import Callable
+
+def get_user(request_fn: Callable[[str, str], dict], username: str) -> dict:
     """
     Retrieves user information by sending a GET request to the specified API endpoint.
 
     Arguments:
-    - request_fn (function): A function used to make HTTP requests.
+    - request_fn (Callable[[str, str], dict]): A function used to make HTTP requests.
     - username (str): The username of the user whose information is being retrieved.
 
     Return:

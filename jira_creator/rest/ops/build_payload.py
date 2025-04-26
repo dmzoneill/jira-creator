@@ -17,18 +17,18 @@ payload = build_payload("Bug in Login Page", "Fix the issue with the login funct
 """
 
 # pylint: disable=too-many-arguments too-many-positional-arguments
-
+from typing import Dict, Any
 
 def build_payload(
-    summary,
-    description,
-    issue_type,
-    project_key,
-    affects_version,
-    component_name,
-    priority,
-    epic_field,
-):
+    summary: str,
+    description: str,
+    issue_type: str,
+    project_key: str,
+    affects_version: str,
+    component_name: str,
+    priority: str,
+    epic_field: str,
+) -> Dict[str, Any]:
     """
     Builds a payload dictionary for creating an issue in a project.
 
@@ -46,7 +46,7 @@ def build_payload(
     - dict: A dictionary representing the payload for creating an issue with the specified details.
     """
 
-    fields = {
+    fields: Dict[str, Any] = {
         "project": {"key": project_key},
         "summary": summary,
         "description": description,

@@ -20,10 +20,11 @@ prompt.
 
 from exceptions.exceptions import GTP4AllError
 from gpt4all import GPT4All
-from providers.AiProvider import AiProvider
+
+from providers.ai_provider import AIProvider
 
 
-class GPT4AllProvider(AiProvider):
+class GPT4AllProvider(AIProvider):
     """
     This class provides a wrapper to interact with the GPT4All model for text improvement.
 
@@ -36,7 +37,7 @@ class GPT4AllProvider(AiProvider):
     them, uses the GPT4All model to improve the text, and returns the improved version.
     """
 
-    def __init__(self, model_name: str = "ggml-gpt4all-j-v1.3-groovy"):
+    def __init__(self, model_name: str = "ggml-gpt4all-j-v1.3-groovy") -> None:
         """
         Initialize a new instance of the GPT4AllModel class with the specified model name.
 
@@ -50,9 +51,9 @@ class GPT4AllProvider(AiProvider):
         - Initializes the model attribute with an instance of the GPT4All class using the provided model name.
         """
 
-        self.model_name = model_name
+        self.model_name: str = model_name
         try:
-            self.model = GPT4All(model_name)
+            self.model: GPT4All = GPT4All(model_name)
         except GTP4AllError as e:
             raise GTP4AllError(e) from e
 
@@ -71,12 +72,12 @@ class GPT4AllProvider(AiProvider):
         - Calls a model to generate the improved text based on the prompt and original text.
         """
 
-        instruction = (
+        instruction: str = (
             f"{prompt}\n\n"
             f"---\n"
             f"{text}\n"
             f"---\n\n"
             f"Please provide the improved version of the text, maintaining the structure."
         )
-        response = self.model.generate(instruction, max_tokens=1024, temp=0.3)
+        response: str = self.model.generate(instruction, max_tokens=1024, temp=0.3)
         return response.strip()

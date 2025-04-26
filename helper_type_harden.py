@@ -71,16 +71,22 @@ def harden_file(file_path: str, debug: bool, validate: bool):
     prompt = f"""
     You are a Python expert focused on improving code quality and enhancing type safety.
 
-    Please review the following Python code, add type hinting where appropriate,
-    and ensure that the code is type-hardened to enforce stricter type checking
-    and improve overall type safety.
+    Please review any python code given and add type hinting where appropriate,
+    Ensure that the code is type-hardened to enforce stricter type checking
+    and improve overall type safety.  Don't create any new types.
+
+    Some type that may help:
+
+    from providers.ai_provider import AIProvider
+    from argparse import Namespace
+    from rest.client import JiraClient
+    from core.env_fetcher import EnvFetcher
+    from exceptions.exceptions import XXXX
+    from rest.client import JiraClient
+    from rh_jira import JiraCli
 
     Respond with the updated code only. Do not include any explanations,
     summaries, or additional comments.
-
-    Here is the code to improve:
-    ============================
-    {source_code}
     """
 
     improved_code = improve_text(prompt, source_code)

@@ -19,9 +19,9 @@ Function 'change_issue_type':
 """
 
 from exceptions.exceptions import ChangeIssueTypeError
+from typing import Callable, Dict, Any
 
-
-def change_issue_type(request_fn, issue_key, new_type):
+def change_issue_type(request_fn: Callable[[str, str, Dict[str, Any]], None], issue_key: str, new_type: str) -> None:
     """
     Change the issue type of a Jira issue.
 
@@ -38,14 +38,14 @@ def change_issue_type(request_fn, issue_key, new_type):
     """
 
     try:
-        issue_data = request_fn("GET", f"/rest/api/2/issue/{issue_key}")
-        is_subtask = issue_data["fields"]["issuetype"]["subtask"]
-        payload = {"fields": {"issuetype": {"name": new_type.capitalize()}}}
+        issue_data: Dict[str, Any] = request_fn("GET", f"/rest/api/2/issue/{issue_key}")
+        is_subtask: bool = issue_data["fields"]["issuetype"]["subtask"]
+        payload: Dict[str, Any] = {"fields": {"issuetype": {"name": new_type.capitalize()}}}
         if is_subtask:
             payload["update"] = {"parent": [{"remove": {}}]}
 
         request_fn("PUT", f"/rest/api/2/issue/{issue_key}", json_data=payload)
     except ChangeIssueTypeError as e:
-        msg = f"❌ Failed to change issue type: {e}"
+        msg: str = f"❌ Failed to change issue type: {e}"
         print(msg)
         raise ChangeIssueTypeError(e) from e

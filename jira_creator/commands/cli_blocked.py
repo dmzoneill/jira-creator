@@ -47,7 +47,7 @@ def cli_blocked(jira: JiraClient, args: Namespace) -> Union[List[Dict[str, Any]]
         issues = jira.list_issues(
             project=args.project,
             component=args.component,
-            user=args.user or jira.get_current_user(),
+            assignee=args.user or jira.get_current_user(),
         )
 
         if not issues:

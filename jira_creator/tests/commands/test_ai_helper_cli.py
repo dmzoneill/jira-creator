@@ -18,9 +18,7 @@ from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from commands.cli_ai_helper import (
-    ask_ai_question,
-)  # Adjust the import based on your module structure
+from commands.cli_ai_helper import ask_ai_question
 from exceptions.exceptions import AIHelperError
 
 from commands.cli_ai_helper import (  # isort: skip
@@ -490,47 +488,3 @@ def test_cli_ai_helper_success(
 
     # Check if the function returns True
     assert result is True
-    """
-    Simulate a successful test scenario for a CLI AI helper function.
-
-    Arguments:
-    - mock_ask_ai_question: A mock object for asking AI questions.
-    - mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.
-    - cli: The CLI object used for testing.
-
-    Side Effects:
-    - Sets up mock return values for the dependencies to simulate a successful test scenario.
-    """
-    """
-    Simulate a successful test scenario for a CLI AI helper function.
-
-    Arguments:
-    - mock_ask_ai_question: A mock object for asking AI questions.
-    - mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.
-    - cli: The CLI object used for testing.
-
-    Side Effects:
-    - Sets up mock return values for the dependencies to simulate a successful test scenario.
-    """
-    """
-    Simulate a successful test scenario for a CLI AI helper function.
-
-    Arguments:
-    - mock_ask_ai_question: A mock object for asking AI questions.
-    - mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.
-    - cli: The CLI object used for testing.
-
-    Side Effects:
-    - Sets up mock return values for the dependencies to simulate a successful test scenario.
-    """
-    """
-    Simulate a successful test scenario for a CLI AI helper function.
-
-    Arguments:
-    - mock_ask_ai_question: A mock object for asking AI questions.
-    - mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.
-    - cli: The CLI object used for testing.
-
-    Side Effects:
-    - Sets up mock return values for the dependencies to simulate a successful test scenario.
-    """

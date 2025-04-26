@@ -11,9 +11,10 @@ When called, this function modifies the JIRA issue specified by 'issue_key' to s
 'epic_key'.
 """
 from core.env_fetcher import EnvFetcher
+from typing import Callable
 
 
-def set_story_epic(request_fn, issue_key, epic_key):
+def set_story_epic(request_fn: Callable[[str, str, dict], None], issue_key: str, epic_key: str) -> None:
     """
     Set the epic for a specific JIRA issue.
 

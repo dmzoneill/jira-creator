@@ -18,6 +18,8 @@ Usage:
 criteria.
 """
 
+# pylint: disable=too-many-locals
+
 import re
 from argparse import Namespace
 from typing import Any, List, Tuple
@@ -27,6 +29,7 @@ from exceptions.exceptions import ListIssuesError
 from rest.client import JiraClient
 
 
+# /* jscpd:ignore-start */
 def cli_list_issues(jira: JiraClient, args: Namespace) -> List[Any]:
     """
     Retrieve a list of issues from a Jira instance based on the provided arguments.
@@ -69,14 +72,16 @@ def cli_list_issues(jira: JiraClient, args: Namespace) -> List[Any]:
         for issue in issues:
             f = issue["fields"]
             sprints = f.get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
-            sprint = next(
-                (
-                    re.search(r"name=([^,]+)", s).group(1)
-                    for s in sprints
-                    if "state=ACTIVE" in s and "name=" in s
-                ),
-                "—",
-            )
+            sprint = "-"
+            if sprints is not None:
+                sprint = next(
+                    (
+                        re.search(r"name=([^,]+)", s).group(1)
+                        for s in sprints
+                        if "state=ACTIVE" in s and "name=" in s
+                    ),
+                    "—",
+                )
 
             if (
                 args.status
@@ -146,3 +151,6 @@ def cli_list_issues(jira: JiraClient, args: Namespace) -> List[Any]:
         msg = f"❌ Failed to list issues: {e}"
         print(msg)
         raise
+
+
+# /* jscpd:ignore-end */

@@ -11,7 +11,7 @@ Classes:
 
 Attributes of DeepSeekProvider:
 - url (str): The endpoint URL for the AI service, defaults to a local or proxied endpoint.
-- headers (dict): The headers for the HTTP request, with Content-Type set to application/json.
+- headers (dict[str, str]): The headers for the HTTP request, with Content-Type set to application/json.
 - model (str): The AI model used for processing the text data.
 
 Methods:
@@ -25,24 +25,26 @@ Exceptions:
 # pylint: disable=too-few-public-methods
 
 import json
+from typing import Dict
 
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
-from providers.AiProvider import AiProvider
+
+from providers.ai_provider import AIProvider
 
 
-class DeepSeekProvider(AiProvider):
+class DeepSeekProvider(AIProvider):
     """
     A class that provides methods to interact with a DeepSeek AI service.
 
     Attributes:
     - url (str): The endpoint URL for the AI service, defaults to a local or proxied endpoint.
-    - headers (dict): The headers for the HTTP request, with the Content-Type set to application/json.
+    - headers (Dict[str, str]): The headers for the HTTP request, with the Content-Type set to application/json.
     - model (str): The AI model used for processing the text data.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the AIEndpoint class with default values for URL, headers, and model.
 
@@ -53,10 +55,9 @@ class DeepSeekProvider(AiProvider):
         - Initializes the URL, headers, and model attributes using environment variables fetched by EnvFetcher.
         """
 
-        # Defaults to a local or proxied endpoint; override with env var
-        self.url = EnvFetcher.get("AI_URL")
-        self.headers = {"Content-Type": "application/json"}
-        self.model = EnvFetcher.get("AI_MODEL")
+        self.url: str = EnvFetcher.get("AI_URL")
+        self.headers: Dict[str, str] = {"Content-Type": "application/json"}
+        self.model: str = EnvFetcher.get("AI_MODEL")
 
     def improve_text(self, prompt: str, text: str) -> str:
         """
@@ -77,17 +78,17 @@ class DeepSeekProvider(AiProvider):
         - Modifies the response by removing specific HTML tags ("<think>") if present.
         """
 
-        full_prompt = f"{prompt}\n\n{text}"
+        full_prompt: str = f"{prompt}\n\n{text}"
 
         # Send the POST request
-        response = requests.post(
+        response: requests.Response = requests.post(
             self.url,
             headers=self.headers,
             json={
                 "model": self.model,
                 "prompt": full_prompt,
                 "stream": False,
-            },  # Change to non-streaming
+            },
             timeout=30,
         )
 
@@ -98,11 +99,11 @@ class DeepSeekProvider(AiProvider):
 
         # Parse the entire response at once
         try:
-            response_data = response.json()
-            entire_response = response_data.get("response", "").strip()
-            # Replace <think> with HTML tags if needed
-            entire_response = entire_response.replace("<think>", "")
-            entire_response = entire_response.replace("</think>", "")
+            response_data: Dict[str, str] = response.json()
+            entire_response: str = response_data.get("response", "").strip()
+            entire_response = entire_response.replace("<think>", "").replace(
+                "</think>", ""
+            )
             return entire_response
         except json.JSONDecodeError as e:
             raise AiError(e) from e

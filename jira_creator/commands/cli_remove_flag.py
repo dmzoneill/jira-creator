@@ -16,7 +16,7 @@ Note: The 'RemoveFlagError' exception is imported from 'exceptions.exceptions' m
 """
 
 from argparse import Namespace
-from typing import Any, Dict
+from typing import Any
 
 from exceptions.exceptions import RemoveFlagError
 from rest.client import JiraClient

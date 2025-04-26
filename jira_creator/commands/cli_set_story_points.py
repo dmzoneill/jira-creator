@@ -20,7 +20,6 @@ Note: The 'SetStoryPointsError' is imported from 'exceptions.exceptions'.
 """
 
 from argparse import Namespace
-from typing import Any, Dict
 
 from exceptions.exceptions import SetStoryPointsError
 from rest.client import JiraClient

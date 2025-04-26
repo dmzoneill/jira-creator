@@ -21,10 +21,11 @@ if the request fails.
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
-from providers.AiProvider import AiProvider
+
+from providers.ai_provider import AIProvider
 
 
-class BARTProvider(AiProvider):
+class BARTProvider(AIProvider):
     """
     BARTProvider class represents a provider for interacting with the BART (Bidirectional and Auto-Regressive
     Transformers) model.
@@ -41,20 +42,14 @@ class BARTProvider(AiProvider):
     the failure.
     """
 
-    def __init__(self):
+    url: str
+    headers: dict[str, str]
+
+    def __init__(self) -> None:
         """
         Initialize the class with a URL and headers for API requests.
-
-        Arguments:
-        - self: the object instance.
-
-        Side Effects:
-        - Initializes the 'url' attribute with the value fetched from the environment variable "AI_URL".
-        - Initializes the 'headers' attribute with a dictionary containing the "Content-Type" key set to
-        "application/json".
         """
 
-        # Default to local endpoint or override with env var
         self.url = EnvFetcher.get("AI_URL")
         self.headers = {"Content-Type": "application/json"}
 
@@ -63,7 +58,6 @@ class BARTProvider(AiProvider):
         Improve the given text using an API endpoint.
 
         Arguments:
-        - self: The object instance.
         - prompt (str): The initial prompt or context for the text improvement.
         - text (str): The text to be improved.
 
@@ -74,8 +68,8 @@ class BARTProvider(AiProvider):
         - This function may raise exceptions related to the HTTP request or response handling.
         """
 
-        full_prompt = f"{prompt}\n\n{text}"
-        response = requests.post(
+        full_prompt: str = f"{prompt}\n\n{text}"
+        response: requests.Response = requests.post(
             self.url, headers=self.headers, json={"text": full_prompt}, timeout=30
         )
         if response.status_code == 200:

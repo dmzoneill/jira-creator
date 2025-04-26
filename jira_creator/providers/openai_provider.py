@@ -23,10 +23,11 @@ a prompt. It returns the improved text after processing. Raises an AiError if th
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
-from providers.AiProvider import AiProvider
+
+from providers.ai_provider import AIProvider
 
 
-class OpenAIProvider(AiProvider):
+class OpenAIProvider(AIProvider):
     """
     This class provides a wrapper to interact with the OpenAI API for text completion and improvement.
 
@@ -40,22 +41,14 @@ class OpenAIProvider(AiProvider):
     a prompt. It returns the improved text after processing. Raises an AiError if the API call fails.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize a Chatbot instance with API key, endpoint, and model information.
-
-        Arguments:
-        - self: The Chatbot instance itself.
-
-        Side Effects:
-        - Sets the API key, endpoint URL, and model information for the Chatbot instance.
         """
+        self.api_key: str = EnvFetcher.get("AI_API_KEY")
+        self.endpoint: str = "https://api.openai.com/v1/chat/completions"
+        self.model: str = EnvFetcher.get("AI_MODEL")
 
-        self.api_key = EnvFetcher.get("AI_API_KEY")
-        self.endpoint = "https://api.openai.com/v1/chat/completions"
-        self.model = EnvFetcher.get("AI_MODEL")
-
-    # /* jscpd:ignore-start */
     def improve_text(self, prompt: str, text: str) -> str:
         """
         Improves the given text using an external API.
@@ -70,13 +63,12 @@ class OpenAIProvider(AiProvider):
         Side Effects:
         - Makes a request to an external API using the provided prompt and text.
         """
-
-        headers = {
+        headers: dict[str, str] = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
 
-        body = {
+        body: dict = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": prompt},
@@ -85,12 +77,12 @@ class OpenAIProvider(AiProvider):
             "temperature": 0.8,
         }
 
-        response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
+        response: requests.Response = requests.post(
+            self.endpoint, json=body, headers=headers, timeout=120
+        )
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
 
         raise AiError(
             f"OpenAI API call failed: {response.status_code} - {response.text}"
         )
-
-    # /* jscpd:ignore-end */

@@ -17,9 +17,9 @@ Exceptions:
 """
 
 from exceptions.exceptions import UnassignIssueError
+from typing import Callable
 
-
-def unassign_issue(request_fn, issue_key):
+def unassign_issue(request_fn: Callable[[str, str, dict], None], issue_key: str) -> bool:
     """
     Unassigns the assignee from a specified issue.
 

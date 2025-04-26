@@ -95,7 +95,7 @@ def test_search_issues_multiple_calls(client):
             + ","
             + EnvFetcher.get("JIRA_BLOCKED_FIELD")
             + ",key",
-            "maxResults": 200,
+            "maxResults": '200',
         },
     )
 
@@ -164,7 +164,7 @@ def test_search_issues_no_sprints_multiple_calls(client):
             + ","
             + EnvFetcher.get("JIRA_BLOCKED_FIELD")
             + ",key",
-            "maxResults": 200,
+            "maxResults": '200',
         },
     )
 

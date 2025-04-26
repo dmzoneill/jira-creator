@@ -22,6 +22,8 @@ An instance of the specified AI provider class or a NoAIProvider instance if the
 there is an error during initialization.
 """
 
+from typing import Type, Union
+
 from exceptions.exceptions import AiProviderError
 
 from .bart_provider import BARTProvider
@@ -31,7 +33,11 @@ from .instructlab_provider import InstructLabProvider
 from .openai_provider import OpenAIProvider
 
 
-def get_ai_provider(name: str):
+def get_ai_provider(
+    name: str,
+) -> Union[
+    OpenAIProvider, GPT4AllProvider, InstructLabProvider, BARTProvider, DeepSeekProvider
+]:
     """
     Converts the input name to lowercase and returns the corresponding AI provider.
 
@@ -51,7 +57,18 @@ def get_ai_provider(name: str):
     name = name.lower()
 
     # Map the provider name to the corresponding class
-    provider_map = {
+    provider_map: dict[
+        str,
+        Type[
+            Union[
+                OpenAIProvider,
+                GPT4AllProvider,
+                InstructLabProvider,
+                BARTProvider,
+                DeepSeekProvider,
+            ]
+        ],
+    ] = {
         "openai": OpenAIProvider,
         "gpt4all": GPT4AllProvider,
         "instructlab": InstructLabProvider,

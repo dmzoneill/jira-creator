@@ -1,22 +1,7 @@
-#!/usr/bin/env python
-"""
-This module defines a function 'remove_from_sprint' that is used to remove an issue from a sprint in an Agile project
-management tool. It takes two parameters: 'request_fn' which is a function for making HTTP requests and 'issue_key'
-which is the key of the issue to be removed from the sprint. If the issue is successfully removed from the sprint, a
-success message is printed. If an error occurs during the removal process, a failure message is printed and a
-'RemoveFromSprintError' exception is raised with an error message.
-
-The 'remove_from_sprint' function removes an issue from the current sprint backlog. It takes 'request_fn' as a function
-used to make HTTP requests and 'issue_key' as the key of the issue to be removed. It may raise a 'RemoveFromSprintError'
-exception if there is an issue removing the specified issue from the sprint backlog. Upon successful removal, it prints
-a message indicating that the issue has been moved to the backlog. If an error occurs, it prints a failure message and
-raises a 'RemoveFromSprintError' exception.
-"""
-
 from exceptions.exceptions import RemoveFromSprintError
+from typing import Callable
 
-
-def remove_from_sprint(request_fn, issue_key):
+def remove_from_sprint(request_fn: Callable[[str, str, dict], None], issue_key: str) -> None:
     """
     Removes an issue from the current sprint backlog.
 

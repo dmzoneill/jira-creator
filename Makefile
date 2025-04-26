@@ -65,7 +65,7 @@ test-setup: print-header
 	@for var in $(ENV_VARS); do echo $$var >> $$GITHUB_ENV; done
 
 .PHONY: test
-test: print-header coverage
+test: print-header coverage-unit
 	@echo "Running coverage"
 
 .PHONY: test-watch
@@ -75,9 +75,9 @@ test-watch: print-header
 # --- Linting ---
 .PHONY: lint
 lint: print-header
-	$(PIPENV) run isort .
+	$(PIPENV) run isort -l 120 .
 	@echo "\n========== isort Finished =========="
-	$(PIPENV) run autopep8 . --recursive --in-place --aggressive --aggressive
+	$(PIPENV) run autopep8 . --max-line-length 120 --recursive --in-place --aggressive --aggressive
 	@echo "\n========== autopep8 Finished =========="
 	#$(PIPENV) run pylint $$PWD
 	@echo "\n========== pylint Finished =========="
@@ -85,7 +85,7 @@ lint: print-header
 	@echo "\n========== flake8 Finished =========="
 	#$(PIPENV) run pyflakes $$PWD
 	@echo "\n========== pyflakes Finished =========="
-	$(PIPENV) run black $$PWD
+	$(PIPENV) run black --exclude jira_config/ $$PWD
 	@echo "\n========== black Finished =========="
 	#$(PIPENV) run yamllint $$PWD
 	@echo "\n========== yamllint Finished =========="
@@ -104,14 +104,24 @@ lint: print-header
 	@echo "\n========== pylint Finished =========="
 
 # --- Coverage ---
-.PHONY: coverage
-coverage: print-header
+.PHONY: coverage-unit
+coverage-unit: print-header
 	$(PIPENV) run coverage erase
-	$(PIPENV) run coverage run -m pytest -vv --durations=10 jira_creator/tests
+	$(PIPENV) run coverage run -m pytest -vv -k "not test_jira_project_creation" --durations=10 jira_creator/tests
 	- $(PIPENV) run coverage combine
 	$(PIPENV) run coverage report -m --fail-under=99
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
+
+# --- Coverage ---
+.PHONY: coverage-fun
+coverage-func: print-header
+	- sudo chmod 777 -R jira_creator/tests/jira_config
+	$(PIPENV) run pytest -vv -k "test_jira_project_creation" --durations=10 jira_creator/tests
+
+# --- Coverage ---
+.PHONY: coverage
+coverage: print-header coverage-unit
 
 # --- Coverage ---
 .PHONY: coverage-docker

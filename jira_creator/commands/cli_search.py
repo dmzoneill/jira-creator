@@ -31,6 +31,7 @@ from exceptions.exceptions import SearchError
 from rest.client import JiraClient
 
 
+# /* jscpd:ignore-start */
 def cli_search(jira: JiraClient, args: Namespace) -> Union[List[Any], bool]:
     """
     Search for issues in Jira based on the provided JQL query.
@@ -106,3 +107,6 @@ def cli_search(jira: JiraClient, args: Namespace) -> Union[List[Any], bool]:
         msg: str = f"❌ Failed to search issues: {e}"
         print(msg)
         raise SearchError(e) from e
+
+
+# /* jscpd:ignore-end */

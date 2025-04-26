@@ -12,9 +12,9 @@ The set_acceptance_criteria function takes three arguments:
 """
 
 from core.env_fetcher import EnvFetcher
+from typing import Callable
 
-
-def set_acceptance_criteria(request_fn, issue_key, acceptance_criteria):
+def set_acceptance_criteria(request_fn: Callable[[str, str, dict], None], issue_key: str, acceptance_criteria: str) -> None:
     """
     Set acceptance criteria for a JIRA issue.
 

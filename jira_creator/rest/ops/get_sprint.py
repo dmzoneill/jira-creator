@@ -7,9 +7,10 @@ A function to retrieve the active sprint using a provided request function.
 """
 
 from core.env_fetcher import EnvFetcher
+from typing import Callable, Dict
 
 
-def get_sprint(request_fn) -> dict:
+def get_sprint(request_fn: Callable[[str, str], Dict]) -> Dict:
     """
     Get the current active sprint.
 
@@ -19,6 +20,6 @@ def get_sprint(request_fn) -> dict:
     Return:
     - The result the current active sprint.
     """
-    board_number = EnvFetcher.get("JIRA_BOARD_ID")
-    path = f"/rest/agile/1.0/board/{board_number}/sprint?state=active"
+    board_number: str = EnvFetcher.get("JIRA_BOARD_ID")
+    path: str = f"/rest/agile/1.0/board/{board_number}/sprint?state=active"
     return request_fn("GET", path)

@@ -12,7 +12,7 @@ Return:
 """
 
 
-def set_summary(request_fn, issue_key, summary) -> dict:
+def set_summary(request_fn: callable, issue_key: str, summary: str) -> dict:
     """
     Sets a summary for a specific issue in Jira.
 

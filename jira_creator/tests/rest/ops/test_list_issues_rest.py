@@ -102,12 +102,13 @@ def test_list_issues(client):
 
     # Assert that the _request method was called twice: once for the fields and once for the issues search
     assert client.request.call_count == 2
+    jql = 'project="AAP" AND component="platform" AND assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")'
     client.request.assert_any_call("GET", "/rest/api/2/field")
     client.request.assert_any_call(
         "GET",
         "/rest/api/2/search",
         params={
-            "jql": 'project="AAP" AND component="platform" AND assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "jql": jql,
             "maxResults": 200,
             "fields": "summary,status,assignee,priority,"
             + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
@@ -153,12 +154,14 @@ def test_list_issues_reporter(client):
 
     # Assert that the _request method was called twice: once for fields and once for the search
     assert client.request.call_count == 2
+    jql = 'project="AAP" AND component="platform" AND reporter="user123"'
+    jql += ' AND status NOT IN ("Closed", "Done", "Cancelled")'
     client.request.assert_any_call("GET", "/rest/api/2/field")
     client.request.assert_any_call(
         "GET",
         "/rest/api/2/search",
         params={
-            "jql": 'project="AAP" AND component="platform" AND reporter="user123" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "jql": jql,
             "maxResults": 200,
             "fields": "summary,status,assignee,priority,"
             + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
@@ -205,12 +208,14 @@ def test_list_issues_with_status(client):
 
     # Assert that the _request method was called twice: once for fields and once for the search
     assert client.request.call_count == 2
+    jql = 'project="AAP" AND component="platform" AND assignee="user123"'
+    jql += ' AND status="In Progress" AND status NOT IN ("Closed", "Done", "Cancelled")'
     client.request.assert_any_call("GET", "/rest/api/2/field")
     client.request.assert_any_call(
         "GET",
         "/rest/api/2/search",
         params={
-            "jql": 'project="AAP" AND component="platform" AND assignee="user123" AND status="In Progress" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "jql": jql,
             "maxResults": 200,
             "fields": "summary,status,assignee,priority,"
             + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
@@ -373,12 +378,15 @@ def test_list_issues_with_none_sprints(client):
 
     # Assert that the _request method was called twice, once for fields and once for search
     assert client.request.call_count == 2
+
+    jql = 'project="AAP" AND component="platform" AND '
+    jql += 'assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")'
     client.request.assert_any_call("GET", "/rest/api/2/field")
     client.request.assert_any_call(
         "GET",
         "/rest/api/2/search",
         params={
-            "jql": 'project="AAP" AND component="platform" AND assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "jql": jql,
             "maxResults": 200,
             "fields": "summary,status,assignee,priority,"
             + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
@@ -476,12 +484,14 @@ def test_list_issues_with_sprint_regex_matching(client):
 
     # Assert that the _request method was called twice, once for fields and once for search
     assert client.request.call_count == 2
+
+    jql = 'project="AAP" AND component="platform" AND assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")'
     client.request.assert_any_call("GET", "/rest/api/2/field")
     client.request.assert_any_call(
         "GET",
         "/rest/api/2/search",
         params={
-            "jql": 'project="AAP" AND component="platform" AND assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "jql": jql,
             "maxResults": 200,
             "fields": "summary,status,assignee,priority,"
             + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")

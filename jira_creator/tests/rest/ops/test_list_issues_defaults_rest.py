@@ -64,6 +64,8 @@ def test_list_issues_defaults(client):
     # Assert that the _request method was called twice, once for fields and once for search
     assert client.request.call_count == 2
 
+    fields = 'summary,status,assignee,priority,customfield_12310243,customfield_12310940,customfield_12316543,key'
+    jql = 'project="XYZ" AND component="backend" AND assignee="me" AND status NOT IN ("Closed", "Done", "Cancelled")'
     # Check the paths for each call
     client.request.assert_any_call("GET", "/rest/api/2/field")
     client.request.assert_any_call(
@@ -71,8 +73,8 @@ def test_list_issues_defaults(client):
         "/rest/api/2/search",
         params={
             "maxResults": 200,
-            "fields": "summary,status,assignee,priority,customfield_12310243,customfield_12310940,customfield_12316543,key",
-            "jql": 'project="XYZ" AND component="backend" AND assignee="me" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "fields": fields,
+            "jql": jql,
         },
     )
 
@@ -81,13 +83,15 @@ def test_list_issues_defaults(client):
     client.request.assert_any_call("GET", "/rest/api/2/field")
 
     # The second call for /rest/api/2/search should have the correct JQL and maxResults
+    fields = "summary,status,assignee,priority,customfield_12310243,customfield_12310940,customfield_12316543,key"
+    jql = 'project="XYZ" AND component="backend" AND assignee="me" AND status NOT IN ("Closed", "Done", "Cancelled")'
     client.request.assert_any_call(
         "GET",
         "/rest/api/2/search",
         params={
             "maxResults": 200,
-            "fields": "summary,status,assignee,priority,customfield_12310243,customfield_12310940,customfield_12316543,key",
-            "jql": 'project="XYZ" AND component="backend" AND assignee="me" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "fields": fields,
+            "jql": jql,
         },
     )
 

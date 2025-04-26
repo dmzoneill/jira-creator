@@ -63,4 +63,4 @@ def cli_set_acceptance_criteria(jira: JiraClient, args: Namespace) -> bool:
     except Exception as e:
         msg = f"❌ An unexpected error occurred: {str(e)}"
         print(msg)
-        raise (SetAcceptanceCriteriaError) from e
+        raise SetAcceptanceCriteriaError(e) from e

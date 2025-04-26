@@ -68,7 +68,7 @@ def harden_file(file_path: str, debug: bool, validate: bool):
     with open(file_path, "r") as f:
         source_code = f.read()
 
-    prompt = f"""
+    prompt = """
     You are a Python expert focused on improving code quality and enhancing type safety.
 
     Please review any python code given and add type hinting where appropriate,

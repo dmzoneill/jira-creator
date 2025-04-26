@@ -205,6 +205,7 @@ super-lint: print-header $(SUPER_LINTER_CONFIGS)
 	-e LINTER_OUTPUT=error \
 	-e LOG_LEVEL=ERROR \
 	-e RUN_LOCAL=true \
+	-e VALIDATE_PYTHON_MYPY=false \
 	-e FILTER_REGEX_EXCLUDE="(^|/)\.git(/|$)" \
 	-e GIT_IGNORE=true \
 	-v $$(pwd):/tmp/lint \

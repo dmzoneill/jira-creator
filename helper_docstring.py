@@ -12,7 +12,7 @@ import time
 
 import requests
 
-system_prompt_general = f"""
+system_prompt_general = """
 You will be provided with a Python code.
 Based on this, your task is to generate a Python docstring for it.
 This is the docstring that goes at the top of the file.
@@ -21,7 +21,8 @@ The file may include multiple classes or other code.
 Ensure the docstring follows Python's standard docstring conventions and provides
 just enough detail to make the file understandable and usable without overwhelming the reader.
 
-Please only return the docstring, enclosed in triple quotes, without any other explanation or additional text. The format should be:
+Please only return the docstring, enclosed in triple quotes, without any other explanation
+or additional text. The format should be:
 
 \"\"\"
 <docstring content here>
@@ -30,7 +31,7 @@ Please only return the docstring, enclosed in triple quotes, without any other e
 Make sure to follow the format precisely and provide only the docstring content.
 """
 
-system_prompt_class = f"""
+system_prompt_class = """
 You will be provided with a Python class, including its code.
 Based on this, your task is to generate a Python docstring for it.
 Use the class signature and body to infer the purpose of the class,
@@ -46,7 +47,8 @@ Follow these guidelines to create the docstring:
 Ensure the docstring follows Python's standard docstring conventions and provides
 just enough detail to make the class understandable and usable without overwhelming the reader.
 
-Please only return the docstring, enclosed in triple quotes, without any other explanation or additional text. The format should be:
+Please only return the docstring, enclosed in triple quotes, without any other
+explanation or additional text. The format should be:
 
 \"\"\"
 <docstring content here>
@@ -55,7 +57,7 @@ Please only return the docstring, enclosed in triple quotes, without any other e
 Make sure to follow the format precisely and provide only the docstring content.
 """
 
-system_prompt_def = f"""
+system_prompt_def = """
 You will be provided with a Python function, including its code.
 Based on this, your task is to generate a Python docstring for it.
 Use the function signature and body to infer the purpose of the function,
@@ -81,7 +83,8 @@ Follow these guidelines to create the docstring:
 Ensure the docstring follows Python's standard docstring conventions and provides
 just enough detail to make the function understandable and usable without overwhelming the reader.
 
-Please only return the docstring, enclosed in triple quotes, without any other explanation or additional text. The format should be:
+Please only return the docstring, enclosed in triple quotes, without any other
+explanation or additional text. The format should be:
 
 \"\"\"
 <docstring content here>

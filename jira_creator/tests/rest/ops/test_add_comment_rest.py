@@ -14,9 +14,6 @@ Side Effects:
 """
 from unittest.mock import MagicMock
 
-import pytest
-import requests
-
 
 def test_add_comment(client):
     """

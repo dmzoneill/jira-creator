@@ -1,9 +1,10 @@
-import os
-import sys
 import argparse
-import tempfile
+import os
 import shutil
 import subprocess
+import sys
+import tempfile
+
 import requests
 
 api_key = os.environ.get("AI_API_KEY")
@@ -51,7 +52,9 @@ def improve_text(prompt: str, text: str) -> str:
 
 def validate_pycompile(file_path: str) -> bool:
     try:
-        result = subprocess.run(['python3', '-m', 'py_compile', file_path], capture_output=True, text=True)
+        result = subprocess.run(
+            ["python3", "-m", "py_compile", file_path], capture_output=True, text=True
+        )
         if result.returncode != 0:
             print(f"Syntax error in {file_path}: {result.stderr}")
             return False
@@ -82,7 +85,7 @@ def harden_file(file_path: str, debug: bool, validate: bool):
 
     # Create a temporary file to hold the improved code
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-        temp_file.write(improved_code.encode('utf-8'))
+        temp_file.write(improved_code.encode("utf-8"))
         temp_file_path = temp_file.name
 
     if debug:
@@ -116,16 +119,23 @@ def process_directory(directory: str, debug: bool, validate: bool, recursive: bo
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Harden Python code using OpenAI API")
     parser.add_argument("path", help="Path to the Python file or directory to harden")
-    parser.add_argument("--recursive", action="store_true", help="Recursively process directories")
+    parser.add_argument(
+        "--recursive", action="store_true", help="Recursively process directories"
+    )
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
-    parser.add_argument("--validate-pycompile", action="store_true", help="Validate Python syntax after improvements")
+    parser.add_argument(
+        "--validate-pycompile",
+        action="store_true",
+        help="Validate Python syntax after improvements",
+    )
     args = parser.parse_args()
 
     if os.path.isdir(args.path):
-        process_directory(args.path, args.debug, args.validate_pycompile, args.recursive)
+        process_directory(
+            args.path, args.debug, args.validate_pycompile, args.recursive
+        )
     elif os.path.isfile(args.path):
         harden_file(args.path, args.debug, args.validate_pycompile)
     else:
         print(f"Error: {args.path} is not a valid file or directory.")
         sys.exit(1)
-

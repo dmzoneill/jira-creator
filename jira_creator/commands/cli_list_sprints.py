@@ -31,7 +31,7 @@ def cli_list_sprints(jira, args):
     - Prints the list of sprints retrieved from the specified Jira board.
 
     Exceptions:
-    - None
+    - If an error occurs during the retrieval of sprints, an exception is raised with a descriptive error message.
     """
 
     try:

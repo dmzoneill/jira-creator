@@ -5,6 +5,7 @@ Sets a summary for a specific issue in Jira.
 Arguments:
 - request_fn (function): A function used to make HTTP requests.
 - issue_key (str): The key of the issue for which the summary will be set.
+- summary (str): The new summary.
 
 Return:
 - dict: A dictionary containing the response from the HTTP POST request.
@@ -31,4 +32,4 @@ def set_summary(request_fn, issue_key, summary) -> dict:
     payload = {"fields": {"summary": summary}}
 
     # Make the POST request to update the issue summary
-    return request_fn("PUT", path, json=payload)
+    return request_fn("PUT", path, json_data=payload)

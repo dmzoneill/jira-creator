@@ -2,24 +2,24 @@
 """
 Unit tests for the `set_acceptance_criteria` method of the `JiraCLI` class.
 
-This module includes two primary test functions to validate the functionality of setting acceptance criteria in a Jira
-context. The tests utilize mocking to simulate interactions with the `JiraClient`, allowing for both successful and
-error scenarios to be tested without requiring actual Jira API calls.
+This module contains unit tests that validate the functionality of the `set_acceptance_criteria` method
+in the `JiraCLI` class. The tests ensure correct handling of both successful scenarios and exceptions,
+utilizing mocking to simulate interactions with the `JiraClient`.
 
 Test Functions:
-- `test_set_acceptance_criteria`: Tests the successful setting of acceptance criteria, verifying that the correct
-output is printed when the operation completes successfully.
-- `test_set_acceptance_criteria_exception`: Tests the handling of a `SetAcceptanceCriteriaError` exception when
-attempting to set acceptance criteria, ensuring that the appropriate error message is printed.
+- `test_set_acceptance_criteria`: Tests the successful setting of acceptance criteria and checks the
+expected console output.
+- `test_set_acceptance_criteria_exception`: Tests the error handling when a `SetAcceptanceCriteriaError`
+is raised, verifying the output message.
 
 Dependencies:
-- `pytest`: For running the tests and capturing output.
-- `unittest.mock`: For mocking the `JiraClient` interactions.
-- Custom exceptions and environment fetcher from the core application.
+- `pytest`: Required for running the tests and capturing output.
+- `unittest.mock`: Used for creating mock objects of the `JiraClient` to avoid real API calls.
+- Custom exceptions and environment fetching utilities from the core application.
 
 Usage:
-Run the tests using pytest to ensure that the `set_acceptance_criteria` method behaves as expected in both normal and
-exceptional cases.
+Run the tests using pytest to ensure the `set_acceptance_criteria` method behaves correctly in both
+normal and error conditions.
 """
 
 from argparse import Namespace

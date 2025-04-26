@@ -3,10 +3,11 @@
 This module provides a function for setting story points in Jira using the command-line interface (CLI).
 
 The 'cli_set_story_points' function takes two arguments:
-- jira: an instance of the Jira client
-- args: a namespace containing the command-line arguments
+- jira: A Jira connection object.
+- args: A dictionary containing the arguments passed in the command-line interface. It should contain a key 'points'
+representing the story points to be set for the Jira issue.
 
-It attempts to convert the story points provided in the arguments to an integer. If successful, it calls the
+The function attempts to convert the story points provided in the arguments to an integer. If successful, it calls the
 'set_story_points' method of the Jira client to set the story points for a specific issue identified by the issue key
 provided in the arguments.
 

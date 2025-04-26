@@ -2,8 +2,9 @@
 """
 Updates a JIRA issue by setting the blocked status and reason.
 
-This function takes the request function, JIRA issue key, and a reason as arguments to update the specified issue with
-a blocked status and reason for blocking.
+This module contains a function 'block_issue' that updates a specified JIRA issue by setting the blocked status and
+reason for blocking. It takes the request function, JIRA issue key, and a reason as arguments to update the specified
+issue.
 
 Arguments:
 - request_fn (function): The function used to make requests to JIRA.
@@ -37,4 +38,4 @@ def block_issue(request_fn, issue_key, reason):
     payload[blocked_field]["value"] = True
     payload[reason_field] = reason
 
-    request_fn("PUT", f"/rest/api/2/issue/{issue_key}", json=payload)
+    request_fn("PUT", f"/rest/api/2/issue/{issue_key}", json_data=payload)

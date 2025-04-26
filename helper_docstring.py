@@ -4,6 +4,10 @@ import hashlib
 import json
 import os
 import re
+import statistics
+import subprocess
+import sys
+import tempfile
 import time
 
 import requests
@@ -87,6 +91,41 @@ Make sure to follow the format precisely and provide only the docstring content.
 """
 
 
+class OpenAICost:
+    # Static member to track the total cost
+    cost = 0
+    costs = []  # A list to store the individual request costs
+
+    @staticmethod
+    def send_cost(tokens, model):
+        # The cost calculation can vary based on the model and tokens
+        model_costs = {
+            "gpt-3.5-turbo": 0.002,  # Example cost per 1k tokens
+            "gpt-4o-mini": 0.003,  # Example cost per 1k tokens
+            "gpt-4o": 0.005,  # Example cost per 1k tokens
+        }
+
+        cost_per_token = model_costs.get(model, 0)
+        cost = (tokens / 1000) * cost_per_token  # Cost is proportional to tokens
+
+        OpenAICost.cost += cost
+        OpenAICost.costs.append(cost)
+
+    @staticmethod
+    def print_cost_metrics():
+        print(f"Total Cost: ${OpenAICost.cost:.4f}")
+        if OpenAICost.costs:
+            print(f"Average Cost per Request: ${statistics.mean(OpenAICost.costs):.4f}")
+            print(f"Max Cost for a Request: ${max(OpenAICost.costs):.4f}")
+            print(f"Min Cost for a Request: ${min(OpenAICost.costs):.4f}")
+            if len(OpenAICost.costs) > 1:
+                print(
+                    f"Standard Deviation of Cost: ${statistics.stdev(OpenAICost.costs):.4f}"
+                )
+        else:
+            print("No costs recorded.")
+
+
 class OpenAIProvider:
     def __init__(self):
         self.api_key = os.getenv("AI_API_KEY")
@@ -109,6 +148,8 @@ class OpenAIProvider:
         else:  # For large files (over ~10000 tokens)
             model = "gpt-4o"
 
+        OpenAICost.send_cost(tokens, model)
+
         return model
 
     def improve_text(self, prompt: str, text: str) -> str:
@@ -129,20 +170,44 @@ class OpenAIProvider:
         response = requests.post(self.endpoint, json=body, headers=headers, timeout=300)
         if response.status_code == 200:
             res = response.json()["choices"][0]["message"]["content"].strip()
-            return res
+            result = res
+            # Count the occurrences of '"""'
+            occurrences = result.count('"""')
+            occurrences_backtick = result.count("```")
 
+            # Check if there are more than two occurrences
+            if occurrences > 2:
+                # Find the positions of the first and second occurrences
+                first_pos = result.find('"""')
+                second_pos = result.find('"""', first_pos + 1)
+
+                # Get everything from the first '"""' to the second '"""', inclusive
+                result = result[first_pos : second_pos + 3]  # Include the second '"""'
+
+            if occurrences_backtick > 2:
+                # Find the positions of the first and second occurrences
+                first_pos = result.find("```")
+                second_pos = result.find("```", first_pos + 1)
+
+                # Get everything from the first '"""' to the second '"""', inclusive
+                result = result[first_pos : second_pos + 3]  # Include the second '"""'
+
+            return result
         raise Exception(
             f"OpenAI API call failed: {response.status_code} - {response.text}"
         )
 
 
 class Docstring:
-    def __init__(self, file_path):
+    def __init__(self, file_path, debug=False, exit=False):
         self.file_path = file_path
         self.lines = []
         self.ai = OpenAIProvider()
         self.line_index = 0
+        self.multiline_index = 0
         self.cache_file = "docstring.cache"
+        self.debug = debug
+        self.exit = exit
 
         with open(self.file_path, "r") as file:
             self.lines = file.readlines()
@@ -152,7 +217,20 @@ class Docstring:
             with open(self.cache_file, "w") as cache:
                 json.dump({}, cache)
 
-        print(self.file_path)
+        print(" -> " + self.file_path)
+
+    def print_debug(self, title, out):
+        if not self.debug:
+            return
+
+        print("=====================================================")
+        print("=====================================================")
+        print(" > > " + title)
+        print("=====================================================")
+        out = "".join(out) if isinstance(out, list) else out
+        print(out)
+        print("=====================================================")
+        print("=====================================================")
 
     def _load_cache(self):
         with open(self.cache_file, "r") as cache:
@@ -261,16 +339,45 @@ class Docstring:
         return leading_whitespace // 4
 
     def complete(self):
-        # print("".join(self.lines))
-        with open(self.file_path, "w") as file:
-            file.write("".join(self.lines))
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file_path = temp_file.name
+            temp_file.write(
+                "".join(self.lines).encode()
+            )  # Write the content to the temporary file
+
+        try:
+            # Attempt to compile the temporary file
+            result = subprocess.run(
+                ["python", "-m", "py_compile", temp_file_path],
+                capture_output=True,
+                text=True,
+            )
+
+            # If there is no compilation error (i.e., result.returncode == 0), move the file to the destination
+            if result.returncode == 0:
+                with open(self.file_path, "w") as file:
+                    file.write("".join(self.lines))  # Write to the destination file
+            else:
+                print(f"    Error compiling file: {result.stderr}")
+                if self.debug:
+                    name = "/tmp/" + os.path.basename(self.file_path) + ".failed"
+                    with open(name, "w") as file:
+                        file.write("".join(self.lines))
+                        print(f"    Copied here: {name}")
+                        if self.exit:
+                            sys.exit(1)
+
+        finally:
+            # Clean up the temporary file
+            os.remove(temp_file_path)
 
         self.remove_old_entries(1440 * 14)
 
     def generate_class_docstring(self):
         line = self.lines[self.line_index]
         class_definition = line
-        print(class_definition.rstrip())
+        print("   -> " + class_definition.rstrip())
         prompt_class_code = [class_definition]
 
         if self.count_and_divide_whitespace(class_definition) > 0:
@@ -330,15 +437,40 @@ class Docstring:
             + self.lines[self.line_index + 1 :]
         )
 
+        # self.print_debug("class docstring: " + class_definition.strip(), self.lines)
+
         return True
 
     def generate_function_docstring(self):
         line = self.lines[self.line_index]
-        def_definition = line
-        print(def_definition.rstrip())
-        prompt_def_code = [def_definition]
+        mutliline_line = ""
 
-        indent_line = self.count_and_divide_whitespace(def_definition)
+        if not (
+            line.strip().endswith("):")
+            and not re.search(r"\)\s*->\s*(.*)\s*:.*", line.strip())
+        ):
+            self.multiline_index = 0
+            # multiline def signiture
+            while self.line_index < len(self.lines):
+                mutliline_line += self.lines[self.line_index]
+                if re.match(
+                    r".*\):$", self.lines[self.line_index].strip()
+                ) or re.search(
+                    r".*\)\s*->\s*(.*)\s*:.*", self.lines[self.line_index].strip()
+                ):
+                    break
+                self.line_index += 1
+                self.multiline_index += 1
+
+        def_definition = line if mutliline_line == "" else mutliline_line
+        print("     -> " + def_definition.rstrip())
+        prompt_def_code = (
+            mutliline_line.split("\n") if mutliline_line != "" else [def_definition]
+        )
+
+        indent_line = self.count_and_divide_whitespace(
+            def_definition if mutliline_line == "" else mutliline_line.splitlines()[0]
+        )
         spacer_line = "" if indent_line == 0 else " " * (indent_line * 4)
         spacer_line_minus = "" if indent_line < 2 else " " * ((indent_line - 1) * 4)
         spacer_line_plus = "" if indent_line == 0 else " " * ((indent_line + 1) * 4)
@@ -365,7 +497,14 @@ class Docstring:
             t += 1
 
         # Now that we have the full function signature, we generate the docstring
-        indent = self.count_and_divide_whitespace(def_definition) + 1
+        indent = (
+            self.count_and_divide_whitespace(
+                def_definition
+                if mutliline_line == ""
+                else mutliline_line.splitlines()[0]
+            )
+            + 1
+        )
         def_docstring = self.get_ai_docstring(
             system_prompt_def, "\n".join(prompt_def_code)
         )
@@ -374,7 +513,9 @@ class Docstring:
             def_docstring[len(def_docstring) - 1] + "\n"
         )
         if def_definition.strip() == def_docstring[0].strip():
-            def_docstring = def_docstring[1:]
+            def_docstring = def_docstring[
+                1 if mutliline_line == "" else self.multiline_index :
+            ]
         def_docstring = [line + "\n" for line in def_docstring]
         def_docstring[len(def_docstring) - 1] = (
             def_docstring[len(def_docstring) - 1].rstrip() + "\n"
@@ -418,41 +559,43 @@ class Docstring:
                 + self.lines[self.line_index + 1 :]
             )
 
+        # self.print_debug("def docstring: " + def_definition.strip(), self.lines)
+
         self.line_index = self.line_index + len(def_docstring)
         return True
 
-    def should_add_file_docstring(self):
-        # Split content into lines and remove empty lines
-        lines = [line.strip() for line in self.lines if line.strip()]
+    # def should_add_file_docstring(self):
+    #     # Split content into lines and remove empty lines
+    #     lines = [line.strip() for line in self.lines if line.strip()]
 
-        # Case 1: If the file is too short, skip file docstring
-        if len(lines) <= 10:  # Assuming 10 lines or less is a short file
-            # If there's only one function and it's self-explanatory, skip file-level docstring
-            if lines.count("def") == 1 and "class" not in lines:
-                return (
-                    False  # No need for file-level docstring if the function is simple
-                )
+    #     # Case 1: If the file is too short, skip file docstring
+    #     if len(lines) <= 10:  # Assuming 10 lines or less is a short file
+    #         # If there's only one function and it's self-explanatory, skip file-level docstring
+    #         if lines.count("def") == 1 and "class" not in lines:
+    #             return (
+    #                 False  # No need for file-level docstring if the function is simple
+    #             )
 
-        # Case 2: If the file has a class and methods with docstrings, no need for a file docstring
-        if "class" in lines:
-            # Check if every function (i.e., starts with "def") is followed by a docstring (i.e., a triple quote on the next line)
-            function_with_docstrings = True
-            for i, line in enumerate(lines):
-                if line.startswith("def"):  # If we find a function definition
-                    # Check if the next non-empty line is a docstring
-                    if i + 1 < len(lines) and not lines[i + 1].startswith('"""'):
-                        function_with_docstrings = False
-                        break
-            if function_with_docstrings:
-                return False  # Class and methods have docstrings, file docstring not necessary
+    #     # Case 2: If the file has a class and methods with docstrings, no need for a file docstring
+    #     if "class" in lines:
+    #         # Check if every function (i.e., starts with "def") is followed by a docstring (i.e., a triple quote on the next line)
+    #         function_with_docstrings = True
+    #         for i, line in enumerate(lines):
+    #             if line.startswith("def"):  # If we find a function definition
+    #                 # Check if the next non-empty line is a docstring
+    #                 if i + 1 < len(lines) and not lines[i + 1].startswith('"""'):
+    #                     function_with_docstrings = False
+    #                     break
+    #         if function_with_docstrings:
+    #             return False  # Class and methods have docstrings, file docstring not necessary
 
-        # Case 3: Otherwise, add file-level docstring if the file is sufficiently complex
-        if len(lines) > 10 or "def" in lines:
-            return (
-                True  # File is sufficiently complex to warrant a file-level docstring
-            )
+    #     # Case 3: Otherwise, add file-level docstring if the file is sufficiently complex
+    #     if len(lines) > 10 or "def" in lines:
+    #         return (
+    #             True  # File is sufficiently complex to warrant a file-level docstring
+    #         )
 
-        return False  # Default case: don't add file docstring if none of the above conditions apply
+    #     return False  # Default case: don't add file docstring if none of the above conditions apply
 
     def generate_file_docstring(self):
         # Check if we should add a file-level docstring
@@ -490,6 +633,11 @@ class Docstring:
         )
         docstring = [line + "\n" for line in general_description]
 
+        # self.print_debug("docstring_end_index", str(docstring_end_index))
+        # self.print_debug("self.lines[:docstring_start_index]", self.lines[:docstring_start_index])
+        # self.print_debug("docstring", docstring)
+        # self.print_debug("self.lines[docstring_end_index + 1 :]", self.lines[docstring_end_index + 1 :])
+
         # If a docstring exists, replace it with the new one
         if docstring_start_index is not None and docstring_end_index is not None:
             self.lines = (
@@ -500,6 +648,8 @@ class Docstring:
         else:
             # Insert the generated docstring directly after the shebang (no extra newline)
             self.lines = [shebang] + docstring + self.lines[1:]
+
+        # self.print_debug("file docstring: " + self.file_path, self.lines)
 
         return len(docstring)
 
@@ -527,21 +677,26 @@ class Docstring:
         self.complete()
 
 
-def process_file(file_path):
+def process_file(file_path, debug=False, exit=False):
     """Process a single file by generating docstrings."""
-    Docstring(file_path).generate_docstrings()
+    Docstring(file_path, debug=debug, exit=exit).generate_docstrings()
 
 
-def process_directory(directory_path, recursive=False):
-    """Process all Python files in the directory."""
+def process_directory(directory_path, recursive=False, debug=False, exit=False):
+    """Process all Python files in the directory with progress tracking."""
+    total_files = sum([len(files) for _, _, files in os.walk(directory_path)])
+    processed_files = 0
+
+    print(f"Processing {total_files} Python files...")
+
     for root, dirs, files in os.walk(directory_path):
         for file in files:
-            # Only process Python files
             if file.endswith(".py"):
                 file_path = os.path.join(root, file)
-                process_file(file_path)
+                process_file(file_path, debug=debug, exit=exit)
+                processed_files += 1
+                print(f"\nProcessing file: {processed_files}/{total_files}")
 
-        # If not recursive, break after the first directory level
         if not recursive:
             break
 
@@ -558,19 +713,34 @@ def main():
         action="store_true",
         help="Recursively process all Python files in the directory.",
     )
-
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Copies failed updates to /tmp/",
+    )
+    parser.add_argument(
+        "-e",
+        "--exit",
+        action="store_true",
+        help="Exits on failure",
+    )
     # Parse the arguments
     args = parser.parse_args()
 
     # Check if the path is a file or directory
     if os.path.isfile(args.path):
         # If it's a file, process it directly
-        process_file(args.path)
+        process_file(args.path, debug=args.debug, exit=args.exit)
     elif os.path.isdir(args.path):
         # If it's a directory, process all Python files
-        process_directory(args.path, recursive=args.recursive)
+        process_directory(
+            args.path, recursive=args.recursive, debug=args.debug, exit=args.exit
+        )
     else:
         print(f"Error: {args.path} is neither a valid file nor a directory.")
+
+    OpenAICost.print_cost_metrics()
 
 
 if __name__ == "__main__":

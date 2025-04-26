@@ -38,7 +38,7 @@ def assign_issue(request_fn, issue_key, assignee):
         request_fn(
             "PUT",
             f"/rest/api/2/issue/{issue_key}",
-            json={"fields": {"assignee": {"name": assignee}}},
+            json_data={"fields": {"assignee": {"name": assignee}}},
         )
         return True
     except AssignIssueError as e:

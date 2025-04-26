@@ -28,5 +28,5 @@ def test_add_flag(client):
     client.request.assert_called_once_with(
         "POST",
         "/rest/greenhopper/1.0/xboard/issue/flag/flag.json",
-        json={"issueKeys": [issue_keys], "flag": True},
+        json_data={"issueKeys": [issue_keys], "flag": True},
     )

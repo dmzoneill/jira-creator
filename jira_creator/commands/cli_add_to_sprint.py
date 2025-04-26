@@ -2,26 +2,23 @@
 """
 Adds an issue to a sprint in Jira.
 
-Arguments:
+This script provides a function 'cli_add_to_sprint' that adds an issue to a sprint in Jira. It takes two arguments:
 - jira (JIRA): An instance of the JIRA client.
 - args (Namespace): A namespace object containing 'issue_key' and 'sprint_name' attributes.
-- issue_key (str): The key of the issue to be added to the sprint.
-- sprint_name (str): The name of the sprint to add the issue to.
 
-Return:
-- bool: True if the issue was successfully added to the sprint.
+The function returns a boolean value:
+- True if the issue was successfully added to the sprint.
 
-Exceptions:
-- AddSprintError: Raised when an error occurs while adding the issue to the sprint.
+It may raise an 'AddSprintError' exception if an error occurs during the process.
 
-Side Effects:
-- Prints a success message if the issue is added to the sprint.
-- Prints an error message and raises AddSprintError if an error occurs during the process.
+Side effects include:
+- Printing a success message if the issue is added to the sprint.
+- Printing an error message and raising 'AddSprintError' if an error occurs during the process.
 """
 from exceptions.exceptions import AddSprintError
 
 
-def cli_add_sprint(jira, args):
+def cli_add_to_sprint(jira, args):
     """
     Adds an issue to a sprint in Jira.
 
@@ -43,7 +40,7 @@ def cli_add_sprint(jira, args):
     """
 
     try:
-        jira.add_to_sprint_by_name(args.issue_key, args.sprint_name)
+        jira.add_to_sprint(args.issue_key, args.sprint_name)
         print(f"✅ Added to sprint '{args.sprint_name}'")
         return True
     except AddSprintError as e:

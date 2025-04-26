@@ -1,32 +1,26 @@
 Core
+  - argparse nice output
   - mask private methods with _ prefix
   - type hardening
   - logging
-  - Except Statement Exceptions
   - validation-issue factory pattern
     - new, refinement, backlog, in progress, closed, review
-  - naming of _request and __request
   - voice to text factory pattern
   - text to speech factory pattern
   - AI state - track issue id
   - readme ascii cinema for readme
   - fix the docstring script where signiture is multiline
-
+  - magic number in "move to top" of backlog
+  - Remove /* jscpd:ignore-start */
 
 Add
   - list-blocked
-  - get-current-sprint
-  - set-summary
   - In Progress or blocked status
   - clone / copy issue
 
 Modify 
-  - set-satus
-    - move to top of backlog if (refinement)
-    - move to stop of backlog if (refinement)
-
   - list-issues
-    - customer column output
+    - custom column output
     - fix default output
     - epic column 
     - assignee column 
@@ -45,6 +39,7 @@ Modify
     - validation-issue factory pattern
     - custom column output
     - show description
+    - move to top of refinement
 
   - set-acceptance-criteria 
     - --ai-from-description
@@ -78,6 +73,4 @@ Modify
     - create linked issue
     - move to top of sprint if (refinement)
 
-  - create-issue
-    - move to top of sprint if (refinement)
 

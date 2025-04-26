@@ -132,7 +132,7 @@ def generate_code(command_name, user_prompt):
 # Entry point of the script
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python generate_unit_tests.py <command_name> <prompt>")
+        print("Usage: python helper_cli.py <command_name> <prompt>")
         sys.exit(1)
 
     command_name = sys.argv[1]

@@ -196,7 +196,7 @@ def generate_unit_tests(command_name):
 # Entry point of the script
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python generate_unit_tests.py <command_name>")
+        print("Usage: python3 helper_create_unit_test.py <command_name>")
         sys.exit(1)
 
     command_name = sys.argv[1]

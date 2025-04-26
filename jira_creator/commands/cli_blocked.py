@@ -37,7 +37,6 @@ def cli_blocked(jira, args):
 
     Side Effects:
     - Prints information about the retrieved blocked issues and status messages.
-
     """
 
     try:

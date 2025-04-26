@@ -1,23 +1,24 @@
 #!/usr/bin/env python
 """
-A client for interacting with the Jira API, providing methods to manage issues, sprints, and user interactions.
+This module provides a `JiraClient` class for interacting with the Jira API, enabling comprehensive management of Jira
+issues, sprints, and user interactions.
 
-This module defines the `JiraClient` class, which encapsulates functionality for:
-- Making requests to the Jira API with proper handling of authentication and error management.
-- Caching field metadata for efficient access.
-- Creating, updating, and managing issues, including adding comments, changing issue types, and setting priorities.
-- Retrieving information about users, issues, and sprints.
-- Utility methods for debugging requests using cURL commands.
+Key Features:
+- CRUD operations on Jira issues, including creation, updates, and comments.
+- Sprint management capabilities and issue assignments.
+- Debugging utilities with cURL command generation for API requests.
+- Caching mechanisms for Jira field metadata to enhance performance.
+- Robust error handling and retry logic for API requests.
 
 Dependencies:
-- `requests`: For making HTTP requests to the Jira API.
-- `core.env_fetcher`: For fetching environment variables.
-- `exceptions.exceptions`: Custom exceptions for handling request errors.
-- Various utility functions from the `ops` module for specific Jira operations.
+- `requests`: For HTTP communication with the Jira API.
+- `core.env_fetcher`: For environment variable and configuration access.
+- `exceptions.exceptions`: Custom exceptions for error handling.
+- `ops`: Utility functions for various Jira operations.
 
 Usage:
-Instantiate the `JiraClient` class and use its methods to interact with Jira. Ensure that the necessary environment
-variables are set for proper configuration.
+Instantiate the `JiraClient` class and use its methods to perform operations on Jira. Ensure environment variables are
+set up for authentication and configuration.
 """
 # pylint: disable=too-many-locals, too-many-statements, too-many-positional-arguments
 # pylint: disable=too-many-public-methods, too-many-instance-attributes, too-many-arguments
@@ -36,7 +37,7 @@ from requests.exceptions import RequestException
 
 from .ops import (  # isort: skip
     add_comment,
-    add_to_sprint_by_name,
+    add_to_sprint,
     assign_issue,
     block_issue,
     blocked,
@@ -69,6 +70,7 @@ from .ops import (  # isort: skip
     list_sprints,
     set_summary,
     clone_issue,
+    get_sprint,
     # commands entry
 )
 
@@ -113,7 +115,7 @@ class JiraClient:
     - set_priority(issue_key, priority): Sets the priority of a specified issue.
     - set_sprint(issue_key, sprint_id): Assigns a specified issue to a sprint.
     - remove_from_sprint(issue_key): Removes a specified issue from its sprint.
-    - add_to_sprint_by_name(issue_key, sprint_name): Adds a specified issue to a sprint by its name.
+    - add_to_sprint(issue_key, sprint_name): Adds a specified issue to a sprint by its name.
     - set_status(issue_key, target_status): Sets the status of a specified issue.
     - set_story_epic(issue_key, epic_key): Assigns an epic to a specified story.
     - vote_story_points(issue_key, points): Votes on story points for a specified issue.
@@ -210,10 +212,10 @@ class JiraClient:
         - method (str): The HTTP method to use for the request (e.g., 'GET', 'POST').
         - url (str): The URL to send the request to.
         - headers (Dict[str, str]): A dictionary containing the request headers.
-        - json_data (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request.
-          Defaults to None.
-        - params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request.
-          Defaults to None.
+        - json_data (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request. Defaults to
+        None.
+        - params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request. Defaults to
+        None.
 
         Return:
         - tuple: A tuple containing the HTTP status code and the parsed JSON result.
@@ -266,10 +268,10 @@ class JiraClient:
         Arguments:
         - method (str): The HTTP method to be used for the request (e.g., 'GET', 'POST').
         - path (str): The endpoint path to be appended to the base URL.
-        - json_data (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request
-          (default is None).
-        - params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request
-          (default is None).
+        - json_data (Optional[Dict[str, Any]]): A dictionary containing the JSON payload for the request (default is
+        None).
+        - params (Optional[Dict[str, str]]): A dictionary containing the query parameters for the request (default is
+        None).
 
         Return:
         - Optional[Dict[str, Any]]: A dictionary representing the response data from the request. Returns None if there
@@ -315,17 +317,21 @@ class JiraClient:
 
     def cache_fields(self):
         """
-        Summary:
-        Checks if a cache file exists and is less than 24 hours old, then loads and returns the cached data from the
-        file.
+        Caches field data by checking for an existing cache file and loading its contents if it is less than 24 hours
+        old.
+        If the cache is invalid, it fetches the latest field data from the API and updates the cache file.
 
         Arguments:
-        - self: The instance of the class.
-        (Assumed to have attributes 'fields_cache_path' specifying the path to the cache file.)
+        - self: The instance of the class, which is expected to have the attribute 'fields_cache_path' that specifies
+        the path to the cache file.
 
         Return:
-        - The cached data loaded from the file as a Python object (e.g., dictionary, list).
-        If the cache file does not exist or is older than 24 hours, the function does not return anything.
+        - The cached data loaded from the file as a Python object (e.g., dictionary, list). If the cache file does not
+        exist or is older than 24 hours, the function does not return anything.
+
+        Side Effects:
+        - Creates the cache directory if it does not exist.
+        - Writes the fetched field data to the cache file if it has to be updated.
         """
 
         # Check if the cache file exists and is less than 24 hours old
@@ -353,6 +359,9 @@ class JiraClient:
         Arguments:
         - self: The object instance.
         - field_id (int): The ID of the field for which the name is to be retrieved.
+
+        Return:
+        - str or None: The name of the field corresponding to the field ID, or None if no matching field is found.
 
         Side Effects:
         - Updates or loads the fields from cache.
@@ -516,13 +525,12 @@ class JiraClient:
         Retrieve the current user based on the request provided.
 
         Arguments:
-        - self: The instance of the class.
-        (self) represents the instance of the class where this method is called.
-        It is used to access attributes and methods within the class.
+        - self: The instance of the class. (self) represents the instance of the class where this method is called. It
+        is used to access attributes and methods within the class.
 
         Return:
-        The current user retrieved from the request.
-        The type of the returned value is dependent on the implementation of the 'get_current_user' function.
+        The current user retrieved from the request. The type of the returned value is dependent on the implementation
+        of the 'get_current_user' function.
         """
 
         return get_current_user(self.request)
@@ -606,9 +614,8 @@ class JiraClient:
         - assignee (str): The assignee username to filter the issues.
         - status (str): The status of the issues to filter.
         - summary (str): The summary of the issues to filter.
-        - show_reason (bool): Flag to indicate whether to show reasons for the issues.
-        - blocked (bool): Flag to filter blocked issues.
-        - unblocked (bool): Flag to filter unblocked issues.
+        - issues_blocked (bool): Flag to filter blocked issues.
+        - issues_unblocked (bool): Flag to filter unblocked issues.
         - reporter (str): The reporter username to filter the issues.
 
         Return:
@@ -633,18 +640,14 @@ class JiraClient:
 
     def set_priority(self, issue_key, priority):
         """
-        Set the priority of an issue in a Jira system.
+        Retrieve a list of issues based on specified filters such as project, component, assignee, status, summary, etc.
 
         Arguments:
-        - self: the instance of the class.
-        - issue_key (str): the key of the issue to set the priority for.
-        - priority (str): the priority to set for the issue.
+        - issue_key (str): The key of the issue to set the priority for.
+        - priority (str): The priority to set for the specified issue.
 
         Return:
-        - None
-
-        Exceptions:
-        - None
+        None
         """
 
         return set_priority(self.request, issue_key, priority)
@@ -678,7 +681,7 @@ class JiraClient:
 
         return remove_from_sprint(self.request, issue_key)
 
-    def add_to_sprint_by_name(self, issue_key, sprint_name):
+    def add_to_sprint(self, issue_key, sprint_name):
         """
         Adds an issue to a sprint on a board by name.
 
@@ -691,9 +694,7 @@ class JiraClient:
         - None
         """
 
-        return add_to_sprint_by_name(
-            self.request, self.board_id, issue_key, sprint_name
-        )
+        return add_to_sprint(self.request, self.board_id, issue_key, sprint_name)
 
     def set_status(self, issue_key, target_status):
         """
@@ -914,3 +915,15 @@ class JiraClient:
         """
 
         return clone_issue(self.request, issue_key)
+
+    def get_sprint(self):
+        """
+        Get the current active sprint.
+
+        Arguments:
+        - self: The object instance.
+
+        Return:
+        - The result the current active sprint.
+        """
+        return get_sprint(self.request)

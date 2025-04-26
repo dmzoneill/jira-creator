@@ -2,12 +2,13 @@
 """
 Unassign an issue in Jira.
 
-Arguments:
+This script defines a function 'cli_unassign' that unassigns an issue in Jira. It takes two arguments:
 - jira: An instance of the Jira API client.
 - args: A namespace containing the issue key to unassign.
 
-Return:
-- bool: True if the issue was successfully unassigned, False otherwise.
+It returns a boolean value:
+- True if the issue was successfully unassigned.
+- False otherwise.
 """
 
 

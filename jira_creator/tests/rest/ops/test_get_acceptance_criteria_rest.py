@@ -4,6 +4,15 @@ This file contains a test case for the 'get_acceptance_criteria' method in the '
 The test mocks the '_request' method to simulate fetching the acceptance criteria field value from JIRA.
 It then calls the 'get_acceptance_criteria' method with a specific test identifier and asserts that the correct
 description is returned.
+
+test_get_acceptance_criteria(client):
+Retrieve acceptance criteria for a given client.
+
+Arguments:
+- client: An object representing the client for which acceptance criteria needs to be retrieved.
+
+This function mocks the _request method of the client object to simulate getting the description, specifically the
+acceptance criteria field.
 """
 
 from unittest.mock import MagicMock

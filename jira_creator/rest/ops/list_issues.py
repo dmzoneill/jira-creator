@@ -38,19 +38,18 @@ def list_issues(
     Arguments:
     - request_fn (function): A function used to make HTTP requests.
     - get_current_user_fn (function): A function used to retrieve the current user.
-    - project (str): Filter issues by project name.
-    - component (str): Filter issues by component name.
-    - assignee (str): Filter issues by assignee.
-    - status (str): Filter issues by status.
-    - summary (str): Filter issues by summary.
-    - issues_blocked (bool): Flag to filter blocked issues.
-    - issues_unblocked (bool): Flag to filter unblocked issues.
-    - reporter (str): Filter issues by reporter.
+    - project (str, optional): Filter issues by project name.
+    - component (str, optional): Filter issues by component name.
+    - assignee (str, optional): Filter issues by assignee.
+    - status (str, optional): Filter issues by status.
+    - summary (str, optional): Filter issues by summary.
+    - issues_blocked (bool, optional): Flag to filter blocked issues.
+    - issues_unblocked (bool, optional): Flag to filter unblocked issues.
+    - reporter (str, optional): Filter issues by reporter.
 
     Returns:
     - List: A list of dictionaries representing the filtered issues. Each dictionary contains information about the
     issue, including key, summary, status, assignee, priority, story points, sprint, and blocked status.
-
     """
 
     jql_parts = []
@@ -73,16 +72,19 @@ def list_issues(
 
     jql = " AND ".join(jql_parts) + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
 
+    fields = request_fn("GET", "/rest/api/2/field")
+    field_names = [field["id"] for field in fields]
+    field_names = [name for name in field_names if "custom" not in name]
+    field_names += [
+        EnvFetcher.get("JIRA_STORY_POINTS_FIELD"),
+        EnvFetcher.get("JIRA_SPRINT_FIELD"),
+        EnvFetcher.get("JIRA_BLOCKED_FIELD"),
+    ]
+    field_names += ["key"]
+
     params = {
         "jql": jql,
-        "fields": (
-            "key,summary,status,assignee,priority,"
-            + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
-            + ","
-            + EnvFetcher.get("JIRA_SPRINT_FIELD")
-            + ","
-            + EnvFetcher.get("JIRA_BLOCKED_FIELD")
-        ),
+        "fields": ",".join(field_names),
         "maxResults": 200,
     }
     issues = request_fn("GET", "/rest/api/2/search", params=params).get("issues", [])
@@ -111,5 +113,4 @@ def list_issues(
 
     return issues
 
-
-# /* jscpd:ignore-end */
+    # /* jscpd:ignore-end */

@@ -1,26 +1,22 @@
 #!/usr/bin/env python
 """
-This file contains test cases for the search_users function in the CLI module.
-The test_cli_search_users_prints_results function tests the successful printing of user search results.
-The test_cli_search_users_prints_warning_on_empty function tests the warning message when no users are found.
-The test_cli_search_users_raises_on_error function tests the exception handling when an error occurs during the search.
+This module contains unit tests for the `search_users` function in the CLI interface.
+It includes tests for successful user searches, handling of empty search results, and error scenarios.
 
 Test Functions:
-- test_cli_search_users_prints_results: Prints the results of searching for users using the CLI.
-- test_cli_search_users_prints_warning_on_empty: Search for users using the CLI and print a warning if no users are
-found.
-- test_cli_search_users_raises_on_error: Tests that the CLI search_users function raises an exception when an error
-occurs during the search.
+- `test_cli_search_users_prints_results`: Verifies that user search results are printed correctly.
+- `test_cli_search_users_prints_warning_on_empty`: Checks that a warning message is displayed when no users are found.
+- `test_cli_search_users_raises_on_error`: Ensures that an exception is raised when an error occurs during the search.
 
 Arguments:
-- cli: An object representing the CLI interface.
-- capsys: A pytest fixture for capturing stdout and stderr output.
+- `cli`: An object representing the CLI interface.
+- `capsys`: A pytest fixture for capturing output.
 
 Side Effects:
-- Modifies the MagicMock object `cli.jira.search_users` to return an empty list.
+- Modifies the `MagicMock` object `cli.jira.search_users` to simulate different scenarios.
 
 Exceptions:
-- SearchUsersError: Raised when an error occurs during the search_users function execution.
+- `SearchUsersError`: Raised when an error occurs during the execution of the `search_users` function.
 """
 
 from unittest.mock import MagicMock

@@ -20,7 +20,7 @@ from unittest.mock import MagicMock
 
 def test_migrate_success_print(cli):
     """
-    Mock the migrate_issue method and set the jira_url for the CLI.
+    Mock the migrate_issue method and set the Jira URL for the CLI.
 
     Arguments:
     - cli: An instance of the CLI class.

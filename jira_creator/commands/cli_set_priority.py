@@ -2,6 +2,10 @@
 """
 Set the priority of a Jira issue using the provided Jira instance and arguments.
 
+This script defines a function 'cli_set_priority' that takes a Jira instance and arguments as input to set the priority
+of a Jira issue. It catches exceptions of type 'SetPriorityError' and raises them if there is an error setting the
+priority.
+
 Arguments:
 - jira: A Jira instance used to set the priority of the issue.
 - args: An object containing the issue key and the priority to be set.

@@ -1,18 +1,12 @@
 #!/usr/bin/env python
 """
-This script contains a unit test function test_migrate_fallback_transition to test the functionality of migrating an
-issue using a client object. It mocks the HTTP requests made by the client and asserts the expected behavior based on
-the responses. The test ensures that the issue is migrated successfully with the expected key and transitions being
-called.
+This script contains a unit test for the migration functionality of an issue using a client object. It includes the
+`test_migrate_fallback_transition` function, which tests the fallback transition during the migration process by
+mocking HTTP requests made by the client. The test verifies that the issue is successfully migrated with the expected
+key and tracks the transitions that have been called.
 
-The test_migrate_fallback_transition function executes a test to verify the fallback transition in a migration process.
-It
-takes a client object as an argument, which is used to interact with the migration process. During the test, it modifies
-the transitions_called list to track the transitions that have been called.
-
-The mock_request function simulates a mock HTTP request with specified method, path, and optional parameters. It returns
-different responses based on the conditions such as the path content and HTTP method used in the request. The function
-handles scenarios like retrieving transitions, specific path endings, comments, and POST requests.
+The `mock_request` function simulates HTTP requests, returning different responses based on the request's method and
+path. It handles scenarios such as retrieving transitions, specific path endings, and comments.
 
 Exceptions:
 None

@@ -2,7 +2,7 @@
 """
 Unit tests for the JiraClient class in the rest.client module.
 
-This module contains unit tests that validate the functionality of the JiraClient's _request method,
+This module contains unit tests that validate the functionality of the JiraClient's request method,
 covering various scenarios including:
 
 - Successful requests with valid JSON responses.
@@ -334,7 +334,8 @@ def test_generate_curl_command_with_json(mock_print):
     Arguments:
     - mock_print: A mock object used for printing output.
 
-    This function initializes a JiraClient object for further testing.
+    This function initializes a JiraClient object and generates a cURL command with the specified method, URL, headers,
+    JSON data, and parameters for further testing.
     """
 
     client = JiraClient()

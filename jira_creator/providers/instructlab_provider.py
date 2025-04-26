@@ -1,25 +1,27 @@
 #!/usr/bin/env python
 """
-This module defines a class InstructLabProvider that interacts with an AI service to improve text based on a given
-prompt. It utilizes the requests library to send a POST request to the specified AI_URL with the provided AI_MODEL. The
-improve_text method takes a prompt and text as input, combines them, and sends the request to the AI service. It then
-processes the response and returns the improved text. If the request fails, an AiError exception is raised.
+This module provides the InstructLabProvider class for interacting with an AI service that enhances text generation.
+It utilizes the requests library to send POST requests to an AI model server, with the server's URL and model identifier
+fetched from environment variables.
 
-Class InstructLabProvider:
-This class provides a way to interact with an AI model hosted on a specified URL for improving text generation.
+The primary functionality is encapsulated in the improve_text method, which accepts a prompt and text, sends a request
+to the AI service, and returns the enhanced text. An AiError exception is raised in case of request failures, providing
+details about the issue.
+
+Classes:
+- InstructLabProvider: A class for enhancing text using an AI model.
 
 Attributes:
 - url (str): The URL of the AI model server.
-- model (str): The name or identifier of the AI model used for text generation.
+- model (str): The identifier of the AI model used for text generation.
 
 Methods:
-- __init__(self): Initialize the class instance with AI-related environment variables.
-- improve_text(self, prompt: str, text: str) -> str: Sends a POST request to a specified URL with a given prompt
-and text to improve the text using a specific model. Returns the improved text obtained from the response.
+- __init__(self): Initializes the class with AI-related environment variables.
+- improve_text(self, prompt: str, text: str) -> str: Improves the provided text using the AI model and returns
+the enhanced text.
 
 Exceptions:
-- AiError: Raised when the POST request to the URL fails, indicating an issue with the AI service. The exception
-message includes details about the failure, such as the status code and response text.
+- AiError: Raised when the POST request to the AI service fails, indicating a service issue.
 """
 
 # pylint: disable=too-few-public-methods

@@ -1,9 +1,15 @@
 #!/usr/bin/env python
 """
-This script contains unit tests for the EnvFetcher class in core.env_fetcher module.
-It includes tests for retrieving environment variables from the OS, from the pytest context, and for handling missing
-variables.
-The tests use mock objects to simulate different scenarios.
+This module contains unit tests for the `EnvFetcher` class from the `core.env_fetcher` module.
+
+The tests cover the following functionalities:
+- Retrieving environment variables from the operating system.
+- Accessing environment variables using the pytest context.
+- Handling scenarios where requested environment variables are missing, ensuring that appropriate exceptions are raised.
+
+Mock objects are utilized to simulate various environments, allowing for comprehensive testing without reliance on
+actual environment variables. The tests validate the expected behavior of the `EnvFetcher` class's methods, including
+the retrieval and fetching of environment variables.
 """
 
 from unittest.mock import patch

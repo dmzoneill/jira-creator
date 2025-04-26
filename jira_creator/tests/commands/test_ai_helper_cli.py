@@ -136,6 +136,15 @@ def test_get_cli_command_metadata_parses_correctly(cli):
 def test_get_cli_command_metadata_skip_help_and_command():
     """
     Test to ensure that the 'continue' statement correctly skips actions with 'help' or 'command' in their 'dest'.
+
+    Arguments:
+    No arguments.
+
+    Returns:
+    No return value.
+
+    Exceptions:
+    No exceptions raised.
     """
 
     # Create fake actions with the 'dest' values "help" and "command" that should be skipped
@@ -481,3 +490,47 @@ def test_cli_ai_helper_success(
 
     # Check if the function returns True
     assert result is True
+    """
+    Simulate a successful test scenario for a CLI AI helper function.
+
+    Arguments:
+    - mock_ask_ai_question: A mock object for asking AI questions.
+    - mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.
+    - cli: The CLI object used for testing.
+
+    Side Effects:
+    - Sets up mock return values for the dependencies to simulate a successful test scenario.
+    """
+    """
+    Simulate a successful test scenario for a CLI AI helper function.
+
+    Arguments:
+    - mock_ask_ai_question: A mock object for asking AI questions.
+    - mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.
+    - cli: The CLI object used for testing.
+
+    Side Effects:
+    - Sets up mock return values for the dependencies to simulate a successful test scenario.
+    """
+    """
+    Simulate a successful test scenario for a CLI AI helper function.
+
+    Arguments:
+    - mock_ask_ai_question: A mock object for asking AI questions.
+    - mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.
+    - cli: The CLI object used for testing.
+
+    Side Effects:
+    - Sets up mock return values for the dependencies to simulate a successful test scenario.
+    """
+    """
+    Simulate a successful test scenario for a CLI AI helper function.
+
+    Arguments:
+    - mock_ask_ai_question: A mock object for asking AI questions.
+    - mock_get_cli_command_metadata: A mock object for retrieving CLI command metadata.
+    - cli: The CLI object used for testing.
+
+    Side Effects:
+    - Sets up mock return values for the dependencies to simulate a successful test scenario.
+    """

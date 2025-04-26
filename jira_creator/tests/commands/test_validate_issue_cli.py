@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 """
-This module contains unit tests for the CLI validation of Jira issues, specifically focusing on acceptance criteria and
-description validation.
-
-It includes helper functions to generate common fields and cached data for testing purposes. The main functionality is
-tested through various test cases that ensure correct behavior when validating issue fields against expected standards.
+This module contains unit tests for the CLI validation of Jira issues, focusing on the acceptance criteria and
+description validation. It includes helper functions to generate common fields and cached data for testing purposes.
+The main functionality is tested through various test cases that ensure correct behavior when validating issue fields
+against expected standards.
 
 Key functions and classes:
 - `generate_fields`: Generates a dictionary of common fields for a Jira issue.
@@ -111,16 +110,19 @@ def generate_cached_data(
 
 def test_load_cache_file_not_found():
     """
-    Load cache from a file, returning an empty dictionary if the file doesn't exist.
+    Generate a dictionary with fields for a JIRA issue.
 
     Arguments:
-    No arguments.
+    - issue_key (str): The key of the JIRA issue.
+    - summary (str): The summary of the JIRA issue (default is "Test Summary").
+    - description (str): The description of the JIRA issue (default is "Test Description").
+    - acceptance_criteria (str): The acceptance criteria of the JIRA issue (default is "Test Acceptance Criteria").
 
     Return:
-    dict: An empty dictionary representing the cache content.
+    - dict: A dictionary containing the JIRA fields for the issue.
 
-    Exceptions:
-    None
+    Side Effects:
+    - Uses the EnvFetcher class to retrieve certain field values from the environment.
     """
 
     with patch("os.path.exists", return_value=False):

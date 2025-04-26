@@ -28,5 +28,5 @@ def test_set_priority(client):
     # client.request.assert_called_once_with(
     #     "PUT",
     #     "/rest/api/2/issue/AAP-test_set_priority",
-    #     json={"fields": {"priority": {"name": "High"}}},
+    #     json_data={"fields": {"priority": {"name": "High"}}},
     # )

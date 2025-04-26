@@ -47,7 +47,6 @@ def get_ai_provider(name: str):
 
     Side Effects:
     - May print a warning message if there is a failure to load the provider.
-
     """
     name = name.lower()
 

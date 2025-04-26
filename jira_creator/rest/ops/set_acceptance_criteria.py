@@ -37,7 +37,7 @@ def set_acceptance_criteria(request_fn, issue_key, acceptance_criteria):
     request_fn(
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
-        json=payload,
+        json_data=payload,
     )
 
     print(f"✅ Updated acceptance criteria of {issue_key}")

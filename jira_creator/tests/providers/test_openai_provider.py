@@ -37,7 +37,6 @@ def test_openai_provider_improve_text():
 
     Exceptions:
     - No exceptions raised explicitly in this function.
-
     """
 
     mock_response = type(

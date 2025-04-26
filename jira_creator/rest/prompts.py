@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """
-This module provides an enumeration for various issue types used in project management, including BUG, EPIC, SPIKE,
-STORY, TASK, COMMENT, DEFAULT, QC, and AIHELPER. It also contains the PromptLibrary class, which offers functionality
-to retrieve file contents and generate prompts based on the specified issue type.
+This module provides functionality for managing different issue types in a project management context. It defines an
+enumeration for various issue types such as BUG, EPIC, SPIKE, STORY, TASK, COMMENT, DEFAULT, QC, and AIHELPER. The
+module also includes the PromptLibrary class, which offers methods to read template files and generate prompts based
+on the specified issue type.
 
 Classes:
-- IssueType: An enumeration that defines different types of issues.
+- IssueType: An enumeration that defines the various types of issues that can be encountered in project management.
 - PromptLibrary: A class that provides methods to read template files and generate prompts based on issue types.
 
 Functions:

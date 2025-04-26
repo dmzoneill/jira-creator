@@ -34,7 +34,7 @@ def test_set_sprint(client):
     client.request.assert_called_once_with(
         "PUT",
         "/rest/api/2/issue/AAP-test_set_sprint",
-        json={"fields": {EnvFetcher.get("JIRA_SPRINT_FIELD"): ["42"]}},
+        json_data={"fields": {EnvFetcher.get("JIRA_SPRINT_FIELD"): ["42"]}},
     )
 
 
@@ -50,5 +50,7 @@ def test_remove_from_sprint(client):
     client.request.assert_called_once_with(
         "POST",
         "/rest/agile/1.0/backlog/issue",
-        json={"issues": ["AAP-test_remove_from_sprint"]},  # Matching the actual call
+        json_data={
+            "issues": ["AAP-test_remove_from_sprint"]
+        },  # Matching the actual call
     )

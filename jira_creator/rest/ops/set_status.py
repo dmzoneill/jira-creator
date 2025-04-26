@@ -1,18 +1,24 @@
 #!/usr/bin/env python
 """
-This module provides a function to set the status of an issue in a Jira system using the provided request function.
+This module provides functionality to update the status of issues in a Jira system through a specified request function.
 
 Functions:
-- set_status(request_fn, issue_key, target_status): Sets the status of the given issue to the provided target status by
-making API calls using the request function.
+- set_status(request_fn, issue_key, target_status): Updates the status of a specified issue to the desired target
+status by making appropriate API calls.
 
-Raises:
-- SetStatusError: Custom exception raised when the target status is not found in the valid transitions for the issue.
+Exceptions:
+- SetStatusError: Custom exception raised when the target status cannot be found in the available transitions for the
+issue.
 
-Note:
-- The request function should be capable of making HTTP requests to the Jira API.
+Notes:
+- The request function must be capable of making HTTP requests to the Jira API.
+- The module includes logic to handle special cases, such as moving an issue to the top of the backlog or its parent
+Epic when the target status is "refinement".
 """
 
+# pylint: disable=too-many-locals
+
+from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import SetStatusError
 
 
@@ -35,7 +41,6 @@ def set_status(request_fn, issue_key, target_status):
     - Modifies the status of the specified issue.
     - Prints the available transitions if the target status is not found.
     - Prints a success message after changing the status of the issue.
-
     """
 
     transitions = request_fn("GET", f"/rest/api/2/issue/{issue_key}/transitions").get(
@@ -53,9 +58,54 @@ def set_status(request_fn, issue_key, target_status):
             print(t["name"])
         raise SetStatusError(f"❌ Transition to status '{target_status}' not found")
 
+    # If the status is "refinement", we need to move the issue to the top of the backlog
+    if target_status.lower() == "refinement":
+        # Step 1: Get the backlog issues
+        backlog_url = "/rest/greenhopper/1.0/xboard/plan/backlog/data.json"
+        params = {
+            "rapidViewId": EnvFetcher.get("JIRA_BOARD_ID"),
+            "selectedProjectKey": EnvFetcher.get("PROJECT_KEY"),
+        }
+        backlog_response = request_fn("GET", backlog_url, params=params)
+        backlog_issues = backlog_response.get("issues", [])
+
+        # Step 2: Get the first issue in the backlog (top of the backlog)
+        if backlog_issues:
+            first_backlog_issue_key = backlog_issues[0]["key"]
+
+            # Step 3: Call the rank endpoint to move the current issue to the top
+            rank_url = "/rest/greenhopper/1.0/sprint/rank"
+            rank_payload = {
+                "idOrKeys": [issue_key],
+                "customFieldId": 12311940,  # Unknown magic number
+                "rapidViewId": EnvFetcher.get("JIRA_BOARD_ID"),
+                "calculateNewIssuesOrder": False,
+                "sprintId": None,
+                "addToBacklog": True,
+                "idOrKeyBefore": first_backlog_issue_key,
+            }
+            request_fn("PUT", rank_url, json_data=rank_payload)
+            print(f"✅ Moved {issue_key} to the top of the backlog")
+
+        # Step 4: Check if the issue has a parent Epic
+        issue_details_url = f"/rest/api/2/issue/{issue_key}"
+        issue_details = request_fn("GET", issue_details_url)
+        issue_id = issue_details.get("id")
+
+        if EnvFetcher.get("JIRA_EPIC_FIELD") in issue_details.get("fields", {}):
+            epic_key = issue_details.get("fields", {})[
+                EnvFetcher.get("JIRA_EPIC_FIELD")
+            ]
+
+            # Step 5: Move the issue to the top of the Epic
+            epic_rank_url = "/rest/greenhopper/1.0/rank/global/first"
+            epic_rank_payload = {"issueId": issue_id}
+            request_fn("POST", epic_rank_url, json_data=epic_rank_payload)
+            print(f"✅ Moved {issue_key} to the top of its Epic {epic_key}")
+
     request_fn(
         "POST",
         f"/rest/api/2/issue/{issue_key}/transitions",
-        json={"transition": {"id": transition_id}},
+        json_data={"transition": {"id": transition_id}},
     )
     print(f"✅ Changed status of {issue_key} to '{target_status}'")

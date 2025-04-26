@@ -32,12 +32,12 @@ def migrate_issue(request_fn, jira_url, build_payload_fn, old_key, new_type):
     description = fields.get("description", f"Migrated from {old_key}")
 
     payload = build_payload_fn(summary, description, new_type)
-    new_key = request_fn("POST", "/rest/api/2/issue/", json=payload)["key"]
+    new_key = request_fn("POST", "/rest/api/2/issue/", json_data=payload)["key"]
 
     request_fn(
         "POST",
         f"/rest/api/2/issue/{old_key}/comment",
-        json={
+        json_data={
             "body": f"Migrated to [{new_key}]({jira_url}/browse/{new_key}) as a {new_type.upper()}."
         },
     )
@@ -60,7 +60,7 @@ def migrate_issue(request_fn, jira_url, build_payload_fn, old_key, new_type):
         request_fn(
             "POST",
             f"/rest/api/2/issue/{old_key}/transitions",
-            json={"transition": {"id": transition_id}},
+            json_data={"transition": {"id": transition_id}},
         )
 
     return new_key

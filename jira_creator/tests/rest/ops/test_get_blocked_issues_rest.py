@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 """
-This module contains unit tests for the `blocked` method of the `client` class, which is responsible for identifying
-blocked issues in a system. The tests cover various scenarios including:
+This module contains unit tests for the `blocked` method of the `client` class, which identifies blocked issues in a
+system. The tests cover various scenarios, including the presence and absence of blocked issues, cases where no issues
+are present, and handling exceptions during issue listing.
 
-- The presence of blocked issues.
-- The absence of blocked issues.
-- The case where no issues are present.
-- Handling exceptions during the listing of issues.
-
-The tests utilize the `MagicMock` class from the `unittest.mock` module to simulate the behavior of the `client` object,
-allowing for controlled testing environments. The `pytest` framework is used for assertions and exception handling.
-Additionally, the `EnvFetcher` class is employed to retrieve environment variables related to JIRA issue fields.
+The tests utilize `MagicMock` from the `unittest.mock` module to simulate the behavior of the `client` object, enabling
+controlled testing environments. The `pytest` framework is used for assertions and exception handling. Additionally,
+the `EnvFetcher` class is employed to retrieve environment variables related to JIRA issue fields.
 """
 
 from unittest.mock import MagicMock

@@ -3,16 +3,15 @@
 This module provides functionality to validate Jira issues based on various criteria, utilizing AI for quality checks
 on specific fields.
 
-It includes the following key functions:
+Key functions include:
 
 - `get_cache_path()`: Returns the path to the cache file for storing issue hashes.
 - `sha256(text)`: Computes the SHA-256 hash of the given text.
 - `load_cache()`: Loads the cached issue data from the cache file, if it exists.
 - `save_cache(data)`: Saves the provided data to the cache file, creating necessary directories if they do not exist.
 - `load_and_cache_issue(issue_key)`: Loads the cache and retrieves cached values for a specified issue key.
-- Validation functions: A series of functions (`validate_progress`, `validate_epic_link`, `validate_sprint`,
-`validate_priority`, `validate_story_points`, `validate_blocked`, `validate_field_with_ai`) that check various aspects
-of an issue to ensure it meets specific criteria.
+- Validation functions: A series of functions that check various aspects of an issue to ensure it meets specific
+criteria.
 - `cli_validate_issue(fields, ai_provider)`: The main function that orchestrates the validation of an issue by
 extracting relevant fields, performing validations, and utilizing AI for field quality checks.
 
@@ -261,7 +260,6 @@ def validate_field_with_ai(
     issue_status,
 ):
     """
-    Summary:
     Validate a field using an AI provider by comparing field hashes and checking the quality of the field value.
 
     Arguments:
@@ -272,9 +270,6 @@ def validate_field_with_ai(
     - ai_provider (object): The AI provider object used to improve text quality.
     - problems (list): A list to store validation problems encountered.
     - issue_status (dict): A dictionary to track the validation status of each field.
-
-    Exceptions:
-    None
 
     Side Effects:
     - Modifies the 'problems' list if validation issues are found.

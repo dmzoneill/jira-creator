@@ -1,14 +1,21 @@
 #!/usr/bin/env python
 """
-This module contains test functions to validate the functionality of loading and caching issues in a command-line
-interface. It imports functions from the 'cli_validate_issue' module to test 'load_cache', 'save_cache', and
-'load_and_cache_issue' functions. The tests include:
-- `test_mock_load_cache`: Verifies that the 'load_cache' function returns a dictionary.
-- `test_mock_save_cache`: Tests the 'save_cache' function to ensure it modifies the cache with the provided key-value
+This module contains unit tests for validating the functionality of issue loading and caching in a command-line
+interface. It includes tests for the following functions from the 'cli_validate_issue' module:
+- `load_cache`
+- `save_cache`
+- `load_and_cache_issue`
+
+Each test function uses mock objects to simulate the behavior of the respective functions being tested. The tests are
+as follows:
+- `test_mock_load_cache`: Ensures that the 'load_cache' function returns a dictionary.
+- `test_mock_save_cache`: Validates that the 'save_cache' function correctly modifies the cache with a given key-value
 pair.
 - `test_mock_load_and_cache_issue`: Confirms that the 'load_and_cache_issue' function returns the expected result for a
-given input.
-Each test uses mock objects to simulate the behavior of the functions being tested.
+specified input.
+
+This module is intended for use in a testing environment to ensure the correctness of caching mechanisms in the CLI
+application.
 """
 
 

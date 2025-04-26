@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 """
-This module contains unit tests for the `vote_story_points` method in the client class.
+This module contains unit tests for the `vote_story_points` method within a client class that interacts with an API
+for voting on story points associated with issues.
 
-The tests cover scenarios where the method succeeds, fails during voting, and fails to fetch the issue ID.
+The tests validate the following scenarios:
+- Successful voting of story points.
+- Handling of failures during the voting process.
+- Management of errors when fetching the issue ID required for voting.
 
 Functions:
-- `test_vote_story_points_success(client)`: Tests successful voting of story points.
-- `test_vote_story_points_failure(client, capsys)`: Tests failure during voting of story points.
-- `test_vote_story_points_fetch_issue_id_failure(client, capsys)`: Tests failure to fetch the issue ID.
+- `test_vote_story_points_success(client)`: Tests the successful voting of story points, ensuring that the correct
+API calls are made and validated.
+- `test_vote_story_points_failure(client, capsys)`: Tests the failure scenario for voting, verifying that the
+appropriate error is raised and the expected output is captured.
+- `test_vote_story_points_fetch_issue_id_failure(client, capsys)`: Tests the handling of failure to fetch the
+issue ID, ensuring that the correct exception is raised and that output is captured.
 
-Mock objects are used to simulate API responses and exceptions for testing purposes.
+Mock objects are employed to simulate API responses and exceptions, enabling isolated and effective testing of the
+voting functionality without making actual API calls.
 """
 
 from unittest.mock import MagicMock

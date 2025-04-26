@@ -1,24 +1,20 @@
 #!/usr/bin/env python
 """
-This script contains unit tests for the view_issue function in the cli module. It uses MagicMock to mock certain
-functionalities and pytest for testing exceptions. The tests validate the behavior of viewing an issue and handling
-exceptions when viewing an issue fails. The tests verify that the correct messages are printed and the expected
-functions are called with the appropriate arguments.
+This module contains unit tests for the `view_issue` function within the `cli` module. It utilizes `pytest` for testing
+and `MagicMock` to simulate interactions with the Jira API. The tests cover both successful and exceptional scenarios
+of viewing an issue, ensuring that correct outputs are produced and appropriate methods are invoked with expected
+arguments.
 
 Functions:
-- test_view_issue(cli, capsys): Simulate a test scenario for viewing an issue.
-Arguments:
-- cli: An object representing the command line interface for testing.
-- capsys: An object to capture stdout and stderr during testing.
-Side Effects:
-- Initializes a dictionary 'blob' with key-value pairs representing issue details.
+- `test_view_issue(cli, capsys)`: Tests the successful retrieval of an issue.
+- `test_view_issue_exception(cli, capsys)`: Tests the handling of exceptions when attempting to view an issue.
 
-- test_view_issue_exception(cli, capsys): Simulate an exception when viewing an issue in Jira for testing purposes.
 Arguments:
-- cli: The Jira command line interface object.
-- capsys: The pytest fixture for capturing stdout and stderr.
+- `cli`: An instance of the command line interface used for testing.
+- `capsys`: A pytest fixture that captures standard output and error streams.
+
 Exceptions:
-- ViewIssueError: Raised when there is a failure while viewing an issue in Jira.
+- `ViewIssueError`: Raised during the failure of the issue viewing process.
 """
 
 from unittest.mock import MagicMock

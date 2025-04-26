@@ -117,14 +117,20 @@ def setup_cli_and_args(
 
 def test_list_print(cli, capsys):
     """
-    Print a list of issues using the provided CLI.
+    Setup the Jira mock for the CLI.
 
     Arguments:
-    - cli (object): The CLI object used to interact with the command-line interface.
-    - capsys (object): The capsys object used to capture stdout and stderr outputs.
+    - cli (object): The CLI object to which the Jira mock will be assigned.
+    - capsys (object): Pytest fixture for capturing stdout and stderr.
+    - blocked (list): List of blocked items (default is None).
+    - unblocked (list): List of unblocked items (default is None).
+    - reporter (str): Name of the reporter (default is None).
+    - status (str): Status of the items (default is None).
+    - summary (str): Summary of the items (default is None).
+    - func (function): Function to be executed (default is None).
 
     Side Effects:
-    - Modifies the behavior of the provided CLI object by listing the retrieved issues.
+    - Modifies the 'jira' attribute of the 'cli' object by assigning it a MagicMock object.
     """
 
     args, issues = setup_cli_and_args(cli, func="test_list_print")

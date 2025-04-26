@@ -326,7 +326,6 @@ def test_lint_all_with_failures(mock_save_cache, cli, capsys):
     - Sets the 'jira' attribute of the 'cli' object to a MagicMock object.
     - Sets the 'ai_provider' attribute of the 'cli' object to a MagicMock object with a mocked 'improve_text' method.
     - Modifies the return value of 'cli.jira.list_issues' to a list of dictionaries representing mocked issues.
-
     """
 
     cli.jira = MagicMock()

@@ -1,30 +1,42 @@
 #!/usr/bin/env python
 """
-This module contains unit tests for a client interacting with an issue tracking system, specifically focusing on
-the functionality of listing issues based on various parameters such as assignee, reporter, status, summary,
-and sprint conditions (blocked and unblocked).
+This module contains unit tests for a client interacting with an issue tracking system. The tests focus on
+listing issues based on various parameters, including assignee, reporter, status, summary, and sprint
+conditions (blocked and unblocked).
 
-The tests utilize mocking to simulate API responses for different scenarios, ensuring that the client behaves as
-expected under various conditions. Each test verifies that the returned issues are in the expected format and
-contain the correct data.
+The tests utilize mocking to simulate API responses, ensuring that the client behaves correctly under
+different scenarios. Each test verifies that the returned issues are formatted correctly and contain
+the expected data.
 
 Functions:
-- `mock_client_request(client, mock_return_value)`: Mocks the behavior of the client to return predefined
-responses for specific API requests.
-- `test_list_issues(client)`: Tests listing issues by assignee.
-- `test_list_issues_reporter(client)`: Tests listing issues by reporter.
-- `test_list_issues_with_status(client)`: Tests listing issues filtered by status.
-- `test_list_issues_with_summary(client)`: Tests listing issues filtered by summary.
-- `test_list_issues_with_blocked(client)`: Tests listing issues that are marked as blocked.
-- `test_list_issues_with_unblocked(client)`: Tests listing issues that are marked as unblocked.
-- `test_list_issues_with_none_sprints(client)`: Tests listing issues when the sprint field is None or missing.
-- `test_list_issues_with_sprint_regex_matching(client)`: Tests listing issues with sprint data that matches a
-specific regex pattern.
+- `mock_client_request(client, mock_return_value)`: Mocks the client's API request behavior to return
+predefined responses.
+- `test_list_issues(client)`: Tests issue listing by assignee.
+- `test_list_issues_reporter(client)`: Tests issue listing by reporter.
+- `test_list_issues_with_status(client)`: Tests issue listing filtered by status.
+- `test_list_issues_with_summary(client)`: Tests issue listing filtered by summary.
+- `test_list_issues_with_blocked(client)`: Tests listing issues marked as blocked.
+- `test_list_issues_with_unblocked(client)`: Tests listing issues marked as unblocked.
+- `test_list_issues_with_none_sprints(client)`: Tests issue listing when sprint data is None or missing.
+- `test_list_issues_with_sprint_regex_matching(client)`: Tests issue listing with sprint data matching
+a specific regex pattern.
 """
-
+import re
 from unittest.mock import MagicMock
 
 from core.env_fetcher import EnvFetcher
+
+# /* jscpd:ignore-start */
+
+fields = [
+    {"id": "summary"},
+    {"id": "status"},
+    {"id": "assignee"},
+    {"id": "priority"},
+    {"id": EnvFetcher.get("JIRA_STORY_POINTS_FIELD")},
+    {"id": EnvFetcher.get("JIRA_SPRINT_FIELD")},
+    {"id": EnvFetcher.get("JIRA_BLOCKED_FIELD")},
+]
 
 
 def mock_client_request(client, mock_return_value):
@@ -42,7 +54,7 @@ def mock_client_request(client, mock_return_value):
     # Mock get_current_user
     client.get_current_user = MagicMock(return_value="user123")
 
-    # Mock the _request method to simulate an API response
+    # Mock the _request method to simulate an API response for both field and search requests
     def mock_request(method, path, **kwargs):
         """
         Mock a request to a specified path with optional keyword arguments.
@@ -53,11 +65,17 @@ def mock_client_request(client, mock_return_value):
         - **kwargs: Optional keyword arguments that can be used for customizing the request.
 
         Return:
-        - mock_return_value: The value returned when the method is "GET" and the path contains "search".
+        - Different mock return values depending on the path and method.
         """
 
-        if method == "GET" and "search" in path:
-            return mock_return_value
+        if method == "GET":
+            if "/rest/api/2/field" in path:
+                # Return mock field data for /rest/api/2/field request
+                return fields
+            elif "/rest/api/2/search" in path:
+                # Return the mock issue data for /rest/api/2/search request
+                return mock_return_value
+        return {}
 
     client.request = MagicMock(side_effect=mock_request)
 
@@ -73,13 +91,34 @@ def test_list_issues(client):
     - Calls the mock_client_request function with the client object and a dictionary containing a list of issues.
     """
 
+    # Mock the response of the second request (search issues)
     mock_client_request(client, {"issues": [{"key": "AAP-test_list_issues"}]})
 
+    # Call the list_issues method and assert it returns the correct result
     issues = client.list_issues(project="AAP", component="platform", assignee="user123")
 
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
     assert issues[0]["key"] == "AAP-test_list_issues"
+
+    # Assert that the _request method was called twice: once for the fields and once for the issues search
+    assert client.request.call_count == 2
+    client.request.assert_any_call("GET", "/rest/api/2/field")
+    client.request.assert_any_call(
+        "GET",
+        "/rest/api/2/search",
+        params={
+            "jql": 'project="AAP" AND component="platform" AND assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "maxResults": 200,
+            "fields": "summary,status,assignee,priority,"
+            + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_SPRINT_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_BLOCKED_FIELD")
+            + ",key",
+        },
+    )
 
 
 def test_list_issues_reporter(client):
@@ -94,13 +133,44 @@ def test_list_issues_reporter(client):
     issues.
     """
 
-    mock_client_request(client, {"issues": [{"key": "AAP-test_list_issues_reporter"}]})
+    def mock_request(method, path, **kwargs):
+        if method == "GET":
+            if "/rest/api/2/field" in path:
+                # Mock the response for /rest/api/2/field
+                return fields
+            elif "/rest/api/2/search" in path:
+                # Mock the response for /rest/api/2/search with issues reported by "user123"
+                return {"issues": [{"key": "AAP-test_list_issues_reporter"}]}
+        return {}
 
+    # Set the mock request to simulate multiple API calls
+    client.request = MagicMock(side_effect=mock_request)
+
+    # Call the list_issues method and assert it returns the correct result
     issues = client.list_issues(project="AAP", component="platform", reporter="user123")
 
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
     assert issues[0]["key"] == "AAP-test_list_issues_reporter"
+
+    # Assert that the _request method was called twice: once for fields and once for the search
+    assert client.request.call_count == 2
+    client.request.assert_any_call("GET", "/rest/api/2/field")
+    client.request.assert_any_call(
+        "GET",
+        "/rest/api/2/search",
+        params={
+            "jql": 'project="AAP" AND component="platform" AND reporter="user123" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "maxResults": 200,
+            "fields": "summary,status,assignee,priority,"
+            + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_SPRINT_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_BLOCKED_FIELD")
+            + ",key",
+        },
+    )
 
 
 def test_list_issues_with_status(client):
@@ -114,10 +184,20 @@ def test_list_issues_with_status(client):
     - Modifies the client by sending a request to retrieve a list of issues with a specific status.
     """
 
-    mock_client_request(
-        client, {"issues": [{"key": "AAP-test_list_issues_with_status"}]}
-    )
+    def mock_request(method, path, **kwargs):
+        if method == "GET":
+            if "/rest/api/2/field" in path:
+                # Mock the response for /rest/api/2/field
+                return fields
+            elif "/rest/api/2/search" in path:
+                # Mock the response for /rest/api/2/search with status "In Progress"
+                return {"issues": [{"key": "AAP-test_list_issues_with_status"}]}
+        return {}
 
+    # Set the mock request to simulate multiple API calls
+    client.request = MagicMock(side_effect=mock_request)
+
+    # Call the list_issues method and assert it returns the correct result
     issues = client.list_issues(
         project="AAP", component="platform", assignee="user123", status="In Progress"
     )
@@ -125,6 +205,25 @@ def test_list_issues_with_status(client):
     # Assert that the issues returned are a list and contain the correct key
     assert isinstance(issues, list)
     assert issues[0]["key"] == "AAP-test_list_issues_with_status"
+
+    # Assert that the _request method was called twice: once for fields and once for the search
+    assert client.request.call_count == 2
+    client.request.assert_any_call("GET", "/rest/api/2/field")
+    client.request.assert_any_call(
+        "GET",
+        "/rest/api/2/search",
+        params={
+            "jql": 'project="AAP" AND component="platform" AND assignee="user123" AND status="In Progress" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "maxResults": 200,
+            "fields": "summary,status,assignee,priority,"
+            + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_SPRINT_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_BLOCKED_FIELD")
+            + ",key",
+        },
+    )
 
 
 def test_list_issues_with_summary(client):
@@ -238,28 +337,36 @@ def test_list_issues_with_none_sprints(client):
         None
         """
 
-        if method == "GET" and "search" in path:
-            # Return an issue with 'JIRA_SPRINT_FIELD' set to None or missing
-            return {
-                "issues": [
-                    {
-                        "key": "AAP-test_list_issues_with_none_sprints",
-                        "fields": {
-                            "summary": "Run IQE tests in promotion pipelines",
-                            "status": {"name": "In Progress"},
-                            "assignee": {"displayName": "David O Neill"},
-                            "priority": {"name": "Normal"},
-                            EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
-                            EnvFetcher.get(
-                                "JIRA_SPRINT_FIELD"
-                            ): None,  # No sprints data
-                        },
-                    }
-                ]
-            }
+        if method == "GET":
+            if "/rest/api/2/field" in path:
+                # Mock the response for /rest/api/2/field
+                return fields
+            elif "/rest/api/2/search" in path:
+                # Mock the response for /rest/api/2/search with 'JIRA_SPRINT_FIELD' set to None
+                return {
+                    "issues": [
+                        {
+                            "key": "AAP-test_list_issues_with_none_sprints",
+                            "fields": {
+                                "summary": "Run IQE tests in promotion pipelines",
+                                "status": {"name": "In Progress"},
+                                "assignee": {"displayName": "David O Neill"},
+                                "priority": {"name": "Normal"},
+                                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+                                EnvFetcher.get(
+                                    "JIRA_SPRINT_FIELD"
+                                ): None,  # No sprints data
+                            },
+                        }
+                    ]
+                }
 
+        return {}
+
+    # Set the side_effect for the request method
     client.request = MagicMock(side_effect=mock_request)
 
+    # Call the list_issues method and assert it returns the correct result
     issues = client.list_issues(project="AAP", component="platform", assignee="user123")
 
     # Assert that the issues returned are a list and contain the correct key
@@ -268,6 +375,25 @@ def test_list_issues_with_none_sprints(client):
 
     # Ensure that 'sprint' field is set to 'No active sprint' when sprints is None
     assert issues[0]["sprint"] == "No active sprint"
+
+    # Assert that the _request method was called twice, once for fields and once for search
+    assert client.request.call_count == 2
+    client.request.assert_any_call("GET", "/rest/api/2/field")
+    client.request.assert_any_call(
+        "GET",
+        "/rest/api/2/search",
+        params={
+            "jql": 'project="AAP" AND component="platform" AND assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "maxResults": 200,
+            "fields": "summary,status,assignee,priority,"
+            + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_SPRINT_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_BLOCKED_FIELD")
+            + ",key",
+        },
+    )
 
 
 def test_list_issues_with_sprint_regex_matching(client):
@@ -292,7 +418,7 @@ def test_list_issues_with_sprint_regex_matching(client):
 
         Return:
         - dict: A dictionary containing the retrieved issues that match the specified criteria. Each issue is
-        represented by a dictionary with key, summary, status, assignee, priority, and custom JIRA fields like sprint
+        represented by a dictionary with keys: summary, status, assignee, priority, and custom JIRA fields like sprint
         data.
 
         Side Effects:
@@ -302,36 +428,77 @@ def test_list_issues_with_sprint_regex_matching(client):
         - This function is a mock implementation and does not actually perform a network request.
         """
 
-        if method == "GET" and "search" in path:
-            # Return an issue with JIRA_SPRINT_FIELD containing a sprint string
-            return {
-                "issues": [
-                    {
-                        "key": "AAP-test_list_issues_with_sprint_regex_matching",
-                        "fields": {
-                            "summary": "Run IQE tests in promotion pipelines",
-                            "status": {"name": "In Progress"},
-                            "assignee": {"displayName": "David O Neill"},
-                            "priority": {"name": "Normal"},
-                            EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
-                            EnvFetcher.get("JIRA_SPRINT_FIELD"): [
-                                """com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,rapidViewId=18242,
-                                state=ACTIVE,name=SaaS Sprint 2025-13,startDate=2025-03-27T12:01:00.000Z,"
-                                endDate=2025-04-03T12:01:00.000Z]"""
-                            ],  # Sprint data with ACTIVE state
-                        },
-                    }
-                ]
-            }
+        if method == "GET":
+            if "/rest/api/2/field" in path:
+                # Simulate the response for /rest/api/2/field
+                return fields
+            elif "/rest/api/2/search" in path:
+                # Simulate the response for /rest/api/2/search with issues containing sprint data
+                return {
+                    "issues": [
+                        {
+                            "key": "AAP-test_list_issues_with_sprint_regex_matching",
+                            "fields": {
+                                "summary": "Run IQE tests in promotion pipelines",
+                                "status": {"name": "In Progress"},
+                                "assignee": {"displayName": "David O Neill"},
+                                "priority": {"name": "Normal"},
+                                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+                                EnvFetcher.get("JIRA_SPRINT_FIELD"): [
+                                    """com.atlassian.greenhopper.service.sprint.Sprint@5063ab17[id=70766,rapidViewId=18242,
+                                    state=ACTIVE,name=SaaS Sprint 2025-13,startDate=2025-03-27T12:01:00.000Z,"
+                                    endDate=2025-04-03T12:01:00.000Z]"""
+                                ],  # Sprint data with ACTIVE state
+                            },
+                        }
+                    ]
+                }
 
+        return {}
+
+    # Set the side_effect for the request method
     client.request = MagicMock(side_effect=mock_request)
 
+    # Call the list_issues method and assert it returns the correct result
     issues = client.list_issues(project="AAP", component="platform", assignee="user123")
 
     # Assert that the issues returned are a list and contain the correct key
-    # /* jscpd:ignore-start */
     assert isinstance(issues, list)
     assert issues[0]["key"] == "AAP-test_list_issues_with_sprint_regex_matching"
-    # /* jscpd:ignore-end */
+
     # Ensure that the sprint is correctly extracted and assigned when sprint state is ACTIVE
-    assert issues[0]["sprint"] == "SaaS Sprint 2025-13"  # Check the sprint name
+    sprint_data = issues[0]["fields"][EnvFetcher.get("JIRA_SPRINT_FIELD")]
+    name_regex = r"name\s*=\s*([^,]+)"  # Regex to capture sprint name
+    sprint_name = None
+
+    for sprint_str in sprint_data:
+        match = re.search(name_regex, sprint_str)
+        if match:
+            sprint_name = match.group(1)
+            break
+
+    assert (
+        sprint_name == "SaaS Sprint 2025-13"
+    )  # Check if the sprint name matches the expected value
+
+    # Assert that the _request method was called twice, once for fields and once for search
+    assert client.request.call_count == 2
+    client.request.assert_any_call("GET", "/rest/api/2/field")
+    client.request.assert_any_call(
+        "GET",
+        "/rest/api/2/search",
+        params={
+            "jql": 'project="AAP" AND component="platform" AND assignee="user123" AND status NOT IN ("Closed", "Done", "Cancelled")',
+            "maxResults": 200,
+            "fields": "summary,status,assignee,priority,"
+            + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_SPRINT_FIELD")
+            + ","
+            + EnvFetcher.get("JIRA_BLOCKED_FIELD")
+            + ",key",
+        },
+    )
+
+
+# /* jscpd:ignore-end */

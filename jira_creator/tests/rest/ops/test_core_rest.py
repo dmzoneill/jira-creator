@@ -26,9 +26,6 @@ def test_build_payload_with_patch_dict(client):
     Arguments:
     - client (object): An object representing the client connection.
 
-    Return:
-    This function does not return anything.
-
     Side Effects:
     Modifies the payload dictionary with the provided summary, description, and issue type.
     """

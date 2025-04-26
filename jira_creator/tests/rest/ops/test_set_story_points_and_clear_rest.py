@@ -34,5 +34,5 @@ def test_set_story_points(client):
     client.request.assert_called_once_with(
         "PUT",
         "/rest/api/2/issue/AAP-test_set_story_points",
-        json={"fields": {EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 8}},
+        json_data={"fields": {EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 8}},
     )

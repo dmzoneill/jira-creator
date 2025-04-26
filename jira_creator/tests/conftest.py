@@ -123,14 +123,10 @@ def cli(
 @pytest.fixture
 def mock_search_issues(cli):
     """
-    Mock search_issues function to return a list of mocked Jira issues.
+    Apply patches to provided functions for testing purposes.
 
     Arguments:
-    - cli: An instance of the Jira CLI used to interact with Jira API.
-
-    Side Effects:
-    - Modifies the behavior of the search_issues method in the Jira CLI by mocking its return value to a predefined
-    list of Jira issues.
+    - cli: Command-line interface object.
     """
 
     # Mock search_issues to return a list of issues

@@ -5,6 +5,11 @@ method of a client object. The function sets up a mock response for the client's
 search_users method with a specific username. It asserts that the results match the mock response and checks that the
 _request method was called with the expected parameters. The script requires the client object to be passed as an
 argument to the test function.
+
+The test_search_users_returns_expected_data function:
+- Searches for users and returns the expected data.
+- Takes a client object as an argument representing the client used to make requests.
+- Modifies the client's _request attribute to return mock user data.
 """
 
 from unittest.mock import MagicMock

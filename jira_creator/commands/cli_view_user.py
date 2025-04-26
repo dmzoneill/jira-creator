@@ -36,9 +36,31 @@ def cli_view_user(jira: JiraClient, args: Namespace) -> Dict[str, Any]:
     try:
         user = jira.get_user(args.account_id)
 
-        for key in sorted(user.keys()):
-            print(f"{key} : {user[key]}")
-        return user
+        # Keys to be dropped
+        keys_to_drop = [
+            "self",
+            "avatarUrls",
+            "ownerId",
+            "applicationRoles",
+            "groups",
+            "expand",
+        ]
+
+        # Prepare filtered user data
+        filtered_user = {
+            key: value for key, value in user.items() if key not in keys_to_drop
+        }
+
+        # Print the data in a formatted ASCII table
+        print(f"{'Key':<20} {'Value'}")
+        print("-" * 40)  # Separator for the table
+
+        for key, value in sorted(filtered_user.items()):
+            # Format the value for better readability
+            formatted_value = value if isinstance(value, str) else str(value)
+            print(f"{key:<20} {formatted_value}")
+
+        return filtered_user
     except GetUserError as e:
         msg = f"❌ Unable to retrieve user: {e}"
         print(msg)

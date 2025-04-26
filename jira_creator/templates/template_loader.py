@@ -14,7 +14,7 @@ issue tracking systems or reporting tools.
 """
 
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 
 class TemplateLoader:
@@ -31,11 +31,11 @@ class TemplateLoader:
     - _load_template(): Private method to read and parse the template file, extracting fields and template content.
     - get_fields(): Returns the list of field names extracted from the template.
     - get_template(): Returns the template content as a single string.
-    - render_description(values: dict): Processes the template content by replacing placeholders with provided values
+    - render_description(values: Dict[str, str]) -> str: Processes the template content by replacing placeholders with provided values
     and returns the rendered description.
     """
 
-    def __init__(self, template_dir: Path, issue_type: str):
+    def __init__(self, template_dir: Path, issue_type: str) -> None:
         """
         Initialize a new instance of the class with the provided template directory and issue type.
 
@@ -52,7 +52,7 @@ class TemplateLoader:
         - Calls the '_load_template' method to load the template file content.
         """
 
-        self.template_path = template_dir / f"{issue_type}.tmpl"
+        self.template_path: Path = template_dir / f"{issue_type}.tmpl"
         if not self.template_path.exists():
             err = f"Template file not found: {self.template_path}"
             raise FileNotFoundError(err)
@@ -60,20 +60,19 @@ class TemplateLoader:
         self.template_lines: List[str] = []
         self._load_template()
 
-    def _load_template(self):
+    def _load_template(self) -> None:
         """
         Load a template from a file specified by 'template_path' and extract fields and template lines.
 
         Arguments:
         - self: The object instance.
-        - template_path (str): The path to the template file to be loaded.
 
         Side Effects:
         - Modifies the 'fields' list attribute by appending extracted field names.
         - Modifies the 'template_lines' list attribute by appending lines of the template.
         """
 
-        in_template = False
+        in_template: bool = False
         with open(self.template_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.rstrip("\n")
@@ -84,7 +83,7 @@ class TemplateLoader:
                 elif in_template:
                     self.template_lines.append(line)
 
-    def get_fields(self):
+    def get_fields(self) -> List[str]:
         """
         Retrieve and return the fields stored in the object.
 
@@ -92,12 +91,12 @@ class TemplateLoader:
         - self: The object instance.
 
         Return:
-        - The fields stored in the object.
+        - List[str]: The fields stored in the object.
         """
 
         return self.fields
 
-    def get_template(self):
+    def get_template(self) -> str:
         """
         Return the template content as a single string by joining the lines.
 
@@ -110,25 +109,25 @@ class TemplateLoader:
 
         return "\n".join(self.template_lines)
 
-    def render_description(self, values: dict):
+    def render_description(self, values: Dict[str, str]) -> str:
         """
         Render the description using a template and provided values.
 
         Arguments:
         - self: the object instance
-        - values (dict): A dictionary containing placeholder-value pairs to substitute in the template.
+        - values (Dict[str, str]): A dictionary containing placeholder-value pairs to substitute in the template.
 
         Return:
         - str: The rendered description after replacing all placeholders with corresponding values.
         """
 
-        description = ""
+        description: str = ""
         for line in self.template_lines:
             while "{{" in line and "}}" in line:
-                start = line.find("{{") + 2
-                end = line.find("}}")
-                placeholder = line[start:end]
-                value = values.get(placeholder, "")
+                start: int = line.find("{{") + 2
+                end: int = line.find("}}")
+                placeholder: str = line[start:end]
+                value: str = values.get(placeholder, "")
                 line = line.replace(f"{{{{{placeholder}}}}}", value)
             description += line + "\n"
         return description

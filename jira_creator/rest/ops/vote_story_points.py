@@ -26,14 +26,15 @@ function to interact with the JIRA API.
 """
 
 from exceptions.exceptions import FetchIssueIDError, VoteStoryPointsError
+from typing import Callable, Any
 
 
-def vote_story_points(request_fn, issue_key, points):
+def vote_story_points(request_fn: Callable[[str, str, dict], Any], issue_key: str, points: int) -> None:
     """
     Vote story points for a given Jira issue.
 
     Arguments:
-    - request_fn (function): A function used to make HTTP requests.
+    - request_fn (Callable[[str, str, dict], Any]): A function used to make HTTP requests.
     - issue_key (str): The key of the Jira issue to vote story points for.
     - points (int): The number of story points to vote for the issue.
 
@@ -52,7 +53,7 @@ def vote_story_points(request_fn, issue_key, points):
     """
 
     try:
-        issue = request_fn("GET", f"/rest/api/2/issue/{issue_key}")
+        issue = request_fn("GET", f"/rest/api/2/issue/{issue_key}", {})
         issue_id = issue["id"]
     except FetchIssueIDError as e:
         msg = f"❌ Failed to fetch issue ID for {issue_key}: {e}"
@@ -65,14 +66,13 @@ def vote_story_points(request_fn, issue_key, points):
         response = request_fn(
             "PUT",
             "/rest/eausm/latest/planningPoker/vote",
-            json_data=payload,
+            payload,
         )
         if response.status_code != 200:
             raise VoteStoryPointsError(
                 f"JIRA API error ({response.status_code}): {response.text}"
             )
         print(f"✅ Voted {points} story points on issue {issue_key}")
-        return
     except (VoteStoryPointsError, VoteStoryPointsError) as e:
         msg = f"❌ Failed to vote on story points: {e}"
         print(msg)

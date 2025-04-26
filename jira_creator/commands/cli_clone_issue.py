@@ -31,5 +31,5 @@ def cli_clone_issue(jira: JiraClient, args: Namespace) -> Dict[str, Any]:
     """
 
     issue_key: str = args.issue_key
-    response: Dict[str, Any] = jira.add_flag_to_issue(issue_key)
+    response: Dict[str, Any] = jira.clone_issue(issue_key)
     return response

@@ -20,9 +20,10 @@ Epic when the target status is "refinement".
 
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import SetStatusError
+from typing import Callable, Dict, Any
 
 
-def set_status(request_fn, issue_key, target_status):
+def set_status(request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any]], issue_key: str, target_status: str) -> None:
     """
     Retrieve the available transitions for a given issue and set its status to a target status.
 
@@ -43,11 +44,11 @@ def set_status(request_fn, issue_key, target_status):
     - Prints a success message after changing the status of the issue.
     """
 
-    transitions = request_fn("GET", f"/rest/api/2/issue/{issue_key}/transitions").get(
+    transitions: list[Dict[str, Any]] = request_fn("GET", f"/rest/api/2/issue/{issue_key}/transitions").get(
         "transitions", []
     )
 
-    transition_id = next(
+    transition_id: str | None = next(
         (t["id"] for t in transitions if t["name"].lower() == target_status.lower()),
         None,
     )
@@ -61,21 +62,21 @@ def set_status(request_fn, issue_key, target_status):
     # If the status is "refinement", we need to move the issue to the top of the backlog
     if target_status.lower() == "refinement":
         # Step 1: Get the backlog issues
-        backlog_url = "/rest/greenhopper/1.0/xboard/plan/backlog/data.json"
-        params = {
+        backlog_url: str = "/rest/greenhopper/1.0/xboard/plan/backlog/data.json"
+        params: Dict[str, Any] = {
             "rapidViewId": EnvFetcher.get("JIRA_BOARD_ID"),
             "selectedProjectKey": EnvFetcher.get("PROJECT_KEY"),
         }
-        backlog_response = request_fn("GET", backlog_url, params=params)
-        backlog_issues = backlog_response.get("issues", [])
+        backlog_response: Dict[str, Any] = request_fn("GET", backlog_url, params=params)
+        backlog_issues: list[Dict[str, Any]] = backlog_response.get("issues", [])
 
         # Step 2: Get the first issue in the backlog (top of the backlog)
         if backlog_issues:
-            first_backlog_issue_key = backlog_issues[0]["key"]
+            first_backlog_issue_key: str = backlog_issues[0]["key"]
 
             # Step 3: Call the rank endpoint to move the current issue to the top
-            rank_url = "/rest/greenhopper/1.0/sprint/rank"
-            rank_payload = {
+            rank_url: str = "/rest/greenhopper/1.0/sprint/rank"
+            rank_payload: Dict[str, Any] = {
                 "idOrKeys": [issue_key],
                 "customFieldId": 12311940,  # Unknown magic number
                 "rapidViewId": EnvFetcher.get("JIRA_BOARD_ID"),
@@ -88,18 +89,18 @@ def set_status(request_fn, issue_key, target_status):
             print(f"✅ Moved {issue_key} to the top of the backlog")
 
         # Step 4: Check if the issue has a parent Epic
-        issue_details_url = f"/rest/api/2/issue/{issue_key}"
-        issue_details = request_fn("GET", issue_details_url)
-        issue_id = issue_details.get("id")
+        issue_details_url: str = f"/rest/api/2/issue/{issue_key}"
+        issue_details: Dict[str, Any] = request_fn("GET", issue_details_url)
+        issue_id: str | None = issue_details.get("id")
 
         if EnvFetcher.get("JIRA_EPIC_FIELD") in issue_details.get("fields", {}):
-            epic_key = issue_details.get("fields", {})[
+            epic_key: str = issue_details.get("fields", {})[
                 EnvFetcher.get("JIRA_EPIC_FIELD")
             ]
 
             # Step 5: Move the issue to the top of the Epic
-            epic_rank_url = "/rest/greenhopper/1.0/rank/global/first"
-            epic_rank_payload = {"issueId": issue_id}
+            epic_rank_url: str = "/rest/greenhopper/1.0/rank/global/first"
+            epic_rank_payload: Dict[str, Any] = {"issueId": issue_id}
             request_fn("POST", epic_rank_url, json_data=epic_rank_payload)
             print(f"✅ Moved {issue_key} to the top of its Epic {epic_key}")
 

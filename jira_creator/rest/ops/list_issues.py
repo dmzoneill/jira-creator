@@ -15,23 +15,24 @@ Note: The function includes JSCPD ignore comments to exclude code blocks from du
 # pylint: disable=too-many-arguments too-many-positional-arguments too-many-locals
 
 import re
+from typing import Callable, List, Dict, Optional, Any
 
 from core.env_fetcher import EnvFetcher
 
 
 # /* jscpd:ignore-start */
 def list_issues(
-    request_fn,
-    get_current_user_fn,
-    project=None,
-    component=None,
-    assignee=None,
-    status=None,
-    summary=None,
-    issues_blocked=False,
-    issues_unblocked=False,
-    reporter=None,
-):
+    request_fn: Callable[..., Dict[str, Any]],
+    get_current_user_fn: Callable[[], str],
+    project: Optional[str] = None,
+    component: Optional[str] = None,
+    assignee: Optional[str] = None,
+    status: Optional[str] = None,
+    summary: Optional[str] = None,
+    issues_blocked: bool = False,
+    issues_unblocked: bool = False,
+    reporter: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     """
     Retrieve a list of issues based on specified filters.
 
@@ -52,7 +53,7 @@ def list_issues(
     issue, including key, summary, status, assignee, priority, story points, sprint, and blocked status.
     """
 
-    jql_parts = []
+    jql_parts: List[str] = []
     jql_parts.append(f'project="{project}"')
     jql_parts.append(f'component="{component}"')
 
@@ -70,10 +71,10 @@ def list_issues(
     if issues_unblocked:
         jql_parts.append(EnvFetcher.get("JIRA_BLOCKED_FIELD") + '!="True"')
 
-    jql = " AND ".join(jql_parts) + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
+    jql: str = " AND ".join(jql_parts) + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
 
-    fields = request_fn("GET", "/rest/api/2/field")
-    field_names = [field["id"] for field in fields]
+    fields: List[Dict[str, Any]] = request_fn("GET", "/rest/api/2/field")
+    field_names: List[str] = [field["id"] for field in fields]
     field_names = [name for name in field_names if "custom" not in name]
     field_names += [
         EnvFetcher.get("JIRA_STORY_POINTS_FIELD"),
@@ -82,28 +83,28 @@ def list_issues(
     ]
     field_names += ["key"]
 
-    params = {
+    params: Dict[str, Any] = {
         "jql": jql,
         "fields": ",".join(field_names),
         "maxResults": 200,
     }
-    issues = request_fn("GET", "/rest/api/2/search", params=params).get("issues", [])
+    issues: List[Dict[str, Any]] = request_fn("GET", "/rest/api/2/search", params=params).get("issues", [])
 
-    name_regex = r"name\s*=\s*([^,]+)"
-    state_regex = r"state\s*=\s*([A-Za-z]+)"
+    name_regex: str = r"name\s*=\s*([^,]+)"
+    state_regex: str = r"state\s*=\s*([A-Za-z]+)"
 
     for issue in issues:
-        sprints = issue.get("fields", {}).get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
+        sprints: List[str] = issue.get("fields", {}).get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
         if sprints is None:
             sprints = []
 
-        active_sprint = None
+        active_sprint: Optional[str] = None
         for sprint_str in sprints:
             name_match = re.search(name_regex, sprint_str)
-            sprint_name = name_match.group(1) if name_match else None
+            sprint_name: Optional[str] = name_match.group(1) if name_match else None
 
             state_match = re.search(state_regex, sprint_str)
-            sprint_state = state_match.group(1) if state_match else None
+            sprint_state: Optional[str] = state_match.group(1) if state_match else None
 
             if sprint_state == "ACTIVE" and sprint_name:
                 active_sprint = sprint_name

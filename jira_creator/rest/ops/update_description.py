@@ -8,8 +8,9 @@ Arguments:
 - new_description (str): The new description to set for the Jira issue.
 """
 
+from typing import Callable
 
-def update_description(request_fn, issue_key, new_description):
+def update_description(request_fn: Callable[[str, str, dict], None], issue_key: str, new_description: str) -> None:
     """
     Updates the description of a Jira issue using the provided request function.
 

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class AiProvider(ABC):
+class AIProvider(ABC):
     """
     Abstract base class that defines the required interface for all AI providers.
     """
@@ -18,4 +18,3 @@ class AiProvider(ABC):
         Returns:
         - str: The improved version of the text.
         """
-        pass

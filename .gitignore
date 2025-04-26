@@ -90,3 +90,6 @@ package-lock.json
 output.mp3
 
 **/snippets/**
+
+# funcitonal tests
+jira_config/

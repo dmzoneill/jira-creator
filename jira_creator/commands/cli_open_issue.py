@@ -27,7 +27,7 @@ from exceptions.exceptions import OpenIssueError
 from rest.client import JiraClient
 
 
-def cli_open_issue(jira: JiraClient, args: Namespace) -> bool:
+def cli_open_issue(_: JiraClient, args: Namespace) -> bool:
     """
     Opens a JIRA issue in the default web browser using xdg-open.
 

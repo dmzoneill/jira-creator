@@ -25,11 +25,12 @@ from typing import Any, Dict, List
 
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintError
-from providers.AiProvider import AiProvider
 from rest.client import JiraClient
 
+from providers.ai_provider import AIProvider
 
-def cli_lint(jira: JiraClient, ai_provider: AiProvider, args: Namespace) -> List[str]:
+
+def cli_lint(jira: JiraClient, ai_provider: AIProvider, args: Namespace) -> List[str]:
     """
     Fetches an issue from Jira using the provided issue key and performs linting on the issue fields.
 

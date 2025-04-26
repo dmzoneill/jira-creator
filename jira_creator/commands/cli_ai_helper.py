@@ -36,7 +36,8 @@ from typing import Any, Dict, List, Union
 
 from exceptions.exceptions import AIHelperError
 from gtts import gTTS
-from providers.AiProvider import AiProvider
+
+from providers.ai_provider import AIProvider
 
 
 def get_cli_command_metadata() -> Dict[str, Dict[str, Any]]:
@@ -128,7 +129,7 @@ def clean_ai_output(ai_output: str) -> Union[List[Any], None]:
 
 def ask_ai_question(
     cli: Any,
-    ai_provider: AiProvider,
+    ai_provider: AIProvider,
     system_prompt: str,
     user_prompt: str,
     voice: bool = False,

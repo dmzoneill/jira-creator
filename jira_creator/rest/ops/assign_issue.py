@@ -12,9 +12,10 @@ message and raises AssignIssueError with a custom message.
 """
 
 from exceptions.exceptions import AssignIssueError
+from typing import Callable
 
 
-def assign_issue(request_fn, issue_key, assignee):
+def assign_issue(request_fn: Callable[[str, str, dict], None], issue_key: str, assignee: str) -> bool:
     """
     Assign the specified issue to the given assignee using the provided request function.
 

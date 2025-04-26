@@ -27,7 +27,8 @@ import os
 from typing import Any, Dict, List, Tuple
 
 from core.env_fetcher import EnvFetcher
-from providers.AiProvider import AiProvider
+
+from providers.ai_provider import AIProvider
 
 
 def get_cache_path() -> str:
@@ -235,7 +236,7 @@ def validate_field_with_ai(
     field_value: str,
     field_hash: str,
     cached_field_hash: str,
-    ai_provider: AiProvider,
+    ai_provider: AIProvider,
     problems: List[str],
     issue_status: Dict[str, bool],
 ) -> str:
@@ -276,7 +277,7 @@ def validate_field_with_ai(
 
 
 def cli_validate_issue(
-    fields: Dict[str, Any], ai_provider: AiProvider
+    fields: Dict[str, Any], ai_provider: AIProvider
 ) -> Tuple[List[str], Dict[str, bool]]:
     """
     Validate the fields of an issue using an AI provider to ensure compliance with specified criteria.

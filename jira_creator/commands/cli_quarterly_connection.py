@@ -22,16 +22,17 @@ last 90 days.
 """
 
 import time
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from exceptions.exceptions import QuarterlyConnectionError
-from providers.AiProvider import AiProvider
 from rest.client import JiraClient
 from rest.prompts import IssueType, PromptLibrary
 
+from providers.ai_provider import AIProvider
+
 
 def cli_quarterly_connection(
-    jira: JiraClient, ai_provider: AiProvider
+    jira: JiraClient, ai_provider: AIProvider
 ) -> Optional[bool]:
     """
     Builds a quarterly employee report based on JIRA issues assigned to the current user.

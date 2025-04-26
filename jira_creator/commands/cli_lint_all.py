@@ -26,12 +26,13 @@ formatted feedback on Jira issues.
 import textwrap
 from argparse import Namespace
 from collections import OrderedDict
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintAllError
-from providers.AiProvider import AiProvider
 from rest.client import JiraClient
+
+from providers.ai_provider import AIProvider
 
 
 def print_status_table(
@@ -106,7 +107,7 @@ def print_status_table(
 
 
 def cli_lint_all(
-    jira: JiraClient, ai_provider: AiProvider, args: Namespace
+    jira: JiraClient, ai_provider: AIProvider, args: Namespace
 ) -> List[Dict[str, Any]]:
     """
     Lint all Jira issues based on specified criteria.

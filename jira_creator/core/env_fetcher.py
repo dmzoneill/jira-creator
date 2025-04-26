@@ -17,6 +17,7 @@ environment variables are available for proper functionality.
 
 import os
 import sys
+from typing import Dict, List, Optional
 
 from exceptions.exceptions import MissingConfigVariable
 
@@ -52,7 +53,7 @@ class EnvFetcher:
     """
 
     @staticmethod
-    def get(var_name):
+    def get(var_name: str) -> str:
         """
         Fetches the value of the environment variable.
 
@@ -60,7 +61,7 @@ class EnvFetcher:
         - var_name (str): The name of the environment variable to retrieve the value for.
         """
 
-        vars = {
+        vars: Dict[str, str] = {
             "JIRA_URL": "https://example.atlassian.net",
             "PROJECT_KEY": "XYZ",
             "AFFECTS_VERSION": "v1.2.3",
@@ -82,10 +83,10 @@ class EnvFetcher:
             "TEMPLATE_DIR": os.path.join(os.path.dirname(__file__), "../templates"),
         }
 
-        value = (
-            os.getenv(var_name, None) if "pytest" not in sys.modules else vars[var_name]
+        value: Optional[str] = (
+            os.getenv(var_name) if "pytest" not in sys.modules else vars[var_name]
         )
-        default = os.path.join(os.path.dirname(__file__), "../templates")
+        default: str = os.path.join(os.path.dirname(__file__), "../templates")
         value = default if var_name == "TEMPLATE_DIR" and value is None else value
 
         if not value:
@@ -95,7 +96,7 @@ class EnvFetcher:
         return value.strip()
 
     @staticmethod
-    def fetch_all(env_vars):
+    def fetch_all(env_vars: List[str]) -> Dict[str, str]:
         """
         Fetches all required Jira-related environment variables.
 

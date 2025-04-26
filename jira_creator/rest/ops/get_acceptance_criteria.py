@@ -22,9 +22,10 @@ Side Effects:
 - None
 """
 from core.env_fetcher import EnvFetcher
+from typing import Callable, Dict, Any
 
 
-def get_acceptance_criteria(request_fn, issue_key):
+def get_acceptance_criteria(request_fn: Callable[[str, str], Dict[str, Any]], issue_key: str) -> str:
     """
     Retrieve the acceptance criteria for a given JIRA issue.
 

@@ -16,9 +16,9 @@ Side Effects:
 """
 
 from core.env_fetcher import EnvFetcher
+from typing import Callable, Dict, Any
 
-
-def set_sprint(request_fn, issue_key, sprint_id):
+def set_sprint(request_fn: Callable[[str, str, Dict[str, Any]], None], issue_key: str, sprint_id: int) -> None:
     """
     Set the sprint for a specific Jira issue.
 
@@ -32,7 +32,7 @@ def set_sprint(request_fn, issue_key, sprint_id):
     - Modifies the sprint field of the specified Jira issue.
     """
 
-    payload = {
+    payload: Dict[str, Any] = {
         "fields": {
             EnvFetcher.get("JIRA_SPRINT_FIELD"): (
                 None if not sprint_id else [str(sprint_id)]

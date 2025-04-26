@@ -2,9 +2,7 @@
 from argparse import Namespace
 from typing import Dict
 
-from rest.client import (
-    JiraClient,
-)  # Assuming JIRA is the class name for the Jira client
+from rest.client import JiraClient
 
 
 def cli_add_flag(jira: JiraClient, args: Namespace) -> Dict:

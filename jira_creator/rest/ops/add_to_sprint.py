@@ -32,6 +32,7 @@ def add_to_sprint(
     board_id: str,
     issue_key: str,
     sprint_name: str,
+    assignee: str,
 ) -> None:
     """
     Add a specified sprint to a JIRA board using its name.
@@ -41,6 +42,7 @@ def add_to_sprint(
     - board_id (str): The ID of the JIRA board to which the sprint will be added.
     - issue_key (str): The key of the JIRA issue to be added to the sprint.
     - sprint_name (str): The name of the sprint to be added to the board.
+    - assignee (str): May be none or empty or a user to assign it to (default to current user).
 
     Exceptions:
     - AddSprintError: Raised when the 'board_id' is not provided in the environment variables.
@@ -58,6 +60,15 @@ def add_to_sprint(
 
     if not sprint_id:
         raise AddSprintError(f"❌ Could not find sprint named '{sprint_name}'")
+
+    user: Dict[str, Any] = request_fn("GET", "/rest/api/2/myself")
+    assignto = user.get("name") if assignee == "" or assignee is None else assignee
+
+    request_fn(
+        "PUT",
+        f"/rest/api/2/issue/{issue_key}",
+        json_data={"fields": {"assignee": {"name": assignto}}},
+    )
 
     request_fn(
         "POST",

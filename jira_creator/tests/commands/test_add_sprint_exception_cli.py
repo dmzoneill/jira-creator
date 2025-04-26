@@ -41,6 +41,7 @@ def test_add_sprint_exception(cli, capsys):
     class Args:
         issue_key = "AAP-test_add_sprint_exception"
         sprint_name = "Sprint X"
+        assignee = "user1"
 
     with pytest.raises(AddSprintError):
         # Call the add_sprint method and handle the exception

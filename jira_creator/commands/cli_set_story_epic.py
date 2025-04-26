@@ -42,7 +42,7 @@ def cli_set_story_epic(jira, args):
     - Prints an error message if setting the epic fails.
     """
 
-    if not hasattr(args, 'issue_key') or not hasattr(args, 'epic_key'):
+    if not hasattr(args, "issue_key") or not hasattr(args, "epic_key"):
         raise ValueError("Arguments must contain 'issue_key' and 'epic_key'.")
 
     if not isinstance(args.issue_key, str) or not isinstance(args.epic_key, str):

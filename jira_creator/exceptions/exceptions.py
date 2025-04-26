@@ -148,7 +148,7 @@ class UpdateDescriptionError(BaseException):
     This class represents an exception that is raised when an error occurs while updating a description.
 
     Attributes:
-    None
+    - None
     """
 
 

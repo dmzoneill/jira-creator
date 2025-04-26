@@ -5,6 +5,12 @@ It includes tests for initializing the provider with default values, improving t
 scenarios.
 The tests use MagicMock and patch from the unittest.mock module, as well as pytest for assertions.
 The improve_text method of the provider is tested for successful and failed responses from the server.
+
+The InstructLabProvider class is tested for initializing with default values, improving text successfully, and handling
+failure scenarios.
+The improve_text_success function tests the successful improvement of text using the improve_text method.
+The improve_text_failure function tests the error handling of the improve_text method when the server responds with an
+error.
 """
 
 from unittest.mock import MagicMock, patch

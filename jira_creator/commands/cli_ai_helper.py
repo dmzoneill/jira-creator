@@ -51,7 +51,6 @@ def get_cli_command_metadata():
     Returns:
     dict: A dictionary where keys are command names and values are dictionaries containing information about the
     command, including help description and arguments.
-
     """
 
     parser = argparse.ArgumentParser()
@@ -121,7 +120,6 @@ def clean_ai_output(ai_output: str) -> list:
 
     Exceptions:
     - ValueError: Raised if the cleaned string cannot be parsed into a JSON object.
-
     """
 
     # Remove any Markdown-style code block wrappers
@@ -199,7 +197,6 @@ def cli_ai_helper(cli, ai_provider, system_prompt, args):
 
     Exceptions:
     - AIHelperError: Raised when there is an issue inspecting public methods of JiraCLI.
-
     """
 
     try:

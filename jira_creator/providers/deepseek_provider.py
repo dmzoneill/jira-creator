@@ -1,22 +1,25 @@
 #!/usr/bin/env python
 """
-This module provides a DeepSeekProvider class for interacting with an AI service to improve text quality.
-The DeepSeekProvider class initializes with default endpoint values fetched from environment variables.
-It includes a method improve_text(prompt, text) to send a POST request to the AI service and improve the given text.
-If successful, it returns the improved text; otherwise, it raises an AiError with details of the failure.
+This module provides the DeepSeekProvider class for interacting with a DeepSeek AI service to enhance text quality.
 
-The DeepSeekProvider class:
+The DeepSeekProvider class is initialized with default endpoint values retrieved from environment variables. It
+includes the method improve_text(prompt, text) which sends a POST request to the AI service to improve the provided
+text. Upon success, it returns the enhanced text; if it fails, an AiError is raised with details of the failure.
+
+Classes:
+- DeepSeekProvider: A class for managing interactions with the DeepSeek AI service.
+
+Attributes of DeepSeekProvider:
 - url (str): The endpoint URL for the AI service, defaults to a local or proxied endpoint.
-- headers (dict): The headers for the HTTP request, with the Content-Type set to application/json.
+- headers (dict): The headers for the HTTP request, with Content-Type set to application/json.
 - model (str): The AI model used for processing the text data.
 
-The improve_text method:
-- Concatenates a given prompt with a text, separated by two new lines.
-- Arguments:
-- prompt (str): The initial prompt to be displayed.
-- text (str): The text to be appended to the prompt.
-- Returns:
-- str: The combined prompt and text.
+Methods:
+- improve_text(prompt: str, text: str) -> str:
+Concatenates a given prompt with text, sends a request to the AI service, and returns the improved text.
+
+Exceptions:
+- AiError: Raised when the POST request fails or if there is an issue with the JSON response.
 """
 
 # pylint: disable=too-few-public-methods
@@ -71,7 +74,6 @@ class DeepSeekProvider:
         Side Effects:
         - Sends a POST request using the provided URL, headers, model, and timeout settings.
         - Modifies the response by removing specific HTML tags ("<think>") if present.
-
         """
 
         full_prompt = f"{prompt}\n\n{text}"

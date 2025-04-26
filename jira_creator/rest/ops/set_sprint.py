@@ -43,5 +43,5 @@ def set_sprint(request_fn, issue_key, sprint_id):
     request_fn(
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
-        json=payload,
+        json_data=payload,
     )

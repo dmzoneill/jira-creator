@@ -33,5 +33,5 @@ def test_add_comment(client):
     client.request.assert_called_once_with(
         "POST",
         "/rest/api/2/issue/AAP-test_add_comment/comment",
-        json={"body": "This is a comment"},
+        json_data={"body": "This is a comment"},
     )

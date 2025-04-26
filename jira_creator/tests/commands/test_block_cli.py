@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-This module contains test cases for the functionality of the 'block' command in a command-line interface (CLI)
-application. It includes two primary test functions: `test_block_command`, which verifies the successful blocking of an
-issue, and `test_block_command_exception`, which checks the handling of a `BlockError` exception during the blocking
-process. The tests utilize pytest fixtures `cli` and `capsys` for simulating the CLI environment and capturing output,
-respectively. Each test function defines a mock implementation of the issue blocking mechanism to isolate the tests
-from the actual system behavior.
+This module contains test cases for the 'block' command functionality in a command-line interface (CLI) application.
+It includes two main test functions: `test_block_command`, which verifies the successful blocking of an issue, and
+`test_block_command_exception`, which checks the handling of a `BlockError` exception during the blocking process.
+The tests leverage pytest fixtures `cli` and `capsys` to simulate the CLI environment and capture output, respectively.
+Mock implementations of the issue blocking mechanism are used to ensure isolation from actual system behavior during
+testing.
 """
 
 import pytest

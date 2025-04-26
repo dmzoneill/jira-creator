@@ -41,7 +41,6 @@ def cli_create_issue(jira, ai_provider, template_dir, args):
     - Prints an error message if the template file is not found.
     - Raises a FileNotFoundError exception with the original error message.
     - Prints warnings or errors related to AI cleanup failure or issue creation failure.
-
     """
 
     try:

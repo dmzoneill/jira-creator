@@ -9,6 +9,11 @@ A function to set the priority of an issue in a Jira system.
 The set_priority function takes in a request function, an issue key, and a priority level as arguments. It then updates
 the priority of the specified issue in the Jira system using the provided request function. The priority level should
 be one of the following: "critical", "major", "normal", or "minor".
+
+The set_priority function sets the priority of an issue identified by the given issue key. It takes three arguments:
+request_fn, a function used to make the request; issue_key, a unique key identifying the issue; and priority, the
+priority
+level to set for the issue, which should be one of: "critical", "major", "normal", or "minor.
 """
 
 
@@ -38,5 +43,5 @@ def set_priority(request_fn, issue_key, priority):
     request_fn(
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
-        json={"fields": {"priority": {"name": priority}}},
+        json_data={"fields": {"priority": {"name": priority}}},
     )

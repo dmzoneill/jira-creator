@@ -36,7 +36,9 @@ def unassign_issue(request_fn, issue_key):
 
     try:
         request_fn(
-            "PUT", f"/rest/api/2/issue/{issue_key}", json={"fields": {"assignee": None}}
+            "PUT",
+            f"/rest/api/2/issue/{issue_key}",
+            json_data={"fields": {"assignee": None}},
         )
         return True
     except UnassignIssueError as e:

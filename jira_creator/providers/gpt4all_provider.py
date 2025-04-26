@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 """
-This module provides a class GPT4AllProvider that serves as a wrapper for the GPT4All model.
-It allows improving text by generating an improved version based on the given prompt and text.
-The GPT4AllProvider class has an __init__ method to initialize the model and an improve_text method to generate
-improved text.
+This module provides a class GPT4AllProvider that serves as a wrapper for the GPT4All model, facilitating text
+improvement by generating enhanced versions of provided text based on specific prompts.
+
+The GPT4AllProvider class includes methods for initializing the model and improving text. It features an __init__
+method for model setup and an improve_text method which takes a prompt and original text, combines them, and utilizes
+the GPT4All model to produce an improved version.
 
 Attributes:
-- model_name (str): The name of the GPT4All model to be used, defaults to "ggml-gpt4all-j-v1.3-groovy".
+- model_name (str): The name of the GPT4All model to be used, defaulting to "ggml-gpt4all-j-v1.3-groovy".
 - model: An instance of the GPT4All model initialized with the specified model_name.
 
 Methods:
-- improve_text(prompt: str, text: str) -> str: Takes a prompt and text as input, generates an instruction combining
-them, uses the GPT4All model to improve the text, and returns the improved version.
+- improve_text(prompt: str, text: str) -> str: Generates an improved version of the provided text based on the given
+prompt.
 """
 
 # pylint: disable=too-few-public-methods

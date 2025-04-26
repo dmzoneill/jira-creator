@@ -25,7 +25,7 @@ Note: This function assumes the 'request_fn' function is implemented elsewhere t
 from exceptions.exceptions import AddSprintError
 
 
-def add_to_sprint_by_name(request_fn, board_id, issue_key, sprint_name):
+def add_to_sprint(request_fn, board_id, issue_key, sprint_name):
     """
     Add a specified sprint to a JIRA board using its name.
 
@@ -53,6 +53,6 @@ def add_to_sprint_by_name(request_fn, board_id, issue_key, sprint_name):
     request_fn(
         "POST",
         f"/rest/agile/1.0/sprint/{sprint_id}/issue",
-        json={"issues": [issue_key]},
+        json_data={"issues": [issue_key]},
     )
     print(f"✅ Added {issue_key} to sprint '{sprint_name}' on board {board_id}")

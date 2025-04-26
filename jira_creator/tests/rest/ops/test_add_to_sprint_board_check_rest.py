@@ -22,6 +22,9 @@ def test_add_to_sprint_board_id_check(client):
     - client: An object representing a client with a board_id attribute.
 
     This function does not return any value.
+
+    Exceptions:
+    - AddSprintError: Raised when the board_id is not set in the environment.
     """
 
     # Mock the board_id attribute as None
@@ -29,6 +32,4 @@ def test_add_to_sprint_board_id_check(client):
 
     # Check if the exception is raised when board_id is not set
     with pytest.raises(AddSprintError, match="JIRA_BOARD_ID not set in environment"):
-        client.add_to_sprint_by_name(
-            "AAP-test_add_to_sprint_board_id_check", "Sprint Alpha"
-        )
+        client.add_to_sprint("AAP-test_add_to_sprint_board_id_check", "Sprint Alpha")

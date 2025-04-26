@@ -2,6 +2,12 @@
 """
 Retrieve the acceptance criteria for a given JIRA issue.
 
+This module provides a function to retrieve the acceptance criteria for a specified JIRA issue using a given function
+for making HTTP requests.
+
+Functions:
+- get_acceptance_criteria(request_fn, issue_key): Retrieve the acceptance criteria for a given JIRA issue.
+
 Arguments:
 - request_fn (function): A function used to make HTTP requests.
 - issue_key (str): The key of the JIRA issue for which acceptance criteria are needed.

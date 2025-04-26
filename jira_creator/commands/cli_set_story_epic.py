@@ -42,11 +42,21 @@ def cli_set_story_epic(jira, args):
     - Prints an error message if setting the epic fails.
     """
 
+    if not hasattr(args, 'issue_key') or not hasattr(args, 'epic_key'):
+        raise ValueError("Arguments must contain 'issue_key' and 'epic_key'.")
+
+    if not isinstance(args.issue_key, str) or not isinstance(args.epic_key, str):
+        raise TypeError("Both 'issue_key' and 'epic_key' must be strings.")
+
     try:
         jira.set_story_epic(args.issue_key, args.epic_key)
         print(f"✅ Story's epic set to '{args.epic_key}'")
         return True
     except SetStoryEpicError as e:
-        msg = f"❌ Failed to set epic: {e}"
+        msg = f"❌ Failed to set epic for issue '{args.issue_key}': {e}"
         print(msg)
-        raise SetStoryEpicError(e) from e
+        raise SetStoryEpicError(msg) from e
+    except Exception as e:
+        msg = f"❌ An unexpected error occurred: {e}"
+        print(msg)
+        raise RuntimeError(msg) from e

@@ -11,7 +11,7 @@ command line interface.
 from ._try_cleanup import _try_cleanup  # noqa
 from .cli_add_comment import cli_add_comment  # noqa
 from .cli_add_flag import cli_add_flag  # noqa
-from .cli_add_sprint import cli_add_sprint  # noqa
+from .cli_add_to_sprint import cli_add_to_sprint  # noqa
 from .cli_ai_helper import cli_ai_helper  # noqa
 from .cli_assign import cli_assign  # noqa
 from .cli_block import cli_block  # noqa
@@ -20,6 +20,7 @@ from .cli_change_type import cli_change_type  # noqa
 from .cli_clone_issue import cli_clone_issue  # noqa
 from .cli_create_issue import cli_create_issue  # noqa
 from .cli_edit_issue import cli_edit_issue  # noqa
+from .cli_get_sprint import cli_get_sprint  # noqa
 from .cli_lint import cli_lint  # noqa
 from .cli_lint_all import cli_lint_all  # noqa
 from .cli_list_issues import cli_list_issues  # noqa

@@ -6,6 +6,13 @@ It mocks the response for GET and POST requests and asserts that the _request me
 
 The test_set_status_invalid_transition function tests the method with an invalid transition to 'Done' status.
 It uses pytest.raises to capture the exception and asserts that the _request method is called only once.
+
+Functions:
+- test_set_status_valid_transition(client): Set the status of a client to a valid transition.
+- test_set_status_invalid_transition(client): Check if setting an invalid status transition raises an exception.
+
+Arguments:
+- client (object): An object representing the client whose status needs to be updated.
 """
 
 import pytest

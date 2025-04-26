@@ -1,30 +1,19 @@
 #!/usr/bin/env python
 """
-This module provides a function to build a payload for creating an issue in a Jira system.
+This module provides functionality to construct a payload for creating issues in a Jira system.
 
-The build_payload function takes in various parameters such as summary, description, issue_type, project_key,
-affects_version, component_name, priority, and epic_field. It constructs a payload dictionary with these parameters and
-returns it.
+The main function, `build_payload`, accepts parameters including summary, description, issue type, project key,
+affects version, component name, priority, and epic field. It assembles these parameters into a structured
+dictionary that can be used to create an issue in Jira.
 
-If the issue type is an epic, it includes an additional field in the payload using the epic_field parameter.
+Key Features:
+- Supports various issue types including epics, with special handling for epic fields.
+- Returns a well-defined dictionary that conforms to Jira's API requirements.
 
-Example:
+Example Usage:
+To create a payload for a bug issue:
 payload = build_payload("Bug in Login Page", "Fix the issue with the login functionality", "Bug", "PROJ123", "v1.0",
 "Authentication", "High", "Epic Name")
-
-Returns:
-{
-"fields": {
-"project": {"key": "PROJ123"},
-"summary": "Bug in Login Page",
-"description": "Fix the issue with the login functionality",
-"issuetype": {"name": "Bug"},
-"priority": {"name": "High"},
-"versions": [{"name": "v1.0"}],
-"components": [{"name": "Authentication"}]
-}
-}
-
 """
 
 # pylint: disable=too-many-arguments too-many-positional-arguments

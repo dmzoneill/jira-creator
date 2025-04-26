@@ -14,6 +14,8 @@ from unittest.mock import MagicMock, patch
 def test_run(cli):
     """
     Set up a mock for the _dispatch_command method of the provided cli object for testing purposes.
+    Arguments:
+    - cli (object): The cli object for which the _dispatch_command method will be mocked.
     """
 
     cli._dispatch_command = MagicMock()

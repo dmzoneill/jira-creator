@@ -19,7 +19,7 @@ def unblock_issue(request_fn, issue_key):
     Unblocks a JIRA issue by updating the specified fields.
 
     Arguments:
-    - request_fn (function): The function used to make requests to the JIRA API.
+    - request_fn (function): A function used to make requests to the JIRA API.
     - issue_key (str): The key of the JIRA issue to unblock.
 
     Side Effects:
@@ -38,5 +38,5 @@ def unblock_issue(request_fn, issue_key):
     request_fn(
         "PUT",
         f"/rest/api/2/issue/{issue_key}",
-        json=payload,
+        json_data=payload,
     )

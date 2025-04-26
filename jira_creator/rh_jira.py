@@ -40,7 +40,7 @@ from rest.prompts import IssueType, PromptLibrary
 from commands import (  # isort: skip
     _try_cleanup,
     cli_add_comment,
-    cli_add_sprint,
+    cli_add_to_sprint,
     cli_ai_helper,
     cli_assign,
     cli_block,
@@ -74,6 +74,7 @@ from commands import (  # isort: skip
     cli_list_sprints,
     cli_set_summary,
     cli_clone_issue,
+    cli_get_sprint,
     # commands entry
 )
 
@@ -90,46 +91,6 @@ class JiraCLI:
     default_prompt: The default prompt for AI interactions.
     comment_prompt: The prompt used for adding comments to issues.
     ai_helper_prompt: The prompt used for AI helper functionalities.
-
-    Methods:
-    run(): Starts the CLI and handles command-line arguments.
-    _register_subcommands(subparsers): Registers subcommands for issue management and AI assistance.
-    _dispatch_command(args): Dispatches the command based on parsed arguments.
-    ai_helper(args): Executes the AI helper command.
-    open_issue(args): Opens a JIRA issue in the browser.
-    view_issue(args): Displays a JIRA issue in the console.
-    add_comment(args): Adds a comment to a specified JIRA issue.
-    create_issue(args): Creates a new JIRA issue based on provided parameters.
-    list_issues(args): Lists issues assigned to the user with optional filters.
-    change_type(args): Changes the type of a specified JIRA issue.
-    migrate(args): Migrates a specified issue to a new type.
-    edit_issue(args): Edits the description of a specified JIRA issue.
-    unassign(args): Unassigns a user from a specified JIRA issue.
-    assign(args): Assigns a user to a specified JIRA issue.
-    set_priority(args): Sets the priority of a specified JIRA issue.
-    set_story_epic(args): Sets the epic for a specified story issue.
-    remove_sprint(args): Removes a specified issue from its sprint.
-    add_sprint(args): Adds a specified issue to a sprint.
-    set_status(args): Sets the status of a specified JIRA issue.
-    set_acceptance_criteria(args): Sets the acceptance criteria for a specified issue.
-    vote_story_points(args): Votes on story points for a specified issue.
-    set_story_points(args): Sets story points directly for a specified issue.
-    block(args): Marks a specified issue as blocked.
-    unblock(args): Marks a specified issue as unblocked.
-    validate_issue(fields): Validates issue fields using an AI provider.
-    lint(args): Lints a specified issue for quality.
-    lint_all(args): Lints all issues assigned to the user.
-    blocked(args): Lists blocked issues with optional filters.
-    search(args): Searches for issues using JIRA Query Language (JQL).
-    quarterly_connection(args): Performs a quarterly connection report.
-    search_users(args): Searches for users by a specified term.
-    talk(args): Initiates a conversation with JIRA.
-    view_user(args): Displays user information based on account ID.
-    add_flag(args): Adds a flag to a specified issue.
-    remove_flag(args): Removes a flag from a specified issue.
-    list_sprints(args): Lists available sprints.
-    set_summary(args): Sets the summary for a specified issue.
-    clone_issue(args): Clones a specified issue.
     """
 
     def __init__(self) -> None:
@@ -178,7 +139,6 @@ class JiraCLI:
 
     def run(self) -> None:
         """
-        Summary:
         Initialize the argcomplete module for command-line argument completion.
 
         Arguments:
@@ -310,9 +270,9 @@ class JiraCLI:
         set_points.add_argument("points", help="Story point estimate (integer)")
 
         # --- 📅 Sprints ---
-        add_sprint = add("add-sprint", "Add issue to sprint by name")
-        add_sprint.add_argument("issue_key", help="The Jira issue id/key")
-        add_sprint.add_argument("sprint_name", help="The name of the sprint")
+        add_to_sprint = add("add-to-sprint", "Add issue to sprint by name")
+        add_to_sprint.add_argument("issue_key", help="The Jira issue id/key")
+        add_to_sprint.add_argument("sprint_name", help="The name of the sprint")
 
         remove_sprint = add("remove-sprint", "Remove issue from its sprint")
         remove_sprint.add_argument("issue_key", help="The Jira issue id/key")
@@ -387,14 +347,16 @@ class JiraCLI:
         remove_flag = add("remove-flag", "Remove a flag from a specific issue")
         remove_flag.add_argument("issue_key", help="The key of the issue")
 
-        add("list-sprints", "Add a flag to a specific issue")
+        add("list-sprints", "List current and future sprints")
 
-        set_summary = add("set-summary", "Add a flag to a specific issue")
+        set_summary = add("set-summary", "Sets the summary on a specific issue")
         set_summary.add_argument("issue_key", help="The key of the issue")
         set_summary.add_argument("summary", help="The name of the flag to add")
 
-        clone_issue = add("clone-issue", "Add a flag to a specific issue")
+        clone_issue = add("clone-issue", "Clone an issue")
         clone_issue.add_argument("issue_key", help="The key of the issue")
+
+        add("get-sprint", "Add a flag to a specific issue")
 
         # Add your other subcommands here
 
@@ -513,9 +475,6 @@ class JiraCLI:
         - self: The object instance.
         - args (Namespace): A Namespace object containing the arguments needed to change the type of the issue in Jira.
 
-        Exceptions:
-        - No exceptions are raised explicitly within this function.
-
         Side Effects:
         - Modifies the type of the specified issue in Jira.
         """
@@ -608,6 +567,9 @@ class JiraCLI:
         - self: The object instance.
         - args (Namespace): A Namespace object containing the arguments needed to set the priority.
 
+        Return:
+        - None
+
         Exceptions:
         - No exceptions are raised explicitly within this function.
         """
@@ -648,7 +610,7 @@ class JiraCLI:
 
         return cli_remove_sprint(self.jira, args)
 
-    def add_sprint(self, args: Namespace) -> None:
+    def add_to_sprint(self, args: Namespace) -> None:
         """
         Adds a sprint to a Jira board using the provided arguments.
 
@@ -660,7 +622,7 @@ class JiraCLI:
         - None
         """
 
-        return cli_add_sprint(self.jira, args)
+        return cli_add_to_sprint(self.jira, args)
 
     def set_status(self, args: Namespace) -> None:
         """
@@ -709,9 +671,6 @@ class JiraCLI:
         Arguments:
         - self: The current instance of the class.
         - args (Namespace): A namespace object containing parsed command-line arguments.
-
-        Exceptions:
-        - No explicit exceptions are raised by this function.
 
         Side Effects:
         - Calls the 'cli_vote_story_points' function with the Jira instance and provided arguments.
@@ -830,9 +789,6 @@ class JiraCLI:
         Arguments:
         - self: The object instance.
         - args (Namespace): A namespace object containing the search parameters.
-
-        Exceptions:
-        - None
 
         Side Effects:
         - Calls the 'cli_search' function with the Jira instance and provided arguments.
@@ -979,6 +935,19 @@ class JiraCLI:
         """
 
         return cli_clone_issue(self.jira, args)
+
+    def get_sprint(self, args: Namespace) -> None:
+        """
+        Get the current sprint.
+
+        Arguments:
+        - self: the object instance
+        - args (Namespace): Namespace object containing arguments
+
+        Return:
+        - None
+        """
+        return cli_get_sprint(self.jira, args)
 
     # add new df here
 

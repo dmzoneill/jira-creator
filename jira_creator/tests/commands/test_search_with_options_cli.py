@@ -95,6 +95,17 @@ def test_search_with_exception(cli):
     """
     Mock the search_issues method of the provided cli object to raise a SearchError exception with the message "An
     error occurred".
+
+    Arguments:
+    - cli: An object representing the command-line interface (CLI) that contains a method for searching issues.
+
+    Exceptions:
+    - SearchError: Raised when the search_issues method of the cli object encounters an error.
+
+    Side Effects:
+    - Modifies the behavior of the search_issues method in the cli object to raise a SearchError exception with the
+    specified message.
+    - Captures and verifies the printed output when the exception is raised during the search operation.
     """
 
     # Mock search_issues to raise an exception

@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 """
-This module provides unit tests for the Jira issue editing and validation commands within a command-line interface
-(CLI) application. Utilizing the pytest framework, it tests various functionalities including editing issue
-descriptions, validating fields, and integrating AI-assisted enhancements.
+This module contains unit tests for the Jira issue editing and validation commands in a command-line interface (CLI)
+application. The tests are built using the pytest framework and focus on various functionalities, including editing
+issue descriptions, validating fields, and utilizing AI-assisted enhancements.
 
 Key functionalities tested include:
-- Cache directory creation for issue data.
+- Creation of cache directories for issue data.
 - Editing issue descriptions with and without AI assistance.
 - Validation of Jira issue fields such as progress, epic link, sprint, priority, and story points.
 - Fetching and updating issue descriptions based on user input or AI suggestions.
-- Linting descriptions to ensure they meet specified criteria.
+- Linting descriptions to ensure compliance with specified criteria.
 
-The tests employ mocking to simulate interactions with Jira and the AI provider, enabling isolated testing of logic
-without actual network calls or user input. Coverage includes both successful and failure scenarios to ensure the
-robustness and reliability of command implementations.
+The tests employ mocking to simulate interactions with Jira and AI providers, enabling isolated logic testing without
+actual network calls or user input. Both successful and failure scenarios are explored to ensure the robustness and
+reliability of the command implementations.
 """
 
 import os
@@ -359,6 +359,15 @@ def test_validate_field_with_ai_valid():
 def test_validate_field_with_ai_invalid():
     """
     Validate a field using an AI provider and handle invalid cases.
+
+    Arguments:
+    - field_name (str): The name of the field being validated.
+    - field_value (str): The value of the field being validated.
+    - field_hash (str): The hash value of the field value.
+    - cached_field_hash (str): The cached hash value of the field, initially set to None.
+    - ai_provider (MagicMock): A mocked AI provider object used for validation.
+    - problems (list): A list to store validation issues found during the process.
+    - issue_status (dict): A dictionary to track the status of each field.
 
     Side Effects:
     - Modifies the global state by patching the 'ai_provider' to return a MagicMock object.

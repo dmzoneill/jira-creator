@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """
-This module contains test cases for the CLI command responsible for creating issues in a project management system
-(e.g., JIRA).
+This module contains test cases for the command-line interface (CLI) command responsible for creating issues in a
+project management system, such as JIRA, using the pytest framework.
 
-It utilizes the pytest framework to define multiple tests that verify the behavior of the `create_issue` function under
-various scenarios, including:
-- Handling of `FileNotFoundError` when template files are missing.
-- Proper exception handling when the AI service fails.
-- Successful issue creation with appropriate output verification.
+The tests validate the functionality of the `create_issue` function across various scenarios, including:
+- Handling `FileNotFoundError` when template files are missing.
+- Managing exceptions raised by the AI service during text improvement.
+- Successful creation of an issue with proper output verification.
 
-Each test case mocks necessary components to isolate the functionality being tested, ensuring that the tests are
-reliable and do not depend on external systems or files.
+Each test case utilizes mocking to isolate the functionality being tested, ensuring that tests are reliable and not
+dependent on external systems or files. The module includes functions to simulate different error conditions and
+validate the output of the CLI commands.
 """
 
 from pathlib import Path

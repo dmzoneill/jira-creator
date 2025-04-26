@@ -1,27 +1,28 @@
 #!/usr/bin/env python
 """
-This module provides a function to vote on story points for a JIRA issue. It handles fetching the issue ID,
-constructing the payload, and making the API request to submit the vote. In case of errors during the process, custom
-exceptions FetchIssueIDError and VoteStoryPointsError are raised and handled accordingly.
+This module provides functionality to vote on story points for a JIRA issue via the JIRA API. It includes error handling
+for issues related to fetching the issue ID and submitting the vote, utilizing custom exceptions for clarity.
 
-Function:
-- vote_story_points(request_fn, issue_key, points): Vote story points for a given Jira issue.
+Functionality:
+- vote_story_points(request_fn, issue_key, points): Submits a vote for story points on a specified JIRA issue.
 
-Arguments:
-- request_fn (function): A function used to make HTTP requests.
-- issue_key (str): The key of the Jira issue to vote story points for.
-- points (int): The number of story points to vote for the issue.
+Parameters:
+- request_fn (function): A callable for making HTTP requests to the JIRA API.
+- issue_key (str): The unique identifier of the JIRA issue for which story points are being voted.
+- points (int): The number of story points to be voted for the issue.
 
-Exceptions:
-- FetchIssueIDError: Raised when there is an issue fetching the ID of the Jira issue.
+Custom Exceptions:
+- FetchIssueIDError: Raised when unable to retrieve the ID of the specified JIRA issue.
+- VoteStoryPointsError: Raised when there is an error in submitting the vote for story points.
 
 Side Effects:
-- Makes an HTTP request to fetch the Jira issue ID.
-- Prints an error message if there is a failure in fetching the issue ID.
+- Initiates an HTTP request to obtain the JIRA issue ID.
+- Outputs error messages in case of failures during the fetching or voting process.
+- Confirms successful voting with a message if the operation completes successfully.
 
 Note:
-This function is responsible for voting story points for a specific Jira issue by using the provided request
-function to fetch the issue ID.
+The module is designed to facilitate the voting process on story points for JIRA issues, leveraging a provided request
+function to interact with the JIRA API.
 """
 
 from exceptions.exceptions import FetchIssueIDError, VoteStoryPointsError
@@ -38,14 +39,16 @@ def vote_story_points(request_fn, issue_key, points):
 
     Exceptions:
     - FetchIssueIDError: Raised when there is an issue fetching the ID of the Jira issue.
+    - VoteStoryPointsError: Raised when there is an error in voting for story points.
 
     Side Effects:
     - Makes an HTTP request to fetch the Jira issue ID.
     - Prints an error message if there is a failure in fetching the issue ID.
+    - Prints a success message after voting for story points.
 
     Note:
     This function is responsible for voting story points for a specific Jira issue by using the provided request
-    function to fetch the issue ID.
+    function to fetch the issue ID and then submitting the vote with the specified points.
     """
 
     try:
@@ -62,7 +65,7 @@ def vote_story_points(request_fn, issue_key, points):
         response = request_fn(
             "PUT",
             "/rest/eausm/latest/planningPoker/vote",
-            json=payload,
+            json_data=payload,
         )
         if response.status_code != 200:
             raise VoteStoryPointsError(

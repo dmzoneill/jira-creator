@@ -1,35 +1,26 @@
 #!/usr/bin/env python
 """
-This script defines a test function 'test_migrate_no_transitions' that tests the 'migrate_issue' method of a client
-object. It mocks the HTTP requests made by the client using 'MagicMock' from 'unittest.mock'. The mock_request function
-simulates different responses based on the requested path. The test verifies that the 'migrate_issue' method returns
-the expected new issue key.
+This script defines a unit test for the `migrate_issue` method of a client object, focusing on the migration of issues
+without transitions. The test employs mocking to simulate HTTP requests and responses, allowing for controlled testing
+of the method's behavior.
 
 Functions:
-- test_migrate_no_transitions(client): Migrate the test data without transitions for a given client.
+- test_migrate_no_transitions(client): Tests the migration of issue data for a given client while ignoring
+transitions.
 
 Arguments:
-- client (Client): An object representing a client for which the test data will be migrated.
+- client (Client): An instance of a client that interacts with an issue tracking system.
 
 Side Effects:
-- Modifies the test data for the specified client without considering transitions.
+- Modifies the test data associated with the specified client, specifically during the issue migration process.
 
 Internal Functions:
-- mock_request(method, path, **kwargs): Mock a request to a REST API endpoint.
+- mock_request(method, path, **kwargs): Simulates HTTP requests to a REST API, returning predefined mock responses
+based on the requested path.
 
-Arguments:
-- method (str): The HTTP method used for the request.
-- path (str): The path of the API endpoint being requested.
-- **kwargs: Additional keyword arguments that can be passed but are not used in this function.
-
-Return:
-- dict: A dictionary containing mock data based on the provided path. The structure of the dictionary varies
-based on the path:
-- If the path starts with "/rest/api/2/issue/AAP-test_migrate_no_transitions/transitions", returns
-{"transitions": []}.
-- If the path starts with "/rest/api/2/issue/AAP-test_migrate_no_transitions", returns {"fields": {"summary":
-"Old", "description": "Old"}}.
-- If the path starts with "/rest/api/2/issue/", returns {"key": "AAP-test_migrate_no_transitions"}.
+Return Values of mock_request:
+- Returns a dictionary containing mock data that varies according to the request path, which facilitates the testing
+of the `migrate_issue` method.
 """
 
 from unittest.mock import MagicMock

@@ -31,4 +31,4 @@ def create_issue(request_fn, payload):
     str: The key of the created issue, or an empty string if the key is not found in the response.
     """
 
-    return request_fn("POST", "/rest/api/2/issue/", json=payload).get("key", "")
+    return request_fn("POST", "/rest/api/2/issue/", json_data=payload).get("key", "")

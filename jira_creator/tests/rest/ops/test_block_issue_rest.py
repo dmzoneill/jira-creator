@@ -44,5 +44,5 @@ def test_block_issue_calls_expected_fields(client):
     client.request.assert_called_once_with(
         "PUT",
         "/rest/api/2/issue/ABC-123",
-        json=payload,
+        json_data=payload,
     )

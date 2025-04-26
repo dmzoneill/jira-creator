@@ -15,7 +15,7 @@ Note: This function relies on the 'EnvFetcher' class from 'core.env_fetcher' for
 to JIRA fields.
 """
 
-# pylint: disable=duplicate-code
+# pylint: disable=duplicate-code too-many-locals
 
 import re
 
@@ -33,19 +33,21 @@ def search_issues(request_fn, jql):
     Return:
     - list: A list of dictionaries representing the searched JIRA issues. Each dictionary contains information about
     the issue, including summary, status, assignee, priority, story points, sprint, and blocked status.
-
     """
+
+    fields = request_fn("GET", "/rest/api/2/field")
+    field_names = [field["id"] for field in fields]
+    field_names = [name for name in field_names if "custom" not in name]
+    field_names += [
+        EnvFetcher.get("JIRA_STORY_POINTS_FIELD"),
+        EnvFetcher.get("JIRA_SPRINT_FIELD"),
+        EnvFetcher.get("JIRA_BLOCKED_FIELD"),
+    ]
+    field_names += ["key"]
 
     params = {
         "jql": jql,
-        "fields": (
-            "summary,status,assignee,priority,"
-            + EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
-            + ","
-            + EnvFetcher.get("JIRA_SPRINT_FIELD")
-            + ","
-            + EnvFetcher.get("JIRA_BLOCKED_FIELD")
-        ),
+        "fields": ",".join(field_names),
         "maxResults": 200,
     }
 

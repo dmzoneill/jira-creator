@@ -47,7 +47,7 @@ def test_change_issue_type(client):
     mock_request.assert_any_call(
         "PUT",
         "/rest/api/2/issue/AAP-test_change_issue_type",
-        json={
+        json_data={
             "fields": {"issuetype": {"name": "Story"}},
             "update": {"parent": [{"remove": {}}]},
         },

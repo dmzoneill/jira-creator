@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 """
-Retrieve a list of open sprints for a specified board.
+This module provides functionality to retrieve a list of open sprints for a specified board using an HTTP request.
 
-Arguments:
-- request_fn: A function used to make HTTP requests.
+The primary function in this module is `list_sprints`, which retrieves the names of open sprints associated with a
+given board.
+
+Functions:
+- list_sprints(request_fn, board_id: str) -> list[str]:
+Retrieves the names of open sprints associated with the specified board.
+
+Parameters:
+- request_fn: A callable function that performs HTTP requests.
 - board_id (str): The identifier of the board for which to retrieve the sprints.
 
-Return:
-- list[str]: A list of names of open sprints associated with the specified board.
+Returns:
+- A list of strings containing the names of open sprints.
 
 Exceptions:
 - This function does not raise any exceptions.

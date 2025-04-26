@@ -2,9 +2,12 @@
 """
 Simulate voting for story points in Jira using the provided CLI and capsys fixtures.
 
+This file contains a test function to simulate the process of voting for story points in Jira. It utilizes fixtures
+representing the command-line interface for Jira (cli) and fixtures capturing stdout and stderr output (capsys).
+
 Args:
-cli: A fixture representing the command-line interface for Jira.
-capsys: A fixture capturing stdout and stderr output.
+- cli: A fixture representing the command-line interface for Jira.
+- capsys: A fixture capturing stdout and stderr output.
 
 Side Effects:
 - Modifies the vote_story_points attribute of the cli.jira object using MagicMock.

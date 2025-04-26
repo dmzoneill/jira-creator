@@ -1,6 +1,9 @@
 import os
 import sys
-
+import argparse
+import tempfile
+import shutil
+import subprocess
 import requests
 
 api_key = os.environ.get("AI_API_KEY")
@@ -13,14 +16,10 @@ def extract_code_from_output(output):
     code = None
 
     for line in lines:
-        # Look for file paths starting with '#'
         if line.startswith("```python"):
-            # If we're currently processing a file, save its content
             code = []
         elif code is not None:
-            # Add lines to the current test content
             if line.startswith("```"):
-                # Skip lines containing ```, this is a code block delimiter
                 continue
             code.append(line)
 
@@ -50,16 +49,26 @@ def improve_text(prompt: str, text: str) -> str:
         raise Exception("improve text not 200")
 
 
-def harden_file(file_path: str):
-    # Read the source code from the specified file
+def validate_pycompile(file_path: str) -> bool:
+    try:
+        result = subprocess.run(['python3', '-m', 'py_compile', file_path], capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"Syntax error in {file_path}: {result.stderr}")
+            return False
+        return True
+    except Exception as e:
+        print(f"Error validating {file_path}: {str(e)}")
+        return False
+
+
+def harden_file(file_path: str, debug: bool, validate: bool):
     with open(file_path, "r") as f:
         source_code = f.read()
 
-    # Define the prompt to instruct OpenAI to harden the Python code
     prompt = f"""
     You are a helpful assistant that improves and hardens Python code.
 
-    Please review the following Python source code and type harden it.
+    Please review the following Python source code and harden it.
 
     **respond with the code only**
 
@@ -68,23 +77,55 @@ def harden_file(file_path: str):
     {source_code}
     """
 
-    # Send the source code to OpenAI for improvement
     improved_code = improve_text(prompt, source_code)
     improved_code = extract_code_from_output(improved_code)
-    print(improved_code)
 
-    # Write the improved code back to the same file
-    with open(file_path, "w") as f:
-        f.write(improved_code)
+    # Create a temporary file to hold the improved code
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(improved_code.encode('utf-8'))
+        temp_file_path = temp_file.name
 
-    print(f"File '{file_path}' has been successfully hardened.")
+    if debug:
+        print(f"Improved code written to temporary file: {temp_file_path}")
+
+    if validate and not validate_pycompile(temp_file_path):
+        print("Python compilation validation failed. Not moving the file.")
+        os.remove(temp_file_path)
+        return
+
+    # If validation passed, replace the original file with the improved code
+    shutil.move(temp_file_path, file_path)
+
+    if debug:
+        print(f"File '{file_path}' has been successfully hardened.")
 
 
-# Entry point of the script
+def process_directory(directory: str, debug: bool, validate: bool, recursive: bool):
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".py"):
+                file_path = os.path.join(root, file)
+                if debug:
+                    print(f"Processing file: {file_path}")
+                harden_file(file_path, debug, validate)
+
+        if not recursive:
+            break
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python harden_code.py <file>")
+    parser = argparse.ArgumentParser(description="Harden Python code using OpenAI API")
+    parser.add_argument("path", help="Path to the Python file or directory to harden")
+    parser.add_argument("--recursive", action="store_true", help="Recursively process directories")
+    parser.add_argument("--debug", action="store_true", help="Enable debug output")
+    parser.add_argument("--validate-pycompile", action="store_true", help="Validate Python syntax after improvements")
+    args = parser.parse_args()
+
+    if os.path.isdir(args.path):
+        process_directory(args.path, args.debug, args.validate_pycompile, args.recursive)
+    elif os.path.isfile(args.path):
+        harden_file(args.path, args.debug, args.validate_pycompile)
+    else:
+        print(f"Error: {args.path} is not a valid file or directory.")
         sys.exit(1)
 
-    file = sys.argv[1]
-    harden_file(file)

@@ -144,7 +144,7 @@ def create_files(command_name):
 # Entry point of the script
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python add_flag_command_setup.py <command_name>")
+        print("Usage: python help_add_command.py <command_name>")
         sys.exit(1)
 
     command_name = sys.argv[1]

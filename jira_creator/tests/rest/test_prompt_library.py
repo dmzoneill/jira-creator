@@ -1,9 +1,20 @@
 #!/usr/bin/env python
 """
 This file contains unit tests for the PromptLibrary class in the rest.prompts module.
-It includes tests to ensure that prompts exist for all issue types defined in the IssueType enum.
-There is also a test to verify that a FileNotFoundError exception is raised when a template file is not found.
-Mocking is used to simulate scenarios where files are not found.
+
+It includes tests to ensure that prompts exist for all issue types defined in the IssueType enum. The tests verify the
+existence and content of prompts for various issue types, as well as handling scenarios where a template file is not
+found, raising a FileNotFoundError.
+
+Functions:
+- test_prompt_exists_for_all_types: Tests the existence and correctness of prompts for all issue types in the IssueType
+enum.
+- test_prompt_raises_file_not_found_error: Simulates a file not found error when attempting to retrieve a prompt,
+ensuring appropriate exception handling.
+
+Dependencies:
+- unittest.mock: For mocking functions and simulating file not found scenarios.
+- pytest: For the testing framework and exception assertion.
 """
 
 from unittest.mock import patch
@@ -29,7 +40,6 @@ def test_prompt_exists_for_all_types():
     Side Effects:
     This function asserts the existence and content of prompts for different types in the IssueType enum by interacting
     with PromptLibrary.
-
     """
 
     # Iterate through all issue types in IssueType enum

@@ -1,27 +1,25 @@
 #!/usr/bin/env python
 """
-This module includes a function called blocked that retrieves a list of issues based on certain criteria and filters
-out the blocked issues.
-The function takes a list_issues_fn function as input along with optional project, component, and assignee parameters.
-It checks each issue for a specific field value (JIRA_BLOCKED_FIELD) to determine if it is blocked.
-If an issue is blocked, it constructs a dictionary containing key information about the issue like key, status,
-assignee, reason, and summary.
-The function returns a list of dictionaries representing the blocked issues.
+This module provides functionality to retrieve and filter blocked issues from a list of issues based on specified
+criteria.
+The primary function, `blocked`, takes a function that returns a list of issues and optional parameters for project,
+component, and assignee. It identifies blocked issues by checking a specific field value and constructs a dictionary
+with key details for each blocked issue. The function returns a list of these dictionaries.
 
-Function 'blocked':
-- Retrieve a list of issues based on specified project, component, and assignee.
+Function `blocked`:
+- Retrieves a list of blocked issues based on specified project, component, and assignee.
 
 Arguments:
-- list_issues_fn (function): A function that returns a list of issues based on project, component, and assignee
-parameters.
-- project (str): The project name to filter the issues. Defaults to None.
-- component (str): The component name to filter the issues. Defaults to None.
-- assignee (str): The assignee name to filter the issues. Defaults to None.
+- list_issues_fn (function): A function that returns a list of issues filtered by project, component, and assignee.
+- project (str): The project name to filter issues. Defaults to None.
+- component (str): The component name to filter issues. Defaults to None.
+- assignee (str): The assignee name to filter issues. Defaults to None.
 
-No return value.
+Returns:
+- List of dictionaries containing details of blocked issues.
 
 Side Effects:
-- Modifies the 'issues' list by populating it with the filtered list of issues.
+- Modifies the 'issues' list by populating it with the filtered list of blocked issues.
 """
 
 # pylint: disable=duplicate-code

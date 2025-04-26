@@ -40,7 +40,7 @@ def test_set_story_epic_rest(client):
     client.request.assert_called_once_with(
         "PUT",
         "/rest/api/2/issue/AAP-test_set_story_epic_rest",
-        json={
+        json_data={
             "fields": {
                 EnvFetcher.get("JIRA_EPIC_FIELD"): "AAP-test_set_story_epic_rest-1"
             }

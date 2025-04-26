@@ -23,8 +23,6 @@ def test_add_flag(cli, capsys):
     - cli (object): An object containing the Jira client.
     - capsys (object): Pytest fixture capturing stdout and stderr output.
 
-    No return value.
-
     Side Effects:
     - Modifies the 'add_flag' method of the Jira client by replacing it with a MagicMock object.
     """

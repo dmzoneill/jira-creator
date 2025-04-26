@@ -34,5 +34,5 @@ def test_set_summary(client):
     client.request.assert_called_once_with(
         "PUT",
         "/rest/api/2/issue/AAP-test_set_summary",
-        json={"fields": {"summary": "AAP-test_set_summary"}},
+        json_data={"fields": {"summary": "AAP-test_set_summary"}},
     )

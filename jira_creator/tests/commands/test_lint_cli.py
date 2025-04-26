@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 """
-Unit tests for the lint command of a CLI application, focusing on error handling, success scenarios, and exception
-management.
+Unit tests for the lint command of a command-line interface (CLI) application, focusing on error handling, success
+scenarios, and exception management.
 
 This module includes three main test functions:
 
-1. `test_lint_command_flags_errors`: Tests the lint command with a JIRA issue containing various lint issues. It
-asserts that the correct error messages are displayed for each identified issue.
+1. `test_lint_command_flags_errors`: Tests the lint command with a JIRA issue containing various lint issues, asserting
+that the correct error messages are displayed for each identified issue.
 
-2. `test_lint_command_success`: Tests the lint command with a valid JIRA issue that passes all lint checks. It verifies
+2. `test_lint_command_success`: Tests the lint command with a valid JIRA issue that passes all lint checks, verifying
 that the success message is displayed correctly.
 
-3. `test_lint_command_exception`: Simulates an exception during the linting process by raising a `LintError`. It checks
+3. `test_lint_command_exception`: Simulates an exception during the linting process by raising a `LintError`, checking
 that the appropriate error message is displayed when the exception occurs.
 
 The tests utilize the pytest framework and mock objects to simulate the behavior of the command-line interface and JIRA

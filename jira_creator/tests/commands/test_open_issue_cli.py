@@ -52,7 +52,6 @@ def test_open_issue_exception_handling(cli):
 
     Exceptions:
     - OpenIssueError: Raised when there is a failure to open the issue using the CLI tool.
-
     """
 
     # Patch subprocess.Popen to simulate an exception

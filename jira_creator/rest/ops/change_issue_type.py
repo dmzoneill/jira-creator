@@ -15,7 +15,7 @@ Function 'change_issue_type':
 - Side Effects:
 - Modifies the issue type of the specified Jira issue.
 - Exceptions:
-- None
+- ChangeIssueTypeError: Raised if there is an issue with changing the issue type.
 """
 
 from exceptions.exceptions import ChangeIssueTypeError
@@ -44,7 +44,7 @@ def change_issue_type(request_fn, issue_key, new_type):
         if is_subtask:
             payload["update"] = {"parent": [{"remove": {}}]}
 
-        request_fn("PUT", f"/rest/api/2/issue/{issue_key}", json=payload)
+        request_fn("PUT", f"/rest/api/2/issue/{issue_key}", json_data=payload)
     except ChangeIssueTypeError as e:
         msg = f"❌ Failed to change issue type: {e}"
         print(msg)

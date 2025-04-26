@@ -30,14 +30,14 @@ def test_unblock_issue_calls_expected_fields(client):
 
     called = {}
 
-    def fake_request(method, path, json=None, **kwargs):
+    def fake_request(method, path, json_data=None, **kwargs):
         """
         Make a fake HTTP request with the specified method and path.
 
         Arguments:
         - method (str): The HTTP method to use for the request (e.g., 'GET', 'POST').
         - path (str): The path or endpoint to send the request to.
-        - json (dict): Optional. A dictionary containing the JSON data to be sent in the request body.
+        - json_data (dict): Optional. A dictionary containing the JSON data to be sent in the request body.
         - **kwargs: Additional keyword arguments that are not used in this function.
 
         Return:
@@ -46,7 +46,7 @@ def test_unblock_issue_calls_expected_fields(client):
 
         called["method"] = method
         called["path"] = path
-        called["json"] = json
+        called["json_data"] = json_data
         return {}
 
     client.request = fake_request
@@ -58,7 +58,7 @@ def test_unblock_issue_calls_expected_fields(client):
         called["path"]
         == "/rest/api/2/issue/AAP-test_unblock_issue_calls_expected_fields"
     )
-    assert called["json"] == {
+    assert called["json_data"] == {
         "fields": {
             EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": False},
             EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",

@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 """
 This module contains unit tests for the `TemplateLoader` class, which is responsible for loading and processing
-template files with specific fields and templates. The tests cover the following functionalities:
-
-- Parsing fields from template files.
-- Rendering templates with provided data.
-- Handling cases where template files are not found.
-- Returning joined strings from template files.
-
-Each test function utilizes the `pytest` framework and operates within a temporary directory to ensure isolation
-and cleanliness during testing.
+template files with specific fields and templates. The tests cover functionalities such as parsing fields,
+rendering templates with provided data, handling missing template files, and returning joined strings from
+template files. Each test function utilizes the `pytest` framework and operates within a temporary directory
+to ensure isolation and cleanliness during testing.
 """
 
 import pytest

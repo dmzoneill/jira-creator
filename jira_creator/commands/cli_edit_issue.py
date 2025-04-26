@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 """
-This module provides functionality for editing Jira issue descriptions using a command-line interface. It includes
-methods to fetch, edit, and update issue descriptions, as well as validate and lint the descriptions for quality.
+This module provides a command-line interface for editing Jira issue descriptions. It allows users to fetch, edit,
+lint, and update descriptions while ensuring quality through validation checks. The module integrates with an AI
+provider for enhanced description improvement.
 
 Key Functions:
-- fetch_description(jira, issue_key): Retrieves the description of a Jira issue.
+- fetch_description(jira, issue_key): Retrieves the description of a specified Jira issue.
 - edit_description(original_description): Opens the issue description in a text editor for user modifications.
-- get_prompt(jira, issue_key, default_prompt): Retrieves a prompt based on the issue type from a prompt library.
-- lint_description_once(cleaned, ai_provider): Validates the cleaned description and prompts the user for additional
-input if issues are found.
+- get_prompt(jira, issue_key, default_prompt): Retrieves a prompt based on the issue type.
+- lint_description_once(cleaned, ai_provider): Validates the cleaned description and prompts for additional input if
+issues are found.
 - lint_description(cleaned, ai_provider): Continuously lints the description until no issues are detected.
 - update_jira_description(jira, issue_key, cleaned): Updates the Jira issue description with the cleaned text.
-- cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args): Main function for editing an issue
-description, coordinating the fetching, editing, linting, and updating processes.
+- cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args): Main function coordinating the description
+editing process.
 
 Exceptions:
 - Various exceptions are raised for error handling, including issues related to editing, fetching, and updating
@@ -135,7 +136,6 @@ def lint_description_once(cleaned, ai_provider):
     - Prints the validation issues found during linting.
     - Prompts the user to provide additional information based on linting problems.
     - Updates the description using the AI provider if issues are found.
-
     """
 
     fields = {"key": "AAP-lint_description_once", "description": cleaned}

@@ -1,22 +1,24 @@
 #!/usr/bin/env python
 """
-This module provides functionality to lint Jira issues and display the results in a formatted table. It includes two
-main functions:
+This module provides tools for linting Jira issues and presenting the results in a well-structured table format.
+
+It contains two primary functions:
 
 1. `print_status_table(failure_statuses)`:
-- Accepts a list of failure statuses and prints them in a structured table format.
-- Normalizes status values for improved readability using visual indicators.
+- Displays a formatted table of failure statuses.
+- Normalizes status values for better readability using visual indicators.
 
 2. `cli_lint_all(jira, ai_provider, args)`:
-- Lints Jira issues based on specified command-line arguments such as project, component, reporter, or assignee.
-- Retrieves issues from Jira, validates them with an AI provider, and summarizes the results.
-- Outputs which issues passed or failed lint checks along with detailed problems for any issues that failed.
+- Lints Jira issues based on command-line arguments such as project, component, reporter, or assignee.
+- Validates issues retrieved from Jira using an AI provider and summarizes the results.
+- Outputs the status of each issue, indicating which passed or failed lint checks, along with detailed feedback for any
+failures.
 
 Exceptions:
 - Raises `LintAllError` if there is a failure during the linting process.
 
-This module is designed for use in a command-line interface (CLI) environment, enabling users to validate Jira issues
-and receive formatted feedback on their status.
+This module is intended for use in a command-line interface (CLI) environment, allowing users to validate and receive
+formatted feedback on Jira issues.
 """
 
 # pylint: disable=too-many-locals
@@ -116,8 +118,6 @@ def cli_lint_all(jira, ai_provider, args):
     - args.assignee (str): The assignee of the issues to filter by.
     - args.project (str): The project key to filter the issues.
     - args.component (str): The component to filter the issues.
-
-    No return value.
 
     Exceptions:
     - LintAllError: Raised if there is an issue during the linting process.

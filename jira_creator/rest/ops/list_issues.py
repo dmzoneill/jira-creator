@@ -15,7 +15,7 @@ Note: The function includes JSCPD ignore comments to exclude code blocks from du
 # pylint: disable=too-many-arguments too-many-positional-arguments too-many-locals
 
 import re
-from typing import Callable, List, Dict, Optional, Any
+from typing import Any, Callable, Dict, List, Optional
 
 from core.env_fetcher import EnvFetcher
 
@@ -37,20 +37,21 @@ def list_issues(
     Retrieve a list of issues based on specified filters.
 
     Arguments:
-    - request_fn (function): A function used to make HTTP requests.
-    - get_current_user_fn (function): A function used to retrieve the current user.
-    - project (str, optional): Filter issues by project name.
-    - component (str, optional): Filter issues by component name.
-    - assignee (str, optional): Filter issues by assignee.
-    - status (str, optional): Filter issues by status.
-    - summary (str, optional): Filter issues by summary.
+    - request_fn (Callable[..., Dict[str, Any]]): A function used to make HTTP requests.
+    - get_current_user_fn (Callable[[], str]): A function used to retrieve the current user.
+    - project (Optional[str], optional): Filter issues by project name.
+    - component (Optional[str], optional): Filter issues by component name.
+    - assignee (Optional[str], optional): Filter issues by assignee.
+    - status (Optional[str], optional): Filter issues by status.
+    - summary (Optional[str], optional): Filter issues by summary.
     - issues_blocked (bool, optional): Flag to filter blocked issues.
     - issues_unblocked (bool, optional): Flag to filter unblocked issues.
-    - reporter (str, optional): Filter issues by reporter.
+    - reporter (Optional[str], optional): Filter issues by reporter.
 
     Returns:
-    - List: A list of dictionaries representing the filtered issues. Each dictionary contains information about the
-    issue, including key, summary, status, assignee, priority, story points, sprint, and blocked status.
+    - List[Dict[str, Any]]: A list of dictionaries representing the filtered issues. Each dictionary contains
+    information about the issue, including key, summary, status, assignee, priority, story points, sprint, and blocked
+    status.
     """
 
     jql_parts: List[str] = []
@@ -71,7 +72,9 @@ def list_issues(
     if issues_unblocked:
         jql_parts.append(EnvFetcher.get("JIRA_BLOCKED_FIELD") + '!="True"')
 
-    jql: str = " AND ".join(jql_parts) + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
+    jql: str = (
+        " AND ".join(jql_parts) + ' AND status NOT IN ("Closed", "Done", "Cancelled")'
+    )
 
     fields: List[Dict[str, Any]] = request_fn("GET", "/rest/api/2/field")
     field_names: List[str] = [field["id"] for field in fields]
@@ -88,13 +91,17 @@ def list_issues(
         "fields": ",".join(field_names),
         "maxResults": 200,
     }
-    issues: List[Dict[str, Any]] = request_fn("GET", "/rest/api/2/search", params=params).get("issues", [])
+    issues: List[Dict[str, Any]] = request_fn(
+        "GET", "/rest/api/2/search", params=params
+    ).get("issues", [])
 
     name_regex: str = r"name\s*=\s*([^,]+)"
     state_regex: str = r"state\s*=\s*([A-Za-z]+)"
 
     for issue in issues:
-        sprints: List[str] = issue.get("fields", {}).get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
+        sprints: List[str] = issue.get("fields", {}).get(
+            EnvFetcher.get("JIRA_SPRINT_FIELD"), []
+        )
         if sprints is None:
             sprints = []
 

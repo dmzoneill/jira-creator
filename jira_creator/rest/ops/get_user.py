@@ -13,6 +13,7 @@ Return:
 
 from typing import Callable
 
+
 def get_user(request_fn: Callable[[str, str], dict], username: str) -> dict:
     """
     Retrieves user information by sending a GET request to the specified API endpoint.

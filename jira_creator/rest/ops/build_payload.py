@@ -17,7 +17,8 @@ payload = build_payload("Bug in Login Page", "Fix the issue with the login funct
 """
 
 # pylint: disable=too-many-arguments too-many-positional-arguments
-from typing import Dict, Any
+from typing import Any, Dict
+
 
 def build_payload(
     summary: str,

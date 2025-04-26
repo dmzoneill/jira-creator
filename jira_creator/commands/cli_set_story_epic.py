@@ -2,13 +2,11 @@
 """
 Set the epic for a story in Jira.
 
-Arguments:
+This script defines a function 'cli_set_story_epic' that sets the epic for a story in Jira. It takes two arguments:
 - jira: An instance of the Jira client.
-- args: A namespace containing the following attributes:
-- issue_key (str): The key of the story to update.
-- epic_key (str): The key of the epic to set for the story.
+- args: A namespace containing 'issue_key' (str) and 'epic_key' (str) attributes.
 
-Return:
+Returns:
 - bool: True if the epic was successfully set for the story.
 
 Exceptions:

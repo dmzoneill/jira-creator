@@ -30,6 +30,8 @@ Dependencies:
 - `core.env_fetcher`: For fetching environment variables.
 """
 
+# pylint: disable=too-few-public-methods
+
 import contextlib
 import json
 import os
@@ -93,6 +95,12 @@ FUZZY_DIGIT_MAP = {
 def fuzzy_digit_cleanup(text: str) -> str:
     """
     Cleans up fuzzy digits in a text by replacing them with their correct counterparts.
+
+    Arguments:
+    - text (str): The input text containing fuzzy digits to be cleaned up.
+
+    Return:
+    - str: The text with fuzzy digits replaced by their correct counterparts.
     """
     tokens = text.split()
     corrected = [FUZZY_DIGIT_MAP.get(t, t) for t in tokens]
@@ -101,7 +109,17 @@ def fuzzy_digit_cleanup(text: str) -> str:
 
 def word_digits_to_numbers(text: str) -> str:
     """
-    Convert digit words to individual digits: 'four three' → '4 3'
+    Converts digit words to individual digits in a given text.
+
+    Arguments:
+    - text (str): A string containing words representing digits, e.g., 'four three'.
+
+    Return:
+    - str: A string with digit words replaced by their corresponding digits, e.g., '4 3'.
+
+    Note:
+    - The function uses a predefined set of digit words (DIGIT_WORDS) and the word2number library (w2n) to convert
+    words to numbers.
     """
     tokens = text.split()
     result = []
@@ -118,6 +136,12 @@ def word_digits_to_numbers(text: str) -> str:
 def combine_consecutive_digits(text: str) -> str:
     """
     Combine sequences of digits in a given text by removing spaces between consecutive digits.
+
+    Arguments:
+    - text (str): A string containing alphanumeric characters.
+
+    Return:
+    - str: A modified string where sequences of digits have been combined by removing spaces between consecutive digits.
     """
     tokens = text.split()
     result = []
@@ -141,6 +165,18 @@ def combine_consecutive_digits(text: str) -> str:
 def normalize_issue_references(text: str) -> str:
     """
     Convert all 'issue <digits>' references to 'PROJECTKEY-<digits>' with fuzzy support.
+
+    Arguments:
+    - text (str): The input text containing issue references to be normalized.
+
+    Return:
+    - str: The text with normalized issue references.
+
+    Side Effects:
+    - Uses EnvFetcher to get the project key. If not available, defaults to "AAP".
+    - Calls fuzzy_digit_cleanup to clean up the text.
+    - Calls word_digits_to_numbers to convert word digits to numbers.
+    - Modifies the input text by replacing 'issue <digits>' references with 'PROJECTKEY-<digits>'.
     """
     project_key = EnvFetcher.get("PROJECT_KEY") or "AAP"
 
@@ -180,6 +216,15 @@ def normalize_issue_references(text: str) -> str:
 def flush_queue(q: queue.Queue) -> None:
     """
     Clears all elements from the queue provided as input.
+
+    Arguments:
+    - q (queue.Queue): A queue object from which all elements will be removed.
+
+    Side Effects:
+    - Modifies the queue provided as input by removing all elements.
+
+    Exceptions:
+    - No exceptions are raised.
     """
     while not q.empty():
         try:
@@ -198,6 +243,9 @@ def do_once() -> bool:
 def initialize_recognizer() -> KaldiRecognizer:
     """
     Initializes the recognizer with the VOSK model.
+
+    Returns:
+    KaldiRecognizer: An instance of the KaldiRecognizer class initialized with the VOSK model.
     """
     model = Model(EnvFetcher.get("VOSK_MODEL"))
     rec = KaldiRecognizer(model, 16000)
@@ -207,6 +255,19 @@ def initialize_recognizer() -> KaldiRecognizer:
 def process_text_and_communicate(text: str, cli: object, voice: bool) -> bool:
     """
     Normalizes the text by removing any issue references and splits it into words for further processing.
+
+    Arguments:
+    - text (str): The input text to be processed.
+    - cli (object): An object representing the command line interface.
+    - voice (bool): A boolean indicating whether voice communication is enabled.
+
+    Return:
+    - bool: Returns True if the normalized text ends with 'stop', False if the number of words in the text is less than
+    4, otherwise returns False.
+
+    Side Effects:
+    - Modifies the text by removing issue references.
+    - Prints the message "Talking to AI: <text>".
     """
     text = normalize_issue_references(text)
     words = text.strip().split()
@@ -220,6 +281,8 @@ def process_text_and_communicate(text: str, cli: object, voice: bool) -> bool:
     print("Talking to AI: " + text)
 
     class Args:
+        """Dummy namespace object for test"""
+
         prompt: str
         voice: bool
 
@@ -234,6 +297,13 @@ def process_text_and_communicate(text: str, cli: object, voice: bool) -> bool:
 def process_audio_data(q: queue.Queue, rec: KaldiRecognizer) -> Optional[str]:
     """
     Processes the audio data from the queue and returns the recognized text.
+
+    Arguments:
+    - q (queue.Queue): A queue containing audio data to process.
+    - rec (KaldiRecognizer): An instance of KaldiRecognizer used for recognizing audio data.
+
+    Return:
+    - Optional[str]: The recognized text as a string, or None if no text was recognized.
     """
     data = q.get()
     if not rec.AcceptWaveform(data):
@@ -251,6 +321,16 @@ def process_audio_data(q: queue.Queue, rec: KaldiRecognizer) -> Optional[str]:
 def callback(indata: bytes, _: int, __: object, ___: object, q: queue.Queue) -> None:
     """
     Handles the callback for the audio stream.
+
+    Arguments:
+    - indata (bytes): The audio data received as bytes.
+    - _: (int): An unused parameter.
+    - __: (object): An unused parameter.
+    - ___: (object): An unused parameter.
+    - q (queue.Queue): A queue to store the audio data.
+
+    Return:
+    - None
     """
     q.put(bytes(indata))
 
@@ -258,6 +338,23 @@ def callback(indata: bytes, _: int, __: object, ___: object, q: queue.Queue) -> 
 def cli_talk(cli: Any, args: Namespace) -> None:
     """
     Creates a queue object to store items for communication between a command-line interface (CLI) and a function.
+
+    Arguments:
+    - cli (Any): An object representing the command-line interface (CLI).
+    - args (Namespace): An object containing arguments passed to the function.
+
+    Side Effects:
+    - Initializes a queue object to store communication items.
+    - Initializes a voice flag based on the presence of the "voice" attribute in the args namespace.
+    - Initializes a recognizer for audio processing.
+    - Opens a RawInputStream for audio input processing.
+    - Prints "Listening: " to the console.
+    - Continuously processes audio data, communicates with the CLI based on the processed text, and flushes the queue.
+
+    Exceptions:
+    - suppress_stderr(): Suppresses standard error output during the execution.
+
+    Note: The function does not have a return value.
     """
     q = queue.Queue()
     voice = bool(hasattr(args, "voice"))

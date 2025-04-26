@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 """
-This module provides the InstructLabProvider class for interacting with an AI service that enhances text generation.
-It utilizes the requests library to send POST requests to an AI model server, with the server's URL and model identifier
-fetched from environment variables.
+This module provides the InstructLabProvider class for enhancing text generation through an AI service. It utilizes the
+requests library to send POST requests to an AI model server, with configurations fetched from environment variables.
 
-The primary functionality is encapsulated in the improve_text method, which accepts a prompt and text, sends a request
-to the AI service, and returns the enhanced text. An AiError exception is raised in case of request failures, providing
-details about the issue.
+The main functionality is encapsulated in the improve_text method, which takes a prompt and text, sends a request to
+the AI service, and returns the improved text. An AiError exception is raised in case of request failures, detailing
+the issue.
 
 Classes:
-- InstructLabProvider: A class for enhancing text using an AI model.
+- InstructLabProvider: A class for improving text using an AI model.
 
 Attributes:
 - url (str): The URL of the AI model server.
@@ -17,8 +16,8 @@ Attributes:
 
 Methods:
 - __init__(self): Initializes the class with AI-related environment variables.
-- improve_text(self, prompt: str, text: str) -> str: Improves the provided text using the AI model and returns
-the enhanced text.
+- improve_text(self, prompt: str, text: str) -> str: Improves the provided text using the AI model and returns the
+enhanced text.
 
 Exceptions:
 - AiError: Raised when the POST request to the AI service fails, indicating a service issue.
@@ -29,7 +28,6 @@ Exceptions:
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
-
 from providers.ai_provider import AIProvider
 
 
@@ -51,6 +49,9 @@ class InstructLabProvider(AIProvider):
     def __init__(self) -> None:
         """
         Initialize the class instance with AI-related environment variables.
+        Arguments:
+        - self: The class instance to be initialized.
+        Return: None
         """
         self.url: str = EnvFetcher.get("AI_URL")
         self.model: str = EnvFetcher.get("AI_MODEL")

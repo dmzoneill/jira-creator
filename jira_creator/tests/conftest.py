@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 """
-This module contains pytest fixtures for testing the JiraCLI class and its interactions with the JiraClient.
+This module contains pytest fixtures for unit testing the `JiraCLI` class and its interactions with the `JiraClient`.
+These fixtures are designed to mock various components and behaviors, allowing for effective testing while isolating
+tests from external dependencies and side effects.
 
-Fixtures include:
-- `client`: A mocked instance of the JiraClient with a mocked request method.
-- `patch_subprocess_call`: Patches the subprocess.call method to prevent actual command execution.
-- `patch_tempfile_namedtemporaryfile`: Mocks the NamedTemporaryFile to simulate file handling without creating real
-files.
-- `cli`: A fixture that creates a mocked instance of JiraCLI, including mocked Jira methods and an AI provider.
-- `mock_search_issues`: Mocks the search_issues method of the Jira client to return a predefined list of issues.
-- `mock_cache_path`: Mocks the get_cache_path function to return a dummy file path for testing.
-- `mock_load_cache`: Mocks the load_cache function to return a dummy cache for testing purposes.
-- `mock_save_cache`: Mocks the save_cache function to prevent actual file writing during tests.
-- `mock_load_and_cache_issue`: Mocks the load_and_cache_issue function to return predefined cached values.
+Key fixtures include:
+- `client`: A mocked instance of `JiraClient` for testing service interactions.
+- `patch_subprocess_call`: Mocks the `subprocess.call` method to prevent actual command execution.
+- `patch_tempfile_namedtemporaryfile`: Mocks `NamedTemporaryFile` to simulate file handling without real files.
+- `cli`: A mocked instance of `JiraCLI` with overridden methods and an AI provider for testing.
+- `mock_search_issues`: Mocks the `search_issues` method to return a predefined list of issues.
+- `mock_cache_path`: Mocks the `get_cache_path` function to return a dummy file path for caching.
+- `mock_load_cache`: Mocks the `load_cache` function to return a dummy cache for testing.
+- `mock_save_cache`: Mocks the `save_cache` function to prevent actual file writing during tests.
+- `mock_load_and_cache_issue`: Mocks the `load_and_cache_issue` function to return predefined cached values.
 
-These fixtures facilitate unit testing of the JiraCLI functionality while isolating dependencies and avoiding side
-effects.
+These fixtures facilitate comprehensive unit testing of the `JiraCLI` functionality while ensuring that dependencies
+are isolated and real service calls are avoided.
 """
 
 # import os

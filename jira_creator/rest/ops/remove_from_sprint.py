@@ -1,7 +1,25 @@
-from exceptions.exceptions import RemoveFromSprintError
+#!/usr/bin/env python
+"""
+This module provides a function to remove an issue from the current sprint backlog.
+
+Functions:
+- remove_from_sprint: Removes an issue from the current sprint backlog.
+
+Exceptions:
+- RemoveFromSprintError: Raised when there is an issue removing the specified issue from the sprint backlog.
+
+Side Effects:
+- If successful, prints a message indicating that the issue has been moved to the backlog.
+- If an error occurs, prints a message indicating the failure and raises a RemoveFromSprintError.
+"""
 from typing import Callable
 
-def remove_from_sprint(request_fn: Callable[[str, str, dict], None], issue_key: str) -> None:
+from exceptions.exceptions import RemoveFromSprintError
+
+
+def remove_from_sprint(
+    request_fn: Callable[[str, str, dict], None], issue_key: str
+) -> None:
     """
     Removes an issue from the current sprint backlog.
 

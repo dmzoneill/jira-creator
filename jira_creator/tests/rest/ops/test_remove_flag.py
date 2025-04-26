@@ -2,15 +2,16 @@
 """
 Set the '_request' attribute of the client to a MagicMock object returning an empty dictionary.
 
-This script contains a function 'test_remove_flag' that sets the '_request' attribute of the client object to a
-MagicMock object returning an empty dictionary. It then calls the 'remove_flag' method on the client object and asserts
-that the 'request' method was called with specific arguments.
+This script defines a function 'test_remove_flag' that configures the '_request' attribute of the client object with a
+MagicMock object that returns an empty dictionary.
+It then invokes the 'remove_flag' method on the client object and verifies that the 'request' method was invoked with
+specific arguments.
 
 Arguments:
-- client: An object representing a client used to make requests.
+- client: An object representing a client used for making requests.
 
 Side Effects:
-- Modifies the '_request' attribute of the client object.
+- Updates the '_request' attribute of the client object.
 """
 from unittest.mock import MagicMock
 

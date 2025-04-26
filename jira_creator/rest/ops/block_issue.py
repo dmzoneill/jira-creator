@@ -14,11 +14,14 @@ Arguments:
 Side Effects:
 - Modifies the blocked status and reason fields of the specified JIRA issue.
 """
-from core.env_fetcher import EnvFetcher
 from typing import Callable
 
+from core.env_fetcher import EnvFetcher
 
-def block_issue(request_fn: Callable[[str, str, dict], None], issue_key: str, reason: str) -> None:
+
+def block_issue(
+    request_fn: Callable[[str, str, dict], None], issue_key: str, reason: str
+) -> None:
     """
     Updates a JIRA issue by setting the blocked status and reason.
 

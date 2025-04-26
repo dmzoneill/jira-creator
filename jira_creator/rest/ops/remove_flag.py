@@ -2,11 +2,13 @@
 """
 Remove a flag from a specific issue on a Jira board.
 
-Arguments:
-- request_fn (Callable[[str, str, dict], dict]): A function used to make HTTP requests.
-- issue_key (str): The key of the issue from which the flag should be removed.
+This script defines a function 'remove_flag' that takes two arguments:
+- request_fn: A function used to make HTTP requests.
+- issue_key: The key of the issue from which the flag should be removed.
 
-Return:
+The function sends a POST request to remove the flag from the specified issue on the Jira board.
+
+Returns:
 - dict: A dictionary containing the response data from the request.
 """
 

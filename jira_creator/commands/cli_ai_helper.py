@@ -9,7 +9,7 @@ Key Functions:
 arguments.
 - `clean_ai_output(ai_output: str)`: Cleans and parses the AI's output, removing markdown and converting it to a Python
 object.
-- `ask_ai_question(client, ai_provider, system_prompt, user_prompt, voice=False)`: Sends a question to the AI and
+- `ask_ai_question(cli, ai_provider, system_prompt, user_prompt, voice=False)`: Sends a question to the AI and
 processes the response, optionally providing voice feedback.
 - `cli_ai_helper(cli, ai_provider, system_prompt, args)`: Main entry point for the CLI helper, orchestrating the
 command metadata retrieval and AI interaction.
@@ -36,7 +36,6 @@ from typing import Any, Dict, List, Union
 
 from exceptions.exceptions import AIHelperError
 from gtts import gTTS
-
 from providers.ai_provider import AIProvider
 
 

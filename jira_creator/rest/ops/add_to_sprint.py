@@ -22,14 +22,17 @@ Finally, it adds the 'issue_key' to the identified sprint using a POST request a
 Note: This function assumes the 'request_fn' function is implemented elsewhere to handle HTTP requests.
 """
 
+from typing import Any, Callable, Dict, List, Optional
+
 from exceptions.exceptions import AddSprintError
-from typing import Callable, Dict, Any
 
 
-def add_to_sprint(request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any]], 
-                                         board_id: str, 
-                                         issue_key: str, 
-                                         sprint_name: str) -> None:
+def add_to_sprint(
+    request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any]],
+    board_id: str,
+    issue_key: str,
+    sprint_name: str,
+) -> None:
     """
     Add a specified sprint to a JIRA board using its name.
 
@@ -46,8 +49,12 @@ def add_to_sprint(request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any
     if not board_id:
         raise AddSprintError("❌ JIRA_BOARD_ID not set in environment")
 
-    sprints: List[Dict[str, Any]] = request_fn("GET", f"/rest/agile/1.0/board/{board_id}/sprint").get("values", [])
-    sprint_id: Optional[int] = next((s["id"] for s in sprints if s["name"] == sprint_name), None)
+    sprints: List[Dict[str, Any]] = request_fn(
+        "GET", f"/rest/agile/1.0/board/{board_id}/sprint"
+    ).get("values", [])
+    sprint_id: Optional[int] = next(
+        (s["id"] for s in sprints if s["name"] == sprint_name), None
+    )
 
     if not sprint_id:
         raise AddSprintError(f"❌ Could not find sprint named '{sprint_name}'")

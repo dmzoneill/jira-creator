@@ -21,7 +21,6 @@ if the request fails.
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
-
 from providers.ai_provider import AIProvider
 
 

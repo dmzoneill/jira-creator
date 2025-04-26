@@ -25,11 +25,14 @@ The module is designed to facilitate the voting process on story points for JIRA
 function to interact with the JIRA API.
 """
 
+from typing import Any, Callable
+
 from exceptions.exceptions import FetchIssueIDError, VoteStoryPointsError
-from typing import Callable, Any
 
 
-def vote_story_points(request_fn: Callable[[str, str, dict], Any], issue_key: str, points: int) -> None:
+def vote_story_points(
+    request_fn: Callable[[str, str, dict], Any], issue_key: str, points: int
+) -> None:
     """
     Vote story points for a given Jira issue.
 

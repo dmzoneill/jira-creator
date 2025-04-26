@@ -30,7 +30,7 @@ def cli_view_user(jira: JiraClient, args: Namespace) -> Dict[str, Any]:
     'account_id' key representing the unique identifier of the user.
 
     Exceptions:
-    - This function may raise exceptions if there are issues with retrieving the user information from Jira.
+    - GetUserError: Raised if there are issues with retrieving the user information from Jira.
     """
 
     try:

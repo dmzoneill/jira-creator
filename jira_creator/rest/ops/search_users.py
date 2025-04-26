@@ -11,9 +11,12 @@ Return:
 - List[Dict[str, Any]]: A list of user objects matching the search query.
 """
 
-from typing import Callable, List, Dict, Any
+from typing import Any, Callable, Dict, List
 
-def search_users(request_fn: Callable[..., Any], query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+
+def search_users(
+    request_fn: Callable[..., Any], query: str, max_results: int = 10
+) -> List[Dict[str, Any]]:
     """
     Search for users based on a query string.
 

@@ -18,17 +18,22 @@ Epic when the target status is "refinement".
 
 # pylint: disable=too-many-locals
 
+from typing import Any, Callable, Dict
+
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import SetStatusError
-from typing import Callable, Dict, Any
 
 
-def set_status(request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any]], issue_key: str, target_status: str) -> None:
+def set_status(
+    request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any]],
+    issue_key: str,
+    target_status: str,
+) -> None:
     """
     Retrieve the available transitions for a given issue and set its status to a target status.
 
     Arguments:
-    - request_fn (function): A function used to make HTTP requests.
+    - request_fn (Callable[[str, str, Dict[str, Any]], Dict[str, Any]]): A function used to make HTTP requests.
     - issue_key (str): The key identifying the issue to update.
     - target_status (str): The desired status to set for the issue.
 
@@ -44,9 +49,9 @@ def set_status(request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any]],
     - Prints a success message after changing the status of the issue.
     """
 
-    transitions: list[Dict[str, Any]] = request_fn("GET", f"/rest/api/2/issue/{issue_key}/transitions").get(
-        "transitions", []
-    )
+    transitions: list[Dict[str, Any]] = request_fn(
+        "GET", f"/rest/api/2/issue/{issue_key}/transitions"
+    ).get("transitions", [])
 
     transition_id: str | None = next(
         (t["id"] for t in transitions if t["name"].lower() == target_status.lower()),

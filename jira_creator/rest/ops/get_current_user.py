@@ -10,7 +10,7 @@ Return:
 """
 
 
-from typing import Callable, Dict, Any
+from typing import Any, Callable, Dict
 
 
 def get_current_user(request_fn: Callable[[str, str], Dict[str, Any]]) -> str:

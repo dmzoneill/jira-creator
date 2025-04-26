@@ -1,22 +1,32 @@
 #!/usr/bin/env python
 """
-This module provides functionality to validate Jira issues based on various criteria, utilizing AI for quality checks
-on specific fields.
+This module provides functionality for validating Jira issues based on various criteria, leveraging AI for quality
+checks on specific fields.
 
-Key functions include:
+Key components of the module include:
 
+- **Functions for Cache Management**:
 - `get_cache_path()`: Returns the path to the cache file for storing issue hashes.
-- `sha256(text)`: Computes the SHA-256 hash of the given text.
-- `load_cache()`: Loads the cached issue data from the cache file, if it exists.
+- `load_cache()`: Loads cached issue data from the cache file, if it exists.
 - `save_cache(data)`: Saves the provided data to the cache file, creating necessary directories if they do not exist.
 - `load_and_cache_issue(issue_key)`: Loads the cache and retrieves cached values for a specified issue key.
-- Validation functions: A series of functions that check various aspects of an issue to ensure it meets specific
-criteria.
-- `cli_validate_issue(fields, ai_provider)`: The main function that orchestrates the validation of an issue by
-extracting relevant fields, performing validations, and utilizing AI for field quality checks.
 
-The module is designed to be used in a command-line interface context, providing feedback on issues that do not meet
-the specified validation rules.
+- **Validation Functions**:
+- A series of functions that validate various aspects of a Jira issue, including:
+- `validate_progress()`: Checks if the issue is assigned when in progress.
+- `validate_epic_link()`: Ensures an issue has an assigned epic link.
+- `validate_sprint()`: Validates that the issue is assigned to a sprint when in progress.
+- `validate_priority()`: Confirms that the priority is set.
+- `validate_story_points()`: Checks if story points are assigned, based on the issue's status.
+- `validate_blocked()`: Validates that blocked issues have a reason.
+- `validate_field_with_ai()`: Uses an AI provider to validate field quality.
+
+- **Main Validation Function**:
+- `cli_validate_issue(fields, ai_provider)`: Orchestrates the validation of an issue by extracting relevant fields,
+performing validations, and utilizing AI for quality checks.
+
+This module is intended for use in a command-line interface context, providing feedback on issues that do not meet the
+specified validation rules.
 """
 
 # pylint: disable=too-many-locals too-many-arguments too-many-positional-arguments
@@ -27,7 +37,6 @@ import os
 from typing import Any, Dict, List, Tuple
 
 from core.env_fetcher import EnvFetcher
-
 from providers.ai_provider import AIProvider
 
 
@@ -283,13 +292,13 @@ def cli_validate_issue(
     Validate the fields of an issue using an AI provider to ensure compliance with specified criteria.
 
     Arguments:
-    - fields (dict): A dictionary containing the fields of the issue to be validated.
-    - ai_provider (str): The name or identifier of the AI provider used for validation.
+    - fields (Dict[str, Any]): A dictionary containing the fields of the issue to be validated.
+    - ai_provider (AIProvider): The AI provider used for validation.
 
     Return:
-    - tuple: A tuple containing two elements:
-    - problems (list): A list of validation issues encountered during the process.
-    - issue_status (dict): A dictionary tracking the validation status of each field.
+    - Tuple[List[str], Dict[str, bool]]: A tuple containing:
+    - problems (List[str]): A list of validation issues encountered during the process.
+    - issue_status (Dict[str, bool]): A dictionary tracking the validation status of each field.
     """
     problems: List[str] = []
     issue_status: Dict[str, bool] = {}

@@ -36,6 +36,9 @@ def cli_set_story_points(jira: JiraClient, args: Namespace) -> bool:
 
     Return:
     - False if the provided story points are not an integer.
+
+    Exceptions:
+    - SetStoryPointsError: Raised when there is an error setting the story points for the Jira issue.
     """
 
     try:

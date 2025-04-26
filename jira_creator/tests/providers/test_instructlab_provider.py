@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 """
-This file contains unit tests for the InstructLabProvider class from the instructlab_provider module.
-It includes tests for initializing the provider with default values, improving text successfully, and handling failure
-scenarios.
-The tests use MagicMock and patch from the unittest.mock module, as well as pytest for assertions.
-The improve_text method of the provider is tested for successful and failed responses from the server.
+This module contains unit tests for the InstructLabProvider class from the instructlab_provider module. It verifies the
+correct functionality of the provider, including its initialization with default values, and the behavior of the
+improve_text method under both successful and failure scenarios.
 
-The InstructLabProvider class is tested for initializing with default values, improving text successfully, and handling
-failure scenarios.
-The improve_text_success function tests the successful improvement of text using the improve_text method.
-The improve_text_failure function tests the error handling of the improve_text method when the server responds with an
-error.
+The tests utilize unittest.mock's MagicMock and patch, alongside pytest for assertions. Key functions include:
+
+- test_instructlab_provider_init_defaults: Tests the initialization of the InstructLabProvider with default values for
+URL and model attributes.
+
+- test_improve_text_success: Tests the improve_text method for successful text improvement when the server responds
+correctly.
+
+- test_improve_text_failure: Tests the improve_text method's error handling when the server responds with an error
+status code.
+
+Overall, this module ensures the robustness of the InstructLabProvider's functionality.
 """
 
 from unittest.mock import MagicMock, patch

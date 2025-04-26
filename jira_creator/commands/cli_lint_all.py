@@ -30,9 +30,8 @@ from typing import Any, Dict, List, Tuple, Union
 
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintAllError
-from rest.client import JiraClient
-
 from providers.ai_provider import AIProvider
+from rest.client import JiraClient
 
 
 def print_status_table(
@@ -113,7 +112,7 @@ def cli_lint_all(
     Lint all Jira issues based on specified criteria.
 
     Arguments:
-    - jira (JIRA): An instance of the JIRA client.
+    - jira (JiraClient): An instance of the JIRA client.
     - ai_provider (AIProvider): An instance of the AI provider.
     - args (Namespace): A namespace object containing parsed command-line arguments.
     - args.reporter (str): The reporter of the issues to filter by.

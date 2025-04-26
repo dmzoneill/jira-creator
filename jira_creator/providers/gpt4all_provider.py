@@ -20,7 +20,6 @@ prompt.
 
 from exceptions.exceptions import GTP4AllError
 from gpt4all import GPT4All
-
 from providers.ai_provider import AIProvider
 
 

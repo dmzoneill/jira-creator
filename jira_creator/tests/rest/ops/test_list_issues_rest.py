@@ -75,7 +75,6 @@ def mock_client_request(client, mock_return_value):
             elif "/rest/api/2/search" in path:
                 # Return the mock issue data for /rest/api/2/search request
                 return mock_return_value
-        return {}
 
     client.request = MagicMock(side_effect=mock_request)
 
@@ -141,7 +140,6 @@ def test_list_issues_reporter(client):
             elif "/rest/api/2/search" in path:
                 # Mock the response for /rest/api/2/search with issues reported by "user123"
                 return {"issues": [{"key": "AAP-test_list_issues_reporter"}]}
-        return {}
 
     # Set the mock request to simulate multiple API calls
     client.request = MagicMock(side_effect=mock_request)
@@ -192,7 +190,6 @@ def test_list_issues_with_status(client):
             elif "/rest/api/2/search" in path:
                 # Mock the response for /rest/api/2/search with status "In Progress"
                 return {"issues": [{"key": "AAP-test_list_issues_with_status"}]}
-        return {}
 
     # Set the mock request to simulate multiple API calls
     client.request = MagicMock(side_effect=mock_request)
@@ -361,8 +358,6 @@ def test_list_issues_with_none_sprints(client):
                     ]
                 }
 
-        return {}
-
     # Set the side_effect for the request method
     client.request = MagicMock(side_effect=mock_request)
 
@@ -453,8 +448,6 @@ def test_list_issues_with_sprint_regex_matching(client):
                         }
                     ]
                 }
-
-        return {}
 
     # Set the side_effect for the request method
     client.request = MagicMock(side_effect=mock_request)

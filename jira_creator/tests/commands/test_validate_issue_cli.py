@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 """
-This module contains unit tests for the CLI validation of Jira issues, focusing on the acceptance criteria and
-description validation. It includes helper functions to generate common fields and cached data for testing purposes.
-The main functionality is tested through various test cases that ensure correct behavior when validating issue fields
-against expected standards.
+This module provides unit tests for the command-line interface (CLI) validation of Jira issues, specifically focusing
+on the acceptance criteria and description validation. It includes functions to generate common fields and cached data
+for testing purposes. The tests verify the correct behavior of the validation functions against various scenarios.
 
 Key functions and classes:
 - `generate_fields`: Generates a dictionary of common fields for a Jira issue.
@@ -16,7 +15,8 @@ made but the criteria is invalid.
 description is invalid.
 - `test_cli_validate_issue`: Tests the CLI interface for validating Jira issues.
 
-This module uses the `unittest.mock` library to mock dependencies and the behavior of external functions.
+This module uses the `unittest.mock` library to mock dependencies and the behavior of external functions, ensuring that
+the tests run in isolation and do not depend on external states.
 """
 
 from unittest.mock import MagicMock, patch

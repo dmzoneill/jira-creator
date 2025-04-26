@@ -21,9 +21,10 @@ Function cli_change_type:
 - Prints a success or failure message indicating the result of the issue type change.
 """
 
+from argparse import Namespace
+
 from exceptions.exceptions import ChangeTypeError
 from rest.client import JiraClient  # Assuming JIRA is imported from a library
-from argparse import Namespace
 
 
 def cli_change_type(jira: JiraClient, args: Namespace) -> bool:

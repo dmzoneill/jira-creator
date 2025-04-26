@@ -17,10 +17,11 @@ Function cli_view_issue:
 - This function retrieves and displays information about a specific issue in JIRA using the provided JIRA client object.
 """
 
-from exceptions.exceptions import ViewIssueError
-from typing import Any, Dict
-from rest.client import JiraClient
 from argparse import Namespace
+from typing import Any, Dict
+
+from exceptions.exceptions import ViewIssueError
+from rest.client import JiraClient
 
 
 def cli_view_issue(jira: JiraClient, args: Namespace) -> Any:

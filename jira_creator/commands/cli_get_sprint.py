@@ -10,9 +10,11 @@ It calls the get_sprint method on the jira object to fetch sprint data, prints "
 the response obtained from JIRA.
 """
 
-from typing import Any, Dict
-from rest.client import JiraClient
 from argparse import Namespace
+from typing import Any, Dict
+
+from rest.client import JiraClient
+
 
 def cli_get_sprint(jira: JiraClient, _: Namespace) -> Dict[str, Any]:
     """

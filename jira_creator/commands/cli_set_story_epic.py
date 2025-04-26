@@ -18,9 +18,10 @@ Side Effects:
 - Prints a success message if the epic is set successfully.
 - Prints an error message if setting the epic fails.
 """
+from argparse import Namespace
+
 from exceptions.exceptions import SetStoryEpicError
 from rest.client import JiraClient
-from argparse import Namespace
 
 
 def cli_set_story_epic(jira: JiraClient, args: Namespace) -> bool:

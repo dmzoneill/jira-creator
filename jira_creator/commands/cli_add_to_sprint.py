@@ -15,9 +15,10 @@ Side effects include:
 - Printing a success message if the issue is added to the sprint.
 - Printing an error message and raising 'AddSprintError' if an error occurs during the process.
 """
+from argparse import Namespace
+
 from exceptions.exceptions import AddSprintError
 from rest.client import JiraClient  # Assuming JIRA is imported from the jira package
-from argparse import Namespace
 
 
 def cli_add_to_sprint(jira: JiraClient, args: Namespace) -> bool:

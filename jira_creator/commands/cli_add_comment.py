@@ -16,15 +16,17 @@ Exceptions:
 import os
 import subprocess
 import tempfile
-from typing import Any
-from rest.client import JiraClient
 from argparse import Namespace
-from providers.AiProvider import AiProvider
+from typing import Any
 
 from exceptions.exceptions import AddCommentError, AiError
+from providers.AiProvider import AiProvider
+from rest.client import JiraClient
 
 
-def cli_add_comment(jira: JiraClient, ai_provider: AiProvider, comment_prompt: str, args: Namespace) -> bool:
+def cli_add_comment(
+    jira: JiraClient, ai_provider: AiProvider, comment_prompt: str, args: Namespace
+) -> bool:
     """
     Add a comment to a Jira issue via the command line interface.
 

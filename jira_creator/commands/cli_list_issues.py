@@ -19,11 +19,12 @@ criteria.
 """
 
 import re
-from typing import List, Tuple, Any
+from argparse import Namespace
+from typing import Any, List, Tuple
+
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import ListIssuesError
 from rest.client import JiraClient
-from argparse import Namespace
 
 
 def cli_list_issues(jira: JiraClient, args: Namespace) -> List[Any]:
@@ -79,7 +80,8 @@ def cli_list_issues(jira: JiraClient, args: Namespace) -> List[Any]:
 
             if (
                 args.status
-                and args.status.lower() not in f.get("status", {}).get("name", "").lower()
+                and args.status.lower()
+                not in f.get("status", {}).get("name", "").lower()
             ):
                 continue
             if (

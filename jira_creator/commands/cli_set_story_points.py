@@ -19,10 +19,11 @@ The function provides feedback messages on the success or failure of setting the
 Note: The 'SetStoryPointsError' is imported from 'exceptions.exceptions'.
 """
 
-from exceptions.exceptions import SetStoryPointsError
-from typing import Any, Dict
-from rest.client import JiraClient
 from argparse import Namespace
+from typing import Any, Dict
+
+from exceptions.exceptions import SetStoryPointsError
+from rest.client import JiraClient
 
 
 def cli_set_story_points(jira: JiraClient, args: Namespace) -> bool:

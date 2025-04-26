@@ -25,9 +25,11 @@ Side Effects:
 - Prints the error message if the migration fails.
 """
 
+from argparse import Namespace
+
 from exceptions.exceptions import MigrateError
 from rest.client import JiraClient
-from argparse import Namespace
+
 
 def cli_migrate(jira: JiraClient, args: Namespace) -> str:
     """

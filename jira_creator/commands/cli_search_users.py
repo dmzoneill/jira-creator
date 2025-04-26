@@ -14,12 +14,16 @@ Function cli_search_users:
 - This function may raise an exception if there is an issue with searching for users in Jira.
 """
 
+from argparse import Namespace
+from typing import Any, Dict, List, Union
+
 from exceptions.exceptions import SearchUsersError
 from rest.client import JiraClient
-from argparse import Namespace
-from typing import List, Dict, Any, Union
 
-def cli_search_users(jira: JiraClient, args: Namespace) -> Union[List[Dict[str, Any]], bool]:
+
+def cli_search_users(
+    jira: JiraClient, args: Namespace
+) -> Union[List[Dict[str, Any]], bool]:
     """
     Search for users in Jira based on the provided query.
 

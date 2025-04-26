@@ -16,9 +16,10 @@ Return:
 Exceptions:
 - SetPriorityError: Raised when there is an error setting the priority of the Jira issue.
 """
+from argparse import Namespace
+
 from exceptions.exceptions import SetPriorityError
 from rest.client import JiraClient
-from argparse import Namespace
 
 
 def cli_set_priority(jira: JiraClient, args: Namespace) -> bool:

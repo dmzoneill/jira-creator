@@ -24,10 +24,10 @@ the specified validation rules.
 import hashlib
 import json
 import os
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Tuple
 
-from providers.AiProvider import AiProvider
 from core.env_fetcher import EnvFetcher
+from providers.AiProvider import AiProvider
 
 
 def get_cache_path() -> str:
@@ -100,7 +100,9 @@ def load_and_cache_issue(issue_key: str) -> Tuple[Dict[str, Any], Dict[str, Any]
     return cache, cached
 
 
-def validate_progress(status: str, assignee: str, problems: List[str], issue_status: Dict[str, bool]) -> None:
+def validate_progress(
+    status: str, assignee: str, problems: List[str], issue_status: Dict[str, bool]
+) -> None:
     """
     Validate if the issue is assigned when it's in progress.
 
@@ -117,7 +119,13 @@ def validate_progress(status: str, assignee: str, problems: List[str], issue_sta
         issue_status["Progress"] = True
 
 
-def validate_epic_link(issue_type: str, status: str, epic_link: str, problems: List[str], issue_status: Dict[str, bool]) -> None:
+def validate_epic_link(
+    issue_type: str,
+    status: str,
+    epic_link: str,
+    problems: List[str],
+    issue_status: Dict[str, bool],
+) -> None:
     """
     Validate if an issue has an assigned epic link.
 
@@ -144,7 +152,9 @@ def validate_epic_link(issue_type: str, status: str, epic_link: str, problems: L
         issue_status["Epic"] = True
 
 
-def validate_sprint(status: str, sprint_field: bool, problems: List[str], issue_status: Dict[str, bool]) -> None:
+def validate_sprint(
+    status: str, sprint_field: bool, problems: List[str], issue_status: Dict[str, bool]
+) -> None:
     """
     Validate if the issue is assigned to a sprint when in progress.
 
@@ -161,7 +171,9 @@ def validate_sprint(status: str, sprint_field: bool, problems: List[str], issue_
         issue_status["Sprint"] = True
 
 
-def validate_priority(priority: bool, problems: List[str], issue_status: Dict[str, bool]) -> None:
+def validate_priority(
+    priority: bool, problems: List[str], issue_status: Dict[str, bool]
+) -> None:
     """
     Validate if priority is set.
 
@@ -177,7 +189,9 @@ def validate_priority(priority: bool, problems: List[str], issue_status: Dict[st
         issue_status["Priority"] = True
 
 
-def validate_story_points(story_points: int, status: str, problems: List[str], issue_status: Dict[str, bool]) -> None:
+def validate_story_points(
+    story_points: int, status: str, problems: List[str], issue_status: Dict[str, bool]
+) -> None:
     """
     Validate if story points are assigned, unless the status is 'Refinement' or 'New'.
 
@@ -194,7 +208,12 @@ def validate_story_points(story_points: int, status: str, problems: List[str], i
         issue_status["Story P."] = True
 
 
-def validate_blocked(blocked_value: str, blocked_reason: str, problems: List[str], issue_status: Dict[str, bool]) -> None:
+def validate_blocked(
+    blocked_value: str,
+    blocked_reason: str,
+    problems: List[str],
+    issue_status: Dict[str, bool],
+) -> None:
     """
     Validate if blocked issues have a reason.
 
@@ -256,7 +275,9 @@ def validate_field_with_ai(
     return cached_field_hash  # Return the updated hash to use in the next validation
 
 
-def cli_validate_issue(fields: Dict[str, Any], ai_provider: AiProvider) -> Tuple[List[str], Dict[str, bool]]:
+def cli_validate_issue(
+    fields: Dict[str, Any], ai_provider: AiProvider
+) -> Tuple[List[str], Dict[str, bool]]:
     """
     Validate the fields of an issue using an AI provider to ensure compliance with specified criteria.
 

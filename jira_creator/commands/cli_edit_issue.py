@@ -23,11 +23,11 @@ descriptions.
 import os
 import subprocess
 import tempfile
-from typing import Tuple, Any
-
-from rest.prompts import IssueType, PromptLibrary
-from rest.client import JiraClient
 from argparse import Namespace
+from typing import Any, Tuple
+
+from rest.client import JiraClient
+from rest.prompts import IssueType, PromptLibrary
 
 from exceptions.exceptions import (  # isort: skip
     EditDescriptionError,
@@ -227,7 +227,9 @@ def update_jira_description(jira: Any, issue_key: str, cleaned: str) -> None:
         raise UpdateDescriptionError(e) from e
 
 
-def cli_edit_issue(jira: Any, ai_provider: Any, default_prompt: str, try_cleanup_fn: Any, args: Any) -> bool:
+def cli_edit_issue(
+    jira: Any, ai_provider: Any, default_prompt: str, try_cleanup_fn: Any, args: Any
+) -> bool:
     """
     Edit an issue's description in a Jira instance using a command-line interface.
 

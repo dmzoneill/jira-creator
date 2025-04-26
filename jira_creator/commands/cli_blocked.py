@@ -13,11 +13,12 @@ Note: Sections of code marked with 'jscpd:ignore-start' and 'jscpd:ignore-end' a
 checks.
 """
 
+from argparse import Namespace
+from typing import Any, Dict, List, Union
+
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import ListBlockedError
 from rest.client import JiraClient
-from argparse import Namespace
-from typing import List, Dict, Union, Any
 
 
 # /* jscpd:ignore-start */

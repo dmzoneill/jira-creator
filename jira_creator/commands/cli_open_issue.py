@@ -20,10 +20,11 @@ representing the key of the JIRA issue to open.
 # pylint: disable=consider-using-with
 
 import subprocess
-from rest.client import JiraClient
 from argparse import Namespace
+
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import OpenIssueError
+from rest.client import JiraClient
 
 
 def cli_open_issue(jira: JiraClient, args: Namespace) -> bool:

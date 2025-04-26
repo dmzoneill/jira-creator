@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-from typing import Dict, Any
-from rest.client import JiraClient
 from argparse import Namespace
+from typing import Any, Dict
+
+from rest.client import JiraClient
+
 
 def cli_set_summary(jira: JiraClient, args: Namespace) -> Dict[str, Any]:
     """

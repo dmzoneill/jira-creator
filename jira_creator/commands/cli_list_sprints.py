@@ -18,9 +18,11 @@ Prints:
 - Error message if there is a failure in retrieving sprints.
 """
 
-from typing import List
-from rest.client import JiraClient  
 from argparse import Namespace
+from typing import List
+
+from rest.client import JiraClient
+
 
 def cli_list_sprints(jira: JiraClient, args: Namespace) -> List[str]:
     """

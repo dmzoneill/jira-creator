@@ -17,9 +17,11 @@ Side Effects:
 - Prints a success message if the acceptance criteria are set successfully.
 - Prints an error message if setting acceptance criteria fails.
 """
+from argparse import Namespace
+
 from exceptions.exceptions import SetAcceptanceCriteriaError
 from rest.client import JiraClient
-from argparse import Namespace
+
 
 def cli_set_acceptance_criteria(jira: JiraClient, args: Namespace) -> bool:
     """
@@ -43,8 +45,11 @@ def cli_set_acceptance_criteria(jira: JiraClient, args: Namespace) -> bool:
 
     if not isinstance(args.issue_key, str) or not args.issue_key.strip():
         raise ValueError("Invalid issue key provided.")
-    
-    if not isinstance(args.acceptance_criteria, str) or not args.acceptance_criteria.strip():
+
+    if (
+        not isinstance(args.acceptance_criteria, str)
+        or not args.acceptance_criteria.strip()
+    ):
         raise ValueError("Invalid acceptance criteria provided.")
 
     try:

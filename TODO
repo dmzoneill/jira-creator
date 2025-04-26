@@ -1,7 +1,7 @@
 Core
   - argparse nice output
   - mask private methods with _ prefix
-  - type hardening
+  - type hardening tests
   - logging
   - validation-issue factory pattern
     - new, refinement, backlog, in progress, closed, review
@@ -19,6 +19,7 @@ Add
   - clone / copy issue
 
 Modify 
+
   - list-issues
     - custom column output
     - fix default output
@@ -44,33 +45,6 @@ Modify
   - set-acceptance-criteria 
     - --ai-from-description
 
-  - view-issue    
-    Custom output for
-    - epic
-    - story
-    - bug
-    - task
-    - spike
-
-  - list-issues
-    - Custom column output
-    - epic column 
-    - assignee column 
-    - reporter column
-    - blocked column
-    - acceptance criteria column
-    - when --assignee or --reporter is empty or "me" get the current user 
-    - add --columns option in list_issues
-    - add --sort option in list_issues
-    - add --blocked
-
-  - add-sprint
-    - assign default to current user
-    - or -- assign to specifc user
-
   - edit-issue --acceptance-criteria
     - Update acepance criteria from descirption (--ai) or user input
     - create linked issue
-    - move to top of sprint if (refinement)
-
-

@@ -18,7 +18,6 @@ from argparse import Namespace
 from unittest.mock import MagicMock, patch
 
 import pytest
-from commands.cli_ai_helper import ask_ai_question
 from exceptions.exceptions import AIHelperError
 
 from commands.cli_ai_helper import (  # isort: skip
@@ -208,7 +207,6 @@ def test_ask_ai_question_returns_true(mock_os_system, mock_gtts):
 
     # Mock the clean_ai_output function to return a parsed list (as if AI generated steps)
     with patch("commands.cli_ai_helper.clean_ai_output", return_value=None):
-
         # Create a mock CLI object
         mock_cli = MagicMock()
 

@@ -6,8 +6,6 @@ the output. It also checks if the 'get_sprint' method was called once with no ar
 """
 from unittest.mock import MagicMock
 
-import pytest
-
 
 def test_cli_get_sprint_success(cli, capsys):
     # Mock the add_flag_to_issue method of jira

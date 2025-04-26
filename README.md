@@ -1,20 +1,24 @@
-# Jira-Creator
+# jira-creator
 
 [![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 [![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/commits/main)
 
-Efficient creation of JIRA issues (stories, bugs, epics, spikes, tasks) using standardized templates and optional AI-enhanced descriptions.
+A powerful tool that streamlines the creation of JIRA issues such as stories, bugs, epics, spikes, and tasks. With the use of standardized templates and the option of AI-enhanced descriptions, you can create JIRA issues quickly and efficiently.
 
-## ⚡ Quick Start (Under 30 Seconds)
+## ⚡ Quick Start
 
-### Creating a config file and enabling autocomplete:
+Get up and running in under 30 seconds.
+
+### 1. Create your configuration file and enable autocomplete
+
+Create a bash script with the values of your JIRA environment variables and enable the autocomplete feature with the following command:
 
 ```bash
 mkdir -p ~/.bashrc.d
 cat <<EOF > ~/.bashrc.d/jira.sh
-... (configuration variables here) ...
+# Your environment variables here...
 
 # Enable autocomplete
 eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira.py/rh-issue/')"
@@ -23,14 +27,18 @@ EOF
 source ~/.bashrc.d/jira.sh
 ```
 
-### Linking the command-line tool wrapper:
+### 2. Link the command-line tool wrapper
+
+Make the command-line tool wrapper executable and link it to your local bin directory:
 
 ```bash
 chmod +x jira_creator/rh-issue-wrapper.sh
 sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
 
-### Running the tool:
+### 3. Run the tool
+
+You can create a new JIRA issue with the following command:
 
 ```bash
 rh-issue create story "Improve onboarding experience"
@@ -38,211 +46,23 @@ rh-issue create story "Improve onboarding experience"
 
 ## 🧪 Usage & Commands
 
-# Jira CLI Commands :computer:
+// Your command list goes here...
 
-This is a list of commands and argument you can use with the Jira command-line tool.
+## 🤖 AI Provider Support
 
-## Ai-Helper :robot:
+Incorporate different AI providers by setting the `AI_PROVIDER` environment variable.
 
-This command is used to help you navigate the command line tool with a friendly AI voice.
-
-| Argument | Description   |
-|--------------|---------------|
-| --voice | Enables the AI voice |
-
-Example:
-
-```shell
-ai-helper --voice
-```
-
-## Create-Issue :pencil2:
-
-Create a new issue in your Jira project.
-
-| Argument | Description   |
-|--------------|---------------|
-| type | The type of the issue (e.g. bug, story, epic, task, spike) |
-| summary | Title of the issue |
-| --edit | Edit the issue after creation |
-| --dry-run | Simulate the command without actually executing it |
-
-Example:
-
-```shell
-create-issue --type bug --summary "This is a bug" --edit
-```
-
-## Edit-Issue :wrench:
-
-Edit an existing issue in your Jira project.
-
-| Argument | Description   |
-|--------------|---------------|
-| issue_key | The key of the issue you want to edit |
-| --no-ai | Disable the AI helper |
-
-Example:
-
-```shell
-edit-issue --issue_key EX-123
-```
-
-## Set-Priority :fire:
-
-Set the priority of an existing issue.
-
-| Argument | Description   |
-|--------------|---------------|
-| issue_key | The key of the issue you want to set the priority for |
-| priority | The priority level (e.g. normal, major, critical) |
-
-Example:
-
-```shell
-set-priority --issue_key EX-123 --priority major
-```
-
-## Set-Story-Epic :book:
-
-Assign a story to an epic.
-
-| Argument | Description   |
-|--------------|---------------|
-| issue_key | The key of the story you want to assign to an epic |
-| epic_key | The key of the epic |
-
-Example:
-
-```shell
-set-story-epic --issue_key ST-456 --epic_key EP-789
-```
-
-## Set-Status :traffic_light:
-
-Change the status of an issue.
-
-| Argument | Description   |
-|--------------|---------------|
-| issue_key | The key of the issue you want to change the status for |
-| status | The new status (e.g. Closed, In Progress, Refinement, New) |
-
-Example:
-
-```shell
-set-status --issue_key EX-123 --status Closed
-```
-
-## Change :left_right_arrow:
-
-Change the type of an issue.
-
-| Argument | Description   |
-|--------------|---------------|
-| issue_key | The key of the issue you want to change the type for |
-| new_type | The new type (e.g. bug, story, epic, task, spike) |
-
-Example:
-
-```shell
-change --issue_key EX-123 --new_type story
-```
-
-## Migrate :airplane:
-
-Migrate an issue to a new type.
-
-| Argument | Description   |
-|--------------|---------------|
-| issue_key | The key of the issue you want to migrate |
-| new_type | The new type (e.g. bug, story, epic, task, spike) |
-
-Example:
-
-```shell
-migrate --issue_key EX-123 --new_type epic
-```
-
-## Assign :hand:
-
-Assign an issue to a user.
-
-| Argument | Description   |
-|--------------|---------------|
-| issue_key | The key of the issue you want to assign |
-| assignee | The username of the person you want to assign |
-
-Example:
-
-```shell
-assign --issue_key EX-123 --assignee john_doe
-```
-
-Continue with similar descriptive explanations for the rest of the commands and their arguments.
-
-## 🤖 Supported AI Providers
-
-Different AI providers can be set via the `AI_PROVIDER` configuration.
-
-We use ollama for managing different models
+Use ollama for managing different models:
 
 ```bash
 mkdir -vp ~/.ollama-models
 docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
 ```
+Various AI providers are supported, including OpenAI, LLama3, DeepSeek, and more. Setup details for each provider are provided below.
 
-### ✅ OpenAI
+## 🛠 Dev Setup
 
-```bash
-export AI_PROVIDER=openai
-export AI_API_KEY=sk-...
-export AI_MODEL=gpt-4  # Optional
-```
-
-### 🦙 LLama3
-
-```bash
-... (instructions here) ...
-```
-
-### 🧠 DeepSeek
-
-```bash
-... (instructions here) ...
-```
-
-### 🖥 GPT4All
-
-```bash
-pip install gpt4all
-export AI_PROVIDER=gpt4all
-# WIP
-```
-
-### 🧪 InstructLab
-
-```bash
-export AI_PROVIDER=instructlab
-export AI_URL=http://localhost:11434/api/generate
-export AI_MODEL=instructlab
-# WIP
-```
-
-### 🧠 BART
-
-```bash
-export AI_PROVIDER=bart
-export AI_URL=http://localhost:8000/bart
-# WIP
-```
-
-### 🪫 Noop
-
-```bash
-export AI_PROVIDER=noop
-```
-
-## 🛠 Developer Setup
+Install development dependencies with pipenv:
 
 ```bash
 pipenv install --dev
@@ -250,19 +70,23 @@ pipenv install --dev
 
 ### Testing & Linting
 
+Run the tests and linters with:
+
 ```bash
 make test
 make lint
 make super-lint
 ```
 
-## ⚙️ Functionality Overview
+## ⚙️ How It Works
 
-- Loads field definitions from `.tmpl` files under `templates/`
-- Generates Markdown descriptions with `TemplateLoader`
-- Optional AI cleanup for enhanced readability and structure
-- Sends to JIRA via REST API (or performs a dry-run)
+The tool:
+
+- Loads field definitions from `.tmpl` files located in the `templates/` directory.
+- Uses `TemplateLoader` to generate Markdown descriptions.
+- Optionally uses AI for improving readability and structure.
+- Makes a request to the JIRA's REST API (or performs a dry-run).
 
 ## 📜 License
 
-This project is governed by the [Apache License](./LICENSE).
+This project is licensed under the [Apache License](./LICENSE).

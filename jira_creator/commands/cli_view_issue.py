@@ -42,7 +42,6 @@ def cli_view_issue(jira: JiraClient, args: Namespace) -> Any:
     - This function retrieves and displays information about a specific issue in JIRA using the provided JIRA client
     object.
     """
-
     # Allowed keys for printing
     allowed_keys = [
         "acceptance criteria",
@@ -135,7 +134,6 @@ def cli_view_issue(jira: JiraClient, args: Namespace) -> Any:
 
             # Check if the key exactly matches the allowed list (case-insensitive)
             if any(key_lower == allowed_key for allowed_key in allowed_keys):
-
                 # Parse the value if it's a JSON string, list, or multiline string
                 parsed_value = parse_value(value)
 

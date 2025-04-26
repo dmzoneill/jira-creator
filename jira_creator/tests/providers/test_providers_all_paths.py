@@ -13,8 +13,6 @@ the returned provider matches the expected provider class. The test_unknown_prov
 AiProviderError when an unknown provider name is provided.
 """
 
-from unittest.mock import patch
-
 import pytest
 from exceptions.exceptions import AiProviderError
 from providers import get_ai_provider

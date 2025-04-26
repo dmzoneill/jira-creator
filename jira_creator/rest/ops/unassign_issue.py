@@ -16,10 +16,14 @@ Exceptions:
 - UnassignIssueError: Raised if there is an issue with unassigning the specified issue.
 """
 
-from exceptions.exceptions import UnassignIssueError
 from typing import Callable
 
-def unassign_issue(request_fn: Callable[[str, str, dict], None], issue_key: str) -> bool:
+from exceptions.exceptions import UnassignIssueError
+
+
+def unassign_issue(
+    request_fn: Callable[[str, str, dict], None], issue_key: str
+) -> bool:
     """
     Unassigns the assignee from a specified issue.
 

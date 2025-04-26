@@ -11,10 +11,16 @@ The set_acceptance_criteria function takes three arguments:
 - acceptance_criteria (str): The acceptance criteria to set for the JIRA issue.
 """
 
-from core.env_fetcher import EnvFetcher
 from typing import Callable
 
-def set_acceptance_criteria(request_fn: Callable[[str, str, dict], None], issue_key: str, acceptance_criteria: str) -> None:
+from core.env_fetcher import EnvFetcher
+
+
+def set_acceptance_criteria(
+    request_fn: Callable[[str, str, dict], None],
+    issue_key: str,
+    acceptance_criteria: str,
+) -> None:
     """
     Set acceptance criteria for a JIRA issue.
 
@@ -22,7 +28,6 @@ def set_acceptance_criteria(request_fn: Callable[[str, str, dict], None], issue_
     - request_fn (function): A function used to make HTTP requests.
     - issue_key (str): The key of the JIRA issue to set acceptance criteria for.
     - acceptance_criteria (str): The acceptance criteria to set for the JIRA issue.
-
     """
 
     payload = {

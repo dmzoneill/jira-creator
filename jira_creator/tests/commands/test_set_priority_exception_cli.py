@@ -5,7 +5,7 @@ class by mocking the set_priority method to raise a SetPriorityError exception. 
 raised correctly and that the expected error message is printed. The test uses pytest and unittest.mock modules for
 testing and mocking functionalities.
 
-test_set_priority_error(cli, capsys):
+test_set_priority_error:
 Simulate an exception when setting priority in Jira for testing purposes.
 
 Arguments:

@@ -1,34 +1,34 @@
 #!/usr/bin/env python
 """
-This script defines a function cli_quarterly_connection that builds an employee report based on JIRA issues. It
-searches for issues within the last 90 days, retrieves relevant information, and processes it using a PromptLibrary. In
-case of a QuarterlyConnectionError, it handles the exception and re-raises it.
+This script provides functionality to generate a quarterly employee report based on JIRA issues assigned to the
+current user. It includes a function `cli_quarterly_connection` that retrieves JIRA issues from the last 90 days,
+processes the information using an AI provider, and handles potential exceptions related to JIRA issue searches.
 
 Functions:
-- cli_quarterly_connection: Builds a quarterly employee report based on JIRA issues assigned to the current user.
+- `cli_quarterly_connection`: Constructs a quarterly report by querying JIRA for issues created, resolved, updated,
+or commented on by the current user within the last 90 days.
 
 Arguments:
-- jira: A JIRA API client for interacting with JIRA issues.
-- ai_provider: An AI provider for generating insights from the JIRA issues.
+- `jira`: An instance of `JiraClient` for accessing JIRA issues.
+- `ai_provider`: An instance of `AIProvider` for generating insights from the retrieved JIRA issues.
 
 Exceptions:
-- Raises exceptions if there are any issues with searching JIRA issues.
+- Raises `QuarterlyConnectionError` if there are issues with the JIRA search operation.
 
 Side Effects:
-- Prints "Building employee report".
+- Outputs "Building employee report" to the console.
 
-Note: This function fetches JIRA issues created, resolved, updated, or commented on by the current user within the
-last 90 days.
+Note:
+- The function filters out issues related to CVEs and prints the summarized report to the console.
 """
 
 import time
 from typing import List, Optional
 
 from exceptions.exceptions import QuarterlyConnectionError
+from providers.ai_provider import AIProvider
 from rest.client import JiraClient
 from rest.prompts import IssueType, PromptLibrary
-
-from providers.ai_provider import AIProvider
 
 
 def cli_quarterly_connection(

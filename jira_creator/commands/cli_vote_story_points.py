@@ -38,6 +38,7 @@ def cli_vote_story_points(jira: JiraClient, args: Namespace) -> bool:
 
     Exceptions:
     - ValueError: Raised when the provided story points cannot be converted to an integer.
+    - VoteStoryPointsError: Raised when there is an error while voting on story points.
     """
 
     try:

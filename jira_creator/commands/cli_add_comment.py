@@ -19,9 +19,8 @@ import tempfile
 from argparse import Namespace
 
 from exceptions.exceptions import AddCommentError, AiError
-from rest.client import JiraClient
-
 from providers.ai_provider import AIProvider
+from rest.client import JiraClient
 
 
 def cli_add_comment(

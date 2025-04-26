@@ -7,6 +7,7 @@ OpenIssueError is raised during the process, it prints an error message and rais
 Function cli_open_issue(args):
 - Opens a JIRA issue in the default web browser using xdg-open.
 - Arguments:
+- _: JiraClient: Unused parameter (can be ignored).
 - args (Namespace): A namespace containing the parsed arguments. It should have an attribute 'issue_key'
 representing the key of the JIRA issue to open.
 - Return:
@@ -32,6 +33,7 @@ def cli_open_issue(_: JiraClient, args: Namespace) -> bool:
     Opens a JIRA issue in the default web browser using xdg-open.
 
     Arguments:
+    - _: JiraClient: Unused parameter (can be ignored).
     - args (Namespace): A namespace containing the parsed arguments. It should have an attribute 'issue_key'
     representing the key of the JIRA issue to open.
 

@@ -22,6 +22,8 @@ Note:
 variable fetching and exception handling, respectively.
 """
 
+# pylint: disable=too-many-locals duplicate-code
+
 import re
 from argparse import Namespace
 from typing import Any, List, Tuple, Union

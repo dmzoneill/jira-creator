@@ -15,10 +15,16 @@ Side Effects:
 - Modifies the sprint field of the specified Jira issue.
 """
 
-from core.env_fetcher import EnvFetcher
-from typing import Callable, Dict, Any
+from typing import Any, Callable, Dict
 
-def set_sprint(request_fn: Callable[[str, str, Dict[str, Any]], None], issue_key: str, sprint_id: int) -> None:
+from core.env_fetcher import EnvFetcher
+
+
+def set_sprint(
+    request_fn: Callable[[str, str, Dict[str, Any]], None],
+    issue_key: str,
+    sprint_id: int,
+) -> None:
     """
     Set the sprint for a specific Jira issue.
 

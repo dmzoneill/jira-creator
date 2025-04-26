@@ -1,29 +1,32 @@
 #!/usr/bin/env python
 """
-This module contains a function to search for JIRA issues based on a JQL query.
+This module provides a function to search for JIRA issues using a specified JQL query.
 
-The 'search_issues' function takes two parameters: 'request_fn' for making HTTP requests and 'jql' for the JIRA Query
-Language query.
-It constructs the necessary parameters for the JIRA API request, including specific fields to retrieve.
-The function then retrieves a list of issues matching the JQL query and processes each issue to extract sprint
-information.
-If an issue is associated with an active sprint, it updates the issue with the active sprint name; otherwise, it sets
-the sprint as 'No active sprint'.
-The function returns a list of processed issues.
+The primary function, 'search_issues', accepts two arguments: 'request_fn', which is a callable used for making HTTP
+requests, and 'jql', a string representing the JIRA Query Language query. The function constructs the necessary
+parameters for querying the JIRA API, including fields to retrieve. It processes the returned issues to extract and
+update sprint information, indicating whether each issue is associated with an active sprint or not. The function
+ultimately returns a list of processed issues with relevant details.
 
-Note: This function relies on the 'EnvFetcher' class from 'core.env_fetcher' for fetching environment variables related
-to JIRA fields.
+Dependencies:
+- The module relies on the 'EnvFetcher' class from 'core.env_fetcher' to retrieve environment variables related to
+specific JIRA fields.
+
+Usage:
+- Call 'search_issues' with a valid request function and a JQL query to obtain a list of JIRA issues.
 """
 
 # pylint: disable=duplicate-code too-many-locals
 
 import re
-from typing import Callable, List, Dict, Any
+from typing import Any, Callable, Dict, List
 
 from core.env_fetcher import EnvFetcher
 
 
-def search_issues(request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any]], jql: str) -> List[Dict[str, Any]]:
+def search_issues(
+    request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any]], jql: str
+) -> List[Dict[str, Any]]:
     """
     Search for issues in JIRA based on the provided JQL query.
 
@@ -52,13 +55,17 @@ def search_issues(request_fn: Callable[[str, str, Dict[str, Any]], Dict[str, Any
         "maxResults": "200",
     }
 
-    issues: List[Dict[str, Any]] = request_fn("GET", "/rest/api/2/search", params=params).get("issues", [])
+    issues: List[Dict[str, Any]] = request_fn(
+        "GET", "/rest/api/2/search", params=params
+    ).get("issues", [])
 
     name_regex: str = r"name\s*=\s*([^,]+)"
     state_regex: str = r"state\s*=\s*([A-Za-z]+)"
 
     for issue in issues:
-        sprints: List[str] = issue.get("fields", {}).get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
+        sprints: List[str] = issue.get("fields", {}).get(
+            EnvFetcher.get("JIRA_SPRINT_FIELD"), []
+        )
 
         if not sprints:
             issue["fields"]["sprint"] = "No active sprint"

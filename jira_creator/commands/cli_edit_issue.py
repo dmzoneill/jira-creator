@@ -133,7 +133,7 @@ def lint_description_once(cleaned: str, ai_provider: Any) -> Tuple[str, bool]:
 
     Arguments:
     - cleaned (str): The cleaned description to be linted.
-    - ai_provider (str): The AI provider to use for linting.
+    - ai_provider (Any): The AI provider to use for linting.
 
     Side Effects:
     - Prints the validation issues found during linting.

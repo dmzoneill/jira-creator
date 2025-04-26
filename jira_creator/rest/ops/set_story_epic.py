@@ -10,11 +10,14 @@ This script contains a function 'set_story_epic' that takes three arguments:
 When called, this function modifies the JIRA issue specified by 'issue_key' to set the epic to the one specified by
 'epic_key'.
 """
-from core.env_fetcher import EnvFetcher
 from typing import Callable
 
+from core.env_fetcher import EnvFetcher
 
-def set_story_epic(request_fn: Callable[[str, str, dict], None], issue_key: str, epic_key: str) -> None:
+
+def set_story_epic(
+    request_fn: Callable[[str, str, dict], None], issue_key: str, epic_key: str
+) -> None:
     """
     Set the epic for a specific JIRA issue.
 

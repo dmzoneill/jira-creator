@@ -18,7 +18,7 @@ Usage:
 criteria.
 """
 
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-locals duplicate-code
 
 import re
 from argparse import Namespace
@@ -35,8 +35,8 @@ def cli_list_issues(jira: JiraClient, args: Namespace) -> List[Any]:
     Retrieve a list of issues from a Jira instance based on the provided arguments.
 
     Arguments:
-    - jira (Any): An instance of the Jira client used to interact with the Jira API.
-    - args (Any): A Namespace object containing the following attributes:
+    - jira (JiraClient): An instance of the Jira client used to interact with the Jira API.
+    - args (Namespace): A Namespace object containing the following attributes:
     - project (str): The project key for filtering the issues.
     - component (str): The component name for filtering the issues.
     - reporter (str): The reporter's username for filtering the issues.

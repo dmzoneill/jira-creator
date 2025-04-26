@@ -85,12 +85,12 @@ class JiraCLI:
     AI-assisted operations, and execute various JIRA-related tasks.
 
     Attributes:
-    jira (JiraClient): An instance of the JiraClient used to interact with the JIRA API.
-    template_dir (Path): The directory path for templates fetched from the environment.
-    ai_provider: The AI provider instance configured based on environment variables.
-    default_prompt: The default prompt for AI interactions.
-    comment_prompt: The prompt used for adding comments to issues.
-    ai_helper_prompt: The prompt used for AI helper functionalities.
+    - jira (JiraClient): An instance of the JiraClient used to interact with the JIRA API.
+    - template_dir (Path): The directory path for templates fetched from the environment.
+    - ai_provider: The AI provider instance configured based on environment variables.
+    - default_prompt: The default prompt for AI interactions.
+    - comment_prompt: The prompt used for adding comments to issues.
+    - ai_helper_prompt: The prompt used for AI helper functionalities.
     """
 
     def __init__(self) -> None:

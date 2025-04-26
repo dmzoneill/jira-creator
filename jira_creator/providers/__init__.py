@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 """
-This module provides a function to retrieve AI providers based on the specified name. The function takes a name
-parameter, which is a string representing the desired AI provider. It attempts to import the corresponding provider
-class based on the name and returns an instance of that provider.
+This module provides functionality to retrieve instances of various AI providers based on a specified name.
 
-If the specified provider is not found or if there is an error during initialization, the function falls back to a
-default NoAIProvider and prints a warning message.
+The primary function, `get_ai_provider`, takes a string parameter representing the desired AI provider's name and
+attempts to return an instance of the corresponding provider class. Supported providers include OpenAI, GPT4All,
+InstructLab, BART, and DeepSeek. If the specified provider cannot be found or if an error occurs during initialization,
+the function will print a warning message and raise an `AiProviderError`, falling back to a default `NoAIProvider`.
 
-The supported AI providers include OpenAI, GPT4All, InstructLab, BART, and DeepSeek. If a provider is not found or if
-there is an error, appropriate warning messages are printed.
-
-Note: The module assumes the existence of provider classes like OpenAIProvider, GPT4AllProvider, InstructLabProvider,
-BARTProvider, DeepSeekProvider, and NoAIProvider in the respective modules.
-
-Usage:
+Usage example:
 provider = get_ai_provider("openai")
 provider.do_something()
 
 Returns:
-An instance of the specified AI provider class or a NoAIProvider instance if the specified provider is not found or if
-there is an error during initialization.
+An instance of the specified AI provider class or raises an `AiProviderError` if the provider is unsupported or
+initialization fails.
+
+Exceptions:
+- AiProviderError: Raised for unsupported providers or initialization errors.
 """
 
 from typing import Type, Union

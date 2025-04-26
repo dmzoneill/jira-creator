@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
 This module contains unit tests for a client object, specifically designed to test API interactions related to issue
-listing. It includes a primary test function, `test_list_issues_defaults`, which mocks the `get_current_user` method
-to simulate API requests for retrieving field data and a list of issues.
+listing in a project management context. It includes a primary test function, `test_list_issues_defaults`, which
+mocks the `get_current_user` method to simulate API requests for retrieving field data and a list of issues.
 
 The module validates that the `list_issues` method correctly returns an empty list when no issues are available and
 ensures that the appropriate API endpoints are called with the expected parameters. Key functionalities include
@@ -53,7 +53,6 @@ def test_list_issues_defaults(client):
             elif "/rest/api/2/search" in path:
                 # Simulate the response for /rest/api/2/search (empty list of issues)
                 return {"issues": []}
-        return {}
 
     # Set the side_effect for the request method
     client.request = MagicMock(side_effect=mock_request)

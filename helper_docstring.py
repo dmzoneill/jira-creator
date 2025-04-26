@@ -113,17 +113,19 @@ class OpenAICost:
 
     @staticmethod
     def print_cost_metrics():
-        print(f"Total Cost: ${OpenAICost.cost:.4f}")
+        print(f"\nTotal Cost: ${OpenAICost.cost:.4f}")
         if OpenAICost.costs:
-            print(f"Average Cost per Request: ${statistics.mean(OpenAICost.costs):.4f}")
-            print(f"Max Cost for a Request: ${max(OpenAICost.costs):.4f}")
-            print(f"Min Cost for a Request: ${min(OpenAICost.costs):.4f}")
+            print(
+                f"    Average Cost per Request: ${statistics.mean(OpenAICost.costs):.4f}"
+            )
+            print(f"    Max Cost for a Request: ${max(OpenAICost.costs):.4f}")
+            print(f"    Min Cost for a Request: ${min(OpenAICost.costs):.4f}")
             if len(OpenAICost.costs) > 1:
                 print(
-                    f"Standard Deviation of Cost: ${statistics.stdev(OpenAICost.costs):.4f}"
+                    f"    Standard Deviation of Cost: ${statistics.stdev(OpenAICost.costs):.4f}"
                 )
         else:
-            print("No costs recorded.")
+            print("    No costs recorded.")
 
 
 class OpenAIProvider:
@@ -217,6 +219,8 @@ class Docstring:
             with open(self.cache_file, "w") as cache:
                 json.dump({}, cache)
 
+        self._load_cache()
+
         print(" -> " + self.file_path)
 
     def print_debug(self, title, out):
@@ -234,11 +238,11 @@ class Docstring:
 
     def _load_cache(self):
         with open(self.cache_file, "r") as cache:
-            return json.load(cache)
+            self.cache = json.load(cache)
 
-    def _save_cache(self, cache):
+    def _save_cache(self):
         with open(self.cache_file, "w") as cache_file:
-            json.dump(cache, cache_file, indent=4)
+            json.dump(self.cache, cache_file, indent=4)
 
     def _generate_sha1(self, user_prompt):
         return hashlib.sha1(user_prompt.encode("utf-8")).hexdigest()
@@ -246,63 +250,51 @@ class Docstring:
     def _get_current_timestamp(self):
         return int(time.time())
 
-    def get_ai_docstring(self, sys_prompt, user_prompt):
-        # Load the current cache
-        cache = self._load_cache()
-
+    def get_ai_docstring(self, sys_prompt, user_prompt, signiture):
         sha1_hash = self._generate_sha1(user_prompt)
 
         # Check if file is in cache
-        if self.file_path in cache:
-            # Check if the user prompt's SHA1 is in the cache for this file
-            for entry in cache[self.file_path]:
+        if self.file_path in self.cache:
+            # Check if the user prompt's SHA1 is in the self.cache for this file
+            for entry in self.cache[self.file_path]:
                 if entry["sha1"] == sha1_hash:
                     # Update last_accessed timestamp
                     entry["last_accessed"] = self._get_current_timestamp()
-                    # Save the updated cache
-                    self._save_cache(cache)
                     # Return cached docstring if found
                     return entry["docstring"]
 
-        # If no cache hit, call the AI and get the docstring
+        print("    Requesting AI for: " + signiture)
+        # If no self.cache hit, call the AI and get the docstring
         res = self.ai.improve_text(sys_prompt, user_prompt)
 
-        # Create a new cache entry with last_accessed timestamp
+        # Create a new self.cache entry with last_accessed timestamp
         new_entry = {
             "sha1": sha1_hash,
             "docstring": res,
             "last_accessed": self._get_current_timestamp(),
         }
 
-        # Add new entry to the cache for the current file
-        if self.file_path not in cache:
-            cache[self.file_path] = []
+        # Add new entry to the self.cache for the current file
+        if self.file_path not in self.cache:
+            self.cache[self.file_path] = []
 
-        cache[self.file_path].append(new_entry)
-
-        # Save the updated cache
-        self._save_cache(cache)
+        self.cache[self.file_path].append(new_entry)
 
         # Return the new docstring from AI
         return res
 
     def remove_old_entries(self, minutes):
-        """Remove entries older than the specified number of minutes."""
-        cache = self._load_cache()
         current_timestamp = self._get_current_timestamp()
         threshold_timestamp = current_timestamp - (minutes * 60)
 
-        # Remove old entries for each file in the cache
-        for file_path, entries in cache.items():
-            cache[file_path] = [
+        # Remove old entries for each file in the self.cache
+        for file_path, entries in self.cache.items():
+            self.cache[file_path] = [
                 entry
                 for entry in entries
                 if "last_accessed" in entry
                 and entry["last_accessed"] >= threshold_timestamp
             ]
-
-        # Save the updated cache
-        self._save_cache(cache)
 
     def wrap_text(self, text: str, max_length=120, indent=0):
         wrapped_lines = []
@@ -357,6 +349,7 @@ class Docstring:
             # If there is no compilation error (i.e., result.returncode == 0), move the file to the destination
             if result.returncode == 0:
                 with open(self.file_path, "w") as file:
+                    print(f"    Wrote: {self.file_path}")
                     file.write("".join(self.lines))  # Write to the destination file
             else:
                 print(f"    Error compiling file: {result.stderr}")
@@ -373,11 +366,13 @@ class Docstring:
             os.remove(temp_file_path)
 
         self.remove_old_entries(1440 * 14)
+        self._save_cache()
 
     def generate_class_docstring(self):
         line = self.lines[self.line_index]
         class_definition = line
-        print("   -> " + class_definition.rstrip())
+        output = re.sub("\\s+", " ", class_definition.rstrip().replace("\n", " "))
+        print("   -> " + output)
         prompt_class_code = [class_definition]
 
         if self.count_and_divide_whitespace(class_definition) > 0:
@@ -395,7 +390,7 @@ class Docstring:
             t += 1
 
         class_docstring = self.get_ai_docstring(
-            system_prompt_class, "\n".join(prompt_class_code)
+            system_prompt_class, "\n".join(prompt_class_code), output
         )
         class_docstring = self.wrap_text(class_docstring, max_length=120, indent=1)
         class_docstring[len(class_docstring) - 1] = (
@@ -463,7 +458,8 @@ class Docstring:
                 self.multiline_index += 1
 
         def_definition = line if mutliline_line == "" else mutliline_line
-        print("     -> " + def_definition.rstrip())
+        output = re.sub("\\s+", " ", def_definition.rstrip().replace("\n", " "))
+        print("     -> " + output)
         prompt_def_code = (
             mutliline_line.split("\n") if mutliline_line != "" else [def_definition]
         )
@@ -506,7 +502,7 @@ class Docstring:
             + 1
         )
         def_docstring = self.get_ai_docstring(
-            system_prompt_def, "\n".join(prompt_def_code)
+            system_prompt_def, "\n".join(prompt_def_code), output
         )
         def_docstring = self.wrap_text(def_docstring, max_length=120, indent=indent)
         def_docstring[len(def_docstring) - 1] = (
@@ -522,10 +518,9 @@ class Docstring:
         )
 
         # Handle one-liner docstring or multi-line docstring
-        if self.line_index + 1 < len(self.lines):
+        if '"""' in self.lines[self.line_index + 1]:
             stripped_line = self.lines[self.line_index + 1].strip()
             if re.match(r'"""[\s\S]+?"""', stripped_line):
-                # print(" -> Replacing one liner docstring")
                 # This is a one-liner or multi-line docstring (we always replace with a multi-line docstring)
                 self.lines = (
                     self.lines[: self.line_index + 1]
@@ -533,7 +528,6 @@ class Docstring:
                     + self.lines[self.line_index + 2 :]
                 )
             else:
-                # print(" -> Replacing multi-line docstring")
                 # Replace the entire docstring if it's multi-line
                 end_index = self.line_index + 2
                 while end_index < len(self.lines) and not self.lines[
@@ -564,39 +558,6 @@ class Docstring:
         self.line_index = self.line_index + len(def_docstring)
         return True
 
-    # def should_add_file_docstring(self):
-    #     # Split content into lines and remove empty lines
-    #     lines = [line.strip() for line in self.lines if line.strip()]
-
-    #     # Case 1: If the file is too short, skip file docstring
-    #     if len(lines) <= 10:  # Assuming 10 lines or less is a short file
-    #         # If there's only one function and it's self-explanatory, skip file-level docstring
-    #         if lines.count("def") == 1 and "class" not in lines:
-    #             return (
-    #                 False  # No need for file-level docstring if the function is simple
-    #             )
-
-    #     # Case 2: If the file has a class and methods with docstrings, no need for a file docstring
-    #     if "class" in lines:
-    #         # Check if every function (i.e., starts with "def") is followed by a docstring (i.e., a triple quote on the next line)
-    #         function_with_docstrings = True
-    #         for i, line in enumerate(lines):
-    #             if line.startswith("def"):  # If we find a function definition
-    #                 # Check if the next non-empty line is a docstring
-    #                 if i + 1 < len(lines) and not lines[i + 1].startswith('"""'):
-    #                     function_with_docstrings = False
-    #                     break
-    #         if function_with_docstrings:
-    #             return False  # Class and methods have docstrings, file docstring not necessary
-
-    #     # Case 3: Otherwise, add file-level docstring if the file is sufficiently complex
-    #     if len(lines) > 10 or "def" in lines:
-    #         return (
-    #             True  # File is sufficiently complex to warrant a file-level docstring
-    #         )
-
-    #     return False  # Default case: don't add file docstring if none of the above conditions apply
-
     def generate_file_docstring(self):
         # Check if we should add a file-level docstring
         # if not self.should_add_file_docstring():
@@ -626,7 +587,7 @@ class Docstring:
 
         # Generate new file-level docstring
         general_description = self.get_ai_docstring(
-            system_prompt_general, "".join(self.lines)
+            system_prompt_general, "".join(self.lines), self.file_path
         )
         general_description = self.wrap_text(
             general_description, max_length=120, indent=0
@@ -684,19 +645,26 @@ def process_file(file_path, debug=False, exit=False):
 
 def process_directory(directory_path, recursive=False, debug=False, exit=False):
     """Process all Python files in the directory with progress tracking."""
-    total_files = sum([len(files) for _, _, files in os.walk(directory_path)])
+
+    # List all python files
+    python_files = [
+        os.path.join(root, file)
+        for root, dirs, files in os.walk(directory_path)
+        for file in files
+        if file.endswith(".py")
+    ]
+
+    total_files = len(python_files)  # Total python files count
     processed_files = 0
 
     print(f"Processing {total_files} Python files...")
 
-    for root, dirs, files in os.walk(directory_path):
-        for file in files:
-            if file.endswith(".py"):
-                file_path = os.path.join(root, file)
-                process_file(file_path, debug=debug, exit=exit)
-                processed_files += 1
-                print(f"\nProcessing file: {processed_files}/{total_files}")
+    for file_path in python_files:
+        process_file(file_path, debug=debug, exit=exit)
+        processed_files += 1
+        print(f"\nProcessing file: {processed_files}/{total_files}")
 
+        # If we don't want recursive traversal, we break the loop once we're done with this level
         if not recursive:
             break
 

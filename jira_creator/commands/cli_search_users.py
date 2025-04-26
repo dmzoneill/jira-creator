@@ -10,6 +10,8 @@ Function cli_search_users:
 - Arguments:
 - jira (JIRA): An instance of the JIRA client.
 - args (Namespace): A namespace object containing the query to search for users.
+- Return:
+- Union[List[Dict[str, Any]], bool]: A list of dictionaries representing the found users if any, else False.
 - Exceptions:
 - This function may raise an exception if there is an issue with searching for users in Jira.
 """
@@ -30,6 +32,9 @@ def cli_search_users(
     Arguments:
     - jira (JIRA): An instance of the JIRA client.
     - args (Namespace): A namespace object containing the query to search for users.
+
+    Return:
+    - Union[List[Dict[str, Any]], bool]: A list of dictionaries representing the found users if any, else False.
 
     Exceptions:
     - This function may raise an exception if there is an issue with searching for users in Jira.

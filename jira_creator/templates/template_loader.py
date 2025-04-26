@@ -14,7 +14,7 @@ issue tracking systems or reporting tools.
 """
 
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 
 class TemplateLoader:
@@ -31,8 +31,8 @@ class TemplateLoader:
     - _load_template(): Private method to read and parse the template file, extracting fields and template content.
     - get_fields(): Returns the list of field names extracted from the template.
     - get_template(): Returns the template content as a single string.
-    - render_description(values: Dict[str, str]) -> str: Processes the template content by replacing placeholders with provided values
-    and returns the rendered description.
+    - render_description(values: Dict[str, str]) -> str: Processes the template content by replacing placeholders with
+    provided values and returns the rendered description.
     """
 
     def __init__(self, template_dir: Path, issue_type: str) -> None:

@@ -8,6 +8,14 @@ The cli_get_sprint function takes two arguments:
 
 It calls the get_sprint method on the jira object to fetch sprint data, prints "success" to the console, and returns
 the response obtained from JIRA.
+
+The cli_get_sprint function prints the name of the current active sprint fetched from JIRA and returns the response.
+
+Function cli_get_sprint:
+- Arguments:
+- jira: The JIRA instance.
+- Returns:
+- The result of the current active sprint.
 """
 
 from argparse import Namespace

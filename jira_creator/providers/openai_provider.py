@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 """
-This module provides a class, OpenAIProvider, for interacting with the OpenAI API to improve text based on a given
-prompt and text. It includes a method, improve_text, that sends a request to the OpenAI API and returns the improved
-text. The class initializes with API key, endpoint, and model fetched from environment variables using the EnvFetcher
-class. It also handles exceptions by raising AiError in case of API call failure.
+This module provides the OpenAIProvider class, which serves as a wrapper for interacting with the OpenAI API to enhance
+text based on specified prompts. The primary functionality is encapsulated in the improve_text method, which sends a
+request to the OpenAI API and returns the improved text. The class also handles the retrieval of the API key, endpoint,
+and model from environment variables using the EnvFetcher class, and it raises an AiError in case of any API call
+failures.
 
-Class OpenAIProvider:
-This class provides a wrapper to interact with the OpenAI API for text completion and improvement.
+Classes:
+- OpenAIProvider: A class designed to facilitate text completion and improvement through the OpenAI API.
 
 Attributes:
-- api_key (str): The API key used to authenticate requests to the OpenAI API.
-- endpoint (str): The URL endpoint for making requests to the OpenAI API chat completions.
-- model (str): The model identifier used for text completion and improvement.
+- api_key (str): The API key for authenticating requests to the OpenAI API.
+- endpoint (str): The endpoint URL for making requests to the OpenAI API chat completions.
+- model (str): The identifier for the model utilized in text completion and improvement.
 
 Methods:
-- improve_text(prompt: str, text: str) -> str: Sends a request to the OpenAI API to improve the given text based on
-a prompt. It returns the improved text after processing. Raises an AiError if the API call fails.
+- improve_text(prompt: str, text: str) -> str: Accepts a prompt and text, requests the OpenAI API to enhance the text,
+and returns the improved version. Raises an AiError if the API call is unsuccessful.
 """
 
 # pylint: disable=too-few-public-methods
@@ -23,7 +24,6 @@ a prompt. It returns the improved text after processing. Raises an AiError if th
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
-
 from providers.ai_provider import AIProvider
 
 
@@ -44,6 +44,14 @@ class OpenAIProvider(AIProvider):
     def __init__(self) -> None:
         """
         Initialize a Chatbot instance with API key, endpoint, and model information.
+
+        Arguments:
+        - self: The Chatbot instance itself.
+
+        Side Effects:
+        - Sets the API key attribute using the value fetched from the environment variable "AI_API_KEY".
+        - Sets the endpoint attribute to "https://api.openai.com/v1/chat/completions".
+        - Sets the model attribute using the value fetched from the environment variable "AI_MODEL".
         """
         self.api_key: str = EnvFetcher.get("AI_API_KEY")
         self.endpoint: str = "https://api.openai.com/v1/chat/completions"
@@ -62,6 +70,9 @@ class OpenAIProvider(AIProvider):
 
         Side Effects:
         - Makes a request to an external API using the provided prompt and text.
+
+        Exceptions:
+        - AiError: Raised when the OpenAI API call fails, providing the status code and response text.
         """
         headers: dict[str, str] = {
             "Authorization": f"Bearer {self.api_key}",

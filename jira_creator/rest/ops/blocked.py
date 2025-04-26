@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 """
 This module provides functionality to retrieve and filter blocked issues from a list of issues based on specified
-criteria.
-The primary function, `blocked`, takes a function that returns a list of issues and optional parameters for project,
-component, and assignee. It identifies blocked issues by checking a specific field value and constructs a dictionary
-with key details for each blocked issue. The function returns a list of these dictionaries.
+criteria. The primary function, `blocked`, identifies blocked issues by checking a specific field value and constructs
+a dictionary with key details for each blocked issue. It accepts a callable function to fetch issues and optional
+parameters for project, component, and assignee, returning a list of dictionaries containing details of the blocked
+issues.
 
 Function `blocked`:
 - Retrieves a list of blocked issues based on specified project, component, and assignee.
 
 Arguments:
 - list_issues_fn (Callable[..., List[Dict[str, Any]]]): A function that returns a list of issues filtered by project,
-  component, and assignee.
+component, and assignee.
 - project (Optional[str]): The project name to filter issues. Defaults to None.
 - component (Optional[str]): The component name to filter issues. Defaults to None.
 - assignee (Optional[str]): The assignee name to filter issues. Defaults to None.
@@ -25,22 +25,23 @@ Side Effects:
 
 # pylint: disable=duplicate-code
 
+from typing import Any, Callable, Dict, List, Optional
+
 from core.env_fetcher import EnvFetcher
-from typing import Callable, List, Dict, Any, Optional
 
 
 def blocked(
     list_issues_fn: Callable[..., List[Dict[str, Any]]],
     project: Optional[str] = None,
     component: Optional[str] = None,
-    assignee: Optional[str] = None
+    assignee: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Retrieve a list of blocked issues based on specified project, component, and assignee.
 
     Arguments:
-    - list_issues_fn (Callable[..., List[Dict[str, Any]]]): A function that returns a list of issues based on project,
-      component, and assignee parameters.
+    - list_issues_fn (Callable[..., List[Dict[str, Any]]): A function that returns a list of issues based on project,
+    component, and assignee parameters.
     - project (Optional[str]): The project name to filter the issues. Defaults to None.
     - component (Optional[str]): The component name to filter the issues. Defaults to None.
     - assignee (Optional[str]): The assignee name to filter the issues. Defaults to None.
@@ -52,7 +53,9 @@ def blocked(
     - Modifies the 'issues' list by populating it with the filtered list of issues.
     """
 
-    issues: List[Dict[str, Any]] = list_issues_fn(project=project, component=component, assignee=assignee)
+    issues: List[Dict[str, Any]] = list_issues_fn(
+        project=project, component=component, assignee=assignee
+    )
 
     blocked_issues: List[Dict[str, Any]] = []
     for issue in issues:

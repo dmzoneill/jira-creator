@@ -2,16 +2,15 @@
 """
 Unblocks a Jira issue.
 
-Arguments:
+This script provides a function 'cli_unblock' that unblocks a Jira issue. It takes two arguments:
 - jira (JIRA): A JIRA instance used to interact with the Jira API.
 - args (Namespace): A namespace object containing parsed command-line arguments. It should have an 'issue_key'
 attribute representing the key of the issue to be unblocked.
 
-Return:
-- bool: True if the issue was successfully unblocked.
+Returns a boolean value:
+- True if the issue was successfully unblocked.
 
-Exceptions:
-- UnBlockError: Raised if there was an error while trying to unblock the issue.
+Raises an UnBlockError exception if there was an error while trying to unblock the issue.
 
 Side Effects:
 - Prints a success message if the issue is unblocked successfully.

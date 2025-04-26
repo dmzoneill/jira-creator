@@ -32,6 +32,9 @@ def cli_list_sprints(jira: JiraClient, args: Namespace) -> List[str]:
     - jira (JIRA): An instance of the JIRA class used to interact with the Jira API.
     - args (Namespace): A namespace object containing parsed command-line arguments.
 
+    Return:
+    - List[str]: A list of sprint names retrieved from the specified Jira board.
+
     Side Effects:
     - Prints the list of sprints retrieved from the specified Jira board.
 

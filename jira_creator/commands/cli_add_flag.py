@@ -1,30 +1,21 @@
 #!/usr/bin/env python
-"""
-Adds a flag to a Jira issue specified by the given issue key.
+from typing import Dict
+from rest.client import JiraClient  # Assuming JIRA is the class name for the Jira client
+from argparse import Namespace
 
-Args:
-jira (Jira): An instance of the Jira client used to interact with the Jira API.
-args (Namespace): A namespace object containing the command-line arguments passed to the script.
-It should contain the 'issue_key' attribute which represents the key of the Jira issue to add the flag to.
-
-Returns:
-dict: A dictionary representing the response received after adding the flag to the Jira issue.
-"""
-
-
-def cli_add_flag(jira, args):
+def cli_add_flag(jira: JiraClient, args: Namespace) -> Dict:
     """
     Adds a flag to a Jira issue specified by the given issue key.
 
     Args:
-    jira (Jira): An instance of the Jira client used to interact with the Jira API.
+    jira (JIRA): An instance of the Jira client used to interact with the Jira API.
     args (Namespace): A namespace object containing the command-line arguments passed to the script.
     It should contain the 'issue_key' attribute which represents the key of the Jira issue to add the flag to.
 
     Returns:
-    dict: A dictionary representing the response received after adding the flag to the Jira issue.
+    Dict: A dictionary representing the response received after adding the flag to the Jira issue.
     """
 
-    issue_key = args.issue_key
-    response = jira.add_flag(issue_key)
+    issue_key: str = args.issue_key
+    response: Dict = jira.add_flag(issue_key)
     return response

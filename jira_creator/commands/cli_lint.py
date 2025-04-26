@@ -22,9 +22,13 @@ propagate.
 
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintError
+from typing import Any, Dict, List
+from rest.client import JiraClient
+from argparse import Namespace
+from providers.AiProvider import AiProvider
 
 
-def cli_lint(jira, ai_provider, args):
+def cli_lint(jira: JiraClient, ai_provider: AiProvider, args: Namespace) -> List[str]:
     """
     Fetches an issue from Jira using the provided issue key and performs linting on the issue fields.
 
@@ -42,13 +46,12 @@ def cli_lint(jira, ai_provider, args):
 
     Note: This function does not have a return value.
     """
-
     try:
-        issue = jira.request("GET", f"/rest/api/2/issue/{args.issue_key}")
-        fields = issue["fields"]
+        issue: Dict[str, Any] = jira.request("GET", f"/rest/api/2/issue/{args.issue_key}")
+        fields: Dict[str, Any] = issue["fields"]
         fields["key"] = args.issue_key
 
-        problems = validate(fields, ai_provider)[0]
+        problems: List[str] = validate(fields, ai_provider)[0]
 
         if problems:
             print(f"⚠️ Lint issues found in {args.issue_key}:")
@@ -59,6 +62,6 @@ def cli_lint(jira, ai_provider, args):
         print(f"✅ {args.issue_key} passed all lint checks")
         return problems
     except LintError as e:
-        msg = f"❌ Failed to lint issue {args.issue_key}: {e}"
+        msg: str = f"❌ Failed to lint issue {args.issue_key}: {e}"
         print(msg)
         raise LintError(e) from e

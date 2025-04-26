@@ -14,9 +14,11 @@ This function may raise exceptions if there are issues with retrieving the user 
 """
 
 from exceptions.exceptions import GetUserError
+from typing import Dict, Any
+from rest.client import JiraClient
+from argparse import Namespace 
 
-
-def cli_view_user(jira, args):
+def cli_view_user(jira: JiraClient, args: Namespace) -> Dict[str, Any]:
     """
     Retrieve information about a specific user from Jira.
 

@@ -18,9 +18,11 @@ Side Effects:
 - Prints an error message if there is a failure while unblocking the issue.
 """
 from exceptions.exceptions import UnBlockError
+from rest.client import JiraClient
+from argparse import Namespace
 
 
-def cli_unblock(jira, args):
+def cli_unblock(jira: JiraClient, args: Namespace) -> bool:
     """
     Unblocks a Jira issue.
 

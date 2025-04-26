@@ -16,17 +16,17 @@ Side effects include:
 - Printing an error message and raising 'AddSprintError' if an error occurs during the process.
 """
 from exceptions.exceptions import AddSprintError
+from rest.client import JiraClient  # Assuming JIRA is imported from the jira package
+from argparse import Namespace
 
 
-def cli_add_to_sprint(jira, args):
+def cli_add_to_sprint(jira: JiraClient, args: Namespace) -> bool:
     """
     Adds an issue to a sprint in Jira.
 
     Arguments:
     - jira (JIRA): An instance of the JIRA client.
     - args (Namespace): A namespace object containing 'issue_key' and 'sprint_name' attributes.
-    - issue_key (str): The key of the issue to be added to the sprint.
-    - sprint_name (str): The name of the sprint to add the issue to.
 
     Return:
     - bool: True if the issue was successfully added to the sprint.

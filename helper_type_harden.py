@@ -69,11 +69,14 @@ def harden_file(file_path: str, debug: bool, validate: bool):
         source_code = f.read()
 
     prompt = f"""
-    You are a helpful assistant that improves and hardens Python code.
+    You are a Python expert focused on improving code quality and enhancing type safety.
 
-    Please review the following Python source code and harden it.
+    Please review the following Python code, add type hinting where appropriate,
+    and ensure that the code is type-hardened to enforce stricter type checking
+    and improve overall type safety.
 
-    **respond with the code only**
+    Respond with the updated code only. Do not include any explanations,
+    summaries, or additional comments.
 
     Here is the code to improve:
     ============================

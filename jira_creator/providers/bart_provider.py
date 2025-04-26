@@ -21,9 +21,10 @@ if the request fails.
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
+from providers.AiProvider import AiProvider
 
 
-class BARTProvider:
+class BARTProvider(AiProvider):
     """
     BARTProvider class represents a provider for interacting with the BART (Bidirectional and Auto-Regressive
     Transformers) model.

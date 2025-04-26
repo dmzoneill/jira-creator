@@ -15,9 +15,11 @@ Exceptions:
 - BlockError: Raised if there is an error while trying to mark the issue as blocked.
 """
 from exceptions.exceptions import BlockError
+from rest.client import JiraClient
+from argparse import Namespace
 
 
-def cli_block(jira, args):
+def cli_block(jira: JiraClient, args: Namespace) -> bool:
     """
     Marks a Jira issue as blocked.
 

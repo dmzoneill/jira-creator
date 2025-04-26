@@ -20,9 +20,12 @@ Note: The 'SetStoryPointsError' is imported from 'exceptions.exceptions'.
 """
 
 from exceptions.exceptions import SetStoryPointsError
+from typing import Any, Dict
+from rest.client import JiraClient
+from argparse import Namespace
 
 
-def cli_set_story_points(jira, args):
+def cli_set_story_points(jira: JiraClient, args: Namespace) -> bool:
     """
     Set the story points for a Jira issue in the command-line interface.
 
@@ -33,14 +36,11 @@ def cli_set_story_points(jira, args):
 
     Return:
     - False if the provided story points are not an integer.
-
-    Exceptions:
-    - No exceptions are raised explicitly in this function.
     """
 
     try:
         points = int(args.points)
-    except ValueError:
+    except (ValueError, KeyError):
         print("❌ Points must be an integer.")
         return False
 

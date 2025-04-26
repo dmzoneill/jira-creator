@@ -29,9 +29,10 @@ Exceptions:
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
+from providers.AiProvider import AiProvider
 
 
-class InstructLabProvider:
+class InstructLabProvider(AiProvider):
     """
     This class provides a way to interact with an AI model hosted on a specified URL for improving text generation.
 

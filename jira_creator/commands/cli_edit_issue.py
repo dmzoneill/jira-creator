@@ -23,8 +23,11 @@ descriptions.
 import os
 import subprocess
 import tempfile
+from typing import Tuple, Any
 
 from rest.prompts import IssueType, PromptLibrary
+from rest.client import JiraClient
+from argparse import Namespace
 
 from exceptions.exceptions import (  # isort: skip
     EditDescriptionError,
@@ -37,7 +40,7 @@ from exceptions.exceptions import (  # isort: skip
 from commands.cli_validate_issue import cli_validate_issue as validate  # isort: skip
 
 
-def fetch_description(jira, issue_key):
+def fetch_description(jira: JiraClient, issue_key: Namespace) -> str:
     """
     Fetches the description of a Jira issue identified by the given issue key.
 
@@ -61,7 +64,7 @@ def fetch_description(jira, issue_key):
         raise FetchDescriptionError(e) from e
 
 
-def edit_description(original_description):
+def edit_description(original_description: str) -> str:
     """
     Edit the description using the default text editor.
 
@@ -94,7 +97,7 @@ def edit_description(original_description):
         raise EditDescriptionError(e) from e
 
 
-def get_prompt(jira, issue_key, default_prompt):
+def get_prompt(jira: Any, issue_key: str, default_prompt: str) -> str:
     """
     Retrieve a prompt related to a Jira issue.
 
@@ -124,7 +127,7 @@ def get_prompt(jira, issue_key, default_prompt):
         return default_prompt
 
 
-def lint_description_once(cleaned, ai_provider):
+def lint_description_once(cleaned: str, ai_provider: Any) -> Tuple[str, bool]:
     """
     Lint a description once using a specified AI provider.
 
@@ -170,7 +173,7 @@ def lint_description_once(cleaned, ai_provider):
     return cleaned, True  # There are still issues, continue the loop
 
 
-def lint_description(cleaned, ai_provider):
+def lint_description(cleaned: str, ai_provider: Any) -> str:
     """
     Prints the current cleaned description in a loop for linting purposes.
 
@@ -189,7 +192,7 @@ def lint_description(cleaned, ai_provider):
         # Call the refactored function
         cleaned, should_continue = lint_description_once(cleaned, ai_provider)
 
-        if should_continue is False:
+        if not should_continue:
             print("No issues found, breaking out of loop.")
             break
 
@@ -198,7 +201,7 @@ def lint_description(cleaned, ai_provider):
     return cleaned
 
 
-def update_jira_description(jira, issue_key, cleaned):
+def update_jira_description(jira: Any, issue_key: str, cleaned: str) -> None:
     """
     Update the description of a Jira issue.
 
@@ -224,7 +227,7 @@ def update_jira_description(jira, issue_key, cleaned):
         raise UpdateDescriptionError(e) from e
 
 
-def cli_edit_issue(jira, ai_provider, default_prompt, try_cleanup_fn, args):
+def cli_edit_issue(jira: Any, ai_provider: Any, default_prompt: str, try_cleanup_fn: Any, args: Any) -> bool:
     """
     Edit an issue's description in a Jira instance using a command-line interface.
 

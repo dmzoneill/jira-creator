@@ -409,7 +409,7 @@ class JiraCLI:
         - Calls the cli_open_issue function with the provided arguments.
         """
 
-        return cli_open_issue(args)
+        return cli_open_issue(self.jira, args)
 
     def view_issue(self, args: Namespace) -> None:
         """

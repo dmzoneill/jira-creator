@@ -18,22 +18,21 @@ Usage:
 criteria.
 """
 
-# pylint: disable=too-many-locals duplicate-code
-
 import re
-
+from typing import List, Tuple, Any
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import ListIssuesError
+from rest.client import JiraClient
+from argparse import Namespace
 
 
-# /* jscpd:ignore-start */
-def cli_list_issues(jira, args):
+def cli_list_issues(jira: JiraClient, args: Namespace) -> List[Any]:
     """
     Retrieve a list of issues from a Jira instance based on the provided arguments.
 
     Arguments:
-    - jira (Jira): An instance of the Jira client used to interact with the Jira API.
-    - args (Namespace): A Namespace object containing the following attributes:
+    - jira (Any): An instance of the Jira client used to interact with the Jira API.
+    - args (Any): A Namespace object containing the following attributes:
     - project (str): The project key for filtering the issues.
     - component (str): The component name for filtering the issues.
     - reporter (str): The reporter's username for filtering the issues.
@@ -54,27 +53,21 @@ def cli_list_issues(jira, args):
     """
 
     try:
-        if args.reporter:
-            issues = jira.list_issues(
-                project=args.project,
-                component=args.component,
-                reporter=args.reporter,
-            )
-        else:
-            issues = jira.list_issues(
-                project=args.project,
-                component=args.component,
-                assignee=args.assignee,
-            )
+        issues = jira.list_issues(
+            project=args.project,
+            component=args.component,
+            reporter=args.reporter if args.reporter else None,
+            assignee=args.assignee if not args.reporter else None,
+        )
 
         if not issues:
             print("No issues found.")
             return []
 
-        rows = []
+        rows: List[Tuple[str, str, str, str, str, str, str]] = []
         for issue in issues:
             f = issue["fields"]
-            sprints = f.get(EnvFetcher.get("JIRA_SPRINT_FIELD")) or []
+            sprints = f.get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
             sprint = next(
                 (
                     re.search(r"name=([^,]+)", s).group(1)
@@ -86,8 +79,7 @@ def cli_list_issues(jira, args):
 
             if (
                 args.status
-                and args.status.lower()
-                not in f.get("status", {}).get("name", "").lower()
+                and args.status.lower() not in f.get("status", {}).get("name", "").lower()
             ):
                 continue
             if (
@@ -107,7 +99,7 @@ def cli_list_issues(jira, args):
                 (
                     issue["key"],
                     f["status"]["name"],
-                    f["assignee"]["displayName"] if f["assignee"] else "Unassigned",
+                    f["assignee"]["displayName"] if f.get("assignee") else "Unassigned",
                     f.get("priority", {}).get("name", "—"),
                     str(f.get(EnvFetcher.get("JIRA_STORY_POINTS_FIELD"), "—")),
                     sprint,
@@ -127,38 +119,28 @@ def cli_list_issues(jira, args):
             "Summary",
         ]
 
-        # Ensure the "Summary" column width is limited to 60 characters
         max_summary_length = 60
-
         widths = [
             max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
         ]
 
-        # Ensure summary column width does not exceed the max length
         widths[6] = min(widths[6], max_summary_length)
 
         header_fmt = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
         print(header_fmt)
         print("-" * len(header_fmt))
 
-        max_summary_length = 100
         truncate_length = 97
 
         for r in rows:
-            # Convert r to a list if it is a tuple
             r = list(r)
 
-            # Truncate the summary column if it exceeds max_summary_length
             if len(r[6]) > max_summary_length:
                 r[6] = r[6][:truncate_length] + " .."
 
-            # Print the formatted row
             print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
         return issues
     except ListIssuesError as e:
         msg = f"❌ Failed to list issues: {e}"
         print(msg)
-        raise ListIssuesError(e) from e
-
-
-# /* jscpd:ignore-end */
+        raise

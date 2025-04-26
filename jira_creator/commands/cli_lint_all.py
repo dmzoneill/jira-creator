@@ -25,12 +25,16 @@ formatted feedback on Jira issues.
 
 import textwrap
 from collections import OrderedDict
+from typing import List, Dict, Any, Union
+from rest.client import JiraClient
+from argparse import Namespace
+from providers.AiProvider import AiProvider
 
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintAllError
 
 
-def print_status_table(failure_statuses):
+def print_status_table(failure_statuses: List[Dict[str, Union[str, bool, None]]]) -> None:
     """
     Collects all unique keys from all rows in the failure_statuses table.
 
@@ -49,12 +53,11 @@ def print_status_table(failure_statuses):
     # Step 2: Ensure each row contains all the keys
     for row in failure_statuses:
         for key in all_keys:
-            row.setdefault(key, None)  # Or set it to '?' if you prefer
+            row.setdefault(key, None)
 
     # Step 3: Normalize the values in failure_statuses
     for row in failure_statuses:
         for key, value in row.items():
-            # Normalize the values for the 'Progress', 'Epic', 'Sprint', etc. columns
             if value is True:
                 row[key] = "✅"  # Green check for True
             elif value is False:
@@ -68,23 +71,20 @@ def print_status_table(failure_statuses):
     # Step 5: Get headers and calculate column widths based on header lengths
     headers = list(all_keys)
 
-    # Ensure the first column is always jira_issue_id, and others are sorted alphabetically
     headers.sort()  # Sort alphabetically
     if "jira_issue_id" in headers:
         headers.remove("jira_issue_id")  # Remove jira_issue_id from sorted list
         headers.insert(0, "jira_issue_id")  # Insert it at the beginning
 
-    column_widths = {}
+    column_widths: Dict[str, int] = {}
 
     # Calculate column widths based only on the header length
     for header in headers:
         column_widths[header] = len(header)
 
     # Step 6: Print the table
-    # Print the separator line based on column widths
     print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
 
-    # Print header row
     print(
         "| "
         + " | ".join(f"{header}".ljust(column_widths[header]) for header in headers)
@@ -92,21 +92,18 @@ def print_status_table(failure_statuses):
     )
     print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
 
-    # Print each row of data
     for row in failure_statuses:
         formatted_row = ""
         for header in headers:
             value = str(row.get(header, "?"))
             formatted_row += f"| {value.ljust(column_widths[header])}"
 
-        # Print the formatted row
         print(formatted_row + "|")
 
-    # Print the bottom separator line
     print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
 
 
-def cli_lint_all(jira, ai_provider, args):
+def cli_lint_all(jira: JiraClient, ai_provider: AiProvider, args: Namespace) -> List[Dict[str, Any]]:
     """
     Lint all Jira issues based on specified criteria.
 
@@ -137,10 +134,10 @@ def cli_lint_all(jira, ai_provider, args):
 
         if not issues:
             print("✅ No issues assigned to you.")
-            return True
+            return []
 
-        failures = {}
-        failure_statuses = []
+        failures: Dict[str, Tuple[str, List[str]]] = {}
+        failure_statuses: List[Dict[str, Any]] = []
 
         for issue in issues:
             key = issue["key"]
@@ -167,7 +164,6 @@ def cli_lint_all(jira, ai_provider, args):
             for key, (summary, problems) in failures.items():
                 print(f"\n🔍 {key} - {summary}")
                 for p in problems:
-                    # Wrap the text at 120 characters, ensuring no word splitting
                     wrapped_text = textwrap.fill(p, width=120, break_long_words=False)
                     print(f" - {wrapped_text}")
 

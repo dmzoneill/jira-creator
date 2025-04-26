@@ -4,27 +4,30 @@ Clones a Jira issue by adding a flag to it.
 
 Arguments:
 - jira (Jira): An instance of the Jira API client.
-- args (dict): A dictionary containing the following key:
+- args (CloneIssueArgs): An object containing the following attribute:
 - issue_key (str): The key of the issue to be cloned.
 
 Return:
 - dict: The response from adding a flag to the specified Jira issue.
 """
 
+from typing import Dict, Any
+from rest.client import JiraClient
+from argparse import Namespace
 
-def cli_clone_issue(jira, args):
+def cli_clone_issue(jira: JiraClient, args: Namespace) -> Dict[str, Any]:
     """
     Clones a Jira issue by adding a flag to it.
 
     Arguments:
     - jira (Jira): An instance of the Jira API client.
-    - args (dict): A dictionary containing the following key:
+    - args (CloneIssueArgs): An object containing the following attribute:
     - issue_key (str): The key of the issue to be cloned.
 
     Return:
     - dict: The response from adding a flag to the specified Jira issue.
     """
 
-    issue_key = args.issue_key
-    response = jira.add_flag_to_issue(issue_key)
+    issue_key: str = args.issue_key
+    response: Dict[str, Any] = jira.add_flag_to_issue(issue_key)
     return response

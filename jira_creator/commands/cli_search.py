@@ -23,12 +23,15 @@ variable fetching and exception handling, respectively.
 """
 
 import re
+from typing import Any, List, Tuple, Union
+from rest.client import JiraClient
+from argparse import Namespace
 
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import SearchError
 
 
-def cli_search(jira, args):
+def cli_search(jira: JiraClient, args: Namespace) -> Union[List[Any], bool]:
     """
     Search for issues in Jira based on the provided JQL query.
 
@@ -44,18 +47,18 @@ def cli_search(jira, args):
     """
 
     try:
-        jql = args.jql
-        issues = jira.search_issues(jql)
+        jql: str = args.jql
+        issues: List[dict] = jira.search_issues(jql)
 
         if issues is None or len(issues) == 0:
             print("❌ No issues found for the given JQL.")
             return False
 
-        rows = []
+        rows: List[Tuple[str, str, str, str, str, str, str]] = []
         for issue in issues:
-            f = issue["fields"]
-            sprints = f.get(EnvFetcher.get("JIRA_SPRINT_FIELD")) or []
-            sprint = next(
+            f: dict = issue["fields"]
+            sprints: List[str] = f.get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
+            sprint: str = next(
                 (
                     re.search(r"name=([^,]+)", s).group(1)
                     for s in sprints
@@ -78,7 +81,7 @@ def cli_search(jira, args):
 
         rows.sort(key=lambda r: (r[5], r[1]))
 
-        headers = [
+        headers: List[str] = [
             "Key",
             "Status",
             "Assignee",
@@ -87,11 +90,11 @@ def cli_search(jira, args):
             "Sprint",
             "Summary",
         ]
-        widths = [
+        widths: List[int] = [
             max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
         ]
 
-        header_fmt = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
+        header_fmt: str = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
         print(header_fmt)
         print("-" * len(header_fmt))
 
@@ -100,6 +103,6 @@ def cli_search(jira, args):
 
         return issues
     except SearchError as e:
-        msg = f"❌ Failed to search issues: {e}"
+        msg: str = f"❌ Failed to search issues: {e}"
         print(msg)
         raise SearchError(e) from e

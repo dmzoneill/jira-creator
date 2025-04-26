@@ -16,9 +16,11 @@ Note: The 'RemoveFlagError' exception is imported from 'exceptions.exceptions' m
 """
 
 from exceptions.exceptions import RemoveFlagError
+from rest.client import JiraClient
+from argparse import Namespace
+from typing import Dict, Any
 
-
-def cli_remove_flag(jira, args):
+def cli_remove_flag(jira: JiraClient, args: Namespace) -> Any:
     """
     Remove a flag from a Jira issue.
 
@@ -38,12 +40,12 @@ def cli_remove_flag(jira, args):
     - Prints an error message if there is a failure while removing the flag.
     """
 
-    issue_key = args.issue_key
+    issue_key: str = args.issue_key
     try:
-        response = jira.remove_flag(issue_key)
+        response: Any = jira.remove_flag(issue_key)
         print(f"✅ Removed flag from issue '{issue_key}'")
         return response
     except RemoveFlagError as e:
-        msg = f"❌ Failed to remove flag from issue '{issue_key}': {e}"
+        msg: str = f"❌ Failed to remove flag from issue '{issue_key}': {e}"
         print(msg)
         raise RemoveFlagError(e) from e

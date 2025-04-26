@@ -19,9 +19,11 @@ Function 'cli_vote_story_points':
 """
 
 from exceptions.exceptions import VoteStoryPointsError
+from rest.client import JiraClient
+from argparse import Namespace
 
 
-def cli_vote_story_points(jira, args):
+def cli_vote_story_points(jira: JiraClient, args: Namespace) -> bool:
     """
     This function validates and converts the story points provided as input to an integer.
 

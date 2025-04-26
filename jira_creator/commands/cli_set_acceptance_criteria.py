@@ -5,8 +5,6 @@ Sets acceptance criteria for a Jira issue.
 Arguments:
 - jira (JIRA): A JIRA instance used to interact with Jira API.
 - args (Namespace): A namespace containing parsed arguments.
-- issue_key (str): The key of the Jira issue for which acceptance criteria will be set.
-- acceptance_criteria (str): The acceptance criteria to be set for the Jira issue.
 
 Return:
 - bool: True if acceptance criteria were successfully set.
@@ -20,17 +18,16 @@ Side Effects:
 - Prints an error message if setting acceptance criteria fails.
 """
 from exceptions.exceptions import SetAcceptanceCriteriaError
+from rest.client import JiraClient
+from argparse import Namespace
 
-
-def cli_set_acceptance_criteria(jira, args):
+def cli_set_acceptance_criteria(jira: JiraClient, args: Namespace) -> bool:
     """
     Sets acceptance criteria for a Jira issue.
 
     Arguments:
     - jira (JIRA): A JIRA instance used to interact with Jira API.
     - args (Namespace): A namespace containing parsed arguments.
-    - issue_key (str): The key of the Jira issue for which acceptance criteria will be set.
-    - acceptance_criteria (str): The acceptance criteria to be set for the Jira issue.
 
     Return:
     - bool: True if acceptance criteria were successfully set.
@@ -44,11 +41,21 @@ def cli_set_acceptance_criteria(jira, args):
     - Prints an error message if setting acceptance criteria fails.
     """
 
+    if not isinstance(args.issue_key, str) or not args.issue_key.strip():
+        raise ValueError("Invalid issue key provided.")
+    
+    if not isinstance(args.acceptance_criteria, str) or not args.acceptance_criteria.strip():
+        raise ValueError("Invalid acceptance criteria provided.")
+
     try:
         jira.set_acceptance_criteria(args.issue_key, args.acceptance_criteria)
         print(f"✅ Acceptance criteria set to '{args.acceptance_criteria}'")
         return True
     except SetAcceptanceCriteriaError as e:
-        msg = f"❌ Failed to set acceptance criteria: {e}"
+        msg = f"❌ Failed to set acceptance criteria: {str(e)}"
         print(msg)
-        raise SetAcceptanceCriteriaError(e) from e
+        raise SetAcceptanceCriteriaError(msg) from e
+    except Exception as e:
+        msg = f"❌ An unexpected error occurred: {str(e)}"
+        print(msg)
+        raise

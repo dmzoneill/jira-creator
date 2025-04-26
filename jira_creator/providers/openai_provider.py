@@ -23,9 +23,10 @@ a prompt. It returns the improved text after processing. Raises an AiError if th
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
+from providers.AiProvider import AiProvider
 
 
-class OpenAIProvider:
+class OpenAIProvider(AiProvider):
     """
     This class provides a wrapper to interact with the OpenAI API for text completion and improvement.
 

@@ -13,9 +13,9 @@ It returns:
 It raises an AiError exception if the AI cleanup process fails.
 """
 from exceptions.exceptions import AiError
+from providers.AiProvider import AiProvider
 
-
-def _try_cleanup(ai_provider, prompt, text):
+def _try_cleanup(ai_provider: AiProvider, prompt: str, text: str) -> str:
     """
     Attempts to clean up text using an AI provider.
 

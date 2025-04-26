@@ -11,8 +11,10 @@ It returns a boolean value:
 - False otherwise.
 """
 
+from rest.client import JiraClient
+from argparse import Namespace
 
-def cli_unassign(jira, args):
+def cli_unassign(jira: JiraClient, args: Namespace) -> bool:
     """
     Unassign an issue in Jira.
 
@@ -24,10 +26,10 @@ def cli_unassign(jira, args):
     - bool: True if the issue was successfully unassigned, False otherwise.
     """
 
-    success = jira.unassign_issue(args.issue_key)
+    success: bool = jira.unassign_issue(args.issue_key)
     print(
         f"✅ Unassigned {args.issue_key}"
         if success
         else f"❌ Could not unassign {args.issue_key}"
     )
-    return bool(success)
+    return success

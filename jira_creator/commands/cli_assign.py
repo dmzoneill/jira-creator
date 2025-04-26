@@ -15,8 +15,10 @@ Side Effects:
 - Prints a message indicating whether the issue assignment was successful or not.
 """
 
+from rest.client import JiraClient
+from argparse import Namespace
 
-def cli_assign(jira, args):
+def cli_assign(jira: JiraClient, args: Namespace) -> bool:
     """
     Assigns an issue in Jira to a specific assignee.
 
@@ -33,10 +35,10 @@ def cli_assign(jira, args):
     - Prints a message indicating whether the issue assignment was successful or not.
     """
 
-    success = jira.assign_issue(args.issue_key, args.assignee)
+    success: bool = jira.assign_issue(args.issue_key, args.assignee)
     print(
         f"✅ assigned {args.issue_key} to {args.assignee}"
         if success
         else f"❌ Could not assign {args.issue_key} to {args.assignee}"
     )
-    return bool(success)
+    return success

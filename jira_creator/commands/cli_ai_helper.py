@@ -11,7 +11,7 @@ arguments.
 object.
 - `ask_ai_question(client, ai_provider, system_prompt, user_prompt, voice=False)`: Sends a question to the AI and
 processes the response, optionally providing voice feedback.
-- `cli_ai_helper(client, ai_provider, system_prompt, args)`: Main entry point for the CLI helper, orchestrating the
+- `cli_ai_helper(cli, ai_provider, system_prompt, args)`: Main entry point for the CLI helper, orchestrating the
 command metadata retrieval and AI interaction.
 
 Dependencies:
@@ -32,21 +32,16 @@ import json
 import os
 import re
 from argparse import Namespace
+from typing import Dict, Any, List, Union
+from providers.AiProvider import AiProvider
 
 from exceptions.exceptions import AIHelperError
 from gtts import gTTS
 
 
-def get_cli_command_metadata():
+def get_cli_command_metadata() -> Dict[str, Dict[str, Any]]:
     """
     Retrieve the command metadata for the Jira Command Line Interface (CLI).
-
-    This function imports the JiraCLI class from the rh_jira module, retrieves the command metadata associated with it,
-    and returns a dictionary containing information about the available commands, their arguments, and help
-    descriptions.
-
-    Args:
-    cli: The cli object used to interact with the AI service.
 
     Returns:
     dict: A dictionary where keys are command names and values are dictionaries containing information about the
@@ -56,7 +51,7 @@ def get_cli_command_metadata():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
 
-    commands = {}
+    commands: Dict[str, Dict[str, Any]] = {}
 
     for name, subparser in subparsers.choices.items():
         command_info = {
@@ -86,7 +81,7 @@ def get_cli_command_metadata():
     return commands
 
 
-def call_function(client, function_name, args_dict):
+def call_function(client: Any, function_name: str, args_dict: Dict[str, Any]) -> None:
     """
     Builds a fake argparse Namespace object using the provided arguments dictionary and assigns the given function name
     as the "command" attribute.
@@ -95,9 +90,6 @@ def call_function(client, function_name, args_dict):
     client: An object representing the client.
     function_name: A string specifying the name of the function to call.
     args_dict: A dictionary containing arguments to be used for building the Namespace object.
-
-    Side Effects:
-    Modifies the 'args' Namespace object by setting the 'command' attribute to the provided function name.
     """
 
     # Build a fake argparse Namespace (just like real CLI parsing would do)
@@ -108,7 +100,7 @@ def call_function(client, function_name, args_dict):
     client._dispatch_command(args)
 
 
-def clean_ai_output(ai_output: str) -> list:
+def clean_ai_output(ai_output: str) -> Union[List[Any], None]:
     """
     Remove Markdown-style code block wrappers from the AI output.
 
@@ -134,7 +126,7 @@ def clean_ai_output(ai_output: str) -> list:
         raise ValueError(e) from e
 
 
-def ask_ai_question(cli, ai_provider, system_prompt, user_prompt, voice=False):
+def ask_ai_question(cli: Any, ai_provider: AiProvider, system_prompt: str, user_prompt: str, voice: bool = False) -> bool:
     """
     Ask AI a question and generate steps based on the provided prompts.
 
@@ -145,11 +137,8 @@ def ask_ai_question(cli, ai_provider, system_prompt, user_prompt, voice=False):
     user_prompt: The prompt representing the user's input for the AI question.
     voice (bool, optional): A flag indicating whether the AI response should be in voice format. Defaults to False.
 
-    Side Effects:
-    Modifies the ai_generated_steps variable based on the AI response.
-
-    Note:
-    The clean_ai_output function is assumed to be defined elsewhere in the code.
+    Return:
+    bool: Indicates whether the AI question was successfully processed.
     """
 
     ai_raw = ai_provider.improve_text(system_prompt, user_prompt)
@@ -185,7 +174,7 @@ def ask_ai_question(cli, ai_provider, system_prompt, user_prompt, voice=False):
     return True
 
 
-def cli_ai_helper(cli, ai_provider, system_prompt, args):
+def cli_ai_helper(cli: Any, ai_provider: Any, system_prompt: str, args: Namespace) -> bool:
     """
     Retrieve CLI command metadata using the 'get_cli_command_metadata' function.
 
@@ -193,7 +182,7 @@ def cli_ai_helper(cli, ai_provider, system_prompt, args):
     - cli (object): The cli object used to interact with the CLI.
     - ai_provider (object): The AI provider object responsible for processing AI-related tasks.
     - system_prompt (str): The system prompt displayed to the user.
-    - args (list): List of arguments passed to the function.
+    - args (Namespace): Namespace object containing the command line arguments.
 
     Exceptions:
     - AIHelperError: Raised when there is an issue inspecting public methods of JiraCLI.

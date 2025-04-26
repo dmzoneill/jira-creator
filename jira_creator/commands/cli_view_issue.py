@@ -18,9 +18,12 @@ Function cli_view_issue:
 """
 
 from exceptions.exceptions import ViewIssueError
+from typing import Any, Dict
+from rest.client import JiraClient
+from argparse import Namespace
 
 
-def cli_view_issue(jira, args):
+def cli_view_issue(jira: JiraClient, args: Namespace) -> Any:
     """
     View a specific issue in JIRA.
 
@@ -41,7 +44,7 @@ def cli_view_issue(jira, args):
         issue = jira.view_issue(args.issue_key)
 
         # Create a new dictionary with real names as keys
-        updated_issue = {}
+        updated_issue: Dict[str, Any] = {}
 
         for key in issue:
             # Check if the key is a custom field

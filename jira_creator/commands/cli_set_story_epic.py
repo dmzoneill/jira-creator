@@ -19,9 +19,11 @@ Side Effects:
 - Prints an error message if setting the epic fails.
 """
 from exceptions.exceptions import SetStoryEpicError
+from rest.client import JiraClient
+from argparse import Namespace
 
 
-def cli_set_story_epic(jira, args):
+def cli_set_story_epic(jira: JiraClient, args: Namespace) -> bool:
     """
     Set the epic for a story in Jira.
 
@@ -53,10 +55,10 @@ def cli_set_story_epic(jira, args):
         print(f"✅ Story's epic set to '{args.epic_key}'")
         return True
     except SetStoryEpicError as e:
-        msg = f"❌ Failed to set epic for issue '{args.issue_key}': {e}"
+        msg = f"❌ Failed to set epic for issue '{args.issue_key}': {str(e)}"
         print(msg)
         raise SetStoryEpicError(msg) from e
     except Exception as e:
-        msg = f"❌ An unexpected error occurred: {e}"
+        msg = f"❌ An unexpected error occurred: {str(e)}"
         print(msg)
         raise RuntimeError(msg) from e

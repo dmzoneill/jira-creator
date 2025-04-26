@@ -22,9 +22,11 @@ Function cli_change_type:
 """
 
 from exceptions.exceptions import ChangeTypeError
+from rest.client import JiraClient  # Assuming JIRA is imported from a library
+from argparse import Namespace
 
 
-def cli_change_type(jira, args):
+def cli_change_type(jira: JiraClient, args: Namespace) -> bool:
     """
     Change the type of a Jira issue.
 

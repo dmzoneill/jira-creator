@@ -18,21 +18,25 @@ import json
 import os
 import subprocess
 import tempfile
+from typing import Any, Dict, Optional
+from rest.client import JiraClient
+from argparse import Namespace
+from providers.AiProvider import AiProvider
 
 from exceptions.exceptions import AiError, CreateIssueError
 from rest.prompts import IssueType, PromptLibrary
 from templates.template_loader import TemplateLoader
 
 
-def cli_create_issue(jira, ai_provider, template_dir, args):
+def cli_create_issue(jira: JiraClient, ai_provider: AiProvider, template_dir: str, args: Namespace) -> Optional[str]:
     """
     Creates a new issue in Jira based on a template.
 
     Arguments:
-    - jira (JIRA): An instance of the JIRA class for interacting with the Jira API.
-    - ai_provider (str): The AI provider to use for generating content.
+    - jira (Any): An instance of the JIRA class for interacting with the Jira API.
+    - ai_provider (Any): The AI provider to use for generating content.
     - template_dir (str): The directory where the issue templates are stored.
-    - args (Namespace): Command-line arguments containing the type of the issue.
+    - args (Any): Command-line arguments containing the type of the issue.
 
     Exceptions:
     - FileNotFoundError: Raised when the template file specified by 'args.type' is not found in 'template_dir'.
@@ -45,18 +49,18 @@ def cli_create_issue(jira, ai_provider, template_dir, args):
 
     try:
         template = TemplateLoader(template_dir, args.type)
-        fields = template.get_fields()
+        fields: Dict[str, str] = template.get_fields()
     except FileNotFoundError as e:
         print(f"Error: {e}")
         raise FileNotFoundError(e) from e
 
-    inputs = (
+    inputs: Dict[str, str] = (
         {field: input(f"{field}: ") for field in fields}
         if not args.edit
         else {field: f"# {field}" for field in fields}
     )
 
-    description = template.render_description(inputs)
+    description: str = template.render_description(inputs)
 
     if args.edit is not None:
         with tempfile.NamedTemporaryFile(mode="w+", suffix=".tmp", delete=False) as tmp:
@@ -66,8 +70,8 @@ def cli_create_issue(jira, ai_provider, template_dir, args):
             tmp.seek(0)
             description = tmp.read()
 
-    enum_type = IssueType[args.type.upper()]
-    prompt = PromptLibrary.get_prompt(enum_type)
+    enum_type: IssueType = IssueType[args.type.upper()]
+    prompt: str = PromptLibrary.get_prompt(enum_type)
 
     try:
         description = ai_provider.improve_text(prompt, description)
@@ -76,7 +80,7 @@ def cli_create_issue(jira, ai_provider, template_dir, args):
         print(msg)
         raise AiError(e) from e
 
-    payload = jira.build_payload(args.summary, description, args.type)
+    payload: Dict[str, Any] = jira.build_payload(args.summary, description, args.type)
 
     if args.dry_run:
         print("📦 DRY RUN ENABLED")
@@ -87,7 +91,7 @@ def cli_create_issue(jira, ai_provider, template_dir, args):
         return None
 
     try:
-        key = jira.create_issue(payload)
+        key: str = jira.create_issue(payload)
         print(f"✅ Created: {jira.jira_url}/browse/{key}")
         return key
     except CreateIssueError as e:

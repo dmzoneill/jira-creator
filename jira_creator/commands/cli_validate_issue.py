@@ -24,22 +24,23 @@ the specified validation rules.
 import hashlib
 import json
 import os
+from typing import Dict, List, Tuple, Any
 
+from providers.AiProvider import AiProvider
 from core.env_fetcher import EnvFetcher
 
 
-def get_cache_path():
+def get_cache_path() -> str:
     """
     Return the path to the cache file for storing AI hashes.
 
     Returns:
     str: A string representing the file path to the cache file for AI hashes.
     """
-
     return os.path.expanduser("~/.config/rh-issue/ai-hashes.json")
 
 
-def sha256(text):
+def sha256(text: str) -> str:
     """
     Return the SHA-256 hash of the input text.
 
@@ -49,33 +50,24 @@ def sha256(text):
     Return:
     - str: The hexadecimal representation of the SHA-256 hash of the input text.
     """
-
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def load_cache():
+def load_cache() -> Dict[str, Any]:
     """
     Load cached data from a file if it exists, otherwise return an empty dictionary.
 
-    Arguments:
-    No arguments.
-
     Return:
     dict: A dictionary containing the cached data if the cache file exists, otherwise an empty dictionary.
-
-    Exceptions:
-    No exceptions are raised in this function.
     """
-
     if os.path.exists(get_cache_path()):
         with open(get_cache_path(), "r", encoding="utf-8") as f:
             return json.load(f)
     return {}
 
 
-def save_cache(data):
+def save_cache(data: Dict[str, Any]) -> None:
     """
-    Summary:
     Save_cache function retrieves the directory path for the cache and stores it in the cache_dir variable.
 
     Arguments:
@@ -84,7 +76,6 @@ def save_cache(data):
     Return:
     This function does not return anything.
     """
-
     cache_dir = os.path.dirname(get_cache_path())
 
     if not os.path.exists(cache_dir):
@@ -94,7 +85,7 @@ def save_cache(data):
         json.dump(data, f, indent=2)
 
 
-def load_and_cache_issue(issue_key):
+def load_and_cache_issue(issue_key: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
     Load cache and get the cached values for a given issue key.
 
@@ -104,13 +95,12 @@ def load_and_cache_issue(issue_key):
     Return:
     - tuple: A tuple containing the cache (dict) and the cached values for the specified issue key (dict).
     """
-
     cache = load_cache()
     cached = cache.get(issue_key, {})
     return cache, cached
 
 
-def validate_progress(status, assignee, problems, issue_status):
+def validate_progress(status: str, assignee: str, problems: List[str], issue_status: Dict[str, bool]) -> None:
     """
     Validate if the issue is assigned when it's in progress.
 
@@ -119,11 +109,7 @@ def validate_progress(status, assignee, problems, issue_status):
     - assignee (str): The person assigned to the issue.
     - problems (list): A list to store validation problems.
     - issue_status (dict): A dictionary to track the status of the issue.
-
-    Exceptions:
-    None
     """
-
     if status == "In Progress" and not assignee:
         problems.append("❌ Issue is In Progress but unassigned")
         issue_status["Progress"] = False
@@ -131,7 +117,7 @@ def validate_progress(status, assignee, problems, issue_status):
         issue_status["Progress"] = True
 
 
-def validate_epic_link(issue_type, status, epic_link, problems, issue_status):
+def validate_epic_link(issue_type: str, status: str, epic_link: str, problems: List[str], issue_status: Dict[str, bool]) -> None:
     """
     Validate if an issue has an assigned epic link.
 
@@ -141,14 +127,7 @@ def validate_epic_link(issue_type, status, epic_link, problems, issue_status):
     - epic_link (str): The epic link assigned to the issue.
     - problems (list): A list to store validation problems.
     - issue_status (dict): A dictionary to track the status of different aspects of the issue.
-
-    Exceptions:
-    None
-
-    Side Effects:
-    Modifies the 'problems' list and updates the 'issue_status' dictionary based on the validation result.
     """
-
     epic_exempt_types = ["Epic"]
     epic_exempt_statuses = ["New", "Refinement"]
     if (
@@ -165,7 +144,7 @@ def validate_epic_link(issue_type, status, epic_link, problems, issue_status):
         issue_status["Epic"] = True
 
 
-def validate_sprint(status, sprint_field, problems, issue_status):
+def validate_sprint(status: str, sprint_field: bool, problems: List[str], issue_status: Dict[str, bool]) -> None:
     """
     Validate if the issue is assigned to a sprint when in progress.
 
@@ -174,12 +153,7 @@ def validate_sprint(status, sprint_field, problems, issue_status):
     - sprint_field (bool): Indicates if the issue is assigned to a sprint.
     - problems (list): A list to store validation problems.
     - issue_status (dict): A dictionary to track the issue status.
-
-    Side Effects:
-    - Modifies the 'problems' list if the issue is in progress but not assigned to a sprint.
-    - Updates the 'issue_status' dictionary to reflect whether the issue is assigned to a sprint or not.
     """
-
     if status == "In Progress" and not sprint_field:
         problems.append("❌ Issue is In Progress but not assigned to a Sprint")
         issue_status["Sprint"] = False
@@ -187,7 +161,7 @@ def validate_sprint(status, sprint_field, problems, issue_status):
         issue_status["Sprint"] = True
 
 
-def validate_priority(priority, problems, issue_status):
+def validate_priority(priority: bool, problems: List[str], issue_status: Dict[str, bool]) -> None:
     """
     Validate if priority is set.
 
@@ -195,12 +169,7 @@ def validate_priority(priority, problems, issue_status):
     - priority (bool): Represents whether priority is set or not.
     - problems (list): A list to store validation problems.
     - issue_status (dict): A dictionary to track the status of different fields.
-
-    Side Effects:
-    - Modifies the 'problems' list by appending a message if priority is not set.
-    - Updates the 'issue_status' dictionary with the status of the 'Priority' field.
     """
-
     if not priority:
         problems.append("❌ Priority not set")
         issue_status["Priority"] = False
@@ -208,7 +177,7 @@ def validate_priority(priority, problems, issue_status):
         issue_status["Priority"] = True
 
 
-def validate_story_points(story_points, status, problems, issue_status):
+def validate_story_points(story_points: int, status: str, problems: List[str], issue_status: Dict[str, bool]) -> None:
     """
     Validate if story points are assigned, unless the status is 'Refinement' or 'New'.
 
@@ -217,11 +186,7 @@ def validate_story_points(story_points, status, problems, issue_status):
     - status (str): The current status of the task.
     - problems (list): A list to store validation problems.
     - issue_status (dict): A dictionary to track the status of different issues.
-
-    Exceptions:
-    None
     """
-
     if story_points is None and status not in ["Refinement", "New"]:
         problems.append("❌ Story points not assigned")
         issue_status["Story P."] = False
@@ -229,7 +194,7 @@ def validate_story_points(story_points, status, problems, issue_status):
         issue_status["Story P."] = True
 
 
-def validate_blocked(blocked_value, blocked_reason, problems, issue_status):
+def validate_blocked(blocked_value: str, blocked_reason: str, problems: List[str], issue_status: Dict[str, bool]) -> None:
     """
     Validate if blocked issues have a reason.
 
@@ -238,11 +203,7 @@ def validate_blocked(blocked_value, blocked_reason, problems, issue_status):
     - blocked_reason (str): The reason for blocking the issue.
     - problems (list): A list to store validation problems.
     - issue_status (dict): A dictionary containing the status of the issue.
-
-    Exceptions:
-    None
     """
-
     if blocked_value == "True" and not blocked_reason:
         problems.append("❌ Issue is blocked but has no blocked reason")
         issue_status["Blocked"] = False
@@ -251,14 +212,14 @@ def validate_blocked(blocked_value, blocked_reason, problems, issue_status):
 
 
 def validate_field_with_ai(
-    field_name,
-    field_value,
-    field_hash,
-    cached_field_hash,
-    ai_provider,
-    problems,
-    issue_status,
-):
+    field_name: str,
+    field_value: str,
+    field_hash: str,
+    cached_field_hash: str,
+    ai_provider: AiProvider,
+    problems: List[str],
+    issue_status: Dict[str, bool],
+) -> str:
     """
     Validate a field using an AI provider by comparing field hashes and checking the quality of the field value.
 
@@ -271,11 +232,9 @@ def validate_field_with_ai(
     - problems (list): A list to store validation problems encountered.
     - issue_status (dict): A dictionary to track the validation status of each field.
 
-    Side Effects:
-    - Modifies the 'problems' list if validation issues are found.
-    - Modifies the 'issue_status' dictionary to track the validation status of each field.
+    Return:
+    - str: The updated cached field hash to use in the next validation.
     """
-
     if field_value:
         # Ensure the field hash comparison is correct
         if field_hash != cached_field_hash:
@@ -297,7 +256,7 @@ def validate_field_with_ai(
     return cached_field_hash  # Return the updated hash to use in the next validation
 
 
-def cli_validate_issue(fields, ai_provider):
+def cli_validate_issue(fields: Dict[str, Any], ai_provider: AiProvider) -> Tuple[List[str], Dict[str, bool]]:
     """
     Validate the fields of an issue using an AI provider to ensure compliance with specified criteria.
 
@@ -309,15 +268,9 @@ def cli_validate_issue(fields, ai_provider):
     - tuple: A tuple containing two elements:
     - problems (list): A list of validation issues encountered during the process.
     - issue_status (dict): A dictionary tracking the validation status of each field.
-
-    Side Effects:
-    - Initializes an empty list 'problems' to store validation issues.
-    - Initializes an empty dictionary 'issue_status' to track the validation status of each field.
-    - Modifies a cache to store validation results for the issue.
     """
-
-    problems = []
-    issue_status = {}
+    problems: List[str] = []
+    issue_status: Dict[str, bool] = {}
 
     # Extract and validate basic fields
     issue_key = fields.get("key")
@@ -357,7 +310,7 @@ def cli_validate_issue(fields, ai_provider):
         "Summary",
         summary,
         summary_hash,
-        cached.get("summary_hash"),
+        cached.get("summary_hash", ""),
         ai_provider,
         problems,
         issue_status,
@@ -369,7 +322,7 @@ def cli_validate_issue(fields, ai_provider):
         "Description",
         description,
         description_hash,
-        cached.get("description_hash"),
+        cached.get("description_hash", ""),
         ai_provider,
         problems,
         issue_status,
@@ -385,7 +338,7 @@ def cli_validate_issue(fields, ai_provider):
         "Acceptance Criteria",
         acceptance_criteria,
         acceptance_criteria_hash,
-        cached.get("acceptance_criteria_hash"),
+        cached.get("acceptance_criteria_hash", ""),
         ai_provider,
         problems,
         issue_status,

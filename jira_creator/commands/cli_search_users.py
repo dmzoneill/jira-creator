@@ -15,9 +15,11 @@ Function cli_search_users:
 """
 
 from exceptions.exceptions import SearchUsersError
+from rest.client import JiraClient
+from argparse import Namespace
+from typing import List, Dict, Any, Union
 
-
-def cli_search_users(jira, args):
+def cli_search_users(jira: JiraClient, args: Namespace) -> Union[List[Dict[str, Any]], bool]:
     """
     Search for users in Jira based on the provided query.
 
@@ -30,7 +32,7 @@ def cli_search_users(jira, args):
     """
 
     try:
-        users = jira.search_users(args.query)
+        users: List[Dict[str, Any]] = jira.search_users(args.query)
 
         if not users:
             print("⚠️ No users found.")

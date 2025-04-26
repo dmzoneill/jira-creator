@@ -15,10 +15,13 @@ checks.
 
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import ListBlockedError
+from rest.client import JiraClient
+from argparse import Namespace
+from typing import List, Dict, Union, Any
 
 
 # /* jscpd:ignore-start */
-def cli_blocked(jira, args):
+def cli_blocked(jira: JiraClient, args: Namespace) -> Union[List[Dict[str, Any]], bool]:
     """
     Retrieve a list of blocked issues from Jira based on specified criteria.
 
@@ -30,7 +33,7 @@ def cli_blocked(jira, args):
     - user (str, optional): The user to filter the blocked issues. If not provided, the current user will be used.
 
     Return:
-    - list: A list of blocked issues retrieved based on the specified criteria.
+    - list: A list of blocked issues retrieved based on the specified criteria or True if no issues found.
 
     Exceptions:
     - ListBlockedError: Raised when there is an error listing blocked issues.
@@ -50,7 +53,7 @@ def cli_blocked(jira, args):
             print("✅ No issues found.")
             return True
 
-        blocked_issues = []
+        blocked_issues: List[Dict[str, Union[str, None]]] = []
         for issue in issues:
             fields = issue["fields"]
             is_blocked = (

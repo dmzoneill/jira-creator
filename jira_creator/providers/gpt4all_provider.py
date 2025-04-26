@@ -20,9 +20,10 @@ prompt.
 
 from exceptions.exceptions import GTP4AllError
 from gpt4all import GPT4All
+from providers.AiProvider import AiProvider
 
 
-class GPT4AllProvider:
+class GPT4AllProvider(AiProvider):
     """
     This class provides a wrapper to interact with the GPT4All model for text improvement.
 

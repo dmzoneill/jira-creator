@@ -34,6 +34,8 @@ import contextlib
 import json
 import os
 import queue
+from typing import Optional, Any
+from argparse import Namespace
 
 import sounddevice
 from core.env_fetcher import EnvFetcher
@@ -42,23 +44,10 @@ from word2number import w2n
 
 
 @contextlib.contextmanager
-def suppress_stderr():
+def suppress_stderr() -> None:
     """
     Suppresses the standard error (stderr) output temporarily by redirecting it to /dev/null.
-
-    This function temporarily redirects the stderr output to /dev/null by using file descriptors.
-    It yields control back to the caller to execute the desired code block with suppressed stderr.
-    After the execution of the code block, it restores the original stderr output.
-
-    No arguments are taken.
-
-    Exceptions:
-    This function does not raise any exceptions.
-
-    Side Effects:
-    Temporarily suppresses stderr output.
     """
-
     with open(os.devnull, "w", encoding="utf-8") as devnull:
         old_stderr = os.dup(2)
         os.dup2(devnull.fileno(), 2)
@@ -103,15 +92,8 @@ FUZZY_DIGIT_MAP = {
 
 def fuzzy_digit_cleanup(text: str) -> str:
     """
-    This function cleans up fuzzy digits in a text by replacing them with their correct counterparts.
-
-    Arguments:
-    - text (str): A string containing text with fuzzy digits.
-
-    Return:
-    - str: A string with fuzzy digits replaced by their correct counterparts.
+    Cleans up fuzzy digits in a text by replacing them with their correct counterparts.
     """
-
     tokens = text.split()
     corrected = [FUZZY_DIGIT_MAP.get(t, t) for t in tokens]
     return " ".join(corrected)
@@ -120,14 +102,7 @@ def fuzzy_digit_cleanup(text: str) -> str:
 def word_digits_to_numbers(text: str) -> str:
     """
     Convert digit words to individual digits: 'four three' → '4 3'
-
-    Arguments:
-    - text (str): A string containing digit words to be converted to individual digits.
-
-    Return:
-    - str: A string with individual digits corresponding to the digit words in the input text.
     """
-
     tokens = text.split()
     result = []
 
@@ -143,14 +118,7 @@ def word_digits_to_numbers(text: str) -> str:
 def combine_consecutive_digits(text: str) -> str:
     """
     Combine sequences of digits in a given text by removing spaces between consecutive digits.
-
-    Arguments:
-    - text (str): A string containing digits separated by spaces.
-
-    Return:
-    - str: A string with consecutive digits combined without spaces.
     """
-
     tokens = text.split()
     result = []
     buffer = []
@@ -173,28 +141,13 @@ def combine_consecutive_digits(text: str) -> str:
 def normalize_issue_references(text: str) -> str:
     """
     Convert all 'issue <digits>' references to 'PROJECTKEY-<digits>' with fuzzy support.
-
-    Arguments:
-    - text (str): The input text where 'issue <digits>' references will be normalized.
-
-    Return:
-    - str: The text with normalized 'issue <digits>' references.
-
-    Side Effects:
-    - Uses EnvFetcher to retrieve the PROJECT_KEY environment variable. If not found, defaults to "AAP".
     """
-
     project_key = EnvFetcher.get("PROJECT_KEY") or "AAP"
 
-    # Step 0: Fuzzy digit word correction
     text = fuzzy_digit_cleanup(text)
-
-    # Step 1: Convert digit words to digits
     text = word_digits_to_numbers(text)
 
-    # Step 2: Tokenize
     tokens = text.split()
-
     result = []
     i = 0
 
@@ -203,19 +156,17 @@ def normalize_issue_references(text: str) -> str:
             digit_buffer = []
             j = i + 1
 
-            # Collect digits until a non-digit is encountered
             while j < len(tokens):
                 if tokens[j].isdigit():
-                    digit_buffer.append(tokens[j])  # Collect digits
+                    digit_buffer.append(tokens[j])
                 else:
-                    break  # Stop collecting when a non-digit is encountered
+                    break
                 j += 1
 
-            # If we found digits after 'issue', process them
             if digit_buffer:
                 issue_key = f"{project_key}-" + "".join(digit_buffer)
                 result.append(issue_key)
-                i = j  # Skip past what we've consumed
+                i = j
             else:
                 result.append(tokens[i])
                 i += 1
@@ -226,17 +177,10 @@ def normalize_issue_references(text: str) -> str:
     return " ".join(result)
 
 
-def flush_queue(q):
+def flush_queue(q: queue.Queue) -> None:
     """
     Clears all elements from the queue provided as input.
-
-    Arguments:
-    - q (Queue): A queue object from which elements will be removed.
-
-    Exceptions:
-    - No exceptions are raised within the function.
     """
-
     while not q.empty():
         try:
             q.get_nowait()
@@ -244,50 +188,26 @@ def flush_queue(q):
             break
 
 
-def do_once():
+def do_once() -> bool:
     """
     This function returns a boolean value False.
-
-    Arguments:
-    This function does not take any arguments.
-
-    Return:
-    bool: False
     """
-
     return False
 
 
-def initialize_recognizer():
+def initialize_recognizer() -> KaldiRecognizer:
     """
     Initializes the recognizer with the VOSK model.
-
-    Arguments:
-    No arguments.
-
-    Return:
-    KaldiRecognizer: A KaldiRecognizer object initialized with the VOSK model.
     """
-
     model = Model(EnvFetcher.get("VOSK_MODEL"))
     rec = KaldiRecognizer(model, 16000)
     return rec
 
 
-def process_text_and_communicate(text, cli, voice):
+def process_text_and_communicate(text: str, cli: object, voice: bool) -> bool:
     """
     Normalizes the text by removing any issue references and splits it into words for further processing.
-
-    Arguments:
-    - text (str): The input text to be processed.
-    - cli (bool): A flag indicating whether to communicate via Command Line Interface (CLI).
-    - voice (bool): A flag indicating whether to communicate via voice.
-
-    Side Effects:
-    - Modifies the 'text' variable by removing issue references.
-    - Splits the normalized text into words and stores them in the 'words' variable for further processing.
     """
-
     text = normalize_issue_references(text)
     words = text.strip().split()
 
@@ -299,12 +219,7 @@ def process_text_and_communicate(text, cli, voice):
 
     print("Talking to AI: " + text)
 
-    # pylint: disable=too-few-public-methods
     class Args:
-        """
-        Argparse namespace class
-        """
-
         prompt: str
         voice: bool
 
@@ -316,18 +231,10 @@ def process_text_and_communicate(text, cli, voice):
     return False
 
 
-def process_audio_data(q, rec):
+def process_audio_data(q: queue.Queue, rec: KaldiRecognizer) -> Optional[str]:
     """
     Processes the audio data from the queue and returns the recognized text.
-
-    Arguments:
-    - q (Queue): A queue containing audio data to be processed.
-    - rec (Recognizer): An audio recognizer object used to process the audio data.
-
-    Return:
-    - str or None: The recognized text from the audio data, or None if the recognition fails.
     """
-
     data = q.get()
     if not rec.AcceptWaveform(data):
         return None
@@ -341,35 +248,18 @@ def process_audio_data(q, rec):
     return original.strip()
 
 
-def callback(indata, _, __, ___, q):
+def callback(indata: bytes, frames: int, time: object, status: object, q: queue.Queue) -> None:
     """
     Handles the callback for the audio stream.
-
-    Arguments:
-    - indata (array): Input audio data.
-    - frames (int): Number of frames.
-    - time (CData): Time information.
-    - status (CallbackFlags): Status of the callback.
-    - q (Queue): Queue to put the processed audio data.
-
-    Return: None
     """
-
     q.put(bytes(indata))
 
 
-def cli_talk(cli, args):
+def cli_talk(cli: Any, args: Namespace) -> None:
     """
     Creates a queue object to store items for communication between a command-line interface (CLI) and a function.
-
-    Arguments:
-    - cli: The command-line interface object used for communication.
-    - args: Additional arguments passed to the function.
-
     """
-
     q = queue.Queue()
-
     voice = bool(hasattr(args, "voice"))
 
     with suppress_stderr():

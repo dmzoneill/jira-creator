@@ -29,9 +29,10 @@ import json
 import requests
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
+from providers.AiProvider import AiProvider
 
 
-class DeepSeekProvider:
+class DeepSeekProvider(AiProvider):
     """
     A class that provides methods to interact with a DeepSeek AI service.
 

@@ -19,9 +19,11 @@ Side Effects:
 - Prints an error message and raises a SetStatusError if there is a failure.
 """
 from exceptions.exceptions import SetStatusError
+from rest.client import JiraClient
+from argparse import Namespace
 
 
-def cli_set_status(jira, args):
+def cli_set_status(jira: JiraClient, args: Namespace) -> bool:
     """
     Set the status of a JIRA issue using the provided JIRA client and arguments.
 

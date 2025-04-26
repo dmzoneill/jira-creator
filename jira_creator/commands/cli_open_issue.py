@@ -20,12 +20,13 @@ representing the key of the JIRA issue to open.
 # pylint: disable=consider-using-with
 
 import subprocess
-
+from rest.client import JiraClient
+from argparse import Namespace
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import OpenIssueError
 
 
-def cli_open_issue(args):
+def cli_open_issue(jira: JiraClient, args: Namespace) -> bool:
     """
     Opens a JIRA issue in the default web browser using xdg-open.
 
@@ -44,9 +45,8 @@ def cli_open_issue(args):
     """
 
     try:
-        subprocess.Popen(
-            ["xdg-open", EnvFetcher.get("JIRA_URL") + "/browse/" + args.issue_key]
-        )
+        issue_url = f"{EnvFetcher.get('JIRA_URL')}/browse/{args.issue_key}"
+        subprocess.Popen(["xdg-open", issue_url])
         return True
     except OpenIssueError as e:
         msg = f"❌ Failed to open issue {args.issue_key}: {e}"

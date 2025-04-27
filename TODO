@@ -9,7 +9,6 @@ Core
   - text to speech factory pattern
   - AI state - track issue id
   - readme ascii cinema for readme
-  - fix the docstring script where signiture is multiline
   - magic number in "move to top" of backlog
   - Remove /* jscpd:ignore-start */
 
@@ -20,27 +19,10 @@ Add
 
 Modify 
 
-  - list-issues
-    - custom column output
-    - fix default output
-    - epic column 
-    - assignee column 
-    - reporter column
-    - blocked column
-    - acceptance criteria column
-    - when --assignee or --reporter is empty or "me" get the current user 
-    - add --columns option in list_issues
-    - add --sort option in list_issues
-    - add --blocked
-    - Story points
-      - round 3.0 to 3
-      - None = 0
-
   - lint-issues
     - validation-issue factory pattern
     - custom column output
     - show description
-    - move to top of refinement
 
   - set-acceptance-criteria 
     - --ai-from-description

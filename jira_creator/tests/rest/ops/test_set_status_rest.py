@@ -57,9 +57,7 @@ def test_set_status_invalid_transition(client):
     client.request.return_value = transitions  # First call is GET, second is POST
 
     # Use pytest.raises to capture the exception
-    with pytest.raises(
-        SetStatusError, match="❌ Transition to status 'Done' not found"
-    ):
+    with pytest.raises(SetStatusError, match="❌ Transition to status 'Done' not found"):  # fmt: skip
         client.set_status("AAP-test_set_status_invalid_transition", "Done")
 
     # Ensure _request was called twice (GET and POST)

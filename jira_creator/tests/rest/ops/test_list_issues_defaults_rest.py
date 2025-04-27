@@ -64,7 +64,7 @@ def test_list_issues_defaults(client):
     # Assert that the _request method was called twice, once for fields and once for search
     assert client.request.call_count == 2
 
-    fields = 'summary,status,assignee,priority,customfield_12310243,customfield_12310940,customfield_12316543,key'
+    fields = "summary,status,assignee,priority,customfield_12310243,customfield_12310940,customfield_12316543,key"
     jql = 'project="XYZ" AND component="backend" AND assignee="me" AND status NOT IN ("Closed", "Done", "Cancelled")'
     # Check the paths for each call
     client.request.assert_any_call("GET", "/rest/api/2/field")

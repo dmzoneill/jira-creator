@@ -52,6 +52,29 @@ class EnvFetcher:
     - fetch_all(env_vars): Fetches all specified Jira-related environment variables.
     """
 
+    vars: Dict[str, str] = {
+        "JIRA_URL": "https://example.atlassian.net",
+        "PROJECT_KEY": "XYZ",
+        "AFFECTS_VERSION": "v1.2.3",
+        "COMPONENT_NAME": "backend",
+        "PRIORITY": "High",
+        "JPAT": "dummy-token",
+        "JIRA_BOARD_ID": "43123",
+        "AI_PROVIDER": "openai",
+        "AI_API_KEY": "dsdasdsadsadasdadsa",
+        "AI_MODEL": "hhhhhhhhhhhhh",
+        "AI_URL": "http://some/url",
+        "JIRA_VIEW_COLUMNS": "key,issuetype,status,priority,summary,assignee,reporter,sprint,JIRA_STORY_POINTS_FIELD",
+        "JIRA_EPIC_FIELD": "customfield_12311140",
+        "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_12315940",
+        "JIRA_BLOCKED_FIELD": "customfield_12316543",
+        "JIRA_BLOCKED_REASON_FIELD": "customfield_12316544",
+        "JIRA_STORY_POINTS_FIELD": "customfield_12310243",
+        "JIRA_SPRINT_FIELD": "customfield_12310940",
+        "VOSK_MODEL": os.path.expanduser("~/.vosk/vosk-model-small-en-us-0.15"),
+        "TEMPLATE_DIR": os.path.join(os.path.dirname(__file__), "../templates"),
+    }
+
     @staticmethod
     def get(var_name: str) -> str:
         """
@@ -61,30 +84,10 @@ class EnvFetcher:
         - var_name (str): The name of the environment variable to retrieve the value for.
         """
 
-        vars: Dict[str, str] = {
-            "JIRA_URL": "https://example.atlassian.net",
-            "PROJECT_KEY": "XYZ",
-            "AFFECTS_VERSION": "v1.2.3",
-            "COMPONENT_NAME": "backend",
-            "PRIORITY": "High",
-            "JPAT": "dummy-token",
-            "JIRA_BOARD_ID": "43123",
-            "AI_PROVIDER": "openai",
-            "AI_API_KEY": "dsdasdsadsadasdadsa",
-            "AI_MODEL": "hhhhhhhhhhhhh",
-            "AI_URL": "http://some/url",
-            "JIRA_EPIC_FIELD": "customfield_12311140",
-            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_12315940",
-            "JIRA_BLOCKED_FIELD": "customfield_12316543",
-            "JIRA_BLOCKED_REASON_FIELD": "customfield_12316544",
-            "JIRA_STORY_POINTS_FIELD": "customfield_12310243",
-            "JIRA_SPRINT_FIELD": "customfield_12310940",
-            "VOSK_MODEL": os.path.expanduser("~/.vosk/vosk-model-small-en-us-0.15"),
-            "TEMPLATE_DIR": os.path.join(os.path.dirname(__file__), "../templates"),
-        }
-
         value: Optional[str] = (
-            os.getenv(var_name) if "pytest" not in sys.modules else vars[var_name]
+            os.getenv(var_name)
+            if "pytest" not in sys.modules
+            else EnvFetcher.vars[var_name]
         )
         default: str = os.path.join(os.path.dirname(__file__), "../templates")
         value = default if var_name == "TEMPLATE_DIR" and value is None else value
@@ -107,4 +110,6 @@ class EnvFetcher:
         - dict: A dictionary containing the fetched environment variables as key-value pairs.
         """
 
-        return {var: EnvFetcher.get(var) for var in env_vars}
+        vars = env_vars if len(env_vars) > 0 else EnvFetcher.vars
+
+        return {var: EnvFetcher.get(var) for var in vars}

@@ -28,8 +28,9 @@ from argparse import Namespace
 from typing import Any, List, Union
 
 from exceptions.exceptions import SearchError
-from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list
 from rest.client import JiraClient
+
+from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list
 
 
 # /* jscpd:ignore-start */

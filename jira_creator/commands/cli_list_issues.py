@@ -26,10 +26,9 @@ import traceback
 from argparse import Namespace
 from typing import Any, List
 
+from core.view_helpers import format_and_print_rows, massage_issue_list
 from exceptions.exceptions import ListIssuesError
 from rest.client import JiraClient
-
-from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list
 
 
 def cli_list_issues(jira: JiraClient, args: Namespace) -> List[Any]:

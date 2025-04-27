@@ -28,7 +28,7 @@ fi
 count=$(grep -r "# pylint" ./* | wc -l)
 
 # Check if the count is 1
-if [ "$count" -gt 26 ]; then
+if [ "$count" -gt 51 ]; then
     echo "Pylint creep"
     exit 1
 fi

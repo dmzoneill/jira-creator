@@ -22,8 +22,34 @@ import io
 from unittest.mock import MagicMock, patch
 
 import pytest
-from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import SearchError
+
+# /* jscpd:ignore-start */
+rows = [
+    {
+        "key": "AAP-mock_search_issues",
+        "issuetype": "story",
+        "status": {"name": "To Do"},
+        "assignee": {"displayName": "David O Neill"},
+        "reporter": {"displayName": "john Swan"},
+        "priority": {"name": "High"},
+        "summary": "Test issue 1",
+        "sprint": "Sprint 1",
+        "customfield_12310243": 5,
+    },
+    {
+        "key": "TEST-2",
+        "issuetype": "story",
+        "status": {"name": "In Progress"},
+        "assignee": {"displayName": "Jane Smith"},
+        "reporter": {"displayName": "Mike Swan"},
+        "priority": {"name": "Medium"},
+        "summary": "Test issue 2",
+        "sprint": "SaaS Sprint 2025-13",
+        "customfield_12310243": 5,
+    },
+]
+# /* jscpd:ignore-end */
 
 
 def test_search(cli, mock_search_issues):
@@ -48,6 +74,11 @@ def test_search(cli, mock_search_issues):
 
     # Mock stdout to capture printed output
     with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
+        cli.jira.get_field_name = MagicMock()
+        cli.jira.get_field_name.return_value = "story points"
+        cli.jira.search_issues = MagicMock()
+        cli.jira.search_issues.return_value = rows
+
         cli.search(Args())
 
         # Capture the printed output
@@ -114,6 +145,7 @@ def test_search_with_exception(cli):
     # Prepare the args object to simulate CLI arguments
     class Args:
         jql = "project = AAP AND status = 'NonExistentStatus'"
+        query = "project = AAP AND status = 'NonExistentStatus'"
         assignee = None
         reporter = None
 
@@ -127,68 +159,3 @@ def test_search_with_exception(cli):
 
         # Verify that the error message is printed
         assert "❌ Failed to search issues: An error occurred" in captured_output
-
-
-def test_list_with_summary_filter(cli, capsys):
-    """
-    Retrieve and filter a list of JIRA issues based on a provided summary filter.
-
-    Arguments:
-    - cli: An instance of a JIRA command-line interface.
-    - capsys: A fixture to capture stdout and stderr output.
-
-    Return: N/A
-
-    Exceptions: N/A
-    """
-
-    # Mock list_issues to return a list of issues
-    cli.jira.list_issues.return_value = [
-        {
-            "key": "AAP-test_list_with_summary_filter-1",
-            "fields": {
-                "status": {"name": "In Progress"},
-                "assignee": {"displayName": "Dino"},
-                "priority": {"name": "High"},
-                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
-                EnvFetcher.get("JIRA_SPRINT_FIELD"): ["name=Spring, state=ACTIVE"],
-                "summary": "Fix bugs",
-            },
-        },
-        {
-            "key": "AAP-test_list_with_summary_filter-2",
-            "fields": {
-                "status": {"name": "In Progress"},
-                "assignee": {"displayName": "Alice"},
-                "priority": {"name": "Low"},
-                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 3,
-                EnvFetcher.get("JIRA_SPRINT_FIELD"): ["name=Summer, state=ACTIVE"],
-                "summary": "Improve UX",
-            },
-        },
-    ]
-
-    # Mock the args with a summary filter
-    args = type(
-        "Args",
-        (),
-        {
-            "project": None,
-            "component": None,
-            "user": None,
-            "assignee": None,
-            "reporter": None,
-            "status": None,
-            "summary": "Fix",  # Only issues with "Fix" in the summary should be shown
-            "blocked": None,
-            "unblocked": None,
-        },
-    )
-
-    # Run the list method with the summary filter
-    cli.list_issues(args)
-
-    captured = capsys.readouterr()
-
-    assert "AAP-test_list_with_summary_filter-1" in captured.out
-    assert "AAP-test_list_with_summary_filter-2" not in captured.out

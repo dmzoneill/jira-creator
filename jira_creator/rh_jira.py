@@ -116,6 +116,7 @@ class JiraCLI:
             "JPAT",
             "AI_PROVIDER",
             "AI_MODEL",
+            "AI_URL",
             "JIRA_URL",
             "PROJECT_KEY",
             "AFFECTS_VERSION",
@@ -129,7 +130,9 @@ class JiraCLI:
             "JIRA_BLOCKED_REASON_FIELD",
             "JIRA_STORY_POINTS_FIELD",
             "JIRA_SPRINT_FIELD",
+            "JIRA_VIEW_COLUMNS",
         ]
+
         EnvFetcher.fetch_all(required_vars)
         self.template_dir: Path = Path(EnvFetcher.get("TEMPLATE_DIR"))
         self.ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
@@ -291,6 +294,7 @@ class JiraCLI:
         search = add("search", "Search issues via JQL")
         search.add_argument("jql", help="JIRA Query Language expression")
 
+        # --- 🔍 List issues ---
         list_issues = add("list-issues", "List assigned issues")
         list_issues.add_argument("--project")
         list_issues.add_argument("--component")
@@ -309,6 +313,8 @@ class JiraCLI:
             help="Show blocked reason field in listing",
         )
         list_issues.add_argument("--reporter", help="Filter by JIRA issues by user")
+        list_issues.add_argument("--columns", help="The columns to show")
+        list_issues.add_argument("--sort", help="Sort the output by these columns")
 
         lint = add("lint", "Lint an issue for quality")
         lint.add_argument("issue_key", help="The Jira issue id/key")

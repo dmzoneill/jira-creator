@@ -22,14 +22,13 @@ Note:
 variable fetching and exception handling, respectively.
 """
 
-# pylint: disable=too-many-locals duplicate-code
+# pylint: disable=too-many-statements too-many-branches
 
-import re
 from argparse import Namespace
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Union
 
-from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import SearchError
+from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list
 from rest.client import JiraClient
 
 
@@ -57,56 +56,13 @@ def cli_search(jira: JiraClient, args: Namespace) -> Union[List[Any], bool]:
             print("❌ No issues found for the given JQL.")
             return False
 
-        rows: List[Tuple[str, str, str, str, str, str, str]] = []
-        for issue in issues:
-            f: dict = issue["fields"]
-            sprints: List[str] = f.get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
-            sprint: str = next(
-                (
-                    re.search(r"name=([^,]+)", s).group(1)
-                    for s in sprints
-                    if "state=ACTIVE" in s and "name=" in s
-                ),
-                "—",
-            )
+        headers, rows = massage_issue_list(args, issues)
+        format_and_print_rows(rows, headers, jira)
 
-            rows.append(
-                (
-                    issue["key"],
-                    f["status"]["name"],
-                    f["assignee"]["displayName"] if f["assignee"] else "Unassigned",
-                    f.get("priority", {}).get("name", "—"),
-                    str(f.get(EnvFetcher.get("JIRA_STORY_POINTS_FIELD"), "—")),
-                    sprint,
-                    f["summary"],
-                )
-            )
+        return rows
 
-        rows.sort(key=lambda r: (r[5], r[1]))
-
-        headers: List[str] = [
-            "Key",
-            "Status",
-            "Assignee",
-            "Priority",
-            "Points",
-            "Sprint",
-            "Summary",
-        ]
-        widths: List[int] = [
-            max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)
-        ]
-
-        header_fmt: str = " | ".join(h.ljust(w) for h, w in zip(headers, widths))
-        print(header_fmt)
-        print("-" * len(header_fmt))
-
-        for r in rows:
-            print(" | ".join(val.ljust(widths[i]) for i, val in enumerate(r)))
-
-        return issues
     except SearchError as e:
-        msg: str = f"❌ Failed to search issues: {e}"
+        msg = f"❌ Failed to search issues: {e}"
         print(msg)
         raise SearchError(e) from e
 

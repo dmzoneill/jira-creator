@@ -117,13 +117,23 @@ def test_format_and_print_rows(mock_print, cli):
         },
     ]
     # /* jscpd:ignore-end */
-    headers = ["summary"]
+    headers = [
+        "key",
+        "issuetype",
+        "status",
+        "assignee",
+        "reporter",
+        "priority",
+        "summary",
+        "sprint",
+        "customfield_12310243",
+    ]
 
     cli.jira.get_field_name = MagicMock()
     cli.jira.get_field_name.return_value = "story points"
 
     format_and_print_rows(rows, headers, cli.jira)
-    mock_print.assert_called()  # Check if print was called, you can extend this to check for specific calls
+    mock_print.assert_called()
 
 
 def test_clean_values():
@@ -177,25 +187,51 @@ def test_sort_rows_invalid_column():
 
 
 # Test for missing summary column handling
-def test_format_and_print_rows_missing_summary():
+def test_format_and_print_rows_missing_summary(cli):
+    # /* jscpd:ignore-start */
     rows = [
         {
             "key": "TEST-1",
-            "status": "To Do",
-            "assignee": "John Doe",
+            "issuetype": "story",
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "John Doe"},
+            "reporter": {"displayName": "john Swan"},
+            "priority": {"name": "High"},
             "summary": "Test issue 1",
+            "sprint": "Sprint 1",
+            "customfield_12310243": 5,
         },
         {
             "key": "TEST-2",
-            "status": "In Progress",
-            "assignee": "Jane Smith",
+            "issuetype": "story",
+            "status": {"name": "In Progress"},
+            "assignee": {"displayName": "Jane Smith"},
+            "reporter": {"displayName": "Mike Swan"},
+            "priority": {"name": "Medium"},
             "summary": "Test issue 2",
+            "sprint": "Sprint 2",
+            "customfield_12310243": 5,
         },
     ]
-    headers = ["key", "status", "assignee"]
+    # /* jscpd:ignore-end */
+
+    cli.jira.get_field_name = MagicMock()
+    cli.jira.get_field_name.return_value = "story points"
+
+    headers = [
+        "key",
+        "issuetype",
+        "status",
+        "assignee",
+        "reporter",
+        "priority",
+        "summary",
+        "sprint",
+        "customfield_12310243",
+    ]
 
     with patch("builtins.print") as mock_print:
-        format_and_print_rows(rows, headers, MagicMock())  # Pass a mock JiraClient
+        format_and_print_rows(rows, headers, cli.jira)  # Pass a mock JiraClient
         mock_print.assert_called()
 
 

@@ -98,30 +98,41 @@ def format_and_print_rows(
         updated_headers.index("summary") if "summary" in updated_headers else -1
     )
 
-    # Ensure summary_index is valid, otherwise use default column index
-    if summary_index == -1:
-        print(
-            "Warning: 'summary' column not found. It will not be displayed correctly."
-        )
-
     # Ensure that the rows match the expected number of columns
-    for r in rows:
-        if len(r) != len(updated_headers):
-            print(
-                f"Warning: Row length mismatch. Expected {len(updated_headers)} columns but got {len(r)}."
-            )
-            # Pad the row with placeholders to match the length of updated_headers
-            # while len(r) < len(updated_headers):
-            #     r = r + ("—",)  # Append placeholder values to match length
+    # for r in rows:
+    #     if len(r) != len(updated_headers):
+    #         print(
+    #             f"Warning: Row length mismatch. Expected {len(updated_headers)} columns but got {len(r)}."
+    #         )
+    # Pad the row with placeholders to match the length of updated_headers
+    # while len(r) < len(updated_headers):
+    #     r = r + ("—",)  # Append placeholder values to match length
 
     # Calculate the column widths dynamically based on the longest content
-    try:
-        widths = [
-            max(len(h), max((len(str(r[i])) for r in rows if len(r) > i), default=0))
-            for i, h in enumerate(updated_headers)
-        ]
-    except Exception as e:
-        raise Exception(e) from e
+    # try:
+    widths = [
+        max(
+            len(header),
+            max(
+                (
+                    (
+                        len(str(r.get(header, "")))
+                        if isinstance(r, dict)
+                        else (
+                            len(str(r[i]))  # fmt: skip
+                            if i < len(r)
+                            else 0
+                        )
+                    )
+                    for r in rows
+                ),
+                default=0,
+            ),
+        )
+        for i, header in enumerate(updated_headers)
+    ]
+    # except Exception as e:
+    #     raise e
 
     # Ensure that the summary column has a maximum width
     if summary_index != -1:

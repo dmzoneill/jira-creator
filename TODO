@@ -1,4 +1,5 @@
 Core
+  - functional end-to-test test with jira instance?
   - argparse nice output
   - mask private methods with _ prefix
   - type hardening tests
@@ -30,3 +31,4 @@ Modify
   - edit-issue --acceptance-criteria
     - Update acepance criteria from descirption (--ai) or user input
     - create linked issue
+

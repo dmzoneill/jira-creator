@@ -201,9 +201,13 @@ def test_format_and_print_rows_missing_summary():
 
 # Test for appending placeholders
 def test_clean_values_append_placeholders():
-    rows = [(None, "data", 3.0), (None, "text", 4.5)]
+    rows = [
+        (None, "data", 3.0),
+        (None, "text", 4.5),
+        (None, {"self": "", "value": "5"}, 4.5),
+    ]
     result = clean_values(rows)
-    assert result == [("—", "data", "3"), ("—", "text", "4.5")]
+    assert result == [("—", "data", "3"), ("—", "text", "4.5"), ("—", "5", "4.5")]
 
 
 # Test for truncating long summary field

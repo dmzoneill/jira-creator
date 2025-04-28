@@ -1,14 +1,17 @@
+import re
 import traceback
 from argparse import Namespace
 from typing import List, Tuple
 
 from core.env_fetcher import EnvFetcher
-from exceptions.exceptions import MissingConfigVariable
 from rest.client import JiraClient
 
 
 def fetch_view_columns() -> List[str]:
-    """Fetch the view columns from EnvFetcher or return None. If any entry contains 'JIRA.......FIELD', fetch the environment variable."""
+    """
+    Fetch the view columns from EnvFetcher or return None.
+    If any entry contains 'JIRA.......FIELD', fetch the environment variable.
+    """
     columns = EnvFetcher.get("JIRA_VIEW_COLUMNS")
     if columns:
         column_list = columns.split(",")
@@ -19,9 +22,7 @@ def fetch_view_columns() -> List[str]:
                 # Fetch the corresponding environment variable if it contains 'JIRA'
                 env_value = EnvFetcher.get(column)
                 if env_value:
-                    column_list[i] = (
-                        env_value  # Replace with the value fetched from the environment variable
-                    )
+                    column_list[i] = env_value
         return column_list
     return None
 
@@ -120,9 +121,7 @@ def format_and_print_rows(
             for i, h in enumerate(updated_headers)
         ]
     except Exception as e:
-        print("Error calculating column widths.")
-        traceback.print_exc()
-        return
+        raise Exception(e) from e
 
     # Ensure that the summary column has a maximum width
     if summary_index != -1:
@@ -137,7 +136,7 @@ def format_and_print_rows(
     print("-" * len(header_fmt))
 
     # Truncate long summary fields and print each row
-    truncate_length = 97
+    # truncate_length = 97
     for r in rows:
         r = list(r)
         # if summary_index != -1 and len(r[summary_index]) > max_summary_length:
@@ -156,7 +155,10 @@ def flatten_fields(issue: dict) -> dict:
 def clean_values(
     rows: List[Tuple], placeholder: str = "—", max_length: int = 60
 ) -> List[Tuple]:
-    """Replace None values with a placeholder, convert all values to strings, and truncate values longer than max_length."""
+    """
+    Replace None values with a placeholder, convert all values to strings,
+    and truncate values longer than max_length.
+    """
     cleaned_rows = []
     for row in rows:
         cleaned_row = []
@@ -167,8 +169,8 @@ def clean_values(
                 if isinstance(val, dict):
                     if "name" in val:
                         val = val["name"]
-                    # elif "value" in val:
-                    #     val = val["value"]
+                    elif "value" in val:
+                        val = val["value"]
 
                 if isinstance(val, float) and val.is_integer():
                     val = int(val)
@@ -184,7 +186,6 @@ def clean_values(
 
 
 def massage_issue_list(args: Namespace, issues: list[dict]):
-
     issues = [flatten_fields(issue) for issue in issues]
 
     # Get the view columns from EnvFetcher or use None

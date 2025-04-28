@@ -43,6 +43,8 @@ pyttsx3 = "*"
 gtts = "*"
 gTTS = "*"
 number_parser = "*"
+fontTools==4.57.0
+Requests==2.32.3
 
 
 [dev-packages]

@@ -4,7 +4,7 @@ Adds an issue to a sprint in Jira.
 
 This script provides a function 'cli_add_to_sprint' that adds an issue to a sprint in Jira. It takes two arguments:
 - jira (JIRA): An instance of the JIRA client.
-- args (Namespace): A namespace object containing 'issue_key' and 'sprint_name' attributes.
+- args (Namespace): A namespace object containing 'issue_key', 'sprint_name' and 'assignee' attributes.
 
 The function returns a boolean value:
 - True if the issue was successfully added to the sprint.

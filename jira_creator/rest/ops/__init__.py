@@ -32,7 +32,9 @@ from .remove_from_sprint import remove_from_sprint  # noqa
 from .search_issues import search_issues  # noqa
 from .search_users import search_users  # noqa
 from .set_acceptance_criteria import set_acceptance_criteria  # noqa
+from .set_component import set_component  # noqa
 from .set_priority import set_priority  # noqa
+from .set_project import set_project  # noqa
 from .set_sprint import set_sprint  # noqa
 from .set_status import set_status  # noqa
 from .set_story_epic import set_story_epic  # noqa

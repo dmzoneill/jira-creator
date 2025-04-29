@@ -24,6 +24,14 @@ class SetAcceptanceCriteriaError(BaseException):
     """This class represents a custom exception for errors related to setting acceptance criteria."""
 
 
+class SetProjectError(BaseException):
+    """This class represents a custom exception for errors related to setting the project."""
+
+
+class SetComponentError(BaseException):
+    """This class represents a custom exception for errors related to setting the component."""
+
+
 class DispatcherError(BaseException):
     """This class represents a custom exception called DispatcherError."""
 

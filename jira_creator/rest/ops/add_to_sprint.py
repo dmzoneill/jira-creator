@@ -38,7 +38,7 @@ def add_to_sprint(
     Add a specified sprint to a JIRA board using its name.
 
     Arguments:
-    - request_fn (Callable[[str, str, Dict[str, Any]], Dict[str, Any]]): A function used to make HTTP requests.
+    - request_fn (Callable[[str, str, Dict[str, Any]], Dict[str, Any]): A function used to make HTTP requests.
     - board_id (str): The ID of the JIRA board to which the sprint will be added.
     - issue_key (str): The key of the JIRA issue to be added to the sprint.
     - sprint_name (str): The name of the sprint to be added to the board.

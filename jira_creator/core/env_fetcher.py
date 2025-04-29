@@ -1,16 +1,21 @@
 #!/usr/bin/env python
 """
-This module provides a class, EnvFetcher, to fetch and validate Jira-related environment variables. It includes methods
-to fetch the value of a specific environment variable and to fetch all required Jira-related environment variables.
+This module provides the EnvFetcher class, which is responsible for fetching and validating Jira-related environment
+variables.
 
-The EnvFetcher class offers the following functionality:
+The EnvFetcher class includes methods to retrieve individual environment variable values and to collect all required
+Jira-related environment variables in a single call. It ensures that all necessary environment variables are set, which
+is crucial for the proper functioning of applications interacting with Jira.
 
-- Fetch individual environment variable values, with validation to ensure they are set.
-- Retrieve all specified Jira-related environment variables in a single call.
+Key attributes include:
+- JIRA_URL: URL of the Jira instance.
+- PROJECT_KEY: Key of the Jira project.
+- JPAT: Personal access token for Jira.
+- Various custom field identifiers for Jira issues.
 
-Attributes include various configuration options needed for interacting with Jira, such as the Jira instance URL,
-project key, personal access token, and custom field identifiers. The class is designed to ensure that all necessary
-environment variables are available for proper functionality.
+Methods:
+- get(var_name): Fetches the value of a specified environment variable, raising an error if it is not set.
+- fetch_all(env_vars): Retrieves all specified Jira-related environment variables, returning them as a dictionary.
 """
 
 # core/jira_env_fetcher.py

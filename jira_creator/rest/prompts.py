@@ -72,7 +72,6 @@ class PromptLibrary:
 
         Exceptions:
         - FileNotFoundError: Raised if the template file specified by 'full_name' does not exist.
-
         """
         template: str = ""
         template_path: str = os.path.join(TEMPLATE_DIR, f"{full_name}.tmpl")

@@ -3,11 +3,11 @@
 A function to retrieve the description of a Jira issue using the provided request function and issue key.
 
 Parameters:
-request_fn (callable): A function used to make HTTP requests.
-issue_key (str): The key of the Jira issue for which the description is to be retrieved.
+- request_fn (callable): A function used to make HTTP requests.
+- issue_key (str): The key of the Jira issue for which the description is to be retrieved.
 
 Returns:
-str: The description of the Jira issue corresponding to the provided issue key. Returns an empty string if no
+- str: The description of the Jira issue corresponding to the provided issue key. Returns an empty string if no
 description is found.
 """
 

@@ -49,3 +49,5 @@ from .cli_view_user import cli_view_user  # noqa
 from .cli_vote_story_points import cli_vote_story_points  # noqa
 
 CliCommand: Callable[..., None]
+from .cli_set_component import cli_set_component  # noqa
+from .cli_set_project import cli_set_project  # noqa

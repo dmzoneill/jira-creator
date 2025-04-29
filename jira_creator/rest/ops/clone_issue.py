@@ -25,7 +25,6 @@ def clone_issue(request_fn: Callable[[str, str, Dict], Dict], issue_key: str) ->
 
     Return:
     - Dict: A dictionary representing the newly created issue.
-
     """
     path = f"/rest/api/2/issue/{issue_key}/flags"
     return request_fn("POST", path, json_data={})

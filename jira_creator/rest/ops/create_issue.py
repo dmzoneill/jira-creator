@@ -26,6 +26,5 @@ def create_issue(request_fn: Callable[[str, str, Dict], Dict], payload: Dict) ->
     Return:
     - str: The key of the created issue, extracted from the response data. Returns an empty string if the key is not
     found in the response.
-
     """
     return request_fn("POST", "/rest/api/2/issue/", json_data=payload).get("key", "")

@@ -6,7 +6,7 @@ and calls the 'create_issue' method with the provided arguments. After the test,
 """
 
 import tempfile
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 
 def test_create_editor(cli):
@@ -21,25 +21,30 @@ def test_create_editor(cli):
     - Mocks the 'improve_text' method of the AI provider to return a test value.
     """
 
-    # Mocking the methods
-    cli.jira.create_issue = MagicMock(return_value="AAP-test_create_editor")
-    cli.ai_provider.improve_text = MagicMock(return_value="description")
+    with patch("commands.cli_create_issue.get_ai_provider") as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "description"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    # Create a temporary file and write the description into it
-    with tempfile.NamedTemporaryFile(delete=False, mode="w+") as tf:
-        tf.write("description")
-        tf.flush()
-        tf.seek(0)
+        # Mocking the methods
+        cli.jira.create_issue = MagicMock(return_value="AAP-test_create_editor")
 
-    # Set the Args for the CLI command
-    class Args:
-        type = "story"
-        summary = "My Summary"
-        edit = True
-        dry_run = False
+        # Create a temporary file and write the description into it
+        with tempfile.NamedTemporaryFile(delete=False, mode="w+") as tf:
+            tf.write("description")
+            tf.flush()
+            tf.seek(0)
 
-    # Call the create method
-    cli.create_issue(Args())
+        # Set the Args for the CLI command
+        class Args:
+            type = "story"
+            summary = "My Summary"
+            edit = True
+            dry_run = False
 
-    # Cleanup the temp file after the test
-    # os.remove(tf.name)
+        # Call the create method
+        cli.create_issue(Args())
+
+        # Cleanup the temp file after the test
+        # os.remove(tf.name)

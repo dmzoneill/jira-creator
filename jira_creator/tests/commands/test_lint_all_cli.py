@@ -148,109 +148,111 @@ def test_lint_all_all_pass(mock_save_cache, cli, capsys):
     - capsys: Capturing system standard output and error streams.
     """
 
-    cli.jira = MagicMock()
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands.cli_validate_issue.get_ai_provider") as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "Ok"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    # Mock the AI provider (if used in validation)
-    cli.ai_provider = MagicMock()
-    cli.ai_provider.improve_text.return_value = "OK"
-
-    # Mock list of issues
-    cli.jira.list_issues.return_value = [
-        {
-            "key": "AAP-test_lint_all_all_pass-1",
-            "fields": {
-                "issuetype": {"name": "Story"},
-                "status": {"name": "Refinement"},
-                "reporter": None,
+        # Mock list of issues
+        cli.jira.list_issues.return_value = [
+            {
+                "key": "AAP-test_lint_all_all_pass-1",
+                "fields": {
+                    "issuetype": {"name": "Story"},
+                    "status": {"name": "Refinement"},
+                    "reporter": None,
+                },
             },
-        },
-        {
-            "key": "AAP-test_lint_all_all_pass-2",
-            "fields": {
-                "issuetype": {"name": "Story"},
-                "status": {"name": "Refinement"},
-                "reporter": None,
+            {
+                "key": "AAP-test_lint_all_all_pass-2",
+                "fields": {
+                    "issuetype": {"name": "Story"},
+                    "status": {"name": "Refinement"},
+                    "reporter": None,
+                },
             },
-        },
-    ]
+        ]
 
-    # Mock the request function to return the issue details
-    def mock_request(method, path, **kwargs):
-        """
-        Simulate a mock request and return a dictionary with predefined fields.
+        # Mock the request function to return the issue details
+        def mock_request(method, path, **kwargs):
+            """
+            Simulate a mock request and return a dictionary with predefined fields.
 
-        Arguments:
-        - method (str): The HTTP method used in the request.
-        - path (str): The path or endpoint of the request.
-        - **kwargs: Additional keyword arguments that are not used in this function.
+            Arguments:
+            - method (str): The HTTP method used in the request.
+            - path (str): The path or endpoint of the request.
+            - **kwargs: Additional keyword arguments that are not used in this function.
 
-        Return:
-        - dict: A dictionary containing predefined fields such as summary, description, priority, status, assignee, etc.
+            Return:
+            - dict: A dictionary containing predefined fields such as summary,
+                    description, priority, status, assignee, etc.
 
-        Side Effects:
-        - This function does not have any side effects as it only returns a predefined dictionary.
-        """
+            Side Effects:
+            - This function does not have any side effects as it only returns a predefined dictionary.
+            """
 
-        return {
-            "fields": {
-                "summary": "OK",
-                "description": "OK",
-                "priority": {"name": "High"},
-                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
-                EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "False"},
-                EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
-                "status": {"name": "Refinement"},  # Status is "Refinement"
-                "assignee": {"displayName": "Someone"},
-                EnvFetcher.get(
-                    "JIRA_EPIC_FIELD"
-                ): "AAP-test_lint_all_all_pass-3",  # No Epic assigned for Story issues with Refinement status
-                "reporter": None,
+            return {
+                "fields": {
+                    "summary": "OK",
+                    "description": "OK",
+                    "priority": {"name": "High"},
+                    EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+                    EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "False"},
+                    EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
+                    "status": {"name": "Refinement"},  # Status is "Refinement"
+                    "assignee": {"displayName": "Someone"},
+                    EnvFetcher.get(
+                        "JIRA_EPIC_FIELD"
+                    ): "AAP-test_lint_all_all_pass-3",  # No Epic assigned for Story issues with Refinement status
+                    "reporter": None,
+                }
             }
-        }
 
-    cli.jira.request = mock_request
+        cli.jira.request = mock_request
 
-    # Ensure the Args object has the required 'project' and other attributes
-    class Args1:
-        project = "TestProject"
-        component = "analytics-hcc-service"
-        reporter = None
-        assignee = None
+        # Ensure the Args object has the required 'project' and other attributes
+        class Args1:
+            project = "TestProject"
+            component = "analytics-hcc-service"
+            reporter = None
+            assignee = None
 
-    # Patch validate where it's imported (in the lint_all module, not edit_issue)
-    with patch(
-        "commands.cli_lint_all.validate", return_value=[[], []]
-    ):  # Correct patch for the validate function used in lint_all
-        cli.lint_all(Args1())
+        # Patch validate where it's imported (in the lint_all module, not edit_issue)
+        with patch(
+            "commands.cli_lint_all.validate", return_value=[[], []]
+        ):  # Correct patch for the validate function used in lint_all
+            cli.lint_all(Args1())
 
-        # Capture and print output
-        captured = capsys.readouterr()
-        print(f"Captured Output:\n{captured.out}")
+            # Capture and print output
+            captured = capsys.readouterr()
+            print(f"Captured Output:\n{captured.out}")
 
-        # Check assertions: we expect all issues to pass lint checks
-        assert "✅ AAP-test_lint_all_all_pass-1 OK passed" in captured.out
-        assert "✅ AAP-test_lint_all_all_pass-2 OK passed" in captured.out
+            # Check assertions: we expect all issues to pass lint checks
+            assert "✅ AAP-test_lint_all_all_pass-1 OK passed" in captured.out
+            assert "✅ AAP-test_lint_all_all_pass-2 OK passed" in captured.out
 
-    # Ensure the Args object has the required 'project' and other attributes
-    class Args2:
-        project = "TestProject"
-        component = "analytics-hcc-service"
-        reporter = "John"
-        assignee = None
+        # Ensure the Args object has the required 'project' and other attributes
+        class Args2:
+            project = "TestProject"
+            component = "analytics-hcc-service"
+            reporter = "John"
+            assignee = None
 
-    # Patch validate where it's imported (in the lint_all module, not edit_issue)
-    with patch(
-        "commands.cli_lint_all.validate", return_value=[[], []]
-    ):  # Correct patch for the validate function used in lint_all
-        cli.lint_all(Args2())
+        # Patch validate where it's imported (in the lint_all module, not edit_issue)
+        with patch(
+            "commands.cli_lint_all.validate", return_value=[[], []]
+        ):  # Correct patch for the validate function used in lint_all
+            cli.lint_all(Args2())
 
-        # Capture and print output
-        captured = capsys.readouterr()
-        print(f"Captured Output:\n{captured.out}")
+            # Capture and print output
+            captured = capsys.readouterr()
+            print(f"Captured Output:\n{captured.out}")
 
-        # Check assertions: we expect all issues to pass lint checks
-        assert "✅ AAP-test_lint_all_all_pass-1 OK passed" in captured.out
-        assert "✅ AAP-test_lint_all_all_pass-2 OK passed" in captured.out
+            # Check assertions: we expect all issues to pass lint checks
+            assert "✅ AAP-test_lint_all_all_pass-1 OK passed" in captured.out
+            assert "✅ AAP-test_lint_all_all_pass-2 OK passed" in captured.out
 
 
 def test_lint_all_no_issues(mock_save_cache, cli, capsys):
@@ -266,25 +268,25 @@ def test_lint_all_no_issues(mock_save_cache, cli, capsys):
     - Sets up a mock Jira object and its AI provider in the CLI object.
     """
 
-    cli.jira = MagicMock()
-    cli.jira.ai_provider = MagicMock()
+    with patch("commands.cli_validate_issue.get_ai_provider") as ai_provider:
+        ai_provider.improve_text = MagicMock()
+        ai_provider.improve_text.return_value = "OK"
+        cli.jira.list_issues.return_value = []
 
-    cli.jira.list_issues.return_value = []
+        cli.lint_all(Args())
+        out = capsys.readouterr().out
 
-    cli.lint_all(Args())
-    out = capsys.readouterr().out
+        assert "✅ No issues assigned to you." in out
 
-    assert "✅ No issues assigned to you." in out
+        cli.lint_all(ArgsReporter())
+        out = capsys.readouterr().out
 
-    cli.lint_all(ArgsReporter())
-    out = capsys.readouterr().out
+        assert "✅ No issues assigned to you." in out
 
-    assert "✅ No issues assigned to you." in out
+        cli.lint_all(ArgsAssignee())
+        out = capsys.readouterr().out
 
-    cli.lint_all(ArgsAssignee())
-    out = capsys.readouterr().out
-
-    assert "✅ No issues assigned to you." in out
+        assert "✅ No issues assigned to you." in out
 
 
 def test_lint_all_exception(mock_save_cache, cli, capsys):

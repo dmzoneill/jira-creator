@@ -133,11 +133,11 @@ class OpenAICost:
 
 class OpenAIProvider:
     def __init__(self):
-        self.api_key = os.getenv("AI_API_KEY")
+        self.api_key = os.getenv("JIRA_AI_API_KEY")
         if not self.api_key:
-            raise EnvironmentError("AI_API_KEY not set in environment.")
+            raise EnvironmentError("JIRA_AI_API_KEY not set in environment.")
         self.endpoint = "https://api.openai.com/v1/chat/completions"
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4")
+        self.model = os.getenv("OPENJIRA_AI_MODEL", "gpt-4")
 
     def estimate_tokens(self, text: str) -> int:
         tokens = len(text) // 3  # Using the 3 bytes per token estimation

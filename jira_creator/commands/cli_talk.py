@@ -178,7 +178,7 @@ def normalize_issue_references(text: str) -> str:
     - Calls word_digits_to_numbers to convert word digits to numbers.
     - Modifies the input text by replacing 'issue <digits>' references with 'PROJECTKEY-<digits>'.
     """
-    project_key = EnvFetcher.get("PROJECT_KEY") or "AAP"
+    project_key = EnvFetcher.get("JIRA_PROJECT_KEY") or "AAP"
 
     text = fuzzy_digit_cleanup(text)
     text = word_digits_to_numbers(text)
@@ -247,7 +247,7 @@ def initialize_recognizer() -> KaldiRecognizer:
     Returns:
     KaldiRecognizer: An instance of the KaldiRecognizer class initialized with the VOSK model.
     """
-    model = Model(EnvFetcher.get("VOSK_MODEL"))
+    model = Model(EnvFetcher.get("JIRA_VOSK_MODEL"))
     rec = KaldiRecognizer(model, 16000)
     return rec
 

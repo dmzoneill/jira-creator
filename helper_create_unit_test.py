@@ -7,9 +7,9 @@ import requests
 CLI_TEST_PATH = "tests/commands/test_{command_name}_cli.py"
 REST_TEST_PATH = "tests/rest/ops/test_{command_name}.py"
 
-api_key = os.environ.get("AI_API_KEY")
+api_key = os.environ.get("JIRA_AI_API_KEY")
 endpoint = "https://api.openai.com/v1/chat/completions"
-model = os.environ.get("AI_MODEL")
+model = os.environ.get("JIRA_AI_MODEL")
 
 
 def extract_tests_from_output(output):

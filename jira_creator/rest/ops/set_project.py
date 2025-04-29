@@ -3,12 +3,12 @@
 A function to set the project for a specific issue in Jira.
 
 Args:
-request_fn (function): The function used to make the API request.
-issue_key (str): The key of the issue in Jira.
-project (str): The key of the project to set for the issue.
+- request_fn (function): A function used to send HTTP requests.
+- issue_key (str): The key of the issue to update.
+- project (str): The key of the project to set for the issue.
 
 Returns:
-dict: The response from the API request.
+- dict: A dictionary representing the response from the HTTP request.
 """
 
 
@@ -23,7 +23,6 @@ def set_project(request_fn, issue_key, project) -> dict:
 
     Return:
     - dict: A dictionary representing the response from the HTTP request.
-
     """
     path = f"/rest/api/2/issue/{issue_key}"
     payload = {"fields": {"project": {"key": project}}}

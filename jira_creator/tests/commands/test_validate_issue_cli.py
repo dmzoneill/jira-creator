@@ -145,26 +145,27 @@ def test_acceptance_criteria_no_change_but_invalid(mock_load_cache, mock_save_ca
     Improvement".
     """
 
-    ai_provider = MagicMock()
-    ai_provider.improve_text.return_value = "Needs Improvement"
+    with patch("commands.cli_validate_issue.get_ai_provider") as ai_provider:
+        ai_provider.improve_text = MagicMock()
+        ai_provider.improve_text.return_value = "Needs Improvement"
 
-    fields = generate_fields(
-        "AAP-test_acceptance_criteria_no_change_but_invalid",
-        acceptance_criteria="Needs Improvement",
-    )
-    cached_data = generate_cached_data(fields)
+        fields = generate_fields(
+            "AAP-test_acceptance_criteria_no_change_but_invalid",
+            acceptance_criteria="Needs Improvement",
+        )
+        cached_data = generate_cached_data(fields)
 
-    with patch("commands.cli_validate_issue.save_cache"):
-        with patch(
-            "commands.cli_validate_issue.load_cache",
-            return_value={fields["key"]: cached_data},
-        ):
-            problems = cli_validate_issue(fields, ai_provider)[0]
-            assert "❌ Acceptance Criteria: Needs Improvement" in problems
-            assert (
-                "❌ Acceptance Criteria: Check the quality of the following Jira acceptance criteria."
-                not in problems
-            )
+        with patch("commands.cli_validate_issue.save_cache"):
+            with patch(
+                "commands.cli_validate_issue.load_cache",
+                return_value={fields["key"]: cached_data},
+            ):
+                problems = cli_validate_issue(fields)[0]
+                assert "❌ Acceptance Criteria: Needs Improvement" in problems
+                assert (
+                    "❌ Acceptance Criteria: Check the quality of the following Jira acceptance criteria."
+                    not in problems
+                )
 
 
 def test_acceptance_criteria_validation(mock_save_cache, cli, capsys):
@@ -180,17 +181,21 @@ def test_acceptance_criteria_validation(mock_save_cache, cli, capsys):
     - Sets up a MagicMock object 'ai_provider' for AI text improvement with a return value of "OK".
     """
 
-    ai_provider = MagicMock()
-    ai_provider.improve_text.return_value = "OK"
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands.cli_validate_issue.get_ai_provider") as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "ok"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    fields = generate_fields("AAP-test_acceptance_criteria_validation")
+        fields = generate_fields("AAP-test_acceptance_criteria_validation")
 
-    with patch(
-        "commands.cli_validate_issue.load_cache",
-        return_value={fields["key"]: {"acceptance_criteria_hash": "old_hash"}},
-    ):
-        problems = cli_validate_issue(fields, ai_provider)[0]
-        assert [] == problems
+        with patch(
+            "commands.cli_validate_issue.load_cache",
+            return_value={fields["key"]: {"acceptance_criteria_hash": "old_hash"}},
+        ):
+            problems = cli_validate_issue(fields)[0]
+            assert [] == problems
 
 
 def test_description_no_change_but_invalid(mock_save_cache, cli, capsys):
@@ -208,28 +213,33 @@ def test_description_no_change_but_invalid(mock_save_cache, cli, capsys):
     Return: N/A
     """
 
-    ai_provider = MagicMock()
-    ai_provider.improve_text.return_value = "Needs Improvement"
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands.cli_validate_issue.get_ai_provider") as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "ok"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    fields = generate_fields(
-        "AAP-test_description_no_change_but_invalid", description="Needs Improvement"
-    )
-    cached_data = generate_cached_data(
-        fields, acceptance_criteria_value="Needs Improvement"
-    )
+        fields = generate_fields(
+            "AAP-test_description_no_change_but_invalid",
+            description="Needs Improvement",
+        )
+        cached_data = generate_cached_data(
+            fields, acceptance_criteria_value="Needs Improvement"
+        )
 
-    with patch(
-        "commands.cli_validate_issue.load_cache",
-        return_value={fields["key"]: cached_data},
-    ):
-        with patch("commands.cli_validate_issue.save_cache") as _:
-            problems = cli_validate_issue(fields, ai_provider)[0]
-            # Now check for "Description" since we correctly set the description in the cached data
-            assert "❌ Description: Needs Improvement" in problems
-            assert (
-                "❌ Description: Check the quality of the following Jira description."
-                not in problems
-            )
+        with patch(
+            "commands.cli_validate_issue.load_cache",
+            return_value={fields["key"]: cached_data},
+        ):
+            with patch("commands.cli_validate_issue.save_cache") as _:
+                problems = cli_validate_issue(fields)[0]
+                # Now check for "Description" since we correctly set the description in the cached data
+                assert "❌ Description: Needs Improvement" in problems
+                assert (
+                    "❌ Description: Check the quality of the following Jira description."
+                    not in problems
+                )
 
 
 def test_cli_validate_issue(cli):

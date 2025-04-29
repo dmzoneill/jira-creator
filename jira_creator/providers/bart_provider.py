@@ -3,7 +3,7 @@
 This module provides the BARTProvider class for enhancing text using the BART (Bidirectional and Auto-Regressive
 Transformers) model via HTTP POST requests to a specified AI service endpoint.
 
-The BARTProvider class is initialized using the "AI_URL" environment variable to set the endpoint URL. It includes
+The BARTProvider class is initialized using the "JIRA_AI_URL" environment variable to set the endpoint URL. It includes
 error handling for HTTP request failures, raising an AiError when necessary.
 
 Key Attributes:
@@ -30,7 +30,8 @@ class BARTProvider(AIProvider):
     Transformers) model.
 
     Attributes:
-    - url (str): The URL endpoint to communicate with the BART model, fetched from the environment variable "AI_URL".
+    - url (str): The URL endpoint to communicate with the BART model, fetched from the environment variable
+    "JIRA_AI_URL".
     - headers (dict): A dictionary containing headers for the HTTP request, defaulting to {"Content-Type":
     "application/json"}.
 
@@ -49,7 +50,7 @@ class BARTProvider(AIProvider):
         Initialize the class with a URL and headers for API requests.
         """
 
-        self.url = EnvFetcher.get("AI_URL")
+        self.url = EnvFetcher.get("JIRA_AI_URL")
         self.headers = {"Content-Type": "application/json"}
 
     def improve_text(self, prompt: str, text: str) -> str:

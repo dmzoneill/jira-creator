@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 """
-This module provides a function to migrate an issue in Jira from one key to another.
+This module provides functionality to migrate issues in Jira from one key to another.
 
-The `migrate_issue` function takes four parameters:
-- `request_fn`: A Callable that sends requests to the Jira API.
-- `jira_url`: A string representing the base URL of the Jira instance.
-- `build_payload_fn`: A Callable that builds the payload for creating a new issue.
-- `old_key`: A string representing the key of the issue to be migrated.
-- `new_type`: A string representing the type of the new issue.
+It includes a single function, `migrate_issue`, which facilitates the process of transferring an issue's details
+from an existing issue to a new one of a specified type. The function handles the retrieval of the old issue's
+details, the creation of a new issue, and updates the old issue with migration comments. Additionally, it
+transitions the old issue to a final state if applicable.
 
-The function retrieves the details of the old issue, creates a new issue with the provided type, and updates the old
-issue with a comment indicating the migration. It also transitions the old issue to a final state if possible.
+Key Features:
+- Migrate an issue from one type to another in Jira.
+- Automatically create a new issue and update the old issue with migration information.
+- Support for transitioning the old issue to a completed state.
 
-Returns the key of the newly created issue.
+Function:
+- `migrate_issue(request_fn, jira_url, build_payload_fn, old_key, new_type)`: Migrates the specified issue
+and returns the key of the newly created issue.
 """
 from typing import Any, Callable, Dict
 
@@ -41,7 +43,6 @@ def migrate_issue(
     - Creates a new issue in Jira based on the provided parameters.
     - Updates the description of the old issue with migration information.
     - Moves the old issue to a transition status if applicable.
-
     """
     fields = request_fn("GET", f"/rest/api/2/issue/{old_key}")["fields"]
     summary = fields.get("summary", f"Migrated from {old_key}")

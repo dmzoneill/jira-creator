@@ -42,6 +42,10 @@ def cli_search(jira: JiraClient, args: Namespace) -> Union[List[Any], bool]:
     - args: An object containing the parsed command-line arguments.
     It should have a 'jql' attribute representing the Jira Query Language query.
 
+    Return:
+    - If issues are found based on the JQL query, it returns a list of dictionaries representing the found issues.
+    - If no issues are found or the search fails, it returns False.
+
     Exceptions:
     - This function may raise exceptions related to the Jira API or invalid queries.
 

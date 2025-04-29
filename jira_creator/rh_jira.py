@@ -25,7 +25,8 @@ Dependencies:
 Usage:
 Run the script from the command line, providing appropriate subcommands and arguments based on the desired action.
 """
-# pylint: disable=import-outside-toplevel, too-many-locals, too-many-statements, too-many-public-methods
+# pylint: disable=import-outside-toplevel, too-many-locals, too-many-statements
+# pylint: disable=too-many-public-methods, too-many-lines
 import os
 import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
@@ -75,6 +76,8 @@ from commands import (  # isort: skip
     cli_set_summary,
     cli_clone_issue,
     cli_get_sprint,
+    cli_set_project,
+    cli_set_component,
     # commands entry
 )
 
@@ -366,6 +369,14 @@ class JiraCLI:
         clone_issue.add_argument("issue_key", help="The key of the issue")
 
         add("get-sprint", "Add a flag to a specific issue")
+
+        set_project = add("set-project", "Add a flag to a specific issue")
+        set_project.add_argument("issue_key", help="The key of the issue")
+        set_project.add_argument("flag_name", help="The name of the flag to add")
+
+        set_component = add("set-component", "Add a flag to a specific issue")
+        set_component.add_argument("issue_key", help="The key of the issue")
+        set_component.add_argument("flag_name", help="The name of the flag to add")
 
         # Add your other subcommands here
 
@@ -957,6 +968,34 @@ class JiraCLI:
         - None
         """
         return cli_get_sprint(self.jira, args)
+
+    def set_project(self, args: Namespace) -> None:
+        """
+        Set the project using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments needed to set the project.
+
+        Side Effects:
+        - Modifies the project using the provided arguments.
+
+        """
+        return cli_set_project(self.jira, args)
+
+    def set_component(self, args: Namespace) -> None:
+        """
+        Set a component for an issue in Jira using the provided arguments.
+
+        Arguments:
+        - self: The object instance.
+        - args (Namespace): A Namespace object containing the arguments required to set a component for an issue.
+
+        Exceptions:
+        None
+
+        """
+        return cli_set_component(self.jira, args)
 
     # add new df here
 

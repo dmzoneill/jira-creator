@@ -73,6 +73,8 @@ from .ops import (  # isort: skip
     set_summary,
     clone_issue,
     get_sprint,
+    set_project,
+    set_component,
 )
 
 
@@ -508,8 +510,7 @@ class JiraClient:
         Get the current user.
 
         Arguments:
-        - self: The instance of the class.
-        It is used to access the instance attributes and methods.
+        - self: The instance of the class. It is used to access the instance attributes and methods.
 
         Return:
         - Any: The current user object retrieved from the request.
@@ -664,6 +665,7 @@ class JiraClient:
         Arguments:
         - issue_key (str): The key of the issue to be added to the sprint.
         - sprint_name (str): The name of the sprint to add the issue to.
+        - assignee (str): The assignee to be assigned to the issue.
 
         Side Effects:
         Modifies the sprint by adding the specified issue to it.
@@ -894,5 +896,34 @@ class JiraClient:
         """
         return get_sprint(self.request)
 
+    # /* jscpd:ignore-end */
 
-# /* jscpd:ignore-end */
+    def set_project(self, issue_key, flag_name):
+        """
+        Set the project for a given issue using the provided issue key and flag name.
+
+        Arguments:
+        - self: The object instance.
+        - issue_key (str): The key of the issue to set the project for.
+        - flag_name (str): The name of the flag to be set for the project.
+
+        Return:
+        - The result of calling the 'set_project' function with the request, issue key, and flag name.
+
+        """
+        return set_project(self._request, issue_key, flag_name)
+
+    def set_component(self, issue_key, flag_name):
+        """
+        Sets a component for a given issue identified by its key.
+
+        Arguments:
+        - self: The object instance.
+        - issue_key (str): The key of the issue for which the component will be set.
+        - flag_name (str): The name of the component to be set for the issue.
+
+        Return:
+        - set_component: The result of setting the component for the specified issue.
+
+        """
+        return set_component(self._request, issue_key, flag_name)

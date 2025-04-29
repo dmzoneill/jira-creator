@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 """
 Defines a function to unblock a Jira issue by updating specific fields.
-The function 'unblock_issue' takes a request function, issue key, and updates the Jira issue fields.
+The function 'unblock_issue' takes a request function and issue key to update the Jira issue fields.
+
 Parameters:
 - request_fn: A callable function to make the request with method, URL, and JSON payload.
 - issue_key: A string representing the key of the Jira issue to unblock.
+
 Returns:
 - None
+
+Side Effects:
+- Modifies the specified JIRA issue by updating the blocked field and reason field to mark it as unblocked.
 """
 from typing import Callable
 

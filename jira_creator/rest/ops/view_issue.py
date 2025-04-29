@@ -7,6 +7,18 @@ The view_issue function takes two parameters:
 - issue_key: a string representing the key of the issue to retrieve
 
 It returns a dictionary containing the fields of the requested issue.
+
+The view_issue function retrieves information about a specific issue from a Jira instance.
+
+Arguments:
+- request_fn (Callable[[str, str], Dict[str, Any]): A function that makes HTTP requests to the Jira API.
+- issue_key (str): The key of the issue to retrieve information for.
+
+Return:
+- Dict[str, Any]: A dictionary containing the fields of the specified issue.
+
+Exceptions:
+- None
 """
 from typing import Any, Callable, Dict
 

@@ -1,3 +1,28 @@
+#!/usr/bin/env python
+"""
+This module provides functionality to interact with JIRA issues, including fetching view columns, sorting, filtering,
+and formatting issue data for display.
+
+Functions:
+- fetch_view_columns: Retrieves view columns from the environment or returns None. If any column contains 'JIRA', it
+fetches the corresponding environment variable.
+- get_sorted_columns: Parses a sorting string to return a list of tuples containing column names and their sort order.
+- filter_columns: Filters issue data based on specified view columns.
+- sort_rows: Sorts a list of rows based on specified sort columns and their order.
+- format_and_print_rows: Formats and prints rows of issue data, adjusting for column widths and ensuring proper
+alignment.
+- flatten_fields: Flattens the fields dictionary in a JIRA issue into the parent dictionary.
+- clean_values: Cleans up issue data by replacing None values with a placeholder, converting values to strings, and
+truncating overly long values.
+- massage_issue_list: Processes a list of JIRA issues, applying flattening, filtering, and sorting, and prepares the
+data for display.
+
+Dependencies:
+- EnvFetcher: Used to retrieve environment variables.
+- JiraClient: Used to interact with JIRA fields.
+
+This module is intended for use in a command-line interface or script that processes and displays JIRA issue data.
+"""
 import re
 import traceback
 from argparse import Namespace
@@ -11,6 +36,16 @@ def fetch_view_columns() -> List[str]:
     """
     Fetch the view columns from EnvFetcher or return None.
     If any entry contains 'JIRA.......FIELD', fetch the environment variable.
+
+    Arguments:
+    No arguments.
+
+    Return:
+    List[str]: A list of view columns where each column may be replaced with an environment variable value.
+
+    Exceptions:
+    No exceptions are raised.
+
     """
     columns = EnvFetcher.get("JIRA_VIEW_COLUMNS")
     if columns:
@@ -28,7 +63,19 @@ def fetch_view_columns() -> List[str]:
 
 
 def get_sorted_columns(sort_string: str) -> List[Tuple[str, str]]:
-    """Parse the sort argument and return a list of tuples containing column and order."""
+    """
+    Parse the sort argument and return a list of tuples containing column and order.
+
+    Arguments:
+    - sort_string (str): A string representing the sort argument with columns and order separated by commas.
+
+    Return:
+    - List[Tuple[str, str]]: A list of tuples where each tuple contains a column name and its corresponding order
+    (either "asc" for ascending or "desc" for descending).
+
+    Side Effects:
+    None
+    """
     sort_columns = []
     for sort_item in sort_string.split(","):
         sort_item = sort_item.strip()
@@ -52,7 +99,16 @@ def get_sorted_columns(sort_string: str) -> List[Tuple[str, str]]:
 
 
 def filter_columns(issue: dict, view_columns: List[str]) -> List[str]:
-    """Filter the columns based on view_columns."""
+    """
+    Filter the columns based on view_columns.
+
+    Arguments:
+    - issue (dict): A dictionary representing an issue with column names as keys.
+    - view_columns (List[str]): A list of column names to filter.
+
+    Return:
+    - List[str]: A list of values from the issue dictionary corresponding to the columns present in view_columns.
+    """
     result = []
     for col in view_columns:
         if col in issue:
@@ -63,7 +119,22 @@ def filter_columns(issue: dict, view_columns: List[str]) -> List[str]:
 def sort_rows(
     rows: List[Tuple], sort_columns: List[Tuple[str, str]], headers: List[str]
 ) -> List[Tuple]:
-    """Sort the rows based on the sort columns."""
+    """
+    Sort the rows based on the specified columns.
+
+    Arguments:
+    - rows (List[Tuple]): A list of tuples representing the rows to be sorted.
+    - sort_columns (List[Tuple[str, str]]): A list of tuples where each tuple contains the column name and the sort
+    order ("asc" or "desc").
+    - headers (List[str]): A list of column headers used to map column names to indices.
+
+    Return:
+    - List[Tuple]: A list of tuples representing the sorted rows based on the specified columns.
+
+    Exceptions:
+    - Any exception that occurs during the sorting process will be caught and printed with details.
+
+    """
     try:
         for col, order in reversed(sort_columns):
             col_index = headers.index(col)  # Use headers passed as an argument
@@ -78,7 +149,19 @@ def sort_rows(
 def format_and_print_rows(
     rows: List[Tuple], headers: List[str], jira_client: JiraClient
 ) -> None:
-    """Format the rows to match the columns and print."""
+    """
+    Format the rows to match the columns and print.
+
+    Arguments:
+    - rows: List of tuples representing the rows to be formatted.
+    - headers: List of strings representing the column headers.
+    - jira_client: JiraClient object used to interact with Jira for field name retrieval.
+
+    Side Effects:
+    - Modifies the headers list to update JIRA field names if necessary.
+
+    Note: The function does not return any value.
+    """
     max_summary_length = 60
 
     # Reverse the operation: Replace column names with environment variable keys
@@ -157,7 +240,16 @@ def format_and_print_rows(
 
 
 def flatten_fields(issue: dict) -> dict:
-    """Flatten the fields dictionary into the parent issue dictionary."""
+    """
+    Flatten the fields dictionary into the parent issue dictionary.
+
+    Arguments:
+    - issue (dict): A dictionary representing an issue with nested fields.
+
+    Return:
+    - dict: The parent issue dictionary with flattened fields.
+
+    """
     if "fields" in issue:
         issue.update(issue.pop("fields"))  # Flatten fields into parent issue
     return issue
@@ -169,6 +261,15 @@ def clean_values(
     """
     Replace None values with a placeholder, convert all values to strings,
     and truncate values longer than max_length.
+
+    Arguments:
+    - rows (List[Tuple]): A list of tuples containing values to be cleaned.
+    - placeholder (str): The string to replace None values with (default is "—").
+    - max_length (int): The maximum length allowed for a value before truncation (default is 60).
+
+    Return:
+    - List[Tuple]: A list of tuples with cleaned values where None values are replaced,
+    all values are converted to strings, and values longer than max_length are truncated.
     """
     cleaned_rows = []
     for row in rows:
@@ -197,6 +298,19 @@ def clean_values(
 
 
 def massage_issue_list(args: Namespace, issues: list[dict]):
+    """
+    Massage the provided issue list by flattening fields, applying view columns, and sorting rows.
+
+    Arguments:
+    - args (Namespace): A namespace object containing arguments.
+    - issues (list[dict]): A list of dictionaries representing issues to be processed.
+
+    Return:
+    - Tuple: A tuple containing the headers (list of strings) and rows (list of tuples) of processed data.
+
+    Exceptions:
+    - No exceptions are raised within this function.
+    """
     issues = [flatten_fields(issue) for issue in issues]
 
     # Get the view columns from EnvFetcher or use None

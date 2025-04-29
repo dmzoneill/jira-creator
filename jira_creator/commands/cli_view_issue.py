@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 """
-This script defines a function cli_view_issue that retrieves and displays information about a Jira issue. It handles
-custom fields by replacing their keys with their real names using a helper function from the Jira object. The function
-then sorts and prints the issue details. If an exception ViewIssueError is raised during the process, it catches the
-exception, prints an error message, and raises the exception again.
+This script provides a command-line interface function, `cli_view_issue`, which retrieves and displays information
+about a specific Jira issue using a given Jira client object. It processes custom fields by replacing their keys with
+their corresponding names and formats the output for better readability.
 
-Function cli_view_issue:
-- View a specific issue in JIRA.
-- Arguments:
-- jira: A JIRA client object used to interact with the JIRA API.
-- args: A dictionary containing the following key:
-- issue_key: A string representing the key of the issue to be viewed.
-- Exceptions:
-- This function may raise exceptions if there are issues with accessing or viewing the specified issue in JIRA.
-- Note:
-- This function retrieves and displays information about a specific issue in JIRA using the provided JIRA client object.
+Key Features:
+- The `cli_view_issue` function accepts a Jira client and a namespace of arguments, specifically the issue key to be
+viewed.
+- It handles different data types for issue fields, including dictionaries, lists, and multiline strings, ensuring a
+user-friendly display.
+- The function includes error handling for potential issues encountered while accessing Jira.
+
+Exceptions:
+- Raises `ViewIssueError` if there are issues with accessing or viewing the specified issue.
+
+Note:
+- The output is formatted in a table-like structure, displaying only the allowed keys for better clarity.
 """
 
 # pylint: disable=too-many-return-statements
@@ -71,6 +72,13 @@ def cli_view_issue(jira: JiraClient, args: Namespace) -> Any:
         """
         Format multiline values by padding each line to align with the 'Value' column
         which has a width of 30 characters. All lines will start after the 30-character padding.
+
+        Arguments:
+        - value (str): The input multiline string that needs to be formatted.
+
+        Return:
+        - str: The formatted multiline string with each line padded to align with the 'Value' column.
+
         """
         lines = value.splitlines()
 
@@ -89,6 +97,19 @@ def cli_view_issue(jira: JiraClient, args: Namespace) -> Any:
         - If it's a list, join the items with commas.
         - If it's None, return None.
         - If it's a multiline string, format each line.
+
+        Arguments:
+        - value: Any type of value to be parsed.
+
+        Returns:
+        - Parsed value based on the type of input value.
+
+        Exceptions:
+        - ViewIssueError: Raised when unable to view the issue while processing the data.
+
+        Side Effects:
+        - Calls external services to view and process issues.
+        - Prints formatted data in an ASCII table format.
         """
         if isinstance(value, dict):
             # Check for 'name' or 'value' field in the dictionary

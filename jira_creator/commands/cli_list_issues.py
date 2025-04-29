@@ -1,23 +1,22 @@
 #!/usr/bin/env python
 """
-This module provides a command-line interface (CLI) function to list issues from a Jira project using the JiraClient.
+This module provides a command-line interface (CLI) for listing issues from a Jira project using the JiraClient.
 
-The `cli_list_issues` function retrieves issues based on various filters such as project, component, reporter, and
-assignee. It processes the retrieved issues to format and print them in a user-friendly manner, allowing for dynamic
-column selection and sorting.
+The `cli_list_issues` function retrieves and formats issues based on various filters such as project, component,
+reporter, and assignee. It allows users to dynamically select columns and sort the output for better readability.
 
-Key functionalities include:
-- Fetching issues from Jira based on specified criteria.
-- Flattening issue fields for easier processing.
-- Dynamically generating headers based on user-defined view columns or defaults.
-- Filtering and sorting issues based on user input.
-- Handling errors related to issue listing gracefully.
+Key functionalities:
+- Fetch issues from Jira according to specified criteria.
+- Flatten issue fields for easier processing.
+- Generate headers based on user-defined or default view columns.
+- Filter and sort issues based on user input.
+- Handle errors related to issue listing gracefully.
 
 Dependencies:
-- `core.columns`: Provides utility functions for manipulating issue data.
+- `core.columns`: Utility functions for manipulating issue data.
 - `core.env_fetcher`: Fetches environment-specific configurations.
-- `exceptions.exceptions`: Custom exception handling for issue listing errors.
-- `rest.client`: Contains the JiraClient for interacting with the Jira API.
+- `exceptions.exceptions`: Custom exception handling for listing errors.
+- `rest.client`: Contains the JiraClient for Jira API interactions.
 """
 
 # pylint: disable=too-many-statements too-many-branches

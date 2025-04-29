@@ -11,7 +11,7 @@ set_story_epic method with a side effect and ensuring the exception is raised.
 Both test functions utilize the pytest framework and mock objects for testing the CLI module functionality.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from exceptions.exceptions import SetStoryEpicError
@@ -25,24 +25,29 @@ def test_cli_set_story_epic_success(cli, capsys):
     # Mock the set_story_epic method
     cli.jira.set_story_epic = MagicMock(return_value=None)
 
-    # Mock the improve_text method (if needed)
-    cli.ai_provider.improve_text = MagicMock(return_value="text")
+    with patch(
+        "commands.cli_quarterly_connection.get_ai_provider"
+    ) as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "text"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    class Args:
-        issue_key = "AAP-12345"
-        epic_key = "EPIC-67890"
+        class Args:
+            issue_key = "AAP-12345"
+            epic_key = "EPIC-67890"
 
-    # Call the cli_set_story_epic method
-    result = cli.set_story_epic(Args())
+        # Call the cli_set_story_epic method
+        result = cli.set_story_epic(Args())
 
-    # Capture the output
-    out = capsys.readouterr().out
+        # Capture the output
+        out = capsys.readouterr().out
 
-    # Check that the result is True
-    assert result is True
+        # Check that the result is True
+        assert result is True
 
-    # Check that the correct success message is printed
-    assert "✅ Story's epic set to 'EPIC-67890'" in out
+        # Check that the correct success message is printed
+        assert "✅ Story's epic set to 'EPIC-67890'" in out
 
 
 def test_cli_set_story_epic_missing_argument(cli):
@@ -97,22 +102,27 @@ def test_cli_set_story_epic_set_error(cli, capsys):
         side_effect=SetStoryEpicError("Failed to set epic")
     )
 
-    # Mock the improve_text method (if needed)
-    cli.ai_provider.improve_text = MagicMock(return_value="text")
+    with patch(
+        "commands.cli_quarterly_connection.get_ai_provider"
+    ) as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "text"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    class Args:
-        issue_key = "AAP-12345"
-        epic_key = "EPIC-67890"
+        class Args:
+            issue_key = "AAP-12345"
+            epic_key = "EPIC-67890"
 
-    # Call the cli_set_story_epic method and handle the exception
-    with pytest.raises(SetStoryEpicError):
-        cli.set_story_epic(Args())
+        # Call the cli_set_story_epic method and handle the exception
+        with pytest.raises(SetStoryEpicError):
+            cli.set_story_epic(Args())
 
-    # Capture the output
-    out = capsys.readouterr().out
+        # Capture the output
+        out = capsys.readouterr().out
 
-    # Check that the correct error message is printed
-    assert "❌ Failed to set epic for issue 'AAP-12345'" in out
+        # Check that the correct error message is printed
+        assert "❌ Failed to set epic for issue 'AAP-12345'" in out
 
 
 def test_cli_set_story_epic_unexpected_error(cli, capsys):
@@ -123,19 +133,24 @@ def test_cli_set_story_epic_unexpected_error(cli, capsys):
     # Mock the set_story_epic method to raise an unexpected error
     cli.jira.set_story_epic = MagicMock(side_effect=Exception("Unexpected error"))
 
-    # Mock the improve_text method (if needed)
-    cli.ai_provider.improve_text = MagicMock(return_value="text")
+    with patch(
+        "commands.cli_quarterly_connection.get_ai_provider"
+    ) as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "text"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    class Args:
-        issue_key = "AAP-12345"
-        epic_key = "EPIC-67890"
+        class Args:
+            issue_key = "AAP-12345"
+            epic_key = "EPIC-67890"
 
-    # Call the cli_set_story_epic method and handle the exception
-    with pytest.raises(RuntimeError):
-        cli.set_story_epic(Args())
+        # Call the cli_set_story_epic method and handle the exception
+        with pytest.raises(RuntimeError):
+            cli.set_story_epic(Args())
 
-    # Capture the output
-    out = capsys.readouterr().out
+        # Capture the output
+        out = capsys.readouterr().out
 
-    # Check that the correct error message is printed for unexpected error
-    assert "❌ An unexpected error occurred" in out
+        # Check that the correct error message is printed for unexpected error
+        assert "❌ An unexpected error occurred" in out

@@ -20,7 +20,6 @@ import os
 import tempfile
 from unittest.mock import MagicMock, patch
 
-# from exceptions.exceptions import EditIssueError
 from rest.prompts import IssueType, PromptLibrary
 
 import pytest  # isort: skip
@@ -117,9 +116,18 @@ def test_edit_issue_executes(cli):
     - Asserts that the update_description method of the Jira object within the CLI object is called exactly once.
     """
 
-    args = type("Args", (), {"issue_key": "FAKE-123", "no_ai": False, "lint": False})()
-    cli.edit_issue(args)
-    cli.jira.update_description.assert_called_once()
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands._try_cleanup.get_ai_provider") as mock_try_cleanup:
+        # Create a mock AI provider
+        mock_try = MagicMock()
+        mock_try.improve_text.return_value = "Mocked improved text"
+        mock_try_cleanup.return_value = mock_try
+
+        args = type(
+            "Args", (), {"issue_key": "FAKE-123", "no_ai": False, "lint": False}
+        )()
+        cli.edit_issue(args)
+        cli.jira.update_description.assert_called_once()
 
 
 def test_load_and_cache_issue():
@@ -436,9 +444,16 @@ def test_edit_no_ai(cli):
                 no_ai = True
                 lint = False  # ✅ Add this to fix the error
 
-            cli.edit_issue(Args())
-            cli.jira.update_description.assert_called_once()
-            mock_subprocess.assert_called_once()  # Ensure subprocess.call was called
+            # Mock the get_ai_provider to return a mock AI provider object
+            with patch("commands._try_cleanup.get_ai_provider") as mock_try_cleanup:
+                # Create a mock AI provider
+                mock_try = MagicMock()
+                mock_try.improve_text.return_value = "Mocked improved text"
+                mock_try_cleanup.return_value = mock_try
+
+                cli.edit_issue(Args())
+                cli.jira.update_description.assert_called_once()
+                mock_subprocess.assert_called_once()  # Ensure subprocess.call was called
 
 
 def test_edit_with_ai(cli):
@@ -455,7 +470,6 @@ def test_edit_with_ai(cli):
     cli.jira.get_description = lambda k: "raw text"
     cli.jira.update_description = MagicMock()
     cli.jira.get_issue_type = lambda k: "story"
-    cli.ai_provider.improve_text = lambda p, t: "cleaned text"
 
     # Patch subprocess.call to prevent the editor from opening
     with patch("subprocess.call") as mock_subprocess:
@@ -468,11 +482,18 @@ def test_edit_with_ai(cli):
                 no_ai = False
                 lint = False  # ✅ Add this to fix the error
 
-            cli.edit_issue(Args())
-            cli.jira.update_description.assert_called_once_with(
-                "AAP-test_edit_with_ai", "cleaned text"
-            )
-            mock_subprocess.assert_called_once()
+            # Mock the get_ai_provider to return a mock AI provider object
+            with patch("commands._try_cleanup.get_ai_provider") as mock_try_cleanup:
+                # Create a mock AI provider
+                mock_try = MagicMock()
+                mock_try.improve_text.return_value = "cleaned text"
+                mock_try_cleanup.return_value = mock_try
+
+                cli.edit_issue(Args())
+                cli.jira.update_description.assert_called_once_with(
+                    "AAP-test_edit_with_ai", "cleaned text"
+                )
+                mock_subprocess.assert_called_once()
 
 
 def test_fetch_description(cli):
@@ -514,25 +535,6 @@ def test_update_jira_description():
     )
 
 
-# def test_update_jira_update_description_exception(cli):
-#     jira_mock = MagicMock()
-#     jira_mock.update_description = MagicMock()
-
-#     class Args:
-#         isssue_key = "abc-123"
-
-#     with patch("commands.cli_edit_issue.fetch_description") as mock:
-#         mock.side_effect = EditIssueError("fail")
-
-#         with pytest.raises(EditIssueError):
-#             print("here")
-#             cli_edit_issue(jira_mock, MagicMock(), "ISSUE-123", MagicMock(), Args())
-
-#     jira_mock.update_description.assert_called_once_with(
-#         "ISSUE-123", "Cleaned description"
-#     )
-
-
 def test_lint_description_once():
     """
     Mocks the AI provider to improve a text description and validates it once.
@@ -548,22 +550,25 @@ def test_lint_description_once():
     - No explicit return value.
     """
 
-    ai_provider_mock = MagicMock()
-    ai_provider_mock.improve_text = MagicMock(return_value="Cleaned description")
-    validate_mock = MagicMock(return_value=[["❌ Description: Cleaned description"]])
-    mock_input = MagicMock(side_effect=["additional details"])
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands.cli_edit_issue.get_ai_provider") as mock_try_cleanup:
+        # Create a mock AI provider
+        mock_try = MagicMock()
+        mock_try.improve_text.return_value = "Cleaned description"
+        mock_try_cleanup.return_value = mock_try
 
-    with (
-        patch("commands.cli_edit_issue.validate", validate_mock),
-        patch("builtins.input", mock_input),
-    ):
-        cleaned, should_continue = lint_description_once(
-            "Original description", ai_provider_mock
-        )
-        assert cleaned == "Cleaned description"
-        assert should_continue is True
-        assert validate_mock.call_count == 1
-        assert mock_input.call_count == 1
+        validate_mock = MagicMock(return_value=[["❌ Description: Cleaned description"]])  # fmt: skip
+        mock_input = MagicMock(side_effect=["additional details"])
+
+        with (
+            patch("commands.cli_edit_issue.validate", validate_mock),
+            patch("builtins.input", mock_input),
+        ):
+            cleaned, should_continue = lint_description_once("Original description")
+            assert cleaned == "Cleaned description"
+            assert should_continue is True
+            assert validate_mock.call_count == 1
+            assert mock_input.call_count == 1
 
 
 def test_lint_description():
@@ -598,7 +603,7 @@ def test_lint_description():
         return_value=("Cleaned description", False),
     ):
         # Call the lint_description function (which now uses the mocked lint_description_once)
-        cleaned = lint_description("Original description", ai_provider_mock)
+        cleaned = lint_description("Original description")
 
         # Assert the final cleaned description is returned as expected
         assert (
@@ -679,7 +684,7 @@ def test_lint_description_once_no_issues():
 
     with patch("commands.cli_edit_issue.validate", validate_mock):
         # Call the lint_description_once function (should return cleaned description and False)
-        result, should_continue = lint_description_once(cleaned, ai_provider_mock)
+        result, should_continue = lint_description_once(cleaned)
 
         # Assert that the cleaned description is returned
         assert result == "Original description"
@@ -704,8 +709,6 @@ def test_cli_edit_issue_no_edited(mock_save_cache):
 
     # Setup the mocks
     jira_mock = MagicMock()
-    ai_provider_mock = MagicMock()
-    default_prompt = "Default prompt"
     try_cleanup_fn = MagicMock()
 
     # Arguments for the test, simulating the case when no AI cleanup is needed
@@ -738,9 +741,7 @@ def test_cli_edit_issue_no_edited(mock_save_cache):
         ),
     ):
         # Call the function
-        cli_edit_issue(
-            jira_mock, ai_provider_mock, default_prompt, try_cleanup_fn, args
-        )
+        cli_edit_issue(jira_mock, try_cleanup_fn, args)
 
         # Assert that edit_description was called with the correct description
         edit_description_mock.assert_called_once_with("Original description")
@@ -789,33 +790,40 @@ def test_cli_edit_issue_lint_true(cli, mock_save_cache):
     update_jira_description_mock = MagicMock()
     update_jira_description_mock.name = "update_jira_description_mock"
 
-    with (
-        patch(
-            "commands.cli_edit_issue.fetch_description",
-            fetch_description_mock,
-        ),
-        patch(
-            "commands.cli_edit_issue.edit_description",
-            edit_description_mock,
-        ),
-        patch("commands._try_cleanup", try_cleanup_fn_mock),
-        patch(
-            "commands.cli_edit_issue.lint_description",
-            lint_description_mock,
-        ),
-        patch(
-            "commands.cli_edit_issue.update_jira_description",
-            update_jira_description_mock,
-        ),
-    ):
-        # Call the function with linting enabled
-        cli.edit_issue(args)
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands._try_cleanup.get_ai_provider") as mock_try_cleanup:
+        # Create a mock AI provider
+        mock_try = MagicMock()
+        mock_try.improve_text.return_value = "cleaned text"
+        mock_try_cleanup.return_value = mock_try
 
-        # Assert that fetch_description was called with the correct issue key
-        fetch_description_mock.assert_called_once_with(cli.jira, args.issue_key)
+        with (
+            patch(
+                "commands.cli_edit_issue.fetch_description",
+                fetch_description_mock,
+            ),
+            patch(
+                "commands.cli_edit_issue.edit_description",
+                edit_description_mock,
+            ),
+            patch("commands._try_cleanup", try_cleanup_fn_mock),
+            patch(
+                "commands.cli_edit_issue.lint_description",
+                lint_description_mock,
+            ),
+            patch(
+                "commands.cli_edit_issue.update_jira_description",
+                update_jira_description_mock,
+            ),
+        ):
+            # Call the function with linting enabled
+            cli.edit_issue(args)
 
-        # Assert that edit_description was called with the original description
-        edit_description_mock.assert_called_once_with("Original description")
+            # Assert that fetch_description was called with the correct issue key
+            fetch_description_mock.assert_called_once_with(cli.jira, args.issue_key)
+
+            # Assert that edit_description was called with the original description
+            edit_description_mock.assert_called_once_with("Original description")
 
 
 def test_cli_edit_issue_returns_early_on_empty_description():
@@ -841,9 +849,7 @@ def test_cli_edit_issue_returns_early_on_empty_description():
         lint = False
 
     with patch("commands.cli_edit_issue.fetch_description", return_value=""):
-        result = cli_edit_issue(
-            fake_jira, fake_ai, "unused_prompt", fake_cleanup, Args()
-        )
+        result = cli_edit_issue(fake_jira, fake_cleanup, Args())
 
     assert result is False
     fake_jira.get_description.assert_not_called()  # because fetch_description is patched

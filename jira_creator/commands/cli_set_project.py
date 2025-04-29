@@ -39,7 +39,6 @@ def cli_set_project(jira, args):
     Side Effects:
     - Prints a success message if the project is set successfully.
     - Prints an error message if there is an issue setting the project and raises a SetProjectError.
-
     """
     issue_key = args.issue_key
     project_key = args.project_key

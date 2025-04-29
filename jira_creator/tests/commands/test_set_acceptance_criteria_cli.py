@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from exceptions.exceptions import SetAcceptanceCriteriaError
@@ -9,28 +9,29 @@ def test_cli_set_acceptance_criteria_success(cli, capsys):
     """
     Tests the successful case where acceptance criteria are set for a Jira issue.
     """
+    with patch(
+        "commands.cli_quarterly_connection.get_ai_provider"
+    ) as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "text"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    # Mock the set_acceptance_criteria method
-    cli.jira.set_acceptance_criteria = MagicMock(return_value=None)
+        class Args:
+            issue_key = "AAP-12345"
+            acceptance_criteria = "Acceptance criteria is clear"
 
-    # Mock the improve_text method
-    cli.ai_provider.improve_text = MagicMock(return_value="text")
+        # Call the cli_set_acceptance_criteria method
+        result = cli.set_acceptance_criteria(Args())
 
-    class Args:
-        issue_key = "AAP-12345"
-        acceptance_criteria = "Acceptance criteria is clear"
+        # Capture the output
+        out = capsys.readouterr().out
 
-    # Call the cli_set_acceptance_criteria method
-    result = cli.set_acceptance_criteria(Args())
+        # Check that the result is True
+        assert result is True
 
-    # Capture the output
-    out = capsys.readouterr().out
-
-    # Check that the result is True
-    assert result is True
-
-    # Check that the correct success message is printed
-    assert "✅ Acceptance criteria set to 'Acceptance criteria is clear'" in out
+        # Check that the correct success message is printed
+        assert "✅ Acceptance criteria set to 'Acceptance criteria is clear'" in out
 
 
 def test_cli_set_acceptance_criteria_invalid_issue_key(cli):
@@ -70,22 +71,27 @@ def test_cli_set_acceptance_criteria_set_error(cli, capsys):
         side_effect=SetAcceptanceCriteriaError("Failed to set criteria")
     )
 
-    # Mock the improve_text method
-    cli.ai_provider.improve_text = MagicMock(return_value="text")
+    with patch(
+        "commands.cli_quarterly_connection.get_ai_provider"
+    ) as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "text"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    class Args:
-        issue_key = "AAP-12345"
-        acceptance_criteria = "Acceptance criteria"
+        class Args:
+            issue_key = "AAP-12345"
+            acceptance_criteria = "Acceptance criteria"
 
-    # Call the cli_set_acceptance_criteria method and handle the exception
-    with pytest.raises(SetAcceptanceCriteriaError):
-        cli.set_acceptance_criteria(Args())
+        # Call the cli_set_acceptance_criteria method and handle the exception
+        with pytest.raises(SetAcceptanceCriteriaError):
+            cli.set_acceptance_criteria(Args())
 
-    # Capture the output
-    out = capsys.readouterr().out
+        # Capture the output
+        out = capsys.readouterr().out
 
-    # Check that the correct error message is printed
-    assert "❌ Failed to set acceptance criteria" in out
+        # Check that the correct error message is printed
+        assert "❌ Failed to set acceptance criteria" in out
 
 
 def test_cli_set_acceptance_criteria_unexpected_error(cli, capsys):
@@ -97,22 +103,27 @@ def test_cli_set_acceptance_criteria_unexpected_error(cli, capsys):
         side_effect=Exception("Unexpected error")
     )
 
-    # Mock the improve_text method
-    cli.ai_provider.improve_text = MagicMock(return_value="text")
+    with patch(
+        "commands.cli_quarterly_connection.get_ai_provider"
+    ) as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "text"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    class Args:
-        issue_key = "AAP-12345"
-        acceptance_criteria = "Acceptance criteria"
+        class Args:
+            issue_key = "AAP-12345"
+            acceptance_criteria = "Acceptance criteria"
 
-    # Call the cli_set_acceptance_criteria method and handle the exception
-    with pytest.raises(SetAcceptanceCriteriaError):
-        cli.set_acceptance_criteria(Args())
+        # Call the cli_set_acceptance_criteria method and handle the exception
+        with pytest.raises(SetAcceptanceCriteriaError):
+            cli.set_acceptance_criteria(Args())
 
-    # Capture the output
-    out = capsys.readouterr().out
+        # Capture the output
+        out = capsys.readouterr().out
 
-    # Check that the correct error message is printed for unexpected error
-    assert "❌ An unexpected error occurred" in out
+        # Check that the correct error message is printed for unexpected error
+        assert "❌ An unexpected error occurred" in out
 
 
 # /* jscpd:ignore-end */

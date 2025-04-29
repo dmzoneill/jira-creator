@@ -30,13 +30,10 @@ Run the script from the command line, providing appropriate subcommands and argu
 import os
 import sys
 from argparse import ArgumentParser, Namespace, _SubParsersAction
-from pathlib import Path
 
 from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import DispatcherError
-from providers import get_ai_provider
 from rest.client import JiraClient
-from rest.prompts import IssueType, PromptLibrary
 
 from commands import (  # isort: skip
     _try_cleanup,
@@ -89,11 +86,9 @@ class JiraCLI:
 
     Attributes:
     - jira (JiraClient): An instance of the JiraClient used to interact with the JIRA API.
-    - template_dir (Path): The directory path for templates fetched from the environment.
     - ai_provider: The AI provider instance configured based on environment variables.
     - default_prompt: The default prompt for AI interactions.
     - comment_prompt: The prompt used for adding comments to issues.
-    - ai_helper_prompt: The prompt used for AI helper functionalities.
     """
 
     def __init__(self) -> None:
@@ -116,16 +111,16 @@ class JiraCLI:
 
         self.jira: JiraClient = JiraClient()
         required_vars: list[str] = [
-            "JPAT",
-            "AI_PROVIDER",
-            "AI_MODEL",
-            "AI_URL",
+            "JIRA_JPAT",
+            "JIRA_AI_PROVIDER",
+            "JIRA_AI_MODEL",
+            "JIRA_AI_URL",
             "JIRA_URL",
-            "PROJECT_KEY",
-            "AFFECTS_VERSION",
-            "COMPONENT_NAME",
-            "PRIORITY",
-            "AI_API_KEY",
+            "JIRA_PROJECT_KEY",
+            "JIRA_AFFECTS_VERSION",
+            "JIRA_COMPONENT_NAME",
+            "JIRA_PRIORITY",
+            "JIRA_AI_API_KEY",
             "JIRA_BOARD_ID",
             "JIRA_EPIC_FIELD",
             "JIRA_ACCEPTANCE_CRITERIA_FIELD",
@@ -137,36 +132,29 @@ class JiraCLI:
         ]
 
         EnvFetcher.fetch_all(required_vars)
-        self.template_dir: Path = Path(EnvFetcher.get("TEMPLATE_DIR"))
-        self.ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
-        self.default_prompt = PromptLibrary.get_prompt(IssueType["DEFAULT"])
-        self.comment_prompt = PromptLibrary.get_prompt(IssueType["COMMENT"])
-        self.ai_helper_prompt = PromptLibrary.get_prompt(IssueType["AIHELPER"])
+        # self.ai_provider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
+        # self.default_prompt = PromptLibrary.get_prompt(IssueType["DEFAULT"])
+        # self.comment_prompt = PromptLibrary.get_prompt(IssueType["COMMENT"])
 
-    def run(self) -> None:
+    def run(self):
         """
         Initialize the argcomplete module for command-line argument completion.
 
         Arguments:
         - self: The instance of the class.
-
-        Exceptions:
-        None
         """
-
         import argcomplete
 
         prog_name: str = os.environ.get("CLI_NAME", os.path.basename(sys.argv[0]))
-        parser: ArgumentParser = ArgumentParser(
-            description="JIRA Issue Tool", prog=prog_name
-        )
-        subparsers: _SubParsersAction = parser.add_subparsers(
-            dest="command", required=True
-        )
+        parser = ArgumentParser(description="JIRA Issue Tool", prog=prog_name)
 
+        subparsers = parser.add_subparsers(dest="command", required=True)
+
+        # Register subcommands
         self._register_subcommands(subparsers)
+
         argcomplete.autocomplete(parser)
-        args: Namespace = parser.parse_args()
+        args = parser.parse_args()
         self._dispatch_command(args)
 
     def _register_subcommands(self, subparsers: _SubParsersAction) -> None:
@@ -415,7 +403,7 @@ class JiraCLI:
         provided arguments.
         """
 
-        return cli_ai_helper(self, self.ai_provider, self.ai_helper_prompt, args)
+        return cli_ai_helper(self, args)
 
     def open_issue(self, args: Namespace) -> None:
         """
@@ -457,7 +445,7 @@ class JiraCLI:
         - Modifies the Jira issue by adding a comment.
         """
 
-        return cli_add_comment(self.jira, self.ai_provider, self.comment_prompt, args)
+        return cli_add_comment(self.jira, args)
 
     def create_issue(self, args: Namespace) -> None:
         """
@@ -471,7 +459,7 @@ class JiraCLI:
         - Calls the cli_create_issue function with the necessary parameters to create an issue.
         """
 
-        return cli_create_issue(self.jira, self.ai_provider, self.template_dir, args)
+        return cli_create_issue(self.jira, args)
 
     def list_issues(self, args: Namespace) -> None:
         """
@@ -527,9 +515,7 @@ class JiraCLI:
         - Modifies the state of the issue in Jira based on the provided arguments.
         """
 
-        return cli_edit_issue(
-            self.jira, self.ai_provider, self.default_prompt, _try_cleanup, args
-        )
+        return cli_edit_issue(self.jira, _try_cleanup, args)
 
     def _try_cleanup(self, prompt: str, text: str) -> str:
         """
@@ -543,7 +529,7 @@ class JiraCLI:
         str: The cleaned-up text after processing with the AI provider.
         """
 
-        return _try_cleanup(self.ai_provider, prompt, text)
+        return _try_cleanup(prompt, text)
 
     def unassign(self, args: Namespace) -> None:
         """
@@ -758,7 +744,7 @@ class JiraCLI:
         - None
         """
 
-        return cli_validate_issue(fields, self.ai_provider)
+        return cli_validate_issue(fields)
 
     def lint(self, args: Namespace) -> None:
         """
@@ -769,10 +755,10 @@ class JiraCLI:
         - args (Namespace): A Namespace object containing the parsed arguments.
 
         Side Effects:
-        - Calls the cli_lint function with the provided Jira instance, AI provider, and parsed arguments.
+        - Calls the cli_lint function with the provided Jira instance, and parsed arguments.
         """
 
-        return cli_lint(self.jira, self.ai_provider, args)
+        return cli_lint(self.jira, args)
 
     def lint_all(self, args: Namespace) -> None:
         """
@@ -786,7 +772,7 @@ class JiraCLI:
         - Calls cli_lint_all function with Jira instance, AI provider instance, and parsed arguments.
         """
 
-        return cli_lint_all(self.jira, self.ai_provider, args)
+        return cli_lint_all(self.jira, args)
 
     def blocked(self, args: Namespace) -> None:
         """
@@ -828,7 +814,7 @@ class JiraCLI:
         - Calls cli_quarterly_connection function with the Jira and AI provider attributes of the object instance
         """
 
-        return cli_quarterly_connection(self.jira, self.ai_provider)
+        return cli_quarterly_connection(self.jira)
 
     def search_users(self, args: Namespace) -> None:
         """
@@ -979,7 +965,6 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the project using the provided arguments.
-
         """
         return cli_set_project(self.jira, args)
 
@@ -993,7 +978,6 @@ class JiraCLI:
 
         Exceptions:
         None
-
         """
         return cli_set_component(self.jira, args)
 

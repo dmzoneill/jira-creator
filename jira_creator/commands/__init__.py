@@ -35,7 +35,9 @@ from .cli_remove_sprint import cli_remove_sprint  # noqa
 from .cli_search import cli_search  # noqa
 from .cli_search_users import cli_search_users  # noqa
 from .cli_set_acceptance_criteria import cli_set_acceptance_criteria  # noqa
+from .cli_set_component import cli_set_component  # noqa
 from .cli_set_priority import cli_set_priority  # noqa
+from .cli_set_project import cli_set_project  # noqa
 from .cli_set_status import cli_set_status  # noqa
 from .cli_set_story_epic import cli_set_story_epic  # noqa
 from .cli_set_story_points import cli_set_story_points  # noqa
@@ -49,5 +51,3 @@ from .cli_view_user import cli_view_user  # noqa
 from .cli_vote_story_points import cli_vote_story_points  # noqa
 
 CliCommand: Callable[..., None]
-from .cli_set_component import cli_set_component  # noqa
-from .cli_set_project import cli_set_project  # noqa

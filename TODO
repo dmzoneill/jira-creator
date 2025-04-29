@@ -12,13 +12,14 @@ Core
   - readme ascii cinema for readme
   - magic number in "move to top" of backlog
   - Remove /* jscpd:ignore-start */
+  - secrets rmeoval
 
 Add
   - list-blocked
   - In Progress or blocked status
   - clone / copy issue
   - set-component
-  - set-project
+  - set-project2
 
 Modify 
 

@@ -332,11 +332,6 @@ def cli(
     cli.jira.update_description = MagicMock(return_value=True)
     cli.jira.get_issue_type = MagicMock(return_value="story")
 
-    # Mock AI provider
-    cli.ai_provider.improve_text = MagicMock(
-        return_value="Cleaned and corrected content."
-    )
-
     yield cli
 
 

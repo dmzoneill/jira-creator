@@ -52,14 +52,14 @@ dry-run: print-header
 .PHONY: test-setup
 test-setup: print-header
 	$(eval ENV_VARS := \
-		"JPAT=NOT_A_SECRET" \
-		"AI_PROVIDER=openai" \
+		"JIRA_JPAT=NOT_A_SECRET" \
+		"JIRA_AI_PROVIDER=openai" \
 		"JIRA_URL=https://issues.redhat.com" \
-		"PROJECT_KEY=AAP" \
-		"AFFECTS_VERSION=aa-latest" \
-		"COMPONENT_NAME=analytics-hcc-service" \
-		"PRIORITY=Normal" \
-		"AI_API_KEY=NOT_A_SECRET" \
+		"JIRA_PROJECT_KEY=AAP" \
+		"JIRA_AFFECTS_VERSION=aa-latest" \
+		"JIRA_COMPONENT_NAME=analytics-hcc-service" \
+		"JIRA_PRIORITY=Normal" \
+		"JIRA_AI_API_KEY=NOT_A_SECRET" \
 		"JIRA_BOARD_ID=21125" \
 	)
 	@for var in $(ENV_VARS); do echo $$var >> $$GITHUB_ENV; done

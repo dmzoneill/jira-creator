@@ -16,7 +16,7 @@ Exceptions:
 - AddCommentError: Raised when the add_comment method encounters an error.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from exceptions.exceptions import AddCommentError
@@ -34,22 +34,22 @@ def test_add_comment_exception(cli, capsys):
     - AddCommentError: Raised when the add_comment method encounters an error.
     """
 
-    # Mock the add_comment method to raise an exception
-    cli.jira.add_comment = MagicMock(side_effect=AddCommentError("fail"))
+    with patch("commands.cli_add_comment.get_ai_provider") as ai_provider:
+        ai_provider.improve_text = MagicMock(return_value="my comment")
 
-    # Mock the improve_text method
-    cli.ai_provider.improve_text = MagicMock(return_value="text")
+        # Mock the add_comment method to raise an exception
+        cli.jira.add_comment = MagicMock(side_effect=AddCommentError("fail"))
 
-    class Args:
-        issue_key = "AAP-test_add_comment_exception"
-        text = "test"
+        class Args:
+            issue_key = "AAP-test_add_comment_exception"
+            text = "test"
 
-    with pytest.raises(AddCommentError):
-        # Call the add_comment method and handle the exception
-        cli.add_comment(Args())
+        with pytest.raises(AddCommentError):
+            # Call the add_comment method and handle the exception
+            cli.add_comment(Args())
 
-    # Capture the output
-    out = capsys.readouterr().out
+        # Capture the output
+        out = capsys.readouterr().out
 
-    # Check the expected output for the exception case
-    assert "❌ Failed to add comment" in out
+        # Check the expected output for the exception case
+        assert "❌ Failed to add comment" in out

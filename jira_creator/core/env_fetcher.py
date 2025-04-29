@@ -9,8 +9,8 @@ is crucial for the proper functioning of applications interacting with Jira.
 
 Key attributes include:
 - JIRA_URL: URL of the Jira instance.
-- PROJECT_KEY: Key of the Jira project.
-- JPAT: Personal access token for Jira.
+- JIRA_PROJECT_KEY: Key of the Jira project.
+- JIRA_JPAT: Personal access token for Jira.
 - Various custom field identifiers for Jira issues.
 
 Methods:
@@ -33,23 +33,23 @@ class EnvFetcher:
 
     Attributes:
     - JIRA_URL (str): The URL of the Jira instance.
-    - PROJECT_KEY (str): The key of the Jira project.
-    - AFFECTS_VERSION (str): The affected version of the project.
-    - COMPONENT_NAME (str): The name of the component.
-    - PRIORITY (str): The priority level of the issue.
-    - JPAT (str): The Jira personal access token.
+    - JIRA_PROJECT_KEY (str): The key of the Jira project.
+    - JIRA_AFFECTS_VERSION (str): The affected version of the project.
+    - JIRA_COMPONENT_NAME (str): The name of the component.
+    - JIRA_PRIORITY (str): The priority level of the issue.
+    - JIRA_JPAT (str): The Jira personal access token.
     - JIRA_BOARD_ID (str): The ID of the Jira board.
-    - AI_PROVIDER (str): The provider of the AI service.
-    - AI_API_KEY (str): The API key for the AI service.
-    - AI_MODEL (str): The model used for AI processing.
-    - AI_URL (str): The URL for the AI service.
+    - JIRA_AI_PROVIDER (str): The provider of the AI service.
+    - JIRA_AI_API_KEY (str): The API key for the AI service.
+    - JIRA_AI_MODEL (str): The model used for AI processing.
+    - JIRA_AI_URL (str): The URL for the AI service.
     - JIRA_EPIC_FIELD (str): The custom field for Jira epics.
     - JIRA_ACCEPTANCE_CRITERIA_FIELD (str): The custom field for acceptance criteria.
     - JIRA_BLOCKED_FIELD (str): The custom field for blocked status.
     - JIRA_BLOCKED_REASON_FIELD (str): The custom field for blocked reasons.
     - JIRA_STORY_POINTS_FIELD (str): The custom field for story points.
     - JIRA_SPRINT_FIELD (str): The custom field for sprints.
-    - VOSK_MODEL (str): The path to the Vosk model file.
+    - JIRA_VOSK_MODEL (str): The path to the Vosk model file.
     - TEMPLATE_DIR (str): The directory path for templates.
 
     Methods:
@@ -59,16 +59,16 @@ class EnvFetcher:
 
     vars: Dict[str, str] = {
         "JIRA_URL": "https://example.atlassian.net",
-        "PROJECT_KEY": "XYZ",
-        "AFFECTS_VERSION": "v1.2.3",
-        "COMPONENT_NAME": "backend",
-        "PRIORITY": "High",
-        "JPAT": "dummy-token",
+        "JIRA_PROJECT_KEY": "XYZ",
+        "JIRA_AFFECTS_VERSION": "v1.2.3",
+        "JIRA_COMPONENT_NAME": "backend",
+        "JIRA_PRIORITY": "High",
+        "JIRA_JPAT": "dummy-token",
         "JIRA_BOARD_ID": "43123",
-        "AI_PROVIDER": "openai",
-        "AI_API_KEY": "dsdasdsadsadasdadsa",
-        "AI_MODEL": "hhhhhhhhhhhhh",
-        "AI_URL": "http://some/url",
+        "JIRA_AI_PROVIDER": "openai",
+        "JIRA_AI_API_KEY": "dsdasdsadsadasdadsa",
+        "JIRA_AI_MODEL": "hhhhhhhhhhhhh",
+        "JIRA_AI_URL": "http://some/url",
         "JIRA_VIEW_COLUMNS": "key,issuetype,status,priority,summary,assignee,reporter,sprint,JIRA_STORY_POINTS_FIELD",
         "JIRA_EPIC_FIELD": "customfield_12311140",
         "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_12315940",
@@ -76,7 +76,7 @@ class EnvFetcher:
         "JIRA_BLOCKED_REASON_FIELD": "customfield_12316544",
         "JIRA_STORY_POINTS_FIELD": "customfield_12310243",
         "JIRA_SPRINT_FIELD": "customfield_12310940",
-        "VOSK_MODEL": os.path.expanduser("~/.vosk/vosk-model-small-en-us-0.15"),
+        "JIRA_VOSK_MODEL": os.path.expanduser("~/.vosk/vosk-model-small-en-us-0.15"),
         "TEMPLATE_DIR": os.path.join(os.path.dirname(__file__), "../templates"),
     }
 

@@ -45,7 +45,6 @@ def fetch_view_columns() -> List[str]:
 
     Exceptions:
     No exceptions are raised.
-
     """
     columns = EnvFetcher.get("JIRA_VIEW_COLUMNS")
     if columns:
@@ -64,7 +63,7 @@ def fetch_view_columns() -> List[str]:
 
 def get_sorted_columns(sort_string: str) -> List[Tuple[str, str]]:
     """
-    Parse the sort argument and return a list of tuples containing column and order.
+    Parse the sort argument and return a list of tuples containing column names and corresponding order.
 
     Arguments:
     - sort_string (str): A string representing the sort argument with columns and order separated by commas.
@@ -133,7 +132,6 @@ def sort_rows(
 
     Exceptions:
     - Any exception that occurs during the sorting process will be caught and printed with details.
-
     """
     try:
         for col, order in reversed(sort_columns):
@@ -248,7 +246,6 @@ def flatten_fields(issue: dict) -> dict:
 
     Return:
     - dict: The parent issue dictionary with flattened fields.
-
     """
     if "fields" in issue:
         issue.update(issue.pop("fields"))  # Flatten fields into parent issue

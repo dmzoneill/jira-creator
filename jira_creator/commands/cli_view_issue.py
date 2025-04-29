@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """
-This script provides a command-line interface function, `cli_view_issue`, which retrieves and displays information
+This script provides a command-line interface function, `cli_view_issue`, to retrieve and display information
 about a specific Jira issue using a given Jira client object. It processes custom fields by replacing their keys with
-their corresponding names and formats the output for better readability.
+corresponding names and formats the output for improved readability.
 
 Key Features:
 - The `cli_view_issue` function accepts a Jira client and a namespace of arguments, specifically the issue key to be
 viewed.
-- It handles different data types for issue fields, including dictionaries, lists, and multiline strings, ensuring a
+- It handles various data types for issue fields, including dictionaries, lists, and multiline strings, ensuring a
 user-friendly display.
 - The function includes error handling for potential issues encountered while accessing Jira.
 
@@ -15,7 +15,7 @@ Exceptions:
 - Raises `ViewIssueError` if there are issues with accessing or viewing the specified issue.
 
 Note:
-- The output is formatted in a table-like structure, displaying only the allowed keys for better clarity.
+- The output is formatted in a table-like structure, displaying only the allowed keys for clarity.
 """
 
 # pylint: disable=too-many-return-statements
@@ -78,7 +78,6 @@ def cli_view_issue(jira: JiraClient, args: Namespace) -> Any:
 
         Return:
         - str: The formatted multiline string with each line padded to align with the 'Value' column.
-
         """
         lines = value.splitlines()
 
@@ -92,11 +91,10 @@ def cli_view_issue(jira: JiraClient, args: Namespace) -> Any:
 
     def parse_value(value: Any) -> Any:
         """
-        Handle different types of values:
-        - If it's a dictionary, return 'name' or 'value'.
-        - If it's a list, join the items with commas.
-        - If it's None, return None.
-        - If it's a multiline string, format each line.
+        Parse and format various types of values, and display issue details in a formatted ASCII table.
+
+        This function handles different input types, including dictionaries, lists, strings, and None values.
+        It retrieves issue information from an external service, formats the data, and prints it in a structured manner.
 
         Arguments:
         - value: Any type of value to be parsed.

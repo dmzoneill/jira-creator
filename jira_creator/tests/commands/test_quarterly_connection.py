@@ -41,8 +41,15 @@ def test_quarterly_connection_report_sucess(cli):
     with patch("commands.cli_quarterly_connection.time.sleep"):
         cli.jira.search_issues = MagicMock(return_value=mock_fields)
         cli.jira.get_description = MagicMock()
-        cli.ai_provider = MagicMock()
-        cli.quarterly_connection(Args())
+        # Mock the get_ai_provider to return a mock AI provider object
+        with patch(
+            "commands.cli_quarterly_connection.get_ai_provider"
+        ) as mock_get_ai_provider:
+            # Create a mock AI provider
+            mock_ai_provider = MagicMock()
+            mock_ai_provider.improve_text.return_value = "Ok"
+            mock_get_ai_provider.return_value = mock_ai_provider
+            cli.quarterly_connection(Args())
 
 
 def test_quarterly_connection_report_no_issues(cli):

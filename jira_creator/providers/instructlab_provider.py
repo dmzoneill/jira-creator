@@ -53,8 +53,8 @@ class InstructLabProvider(AIProvider):
         - self: The class instance to be initialized.
         Return: None
         """
-        self.url: str = EnvFetcher.get("AI_URL")
-        self.model: str = EnvFetcher.get("AI_MODEL")
+        self.url: str = EnvFetcher.get("JIRA_AI_URL")
+        self.model: str = EnvFetcher.get("JIRA_AI_MODEL")
 
     def improve_text(self, prompt: str, text: str) -> str:
         """

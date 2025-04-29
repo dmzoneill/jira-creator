@@ -49,36 +49,44 @@ def test_edit_issue_update_exception(mock_tmpfile, mock_subprocess, capsys, cli)
     - UpdateDescriptionError: Raised when updating the description of the Jira issue fails.
     """
 
-    # Mock Jira internals
-    cli.jira.get_description = MagicMock(return_value="original")
-    cli.jira.get_issue_type = MagicMock(return_value="story")
-    cli.jira.update_description = MagicMock(side_effect=UpdateDescriptionError("fail"))
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands._try_cleanup.get_ai_provider") as mock_try_cleanup:
+        # Create a mock AI provider
+        mock_try = MagicMock()
+        mock_try.improve_text.return_value = "cleaned"
+        mock_try_cleanup.return_value = mock_try
 
-    # Mock cleanup logic
-    cli._try_cleanup = MagicMock(return_value="cleaned")
-    cli.ai_provider.improve_text = MagicMock(return_value="cleaned")  # ✅ Important
+        # Mock Jira internals
+        cli.jira.get_description = MagicMock(return_value="original")
+        cli.jira.get_issue_type = MagicMock(return_value="story")
+        cli.jira.update_description = MagicMock(
+            side_effect=UpdateDescriptionError("fail")
+        )
 
-    # Mock temp file
-    fake_file = MagicMock()
-    fake_file.__enter__.return_value = fake_file
-    fake_file.read.return_value = "edited"
-    fake_file.write = MagicMock()
-    fake_file.flush = MagicMock()
-    fake_file.seek = MagicMock()
-    fake_file.name = "/tmp/fake_edit"
-    mock_tmpfile.return_value = fake_file
+        # Mock cleanup logic
+        cli._try_cleanup = MagicMock(return_value="cleaned")
 
-    # Simulated CLI args
-    class Args:
-        issue_key = "AAP-test_edit_issue_update_exception"
-        no_ai = False
-        lint = False  # ✅ Add this to fix the error
+        # Mock temp file
+        fake_file = MagicMock()
+        fake_file.__enter__.return_value = fake_file
+        fake_file.read.return_value = "edited"
+        fake_file.write = MagicMock()
+        fake_file.flush = MagicMock()
+        fake_file.seek = MagicMock()
+        fake_file.name = "/tmp/fake_edit"
+        mock_tmpfile.return_value = fake_file
 
-    with pytest.raises(UpdateDescriptionError):
-        cli.edit_issue(Args())
+        # Simulated CLI args
+        class Args:
+            issue_key = "AAP-test_edit_issue_update_exception"
+            no_ai = False
+            lint = False  # ✅ Add this to fix the error
 
-    out = capsys.readouterr().out
-    assert "❌ Update failed" in out
+        with pytest.raises(UpdateDescriptionError):
+            cli.edit_issue(Args())
+
+        out = capsys.readouterr().out
+        assert "❌ Update failed" in out
 
 
 def test_edit_description_raises_edit_description_error_inline(capsys):

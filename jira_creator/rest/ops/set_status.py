@@ -70,7 +70,7 @@ def set_status(
         backlog_url: str = "/rest/greenhopper/1.0/xboard/plan/backlog/data.json"
         params: Dict[str, Any] = {
             "rapidViewId": EnvFetcher.get("JIRA_BOARD_ID"),
-            "selectedProjectKey": EnvFetcher.get("PROJECT_KEY"),
+            "selectedProjectKey": EnvFetcher.get("JIRA_PROJECT_KEY"),
         }
         backlog_response: Dict[str, Any] = request_fn("GET", backlog_url, params=params)
         backlog_issues: list[Dict[str, Any]] = backlog_response.get("issues", [])

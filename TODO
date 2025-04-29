@@ -17,6 +17,8 @@ Add
   - list-blocked
   - In Progress or blocked status
   - clone / copy issue
+  - set-component
+  - set-project
 
 Modify 
 

@@ -18,7 +18,7 @@ The tests utilize the pytest framework and mock objects to simulate the behavior
 API. Ensure that all dependencies are installed before running the tests.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from core.env_fetcher import EnvFetcher
@@ -40,39 +40,41 @@ def test_lint_command_flags_errors(mock_save_cache, cli, capsys):
     "Meh", and "OK" for other texts.
     """
 
-    cli.ai_provider = MagicMock()
-    cli.ai_provider.improve_text.side_effect = lambda prompt, text: (
-        "too short" if text in ["Bad", "Meh"] else "OK"
-    )
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands.cli_validate_issue.get_ai_provider") as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "too short"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    fake_issue = {
-        "fields": {
-            "summary": "Bad",
-            "description": "Meh",
-            "priority": None,
-            EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): None,
-            EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "True"},
-            EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
-            "status": {"name": "In Progress"},
-            "assignee": None,
+        fake_issue = {
+            "fields": {
+                "summary": "Bad",
+                "description": "Meh",
+                "priority": None,
+                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): None,
+                EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "True"},
+                EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
+                "status": {"name": "In Progress"},
+                "assignee": None,
+            }
         }
-    }
 
-    cli.jira.request.return_value = fake_issue
+        cli.jira.request.return_value = fake_issue
 
-    class Args:
-        issue_key = "AAP-test_lint_command_flags_errors"
+        class Args:
+            issue_key = "AAP-test_lint_command_flags_errors"
 
-    cli.lint(Args())
-    out = capsys.readouterr().out
+        cli.lint(Args())
+        out = capsys.readouterr().out
 
-    assert "⚠️ Lint issues found in AAP-test_lint_command_flags_errors" in out
-    assert "❌ Summary: too short" in out
-    assert "❌ Description: too short" in out
-    assert "❌ Priority not set" in out
-    assert "❌ Story points not assigned" in out
-    assert "❌ Issue is blocked but has no blocked reason" in out
-    assert "❌ Issue is In Progress but unassigned" in out
+        assert "⚠️ Lint issues found in AAP-test_lint_command_flags_errors" in out
+        assert "❌ Summary: too short" in out
+        assert "❌ Description: too short" in out
+        assert "❌ Priority not set" in out
+        assert "❌ Story points not assigned" in out
+        assert "❌ Issue is blocked but has no blocked reason" in out
+        assert "❌ Issue is In Progress but unassigned" in out
 
 
 def test_lint_command_success(mock_save_cache, cli, capsys):
@@ -89,33 +91,37 @@ def test_lint_command_success(mock_save_cache, cli, capsys):
     - Configures the 'improve_text' method of the 'ai_provider' object to return "OK" for any prompt and text inputs.
     """
 
-    cli.ai_provider = MagicMock()
-    cli.ai_provider.improve_text.side_effect = lambda prompt, text: "OK"
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands.cli_validate_issue.get_ai_provider") as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "Ok"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    clean_issue = {
-        "fields": {
-            "summary": "Valid summary",
-            "description": "All good",
-            "priority": {"name": "Medium"},
-            EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
-            EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "False"},
-            EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "dev"},
-            EnvFetcher.get("JIRA_EPIC_FIELD"): {
-                "name": "Epic Name"
-            },  # Add assigned Epic for a pass
+        clean_issue = {
+            "fields": {
+                "summary": "Valid summary",
+                "description": "All good",
+                "priority": {"name": "Medium"},
+                EnvFetcher.get("JIRA_STORY_POINTS_FIELD"): 5,
+                EnvFetcher.get("JIRA_BLOCKED_FIELD"): {"value": "False"},
+                EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"): "",
+                "status": {"name": "To Do"},
+                "assignee": {"displayName": "dev"},
+                EnvFetcher.get("JIRA_EPIC_FIELD"): {
+                    "name": "Epic Name"
+                },  # Add assigned Epic for a pass
+            }
         }
-    }
 
-    cli.jira.request.return_value = clean_issue
+        cli.jira.request.return_value = clean_issue
 
-    class Args:
-        issue_key = "AAP-test_lint_command_success"
+        class Args:
+            issue_key = "AAP-test_lint_command_success"
 
-    cli.lint(Args())
-    out = capsys.readouterr().out
-    assert "✅ AAP-test_lint_command_success passed all lint checks" in out
+        cli.lint(Args())
+        out = capsys.readouterr().out
+        assert "✅ AAP-test_lint_command_success passed all lint checks" in out
 
 
 def test_lint_command_exception(mock_save_cache, cli, capsys):

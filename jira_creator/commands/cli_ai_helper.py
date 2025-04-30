@@ -34,9 +34,12 @@ import re
 from argparse import Namespace
 from typing import Any, Dict, List, Union
 
+from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AIHelperError
 from gtts import gTTS
+from providers import get_ai_provider
 from providers.ai_provider import AIProvider
+from rest.prompts import IssueType, PromptLibrary
 
 
 def get_cli_command_metadata() -> Dict[str, Dict[str, Any]]:
@@ -180,9 +183,7 @@ def ask_ai_question(
     return True
 
 
-def cli_ai_helper(
-    cli: Any, ai_provider: Any, system_prompt: str, args: Namespace
-) -> bool:
+def cli_ai_helper(cli: Any, args: Namespace) -> bool:
     """
     Retrieve CLI command metadata using the 'get_cli_command_metadata' function.
 
@@ -195,6 +196,9 @@ def cli_ai_helper(
     Exceptions:
     - AIHelperError: Raised when there is an issue inspecting public methods of JiraCLI.
     """
+
+    ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
+    system_prompt = PromptLibrary.get_prompt(IssueType["AIHELPER"])
 
     try:
         cli_commands = get_cli_command_metadata()

@@ -21,23 +21,22 @@ import tempfile
 from argparse import Namespace
 from typing import Any, Dict, Optional
 
+from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError, CreateIssueError
+from providers import get_ai_provider
 from providers.ai_provider import AIProvider
 from rest.client import JiraClient
 from rest.prompts import IssueType, PromptLibrary
 from templates.template_loader import TemplateLoader
 
 
-def cli_create_issue(
-    jira: JiraClient, ai_provider: AIProvider, template_dir: str, args: Namespace
-) -> Optional[str]:
+def cli_create_issue(jira: JiraClient, args: Namespace) -> Optional[str]:
     """
     Creates a new issue in Jira based on a template.
 
     Arguments:
     - jira (Any): An instance of the JIRA class for interacting with the Jira API.
     - ai_provider (Any): The AI provider to use for generating content.
-    - template_dir (str): The directory where the issue templates are stored.
     - args (Any): Command-line arguments containing the type of the issue.
 
     Exceptions:
@@ -50,7 +49,7 @@ def cli_create_issue(
     """
 
     try:
-        template = TemplateLoader(template_dir, args.type)
+        template = TemplateLoader(args.type)
         fields: Dict[str, str] = template.get_fields()
     except FileNotFoundError as e:
         print(f"Error: {e}")
@@ -76,6 +75,7 @@ def cli_create_issue(
     prompt: str = PromptLibrary.get_prompt(enum_type)
 
     try:
+        ai_provider: AIProvider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
         description = ai_provider.improve_text(prompt, description)
     except AiError as e:
         msg = f"⚠️ AI cleanup failed. Using original text. Error: {e}"

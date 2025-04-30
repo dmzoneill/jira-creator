@@ -18,20 +18,20 @@ import subprocess
 import tempfile
 from argparse import Namespace
 
+from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AddCommentError, AiError
+from providers import get_ai_provider
 from providers.ai_provider import AIProvider
 from rest.client import JiraClient
+from rest.prompts import IssueType, PromptLibrary
 
 
-def cli_add_comment(
-    jira: JiraClient, ai_provider: AIProvider, comment_prompt: str, args: Namespace
-) -> bool:
+def cli_add_comment(jira: JiraClient, args: Namespace) -> bool:
     """
     Add a comment to a Jira issue via the command line interface.
 
     Arguments:
     - jira (Any): An instance of the JIRA class for interacting with Jira.
-    - ai_provider (Any): The AI provider to use for processing the comment.
     - comment_prompt (str): The prompt message for entering the comment.
     - args (Any): Command-line arguments parsed by argparse.
 
@@ -59,7 +59,10 @@ def cli_add_comment(
         return False
 
     try:
-        cleaned: str = ai_provider.improve_text(comment_prompt, comment)
+        ai_provider: AIProvider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
+        cleaned: str = ai_provider.improve_text(
+            PromptLibrary.get_prompt(IssueType["COMMENT"]), comment
+        )
     except AiError as e:
         msg = f"⚠️ AI cleanup failed. Using raw comment. Error: {e}"
         print(msg)

@@ -37,6 +37,7 @@ import os
 from typing import Any, Dict, List, Tuple
 
 from core.env_fetcher import EnvFetcher
+from providers import get_ai_provider
 from providers.ai_provider import AIProvider
 
 
@@ -285,21 +286,19 @@ def validate_field_with_ai(
     return cached_field_hash  # Return the updated hash to use in the next validation
 
 
-def cli_validate_issue(
-    fields: Dict[str, Any], ai_provider: AIProvider
-) -> Tuple[List[str], Dict[str, bool]]:
+def cli_validate_issue(fields: Dict[str, Any]) -> Tuple[List[str], Dict[str, bool]]:
     """
     Validate the fields of an issue using an AI provider to ensure compliance with specified criteria.
 
     Arguments:
-    - fields (Dict[str, Any]): A dictionary containing the fields of the issue to be validated.
-    - ai_provider (AIProvider): The AI provider used for validation.
+    - fields (Dict[str, Any]): A dictionary containing the fields of the issue to be validated.\
 
     Return:
     - Tuple[List[str], Dict[str, bool]]: A tuple containing:
     - problems (List[str]): A list of validation issues encountered during the process.
     - issue_status (Dict[str, bool]): A dictionary tracking the validation status of each field.
     """
+    ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
     problems: List[str] = []
     issue_status: Dict[str, bool] = {}
 

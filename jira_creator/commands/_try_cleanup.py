@@ -12,11 +12,12 @@ It returns:
 
 It raises an AiError exception if the AI cleanup process fails.
 """
+from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import AiError
-from providers.ai_provider import AIProvider
+from providers import get_ai_provider
 
 
-def _try_cleanup(ai_provider: AIProvider, prompt: str, text: str) -> str:
+def _try_cleanup(prompt: str, text: str) -> str:
     """
     Attempts to clean up text using an AI provider.
 
@@ -33,7 +34,7 @@ def _try_cleanup(ai_provider: AIProvider, prompt: str, text: str) -> str:
     """
 
     try:
-        return ai_provider.improve_text(prompt, text)
+        return get_ai_provider(EnvFetcher.get("AI_PROVIDER")).improve_text(prompt, text)
     except AiError as e:
         msg = f"⚠️ AI cleanup failed: {e}"
         print(msg)

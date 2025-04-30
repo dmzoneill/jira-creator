@@ -30,7 +30,6 @@ from typing import Any, Dict, List, Tuple, Union
 
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintAllError
-from providers.ai_provider import AIProvider
 from rest.client import JiraClient
 
 
@@ -105,9 +104,7 @@ def print_status_table(
     print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
 
 
-def cli_lint_all(
-    jira: JiraClient, ai_provider: AIProvider, args: Namespace
-) -> List[Dict[str, Any]]:
+def cli_lint_all(jira: JiraClient, args: Namespace) -> List[Dict[str, Any]]:
     """
     Lint all Jira issues based on specified criteria.
 
@@ -150,7 +147,7 @@ def cli_lint_all(
             fields["key"] = issue["key"]
             summary = fields["summary"]
 
-            problems, statuses = validate(fields, ai_provider)
+            problems, statuses = validate(fields)
             statuses = OrderedDict(statuses)
             statuses = OrderedDict([("jira_issue_id", key)] + list(statuses.items()))
             failure_statuses.append(statuses)

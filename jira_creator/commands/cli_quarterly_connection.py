@@ -25,21 +25,20 @@ Note:
 import time
 from typing import List, Optional
 
+from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import QuarterlyConnectionError
+from providers import get_ai_provider
 from providers.ai_provider import AIProvider
 from rest.client import JiraClient
 from rest.prompts import IssueType, PromptLibrary
 
 
-def cli_quarterly_connection(
-    jira: JiraClient, ai_provider: AIProvider
-) -> Optional[bool]:
+def cli_quarterly_connection(jira: JiraClient) -> Optional[bool]:
     """
     Builds a quarterly employee report based on JIRA issues assigned to the current user.
 
     Arguments:
     - jira: A JIRA API client for interacting with JIRA issues.
-    - ai_provider: An AI provider for generating insights from the JIRA issues.
 
     Exceptions:
     - Raises exceptions if there are any issues with searching JIRA issues.
@@ -83,6 +82,7 @@ def cli_quarterly_connection(
         print(qc_input)
 
         print("Manager churning:")
+        ai_provider: AIProvider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
         print(ai_provider.improve_text(system_prompt, qc_input))
 
         return True

@@ -5,7 +5,7 @@ application. It mocks the add_comment method using MagicMock and then calls the 
 asserts that the output contains a warning message indicating that no comment was provided.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 
 def test_add_comment_blank(cli, capsys):
@@ -19,17 +19,20 @@ def test_add_comment_blank(cli, capsys):
     Side Effects:
     - Mocks the add_comment method of the Jira object in the CLI using MagicMock.
     """
+    with patch("commands.cli_add_comment.get_ai_provider") as ai_provider:
+        ai_provider.improve_text = MagicMock()
+        ai_provider.improve_text.return_value = "OK"
 
-    # Mock add_comment method
-    cli.jira.add_comment = MagicMock()
+        # Mock add_comment method
+        cli.jira.add_comment = MagicMock()
 
-    class Args:
-        issue_key = "AAP-test_add_comment_blank"
-        text = "   "  # Blank comment
+        class Args:
+            issue_key = "AAP-test_add_comment_blank"
+            text = "   "  # Blank comment
 
-    # Call the method
-    cli.add_comment(Args())
+        # Call the method
+        cli.add_comment(Args())
 
-    # Capture output and assert
-    out = capsys.readouterr().out
-    assert "⚠️ No comment provided" in out
+        # Capture output and assert
+        out = capsys.readouterr().out
+        assert "⚠️ No comment provided" in out

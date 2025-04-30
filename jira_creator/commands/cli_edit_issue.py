@@ -26,6 +26,8 @@ import tempfile
 from argparse import Namespace
 from typing import Any, Tuple
 
+from core.env_fetcher import EnvFetcher
+from providers import get_ai_provider
 from rest.client import JiraClient
 from rest.prompts import IssueType, PromptLibrary
 
@@ -97,7 +99,7 @@ def edit_description(original_description: str) -> str:
         raise EditDescriptionError(e) from e
 
 
-def get_prompt(jira: Any, issue_key: str, default_prompt: str) -> str:
+def get_prompt(jira: JiraClient, issue_key: str, default_prompt: str) -> str:
     """
     Retrieve a prompt related to a Jira issue.
 
@@ -127,7 +129,7 @@ def get_prompt(jira: Any, issue_key: str, default_prompt: str) -> str:
         return default_prompt
 
 
-def lint_description_once(cleaned: str, ai_provider: Any) -> Tuple[str, bool]:
+def lint_description_once(cleaned: str) -> Tuple[str, bool]:
     """
     Lint a description once using a specified AI provider.
 
@@ -142,7 +144,7 @@ def lint_description_once(cleaned: str, ai_provider: Any) -> Tuple[str, bool]:
     """
 
     fields = {"key": "AAP-lint_description_once", "description": cleaned}
-    problems = validate(fields, ai_provider)[0]
+    problems = validate(fields)[0]
     print(f"Validation issues: {problems}")
 
     description_problems = [p for p in problems if p.startswith("❌ Description:")]
@@ -167,19 +169,19 @@ def lint_description_once(cleaned: str, ai_provider: Any) -> Tuple[str, bool]:
     )
 
     # Generate the updated description
+    ai_provider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
     cleaned = ai_provider.improve_text(prompt, cleaned)
     print(f"Updated cleaned description: {cleaned}")  # Debugging print
 
     return cleaned, True  # There are still issues, continue the loop
 
 
-def lint_description(cleaned: str, ai_provider: Any) -> str:
+def lint_description(cleaned: str) -> str:
     """
     Prints the current cleaned description in a loop for linting purposes.
 
     Arguments:
     - cleaned (str): The cleaned description that needs to be linted.
-    - ai_provider: The AI provider used for linting.
 
     Side Effects:
     Prints the current cleaned description in a loop for linting purposes.
@@ -190,7 +192,7 @@ def lint_description(cleaned: str, ai_provider: Any) -> str:
         print(f"Current cleaned description: {cleaned}")  # Debugging print
 
         # Call the refactored function
-        cleaned, should_continue = lint_description_once(cleaned, ai_provider)
+        cleaned, should_continue = lint_description_once(cleaned)
 
         if not should_continue:
             print("No issues found, breaking out of loop.")
@@ -201,7 +203,7 @@ def lint_description(cleaned: str, ai_provider: Any) -> str:
     return cleaned
 
 
-def update_jira_description(jira: Any, issue_key: str, cleaned: str) -> None:
+def update_jira_description(jira: JiraClient, issue_key: str, cleaned: str) -> None:
     """
     Update the description of a Jira issue.
 
@@ -227,16 +229,12 @@ def update_jira_description(jira: Any, issue_key: str, cleaned: str) -> None:
         raise UpdateDescriptionError(e) from e
 
 
-def cli_edit_issue(
-    jira: Any, ai_provider: Any, default_prompt: str, try_cleanup_fn: Any, args: Any
-) -> bool:
+def cli_edit_issue(jira: JiraClient, try_cleanup_fn: Any, args: Namespace) -> bool:
     """
     Edit an issue's description in a Jira instance using a command-line interface.
 
     Arguments:
     - jira (JIRA): A Jira instance to interact with.
-    - ai_provider (AIProvider): An AI provider for natural language processing.
-    - default_prompt (str): The default prompt message for user input.
     - try_cleanup_fn (function): A function to attempt cleanup operations.
     - args (Namespace): The parsed command-line arguments.
 
@@ -256,11 +254,12 @@ def cli_edit_issue(
         if not edited:
             return False
 
-        prompt = get_prompt(jira, args.issue_key, default_prompt)
-
-        cleaned = edited if args.no_ai else try_cleanup_fn(ai_provider, prompt, edited)
+        prompt = get_prompt(
+            jira, args.issue_key, PromptLibrary.get_prompt(IssueType["DEFAULT"])
+        )
+        cleaned = edited if args.no_ai else try_cleanup_fn(prompt, edited)
         if args.lint:
-            cleaned = lint_description(cleaned, ai_provider)
+            cleaned = lint_description(cleaned)
 
         update_jira_description(jira, args.issue_key, cleaned)
         return True

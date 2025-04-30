@@ -29,6 +29,6 @@ Modify
     - --ai-from-description
 
   - edit-issue --acceptance-criteria
-    - Update acepance criteria from descirption (--ai) or user input
+    - Update aceptance criteria from description (--ai) or user input
     - create linked issue
 

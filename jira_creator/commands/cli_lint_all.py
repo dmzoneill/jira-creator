@@ -8,9 +8,9 @@ It contains two primary functions:
 - Displays a formatted table of failure statuses.
 - Normalizes status values for better readability using visual indicators.
 
-2. `cli_lint_all(jira, ai_provider, args)`:
+2. `cli_lint_all(jira, args)`:
 - Lints Jira issues based on command-line arguments such as project, component, reporter, or assignee.
-- Validates issues retrieved from Jira using an AI provider and summarizes the results.
+- Validates issues retrieved from Jira and summarizes the results.
 - Outputs the status of each issue, indicating which passed or failed lint checks, along with detailed feedback for any
 failures.
 
@@ -30,7 +30,6 @@ from typing import Any, Dict, List, Tuple, Union
 
 from commands.cli_validate_issue import cli_validate_issue as validate
 from exceptions.exceptions import LintAllError
-from providers.ai_provider import AIProvider
 from rest.client import JiraClient
 
 
@@ -105,15 +104,12 @@ def print_status_table(
     print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
 
 
-def cli_lint_all(
-    jira: JiraClient, ai_provider: AIProvider, args: Namespace
-) -> List[Dict[str, Any]]:
+def cli_lint_all(jira: JiraClient, args: Namespace) -> List[Dict[str, Any]]:
     """
     Lint all Jira issues based on specified criteria.
 
     Arguments:
     - jira (JiraClient): An instance of the JIRA client.
-    - ai_provider (AIProvider): An instance of the AI provider.
     - args (Namespace): A namespace object containing parsed command-line arguments.
     - args.reporter (str): The reporter of the issues to filter by.
     - args.assignee (str): The assignee of the issues to filter by.
@@ -150,7 +146,7 @@ def cli_lint_all(
             fields["key"] = issue["key"]
             summary = fields["summary"]
 
-            problems, statuses = validate(fields, ai_provider)
+            problems, statuses = validate(fields)
             statuses = OrderedDict(statuses)
             statuses = OrderedDict([("jira_issue_id", key)] + list(statuses.items()))
             failure_statuses.append(statuses)

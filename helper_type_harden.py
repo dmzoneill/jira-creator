@@ -7,9 +7,9 @@ import tempfile
 
 import requests
 
-api_key = os.environ.get("AI_API_KEY")
+api_key = os.environ.get("JIRA_AI_API_KEY")
 endpoint = "https://api.openai.com/v1/chat/completions"
-model = os.environ.get("AI_MODEL")
+model = os.environ.get("JIRA_AI_MODEL")
 
 
 def extract_code_from_output(output):

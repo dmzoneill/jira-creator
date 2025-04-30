@@ -12,7 +12,7 @@ Arguments:
 - capsys (object): The capsys object for capturing stdout and stderr outputs.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 
 def test_add_comment_with_text(cli, capsys):
@@ -24,21 +24,25 @@ def test_add_comment_with_text(cli, capsys):
     - capsys (object): The capsys object for capturing stdout and stderr outputs.
     """
 
-    # Mock dependencies using MagicMock
-    cli.jira = MagicMock()
-    cli.jira.add_comment = MagicMock()
+    # Mock the get_ai_provider to return a mock AI provider object
+    with patch("commands.cli_add_comment.get_ai_provider") as mock_get_ai_provider:
+        # Create a mock AI provider
+        mock_ai_provider = MagicMock()
+        mock_ai_provider.improve_text.return_value = "Cleaned"
+        mock_get_ai_provider.return_value = mock_ai_provider
 
-    cli.ai_provider = MagicMock()
-    cli.ai_provider.improve_text = MagicMock(return_value="Cleaned")
+        # Mock dependencies using MagicMock
+        cli.jira = MagicMock()
+        cli.jira.add_comment = MagicMock()
 
-    class Args:
-        issue_key = "AAP-test_add_comment_with_text"
-        text = "Raw comment"
+        class Args:
+            issue_key = "AAP-test_add_comment_with_text"
+            text = "Raw comment"
 
-    cli.add_comment(Args())
+        cli.add_comment(Args())
 
-    cli.jira.add_comment.assert_called_once_with(
-        "AAP-test_add_comment_with_text", "Cleaned"
-    )
-    out = capsys.readouterr().out
-    assert "✅ Comment added" in out
+        cli.jira.add_comment.assert_called_once_with(
+            "AAP-test_add_comment_with_text", "Cleaned"
+        )
+        out = capsys.readouterr().out
+        assert "✅ Comment added" in out

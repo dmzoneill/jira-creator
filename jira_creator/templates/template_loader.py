@@ -16,6 +16,8 @@ issue tracking systems or reporting tools.
 from pathlib import Path
 from typing import Dict, List
 
+from core.env_fetcher import EnvFetcher
+
 
 class TemplateLoader:
     """
@@ -27,7 +29,7 @@ class TemplateLoader:
     - template_lines (List[str]): A list of lines comprising the template content.
 
     Methods:
-    - __init__(template_dir: Path, issue_type: str): Initializes the TemplateLoader by loading the template file.
+    - __init__(issue_type: str): Initializes the TemplateLoader by loading the template file.
     - _load_template(): Private method to read and parse the template file, extracting fields and template content.
     - get_fields(): Returns the list of field names extracted from the template.
     - get_template(): Returns the template content as a single string.
@@ -35,12 +37,11 @@ class TemplateLoader:
     provided values and returns the rendered description.
     """
 
-    def __init__(self, template_dir: Path, issue_type: str) -> None:
+    def __init__(self, issue_type: str) -> None:
         """
         Initialize a new instance of the class with the provided template directory and issue type.
 
         Arguments:
-        - template_dir (Path): The directory where the template files are stored.
         - issue_type (str): The type of the issue for which the template is being loaded.
 
         Exceptions:
@@ -52,7 +53,9 @@ class TemplateLoader:
         - Calls the '_load_template' method to load the template file content.
         """
 
-        self.template_path: Path = template_dir / f"{issue_type}.tmpl"
+        self.template_path: Path = (
+            Path(EnvFetcher.get("TEMPLATE_DIR")) / f"{issue_type}.tmpl"
+        )
         if not self.template_path.exists():
             err = f"Template file not found: {self.template_path}"
             raise FileNotFoundError(err)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-This script provides functionality to generate a quarterly employee report based on JIRA issues assigned to the
-current user. It includes a function `cli_quarterly_connection` that retrieves JIRA issues from the last 90 days,
-processes the information using an AI provider, and handles potential exceptions related to JIRA issue searches.
+This script generates a quarterly employee report by querying JIRA for issues assigned to the current user.
+It includes a main function, `cli_quarterly_connection`, which retrieves JIRA issues from the last 90 days,
+processes the information, and handles exceptions related to JIRA searches.
 
 Functions:
 - `cli_quarterly_connection`: Constructs a quarterly report by querying JIRA for issues created, resolved, updated,
@@ -10,36 +10,34 @@ or commented on by the current user within the last 90 days.
 
 Arguments:
 - `jira`: An instance of `JiraClient` for accessing JIRA issues.
-- `ai_provider`: An instance of `AIProvider` for generating insights from the retrieved JIRA issues.
 
 Exceptions:
 - Raises `QuarterlyConnectionError` if there are issues with the JIRA search operation.
 
 Side Effects:
-- Outputs "Building employee report" to the console.
+- Outputs "Building employee report" to the console and prints the summarized report.
 
 Note:
-- The function filters out issues related to CVEs and prints the summarized report to the console.
+- The function filters out issues related to CVEs and prints relevant summaries to the console.
 """
 
 import time
 from typing import List, Optional
 
+from core.env_fetcher import EnvFetcher
 from exceptions.exceptions import QuarterlyConnectionError
+from providers import get_ai_provider
 from providers.ai_provider import AIProvider
 from rest.client import JiraClient
 from rest.prompts import IssueType, PromptLibrary
 
 
-def cli_quarterly_connection(
-    jira: JiraClient, ai_provider: AIProvider
-) -> Optional[bool]:
+def cli_quarterly_connection(jira: JiraClient) -> Optional[bool]:
     """
     Builds a quarterly employee report based on JIRA issues assigned to the current user.
 
     Arguments:
     - jira: A JIRA API client for interacting with JIRA issues.
-    - ai_provider: An AI provider for generating insights from the JIRA issues.
 
     Exceptions:
     - Raises exceptions if there are any issues with searching JIRA issues.
@@ -83,6 +81,7 @@ def cli_quarterly_connection(
         print(qc_input)
 
         print("Manager churning:")
+        ai_provider: AIProvider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
         print(ai_provider.improve_text(system_prompt, qc_input))
 
         return True

@@ -49,13 +49,13 @@ class OpenAIProvider(AIProvider):
         - self: The Chatbot instance itself.
 
         Side Effects:
-        - Sets the API key attribute using the value fetched from the environment variable "AI_API_KEY".
+        - Sets the API key attribute using the value fetched from the environment variable "JIRA_AI_API_KEY".
         - Sets the endpoint attribute to "https://api.openai.com/v1/chat/completions".
-        - Sets the model attribute using the value fetched from the environment variable "AI_MODEL".
+        - Sets the model attribute using the value fetched from the environment variable "JIRA_AI_MODEL".
         """
-        self.api_key: str = EnvFetcher.get("AI_API_KEY")
+        self.api_key: str = EnvFetcher.get("JIRA_AI_API_KEY")
         self.endpoint: str = "https://api.openai.com/v1/chat/completions"
-        self.model: str = EnvFetcher.get("AI_MODEL")
+        self.model: str = EnvFetcher.get("JIRA_AI_MODEL")
 
     def improve_text(self, prompt: str, text: str) -> str:
         """

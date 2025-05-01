@@ -42,7 +42,6 @@ class TemplateLoader:
         Initialize a new instance of the class with the provided template directory and issue type.
 
         Arguments:
-        - template_dir (Path): The directory where the template files are stored.
         - issue_type (str): The type of the issue for which the template is being loaded.
 
         Exceptions:

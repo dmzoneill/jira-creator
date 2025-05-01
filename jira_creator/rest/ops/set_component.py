@@ -3,12 +3,12 @@
 This function sets a component for a given issue in Jira.
 
 Parameters:
-- request_fn: A function to make HTTP requests.
-- issue_key: The key of the issue to set the component for.
-- component: The name of the component to set for the issue.
+- request_fn (function): A function to make HTTP requests.
+- issue_key (str): The key of the issue to set the component for.
+- component (str): The name of the component to set for the issue.
 
 Returns:
-- A dictionary containing the result of the request.
+- dict: A dictionary representing the response from the HTTP request made to set the component for the issue.
 """
 
 
@@ -23,7 +23,6 @@ def set_component(request_fn, issue_key, component) -> dict:
 
     Return:
     - dict: A dictionary representing the response from the HTTP request made to set the component for the issue.
-
     """
     path = f"/rest/api/2/issue/{issue_key}/components"
     payload = {"components": [{"name": component}]}

@@ -169,7 +169,7 @@ def lint_description_once(cleaned: str) -> Tuple[str, bool]:
     )
 
     # Generate the updated description
-    ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
+    ai_provider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
     cleaned = ai_provider.improve_text(prompt, cleaned)
     print(f"Updated cleaned description: {cleaned}")  # Debugging print
 
@@ -182,7 +182,6 @@ def lint_description(cleaned: str) -> str:
 
     Arguments:
     - cleaned (str): The cleaned description that needs to be linted.
-    - ai_provider: The AI provider used for linting.
 
     Side Effects:
     Prints the current cleaned description in a loop for linting purposes.
@@ -236,7 +235,6 @@ def cli_edit_issue(jira: JiraClient, try_cleanup_fn: Any, args: Namespace) -> bo
 
     Arguments:
     - jira (JIRA): A Jira instance to interact with.
-    - default_prompt (str): The default prompt message for user input.
     - try_cleanup_fn (function): A function to attempt cleanup operations.
     - args (Namespace): The parsed command-line arguments.
 

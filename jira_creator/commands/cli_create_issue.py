@@ -36,7 +36,6 @@ def cli_create_issue(jira: JiraClient, args: Namespace) -> Optional[str]:
 
     Arguments:
     - jira (Any): An instance of the JIRA class for interacting with the Jira API.
-    - ai_provider (Any): The AI provider to use for generating content.
     - args (Any): Command-line arguments containing the type of the issue.
 
     Exceptions:
@@ -75,7 +74,7 @@ def cli_create_issue(jira: JiraClient, args: Namespace) -> Optional[str]:
     prompt: str = PromptLibrary.get_prompt(enum_type)
 
     try:
-        ai_provider: AIProvider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
+        ai_provider: AIProvider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
         description = ai_provider.improve_text(prompt, description)
     except AiError as e:
         msg = f"⚠️ AI cleanup failed. Using original text. Error: {e}"

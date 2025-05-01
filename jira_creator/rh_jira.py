@@ -111,16 +111,16 @@ class JiraCLI:
 
         self.jira: JiraClient = JiraClient()
         required_vars: list[str] = [
-            "JPAT",
-            "AI_PROVIDER",
-            "AI_MODEL",
-            "AI_URL",
+            "JIRA_JPAT",
+            "JIRA_AI_PROVIDER",
+            "JIRA_AI_MODEL",
+            "JIRA_AI_URL",
             "JIRA_URL",
-            "PROJECT_KEY",
-            "AFFECTS_VERSION",
-            "COMPONENT_NAME",
-            "PRIORITY",
-            "AI_API_KEY",
+            "JIRA_PROJECT_KEY",
+            "JIRA_AFFECTS_VERSION",
+            "JIRA_COMPONENT_NAME",
+            "JIRA_PRIORITY",
+            "JIRA_AI_API_KEY",
             "JIRA_BOARD_ID",
             "JIRA_EPIC_FIELD",
             "JIRA_ACCEPTANCE_CRITERIA_FIELD",
@@ -132,7 +132,7 @@ class JiraCLI:
         ]
 
         EnvFetcher.fetch_all(required_vars)
-        # self.ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
+        # self.ai_provider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
         # self.default_prompt = PromptLibrary.get_prompt(IssueType["DEFAULT"])
         # self.comment_prompt = PromptLibrary.get_prompt(IssueType["COMMENT"])
 
@@ -965,7 +965,6 @@ class JiraCLI:
 
         Side Effects:
         - Modifies the project using the provided arguments.
-
         """
         return cli_set_project(self.jira, args)
 
@@ -979,7 +978,6 @@ class JiraCLI:
 
         Exceptions:
         None
-
         """
         return cli_set_component(self.jira, args)
 

@@ -1,25 +1,24 @@
 #!/usr/bin/env python
 """
-This module defines the JiraClient class, which provides a comprehensive interface for interacting with the Jira API.
-It facilitates various operations related to Jira issues, sprints, and users, enabling seamless management of Jira
-resources through a programmatic approach.
+This module defines the `JiraClient` class, which facilitates interaction with the Jira API for managing Jira entities
+such as issues, sprints, and users. The class provides a high-level abstraction over the Jira API, simplifying
+operations like issue creation, updating, sprint management, and user retrieval.
 
 Key Features:
-- Issue Management: Create, update, assign, and comment on issues, as well as manage issue types and priorities.
-- Sprint Management: Add or remove issues from sprints, list sprints, and set sprint details.
-- User Management: Retrieve current user details and search for users within Jira.
-- Error Handling: Robust error handling for request failures, with support for generating debug-friendly curl commands
-for troubleshooting.
+- **Issue Management**: Create, update, and manage issues with functionalities to assign, set priority, and change
+types.
+- **Sprint Management**: Add or remove issues from sprints, and list available sprints.
+- **User Management**: Fetch user details and search for users within Jira.
+- **Error Handling**: Includes mechanisms for debugging and error handling, such as generating curl commands for failed
+API requests.
 
-The JiraClient class relies on environment variables for configuration and uses the requests library for making HTTP
-requests. Additionally, it incorporates custom modules for enhanced environment management and exception handling.
+Configuration and Dependencies:
+- Utilizes environment variables for configuration, managed through a custom `EnvFetcher` module.
+- Uses the `requests` library for HTTP operations.
+- Incorporates custom exception handling for robust error management.
 
-Dependencies:
-- requests: For HTTP communication with the Jira API.
-- Custom modules: For environment variable fetching and exception management.
-
-The module is designed to be easily integrated into larger systems requiring Jira API interactions, providing a
-high-level abstraction over the API's complexity while maintaining flexibility and ease of use.
+This module is designed to be easily integrated into larger systems that require Jira API interactions, providing a
+streamlined interface for programmatically managing Jira resources.
 """
 
 # pylint: disable=too-many-instance-attributes too-many-arguments too-many-positional-arguments
@@ -152,11 +151,11 @@ class JiraClient:
         field, board ID, fields cache path, and speaking status.
         """
         self.jira_url: str = EnvFetcher.get("JIRA_URL")
-        self.project_key: str = EnvFetcher.get("PROJECT_KEY")
-        self.affects_version: str = EnvFetcher.get("AFFECTS_VERSION")
-        self.component_name: str = EnvFetcher.get("COMPONENT_NAME")
-        self.priority: str = EnvFetcher.get("PRIORITY")
-        self.jpat: str = EnvFetcher.get("JPAT")
+        self.project_key: str = EnvFetcher.get("JIRA_PROJECT_KEY")
+        self.affects_version: str = EnvFetcher.get("JIRA_AFFECTS_VERSION")
+        self.component_name: str = EnvFetcher.get("JIRA_COMPONENT_NAME")
+        self.priority: str = EnvFetcher.get("JIRA_PRIORITY")
+        self.jpat: str = EnvFetcher.get("JIRA_JPAT")
         self.epic_field: str = EnvFetcher.get("JIRA_EPIC_FIELD")
         self.board_id: str = EnvFetcher.get("JIRA_BOARD_ID")
         self.fields_cache_path: str = os.path.expanduser(
@@ -910,7 +909,6 @@ class JiraClient:
 
         Return:
         - The result of calling the 'set_project' function with the request, issue key, and flag name.
-
         """
         return set_project(self._request, issue_key, flag_name)
 
@@ -925,6 +923,5 @@ class JiraClient:
 
         Return:
         - set_component: The result of setting the component for the specified issue.
-
         """
         return set_component(self._request, issue_key, flag_name)

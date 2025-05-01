@@ -22,7 +22,7 @@ Key components of the module include:
 - `validate_field_with_ai()`: Uses an AI provider to validate field quality.
 
 - **Main Validation Function**:
-- `cli_validate_issue(fields, ai_provider)`: Orchestrates the validation of an issue by extracting relevant fields,
+- `cli_validate_issue(fields)`: Orchestrates the validation of an issue by extracting relevant fields,
 performing validations, and utilizing AI for quality checks.
 
 This module is intended for use in a command-line interface context, providing feedback on issues that do not meet the
@@ -291,14 +291,14 @@ def cli_validate_issue(fields: Dict[str, Any]) -> Tuple[List[str], Dict[str, boo
     Validate the fields of an issue using an AI provider to ensure compliance with specified criteria.
 
     Arguments:
-    - fields (Dict[str, Any]): A dictionary containing the fields of the issue to be validated.\
+    - fields (Dict[str, Any]): A dictionary containing the fields of the issue to be validated.
 
     Return:
     - Tuple[List[str], Dict[str, bool]]: A tuple containing:
     - problems (List[str]): A list of validation issues encountered during the process.
     - issue_status (Dict[str, bool]): A dictionary tracking the validation status of each field.
     """
-    ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
+    ai_provider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
     problems: List[str] = []
     issue_status: Dict[str, bool] = {}
 

@@ -189,15 +189,13 @@ def cli_ai_helper(cli: Any, args: Namespace) -> bool:
 
     Arguments:
     - cli (object): The cli object used to interact with the CLI.
-    - ai_provider (object): The AI provider object responsible for processing AI-related tasks.
-    - system_prompt (str): The system prompt displayed to the user.
     - args (Namespace): Namespace object containing the command line arguments.
 
     Exceptions:
     - AIHelperError: Raised when there is an issue inspecting public methods of JiraCLI.
     """
 
-    ai_provider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
+    ai_provider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
     system_prompt = PromptLibrary.get_prompt(IssueType["AIHELPER"])
 
     try:

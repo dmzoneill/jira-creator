@@ -20,15 +20,15 @@ Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardi
 ```bash
 mkdir -p ~/.bashrc.d
 cat <<EOF > ~/.bashrc.d/jira.sh
-export JPAT="your_jira_personal_access_token"
-export AI_PROVIDER=openai
-export AI_API_KEY=sk-...
-export AI_MODEL="gpt-4o-mini"
+export JIRA_JPAT="your_jira_personal_access_token"
+export JIRA_AI_PROVIDER=openai
+export JIRA_AI_API_KEY=sk-...
+export JIRA_AI_MODEL="gpt-4o-mini"
 export JIRA_URL="https://issues.redhat.com"
-export PROJECT_KEY="AAP"
-export AFFECTS_VERSION="aa-latest"
-export COMPONENT_NAME="analytics-hcc-service"
-export PRIORITY="Normal"
+export JIRA_PROJECT_KEY="AAP"
+export JIRA_AFFECTS_VERSION="aa-latest"
+export JIRA_COMPONENT_NAME="analytics-hcc-service"
+export JIRA_PRIORITY="Normal"
 export JIRA_BOARD_ID=21125
 export JIRA_EPIC_FIELD="customfield_12311140"
 export JIRA_ACCEPTANCE_CRITERIA_FIELD="customfield_12315940"
@@ -36,7 +36,7 @@ export JIRA_BLOCKED_FIELD="customfield_12316543"
 export JIRA_BLOCKED_REASON_FIELD="customfield_12316544"
 export JIRA_STORY_POINTS_FIELD="customfield_12310243"
 export JIRA_SPRINT_FIELD="customfield_12310940"
-export VOSK_MODEL="/home/daoneill/.vosk/vosk-model-small-en-us-0.15"
+export JIRA_VOSK_MODEL="/home/daoneill/.vosk/vosk-model-small-en-us-0.15"
 
 # Enable autocomplete
 eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira.py/rh-issue/')"
@@ -72,7 +72,7 @@ rh-issue create story "Improve onboarding experience"
 
 ## 🤖 AI Provider Support
 
-You can plug in different AI providers by setting `AI_PROVIDER`.
+You can plug in different AI providers by setting `JIRA_AI_PROVIDER`.
 
 We can use ollama for the management for differnet models
 
@@ -84,58 +84,58 @@ docker run -d -v ~/.ollama-models:/root/.ollama -p 11434:11434 ollama/ollama
 ### ✅ OpenAI
 
 ```bash
-export AI_PROVIDER=openai
-export AI_API_KEY=sk-...
-export AI_MODEL=gpt-4  # Optional
+export JIRA_AI_PROVIDER=openai
+export JIRA_AI_API_KEY=sk-...
+export JIRA_AI_MODEL=gpt-4  # Optional
 ```
 
 ### 🦙 LLama3
 
 ```bash
 docker compose exec ollama ollama pull LLama3
-export AI_PROVIDER=LLama3
-export AI_URL=http://localhost:11434/api/generate
-export AI_MODEL=LLama3
+export JIRA_AI_PROVIDER=LLama3
+export JIRA_AI_URL=http://localhost:11434/api/generate
+export JIRA_AI_MODEL=LLama3
 ```
 
 ### 🧠 DeepSeek
 
 ```bash
 docker compose exec ollama ollama pull deepseek-r1:7b
-export AI_PROVIDER=deepseek
-export AI_URL=http://localhost:11434/api/generate
-export AI_MODEL=http://localhost:11434/api/generate
+export JIRA_AI_PROVIDER=deepseek
+export JIRA_AI_URL=http://localhost:11434/api/generate
+export JIRA_AI_MODEL=http://localhost:11434/api/generate
 ```
 
 ### 🖥 GPT4All
 
 ```bash
 pip install gpt4all
-export AI_PROVIDER=gpt4all
+export JIRA_AI_PROVIDER=gpt4all
 # WIP
 ```
 
 ### 🧪 InstructLab
 
 ```bash
-export AI_PROVIDER=instructlab
-export AI_URL=http://localhost:11434/api/generate
-export AI_MODEL=instructlab
+export JIRA_AI_PROVIDER=instructlab
+export JIRA_AI_URL=http://localhost:11434/api/generate
+export JIRA_AI_MODEL=instructlab
 # WIP
 ```
 
 ### 🧠 BART
 
 ```bash
-export AI_PROVIDER=bart
-export AI_URL=http://localhost:8000/bart
+export JIRA_AI_PROVIDER=bart
+export JIRA_AI_URL=http://localhost:8000/bart
 # WIP
 ```
 
 ### 🪫 Noop
 
 ```bash
-export AI_PROVIDER=noop
+export JIRA_AI_PROVIDER=noop
 ```
 
 ---

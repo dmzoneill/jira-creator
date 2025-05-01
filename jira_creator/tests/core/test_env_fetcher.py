@@ -57,7 +57,7 @@ def test_get_env_variable_from_pytest_context():
     """
 
     with patch.dict("sys.modules", {"pytest": True}):
-        result = EnvFetcher.get("PROJECT_KEY")
+        result = EnvFetcher.get("JIRA_PROJECT_KEY")
         assert result == "XYZ"
 
 
@@ -102,6 +102,6 @@ def test_fetch_all_returns_expected_vars():
     """
 
     with patch.dict("sys.modules", {"pytest": True}):
-        result = EnvFetcher.fetch_all(["PROJECT_KEY", "COMPONENT_NAME"])
-        assert result["PROJECT_KEY"] == "XYZ"
-        assert result["COMPONENT_NAME"] == "backend"
+        result = EnvFetcher.fetch_all(["JIRA_PROJECT_KEY", "JIRA_COMPONENT_NAME"])
+        assert result["JIRA_PROJECT_KEY"] == "XYZ"
+        assert result["JIRA_COMPONENT_NAME"] == "backend"

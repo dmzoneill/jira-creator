@@ -32,12 +32,12 @@ def test_script_dry_run():
     env.update(
         {
             "JIRA_URL": "https://fake.jira",
-            "PROJECT_KEY": "FAKE",
-            "AFFECTS_VERSION": "0.0.1",
-            "COMPONENT_NAME": "dummy-component",
-            "PRIORITY": "Low",
-            "JPAT": "fake-token",
-            "AI_PROVIDER": "noop",
+            "JIRA_PROJECT_KEY": "FAKE",
+            "JIRA_AFFECTS_VERSION": "0.0.1",
+            "JIRA_COMPONENT_NAME": "dummy-component",
+            "JIRA_PRIORITY": "Low",
+            "JIRA_JPAT": "fake-token",
+            "JIRA_AI_PROVIDER": "noop",
         }
     )
 

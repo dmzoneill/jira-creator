@@ -8,9 +8,9 @@ It contains two primary functions:
 - Displays a formatted table of failure statuses.
 - Normalizes status values for better readability using visual indicators.
 
-2. `cli_lint_all(jira, ai_provider, args)`:
+2. `cli_lint_all(jira, args)`:
 - Lints Jira issues based on command-line arguments such as project, component, reporter, or assignee.
-- Validates issues retrieved from Jira using an AI provider and summarizes the results.
+- Validates issues retrieved from Jira and summarizes the results.
 - Outputs the status of each issue, indicating which passed or failed lint checks, along with detailed feedback for any
 failures.
 
@@ -110,7 +110,6 @@ def cli_lint_all(jira: JiraClient, args: Namespace) -> List[Dict[str, Any]]:
 
     Arguments:
     - jira (JiraClient): An instance of the JIRA client.
-    - ai_provider (AIProvider): An instance of the AI provider.
     - args (Namespace): A namespace object containing parsed command-line arguments.
     - args.reporter (str): The reporter of the issues to filter by.
     - args.assignee (str): The assignee of the issues to filter by.

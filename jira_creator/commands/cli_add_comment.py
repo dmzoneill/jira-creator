@@ -32,7 +32,6 @@ def cli_add_comment(jira: JiraClient, args: Namespace) -> bool:
 
     Arguments:
     - jira (Any): An instance of the JIRA class for interacting with Jira.
-    - comment_prompt (str): The prompt message for entering the comment.
     - args (Any): Command-line arguments parsed by argparse.
 
     Side Effects:
@@ -59,7 +58,7 @@ def cli_add_comment(jira: JiraClient, args: Namespace) -> bool:
         return False
 
     try:
-        ai_provider: AIProvider = get_ai_provider(EnvFetcher.get("AI_PROVIDER"))
+        ai_provider: AIProvider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
         cleaned: str = ai_provider.improve_text(
             PromptLibrary.get_prompt(IssueType["COMMENT"]), comment
         )

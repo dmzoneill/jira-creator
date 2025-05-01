@@ -10,7 +10,6 @@ Function cli_lint:
 - Fetches an issue from Jira using the provided issue key and performs linting on the issue fields.
 - Arguments:
 - jira: Jira client object used to interact with the Jira API.
-- ai_provider: AI provider object for performing linting operations.
 - args: Command-line arguments containing the issue key.
 - Exceptions:
 - This function does not handle any exceptions explicitly. Any exceptions raised during Jira API requests will
@@ -34,7 +33,6 @@ def cli_lint(jira: JiraClient, args: Namespace) -> List[str]:
 
     Arguments:
     - jira: Jira client object used to interact with the Jira API.
-    - ai_provider: AI provider object for performing linting operations.
     - args: Command-line arguments containing the issue key.
 
     Exceptions:

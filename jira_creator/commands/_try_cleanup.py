@@ -22,7 +22,6 @@ def _try_cleanup(prompt: str, text: str) -> str:
     Attempts to clean up text using an AI provider.
 
     Arguments:
-    - ai_provider (AiProvider): An AI provider object used to improve text.
     - prompt (str): A prompt or context for the text improvement process.
     - text (str): The text to be cleaned up.
 
@@ -34,7 +33,9 @@ def _try_cleanup(prompt: str, text: str) -> str:
     """
 
     try:
-        return get_ai_provider(EnvFetcher.get("AI_PROVIDER")).improve_text(prompt, text)
+        return get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")).improve_text(
+            prompt, text
+        )
     except AiError as e:
         msg = f"⚠️ AI cleanup failed: {e}"
         print(msg)

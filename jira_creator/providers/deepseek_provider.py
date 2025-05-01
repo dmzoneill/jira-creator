@@ -54,9 +54,9 @@ class DeepSeekProvider(AIProvider):
         - Initializes the URL, headers, and model attributes using environment variables fetched by EnvFetcher.
         """
 
-        self.url: str = EnvFetcher.get("AI_URL")
+        self.url: str = EnvFetcher.get("JIRA_AI_URL")
         self.headers: Dict[str, str] = {"Content-Type": "application/json"}
-        self.model: str = EnvFetcher.get("AI_MODEL")
+        self.model: str = EnvFetcher.get("JIRA_AI_MODEL")
 
     def improve_text(self, prompt: str, text: str) -> str:
         """

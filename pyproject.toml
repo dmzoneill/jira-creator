@@ -1,6 +1,6 @@
 [project]
 name = "jira-creator"
-version = "1.0.5"
+version = "1.0.6"
 description = "CLI and tools to automate JIRA issue creation"
 readme = "README.md"
 requires-python = ">=3.11"

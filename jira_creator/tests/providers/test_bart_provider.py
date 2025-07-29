@@ -13,8 +13,9 @@ Functions:
 from unittest.mock import MagicMock, patch
 
 import pytest
-from exceptions.exceptions import AiError
-from providers.bart_provider import BARTProvider
+
+from jira_creator.exceptions.exceptions import AiError
+from jira_creator.providers.bart_provider import BARTProvider
 
 
 def test_bart_provider_init():
@@ -36,7 +37,7 @@ def test_bart_provider_init():
     assert provider.headers == {"Content-Type": "application/json"}
 
 
-@patch("providers.bart_provider.requests.post")
+@patch("jira_creator.providers.bart_provider.requests.post")
 def test_improve_text_success(mock_post):
     """
     Improves the text by sending a mock POST request.
@@ -60,7 +61,7 @@ def test_improve_text_success(mock_post):
     mock_post.assert_called_once()
 
 
-@patch("providers.bart_provider.requests.post")
+@patch("jira_creator.providers.bart_provider.requests.post")
 def test_improve_text_failure(mock_post):
     """
     Improves the text of a failed post request response.

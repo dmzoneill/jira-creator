@@ -1,5 +1,20 @@
+#!/usr/bin/env python
+"""
+DEPRECATED: This helper was used to generate CLI commands for the old command system.
+
+The jira-creator project has migrated to a plugin-based architecture.
+To add new commands, create plugins in jira_creator/plugins/ instead.
+
+See existing plugins for examples.
+"""
+
 import os
 import sys
+
+print("⚠️  WARNING: This helper is deprecated. Use the plugin system instead.")
+print("   Create new plugins in jira_creator/plugins/")
+print("   See existing plugins for examples.")
+sys.exit(1)
 
 
 # Define a function to format the command name into a subcommand-friendly format
@@ -144,7 +159,7 @@ def create_files(command_name):
 # Entry point of the script
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python help_add_command.py <command_name>")
+        print("Usage: python helper_add_command.py <command_name>")
         sys.exit(1)
 
     command_name = sys.argv[1]

@@ -14,7 +14,7 @@ SUPER_LINTER_CONFIGS = \
 
 PYTHON ?= python
 PIPENV ?= PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv
-SCRIPT := rh-jira.py
+SCRIPT := jira_creator/rh_jira_plugins.py
 
 # --- Helper Target for Printing Headers ---
 .PHONY: print-header
@@ -46,7 +46,7 @@ run: print-header
 
 .PHONY: dry-run
 dry-run: print-header
-	$(PIPENV) run $(PYTHON) $(SCRIPT) bug "Dry run summary" --dry-run
+	$(PIPENV) run $(PYTHON) $(SCRIPT) create-issue bug "Dry run summary" --dry-run
 
 # --- Tests ---
 .PHONY: test-setup
@@ -109,7 +109,7 @@ coverage-unit: print-header
 	$(PIPENV) run coverage erase
 	$(PIPENV) run coverage run -m pytest -vv -k "not test_jira_project_creation" --durations=10 jira_creator/tests
 	- $(PIPENV) run coverage combine
-	$(PIPENV) run coverage report -m --fail-under=99
+	$(PIPENV) run coverage report -m --fail-under=100
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
 
@@ -167,7 +167,7 @@ rpm: print-header clean
 	rm -rvf ./rpmbuild
 	mkdir -p ./rpmbuild/BUILD ./rpmbuild/BUILDROOT ./rpmbuild/RPMS ./rpmbuild/SOURCES ./rpmbuild/SPECS ./rpmbuild/SRPMS ./rpmbuild/SOURCE
 	cp -r jira-creator.spec ./rpmbuild/SPECS/
-	cp -r jira_creator/rh_jira.py ./rpmbuild/SOURCE/
+	cp -r jira_creator/rh_jira_plugins.py ./rpmbuild/SOURCE/
 	tar -czvf rpmbuild/SOURCES/$(RPM_FILENAME).tar.gz jira_creator/ 
 	rpmbuild --define "_topdir `pwd`/rpmbuild" -v -ba ./rpmbuild/SPECS/jira-creator.spec
 
@@ -183,7 +183,7 @@ deb: print-header clean
 	mkdir -vp ./debbuild/DEBIAN
 	cp control ./debbuild/DEBIAN
 	mkdir -vp ./debbuild/opt/jira-creator
-	cp -r jira_creator/rh_jira.py ./debbuild/opt/
+	cp -r jira_creator/rh_jira_plugins.py ./debbuild/opt/
 	touch ./debbuild/DEBIAN/postinst
 	chmod 755 ./debbuild/DEBIAN/postinst
 

@@ -20,8 +20,9 @@ Side Effects:
 from unittest.mock import MagicMock, patch
 
 import pytest
-from exceptions.exceptions import AiError
-from providers.openai_provider import OpenAIProvider
+
+from jira_creator.exceptions.exceptions import AiError
+from jira_creator.providers.openai_provider import OpenAIProvider
 
 
 def test_openai_provider_improve_text():
@@ -50,7 +51,7 @@ def test_openai_provider_improve_text():
         },
     )()
 
-    with patch("providers.openai_provider.requests.post", return_value=mock_response):
+    with patch("jira_creator.providers.openai_provider.requests.post", return_value=mock_response):
         provider = OpenAIProvider()
         result = provider.improve_text("fix this", "some bad text")
         assert result == "Cleaned up text"
@@ -79,7 +80,7 @@ def test_improve_text_raises_on_api_failure():
     mock_response.status_code = 500
     mock_response.text = "Internal Server Error"
 
-    with patch("providers.openai_provider.requests.post", return_value=mock_response):
+    with patch("jira_creator.providers.openai_provider.requests.post", return_value=mock_response):
         with pytest.raises(AiError) as exc_info:
             provider.improve_text("test prompt", "test input")
 

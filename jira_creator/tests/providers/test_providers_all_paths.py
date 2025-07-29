@@ -4,7 +4,7 @@ This file contains unit tests for the get_ai_provider function, which retrieves 
 provided. The tests cover scenarios such as successful provider retrieval, failure cases, and handling of import errors
 using patching with unittest.mock.patch and pytest.raises. The tested AI providers include OpenAIProvider,
 GPT4AllProvider, InstructLabProvider, BARTProvider, and DeepSeekProvider. The tests verify that the appropriate
-exceptions are raised or handled gracefully. The file imports modules and classes from exceptions.exceptions and
+exceptions are raised or handled gracefully. The file imports modules and classes from jira_creator.exceptions.exceptions and
 providers modules.
 
 Test functions like test_get_ai_provider_openai, test_get_ai_provider_bart, test_get_ai_provider_deepseek, and
@@ -14,7 +14,8 @@ AiProviderError when an unknown provider name is provided.
 """
 
 import pytest
-from exceptions.exceptions import AiProviderError
+
+from jira_creator.exceptions.exceptions import AiProviderError
 from providers import get_ai_provider
 
 

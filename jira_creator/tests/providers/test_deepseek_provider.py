@@ -12,8 +12,9 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from exceptions.exceptions import AiError
-from providers.deepseek_provider import DeepSeekProvider
+
+from jira_creator.exceptions.exceptions import AiError
+from jira_creator.providers.deepseek_provider import DeepSeekProvider
 
 
 @patch("requests.post")

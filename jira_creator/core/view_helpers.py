@@ -28,8 +28,8 @@ import traceback
 from argparse import Namespace
 from typing import List, Tuple
 
-from core.env_fetcher import EnvFetcher
-from rest.client import JiraClient
+from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.rest.client import JiraClient
 
 
 def fetch_view_columns() -> List[str]:
@@ -352,9 +352,8 @@ def massage_issue_list(args: Namespace, issues: list[dict]):
                 # For any other dynamic fields, append the value directly
                 row_data.append(issue.get(col, "—"))
 
-        # If view_columns is set, filter columns based on it
-        if view_columns:
-            row_data = filter_columns(issue, view_columns)
+        # The row_data is already built correctly based on headers
+        # Don't overwrite it with filter_columns which doesn't handle special fields
 
         rows.append(tuple(row_data))
 

@@ -22,9 +22,10 @@ and returns the improved version. Raises an AiError if the API call is unsuccess
 # pylint: disable=too-few-public-methods
 
 import requests
-from core.env_fetcher import EnvFetcher
-from exceptions.exceptions import AiError
-from providers.ai_provider import AIProvider
+
+from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.exceptions.exceptions import AiError
+from jira_creator.providers.ai_provider import AIProvider
 
 
 class OpenAIProvider(AIProvider):

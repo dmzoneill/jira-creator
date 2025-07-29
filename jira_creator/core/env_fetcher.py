@@ -24,7 +24,7 @@ import os
 import sys
 from typing import Dict, List, Optional
 
-from exceptions.exceptions import MissingConfigVariable
+from jira_creator.exceptions.exceptions import MissingConfigVariable
 
 
 class EnvFetcher:
@@ -71,6 +71,7 @@ class EnvFetcher:
         "JIRA_AI_URL": "http://some/url",
         "JIRA_VIEW_COLUMNS": "key,issuetype,status,priority,summary,assignee,reporter,sprint,JIRA_STORY_POINTS_FIELD",
         "JIRA_EPIC_FIELD": "customfield_12311140",
+        "JIRA_EPIC_KEY": "",
         "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_12315940",
         "JIRA_BLOCKED_FIELD": "customfield_12316543",
         "JIRA_BLOCKED_REASON_FIELD": "customfield_12316544",
@@ -81,12 +82,13 @@ class EnvFetcher:
     }
 
     @staticmethod
-    def get(var_name: str) -> str:
+    def get(var_name: str, default: Optional[str] = None) -> str:
         """
         Fetches the value of the environment variable.
 
         Arguments:
         - var_name (str): The name of the environment variable to retrieve the value for.
+        - default (Optional[str]): Default value to return if environment variable is not set.
         """
 
         value: Optional[str] = (
@@ -94,10 +96,31 @@ class EnvFetcher:
             if "pytest" not in sys.modules
             else EnvFetcher.vars[var_name]
         )
-        default: str = os.path.join(os.path.dirname(__file__), "../templates")
-        value = default if var_name == "TEMPLATE_DIR" and value is None else value
+        
+        # Handle special default for TEMPLATE_DIR
+        template_default: str = os.path.join(os.path.dirname(__file__), "../templates")
+        if var_name == "TEMPLATE_DIR" and value is None:
+            value = template_default
 
+        # If value is still None and a default was provided, use it
+        if value is None and default is not None:
+            return default
+
+        # Optional environment variables that can be empty
+        optional_vars = [
+            "JIRA_AFFECTS_VERSION", 
+            "JIRA_EPIC_KEY",
+            "JIRA_COMPONENT_NAME",
+            "JIRA_EPIC_FIELD"
+        ]
+        if var_name in optional_vars and value == "":
+            return ""
+
+        # If no value and no default provided, check if it's required
         if not value:
+            # If a default was provided but value is empty string, return default
+            if default is not None:
+                return default
             raise MissingConfigVariable(
                 f"Missing required Jira environment variable: {var_name}"
             )

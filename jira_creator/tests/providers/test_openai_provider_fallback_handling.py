@@ -11,7 +11,8 @@ returns the improved text as a string. No exceptions are raised during the execu
 """
 
 import requests
-from providers.openai_provider import OpenAIProvider
+
+from jira_creator.providers.openai_provider import OpenAIProvider
 
 
 def test_openai_response_handling():

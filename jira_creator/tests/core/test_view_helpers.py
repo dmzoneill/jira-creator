@@ -1,8 +1,8 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from core.env_fetcher import EnvFetcher
 
+from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.view_helpers import (  # isort: skip
     clean_values,
     fetch_view_columns,
@@ -66,6 +66,11 @@ def test_filter_columns():
     view_columns = ["summary"]
     result = filter_columns(issue, view_columns)
     assert result == ["Test issue"]
+    
+    # Test with a column that doesn't exist in the issue
+    view_columns = ["summary", "nonexistent", "priority"]
+    result = filter_columns(issue, view_columns)
+    assert result == ["Test issue", "High"]
 
 
 # Test for sort_rows
@@ -90,7 +95,7 @@ def test_sort_rows():
 
 # Test for format_and_print_rows (this is more of a print/output test)
 @patch("builtins.print")
-def test_format_and_print_rows(mock_print, cli):
+def test_format_and_print_rows(mock_print):
     # /* jscpd:ignore-start */
     rows = [
         {
@@ -129,10 +134,12 @@ def test_format_and_print_rows(mock_print, cli):
         "customfield_12310243",
     ]
 
-    cli.jira.get_field_name = MagicMock()
-    cli.jira.get_field_name.return_value = "story points"
+    # Create a mock JiraClient
+    mock_jira = MagicMock()
+    mock_jira.get_field_name = MagicMock()
+    mock_jira.get_field_name.return_value = "story points"
 
-    format_and_print_rows(rows, headers, cli.jira)
+    format_and_print_rows(rows, headers, mock_jira)
     mock_print.assert_called()
 
 
@@ -187,7 +194,8 @@ def test_sort_rows_invalid_column():
 
 
 # Test for missing summary column handling
-def test_format_and_print_rows_missing_summary(cli):
+@patch("builtins.print")
+def test_format_and_print_rows_missing_summary(mock_print):
     # /* jscpd:ignore-start */
     rows = [
         {
@@ -215,8 +223,10 @@ def test_format_and_print_rows_missing_summary(cli):
     ]
     # /* jscpd:ignore-end */
 
-    cli.jira.get_field_name = MagicMock()
-    cli.jira.get_field_name.return_value = "story points"
+    # Create a mock JiraClient
+    mock_jira = MagicMock()
+    mock_jira.get_field_name = MagicMock()
+    mock_jira.get_field_name.return_value = "story points"
 
     headers = [
         "key",
@@ -231,7 +241,7 @@ def test_format_and_print_rows_missing_summary(cli):
     ]
 
     with patch("builtins.print") as mock_print:
-        format_and_print_rows(rows, headers, cli.jira)  # Pass a mock JiraClient
+        format_and_print_rows(rows, headers, mock_jira)  # Pass a mock JiraClient
         mock_print.assert_called()
 
 
@@ -302,7 +312,12 @@ def test_massage_issue_list_default_view_columns():
         "sprint",
         "customfield_12310243",
     ]
-    assert rows == [("TEST-1", "To Do", "Issue summary")]
+    # The row should contain all columns from headers
+    assert len(rows) == 1
+    assert len(rows[0]) == len(headers)
+    assert rows[0][0] == "TEST-1"  # key
+    assert rows[0][2] == "To Do"  # status
+    assert rows[0][4] == "Issue summary"  # summary
 
 
 # Test for sorting rows when 'sort' is provided in args

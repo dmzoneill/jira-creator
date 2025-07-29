@@ -19,7 +19,7 @@ Dependencies:
 
 from unittest.mock import patch
 
-from rest.prompts import IssueType, PromptLibrary
+from jira_creator.rest.prompts import IssueType, PromptLibrary
 
 import pytest  # isort: skip
 

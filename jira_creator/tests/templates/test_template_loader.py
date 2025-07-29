@@ -10,7 +10,8 @@ to ensure isolation and cleanliness during testing.
 from unittest.mock import patch
 
 import pytest
-from templates.template_loader import TemplateLoader
+
+from jira_creator.templates.template_loader import TemplateLoader
 
 
 def test_template_loader_parses_fields(tmp_path):
@@ -26,7 +27,7 @@ def test_template_loader_parses_fields(tmp_path):
 
     # Mock TemplateLoader to raise a FileNotFoundError when get_fields is called
     with patch(
-        "templates.template_loader.TemplateLoader.get_fields"
+        "jira_creator.templates.template_loader.TemplateLoader.get_fields"
     ) as mock_get_fields:
         mock_get_fields.side_effect = FileNotFoundError("Template file not found")
 
@@ -66,7 +67,7 @@ def test_template_loader_renders_description(tmp_path):
     outfile = tmp_path / "task.tmpl"
     outfile.write_text(template_content)
 
-    with patch("templates.template_loader.EnvFetcher.get") as mock_get_fields:
+    with patch("jira_creator.templates.template_loader.EnvFetcher.get") as mock_get_fields:
         mock_get_fields.return_value = tmp_path
 
         loader = TemplateLoader("task")
@@ -109,7 +110,7 @@ def test_get_template_returns_joined_string(tmp_path):
     template_content = "FIELD|description\nTEMPLATE|\nline1\nline2\nline3"
     template_file.write_text(template_content)
 
-    with patch("templates.template_loader.EnvFetcher.get") as mock_get_fields:
+    with patch("jira_creator.templates.template_loader.EnvFetcher.get") as mock_get_fields:
         mock_get_fields.return_value = tmp_path
 
         loader = TemplateLoader(issue_type="sample")

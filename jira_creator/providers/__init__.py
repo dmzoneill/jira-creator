@@ -3,7 +3,7 @@
 This module provides functionality to retrieve instances of various AI providers based on a specified name.
 
 The primary function, `get_ai_provider`, takes a string parameter representing the desired AI provider's name and
-attempts to return an instance of the corresponding provider class. Supported providers include OpenAI, GPT4All,
+attempts to return an instance of the corresponding provider class. Supported providers include OpenAI,
 InstructLab, BART, and DeepSeek. If the specified provider cannot be found or if an error occurs during initialization,
 the function will print a warning message and raise an `AiProviderError`, falling back to a default `NoAIProvider`.
 
@@ -21,20 +21,15 @@ Exceptions:
 
 from typing import Type, Union
 
-from exceptions.exceptions import AiProviderError
+from jira_creator.exceptions.exceptions import AiProviderError
 
 from .bart_provider import BARTProvider
 from .deepseek_provider import DeepSeekProvider
-from .gpt4all_provider import GPT4AllProvider
 from .instructlab_provider import InstructLabProvider
 from .openai_provider import OpenAIProvider
 
 
-def get_ai_provider(
-    name: str,
-) -> Union[
-    OpenAIProvider, GPT4AllProvider, InstructLabProvider, BARTProvider, DeepSeekProvider
-]:
+def get_ai_provider(name: str):
     """
     Converts the input name to lowercase and returns the corresponding AI provider.
 
@@ -54,20 +49,8 @@ def get_ai_provider(
     name = name.lower()
 
     # Map the provider name to the corresponding class
-    provider_map: dict[
-        str,
-        Type[
-            Union[
-                OpenAIProvider,
-                GPT4AllProvider,
-                InstructLabProvider,
-                BARTProvider,
-                DeepSeekProvider,
-            ]
-        ],
-    ] = {
+    provider_map = {
         "openai": OpenAIProvider,
-        "gpt4all": GPT4AllProvider,
         "instructlab": InstructLabProvider,
         "bart": BARTProvider,
         "deepseek": DeepSeekProvider,

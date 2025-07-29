@@ -15,8 +15,9 @@ the retrieval and fetching of environment variables.
 from unittest.mock import patch
 
 import pytest
-from core.env_fetcher import EnvFetcher
-from exceptions.exceptions import MissingConfigVariable
+
+from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.exceptions.exceptions import MissingConfigVariable
 
 
 def test_get_env_variable_from_os():
@@ -105,3 +106,34 @@ def test_fetch_all_returns_expected_vars():
         result = EnvFetcher.fetch_all(["JIRA_PROJECT_KEY", "JIRA_COMPONENT_NAME"])
         assert result["JIRA_PROJECT_KEY"] == "XYZ"
         assert result["JIRA_COMPONENT_NAME"] == "backend"
+
+
+def test_get_env_variable_with_default():
+    """Test get method with default parameter."""
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch.dict("sys.modules", {}, clear=True),
+    ):  # Simulate real run, no env
+        result = EnvFetcher.get("MISSING_VAR", "default_value")
+        assert result == "default_value"
+
+
+def test_get_env_variable_template_dir_none():
+    """Test get method for TEMPLATE_DIR when value is None."""
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch.dict("sys.modules", {}, clear=True),
+    ):  # Simulate real run, no env
+        result = EnvFetcher.get("TEMPLATE_DIR")
+        # Should return the template default path
+        assert "templates" in result
+
+
+def test_get_env_variable_empty_with_default():
+    """Test get method when value is empty string but default provided."""
+    with (
+        patch.dict("os.environ", {"TEST_VAR": ""}),
+        patch.dict("sys.modules", {}, clear=True),
+    ):  # Simulate real run
+        result = EnvFetcher.get("TEST_VAR", "fallback_value")
+        assert result == "fallback_value"

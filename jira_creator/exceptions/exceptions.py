@@ -185,3 +185,15 @@ class SearchUsersError(BaseException):
 
 class RemoveFlagError(BaseException):
     """This class represents a custom exception for flag removal errors."""
+
+
+class CloneIssueError(BaseException):
+    """This class represents a custom exception for errors when cloning issues."""
+
+
+class SetSummaryError(BaseException):
+    """This class represents a custom exception for errors related to setting the summary."""
+
+
+class SetWorkstreamError(BaseException):
+    """This class represents a custom exception for errors related to setting the workstream."""

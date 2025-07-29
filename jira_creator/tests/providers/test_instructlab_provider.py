@@ -21,8 +21,9 @@ Overall, this module ensures the robustness of the InstructLabProvider's functio
 from unittest.mock import MagicMock, patch
 
 import pytest
-from exceptions.exceptions import AiError
-from providers.instructlab_provider import InstructLabProvider
+
+from jira_creator.exceptions.exceptions import AiError
+from jira_creator.providers.instructlab_provider import InstructLabProvider
 
 
 def test_instructlab_provider_init_defaults():
@@ -56,7 +57,7 @@ def test_improve_text_success():
     mock_response.json.return_value = {"response": " Improved text "}
 
     with patch(
-        "providers.instructlab_provider.requests.post", return_value=mock_response
+        "jira_creator.providers.instructlab_provider.requests.post", return_value=mock_response
     ) as mock_post:
         result = provider.improve_text("Prompt", "Input text")
 
@@ -80,7 +81,7 @@ def test_improve_text_failure():
     mock_response.text = "Server error"
 
     with patch(
-        "providers.instructlab_provider.requests.post", return_value=mock_response
+        "jira_creator.providers.instructlab_provider.requests.post", return_value=mock_response
     ):
         with pytest.raises(AiError) as exc_info:
             provider.improve_text("Prompt", "Input text")

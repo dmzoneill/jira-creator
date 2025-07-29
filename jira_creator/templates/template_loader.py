@@ -16,7 +16,7 @@ issue tracking systems or reporting tools.
 from pathlib import Path
 from typing import Dict, List
 
-from core.env_fetcher import EnvFetcher
+from jira_creator.core.env_fetcher import EnvFetcher
 
 
 class TemplateLoader:

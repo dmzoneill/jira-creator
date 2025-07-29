@@ -47,6 +47,7 @@ def improve_text(prompt: str, text: str) -> str:
     if response.status_code == 200:
         return response.json()["choices"][0]["message"]["content"].strip()
     else:
+        print(response.content)
         raise Exception("improve text not 200")
 
 

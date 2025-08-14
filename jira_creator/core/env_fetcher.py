@@ -91,12 +91,8 @@ class EnvFetcher:
         - default (Optional[str]): Default value to return if environment variable is not set.
         """
 
-        value: Optional[str] = (
-            os.getenv(var_name)
-            if "pytest" not in sys.modules
-            else EnvFetcher.vars[var_name]
-        )
-        
+        value: Optional[str] = os.getenv(var_name) if "pytest" not in sys.modules else EnvFetcher.vars[var_name]
+
         # Handle special default for TEMPLATE_DIR
         template_default: str = os.path.join(os.path.dirname(__file__), "../templates")
         if var_name == "TEMPLATE_DIR" and value is None:
@@ -108,10 +104,10 @@ class EnvFetcher:
 
         # Optional environment variables that can be empty
         optional_vars = [
-            "JIRA_AFFECTS_VERSION", 
+            "JIRA_AFFECTS_VERSION",
             "JIRA_EPIC_KEY",
             "JIRA_COMPONENT_NAME",
-            "JIRA_EPIC_FIELD"
+            "JIRA_EPIC_FIELD",
         ]
         if var_name in optional_vars and value == "":
             return ""
@@ -121,9 +117,7 @@ class EnvFetcher:
             # If a default was provided but value is empty string, return default
             if default is not None:
                 return default
-            raise MissingConfigVariable(
-                f"Missing required Jira environment variable: {var_name}"
-            )
+            raise MissingConfigVariable(f"Missing required Jira environment variable: {var_name}")
         return value.strip()
 
     @staticmethod

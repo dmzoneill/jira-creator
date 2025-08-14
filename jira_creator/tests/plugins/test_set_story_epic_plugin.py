@@ -23,17 +23,17 @@ class TestSetStoryEpicPlugin:
         """Test argument registration."""
         plugin = SetStoryEpicPlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         # Verify add_argument was called with correct parameters
         assert mock_parser.add_argument.call_count == 2
         calls = mock_parser.add_argument.call_args_list
-        
+
         # First argument: issue_key
         assert calls[0][0] == ("issue_key",)
         assert calls[0][1]["help"] == "The story issue key (e.g., PROJ-123)"
-        
+
         # Second argument: epic_key
         assert calls[1][0] == ("epic_key",)
         assert calls[1][1]["help"] == "The epic issue key (e.g., PROJ-100)"
@@ -44,13 +44,11 @@ class TestSetStoryEpicPlugin:
         plugin = SetStoryEpicPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return epic field
         mock_env_fetcher.get.return_value = "customfield_10008"
 
-        result = plugin.rest_operation(
-            mock_client, issue_key="TEST-123", epic_key="TEST-100"
-        )
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", epic_key="TEST-100")
 
         # Verify EnvFetcher was called
         mock_env_fetcher.get.assert_called_once_with("JIRA_EPIC_FIELD")
@@ -68,14 +66,12 @@ class TestSetStoryEpicPlugin:
         """Test REST operation when JIRA_EPIC_FIELD is not set."""
         plugin = SetStoryEpicPlugin()
         mock_client = Mock()
-        
+
         # Mock EnvFetcher.get to return None (not set)
         mock_env_fetcher.get.return_value = None
 
         with pytest.raises(SetStoryEpicError) as exc_info:
-            plugin.rest_operation(
-                mock_client, issue_key="TEST-123", epic_key="TEST-100"
-            )
+            plugin.rest_operation(mock_client, issue_key="TEST-123", epic_key="TEST-100")
 
         assert str(exc_info.value) == "JIRA_EPIC_FIELD not set in environment"
 
@@ -85,7 +81,7 @@ class TestSetStoryEpicPlugin:
         plugin = SetStoryEpicPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return epic field
         mock_env_fetcher.get.return_value = "customfield_10008"
 
@@ -111,7 +107,7 @@ class TestSetStoryEpicPlugin:
         plugin = SetStoryEpicPlugin()
         mock_client = Mock()
         mock_client.request.side_effect = SetStoryEpicError("Epic not found")
-        
+
         mock_env_fetcher.get.return_value = "customfield_10008"
 
         args = Namespace(issue_key="TEST-123", epic_key="INVALID-999")
@@ -132,7 +128,7 @@ class TestSetStoryEpicPlugin:
         """Test execution when JIRA_EPIC_FIELD is not set."""
         plugin = SetStoryEpicPlugin()
         mock_client = Mock()
-        
+
         # Mock EnvFetcher.get to return None
         mock_env_fetcher.get.return_value = None
 
@@ -184,9 +180,7 @@ class TestSetStoryEpicPlugin:
         mock_env_fetcher.get.return_value = "customfield_10008"
 
         # This might be invalid in Jira, but the plugin should still send the request
-        plugin.rest_operation(
-            mock_client, issue_key="TEST-123", epic_key="TEST-123"
-        )
+        plugin.rest_operation(mock_client, issue_key="TEST-123", epic_key="TEST-123")
 
         # Verify the request is made (validation happens server-side)
         call_args = mock_client.request.call_args[1]["json_data"]
@@ -197,18 +191,16 @@ class TestSetStoryEpicPlugin:
         """Test that the plugin uses the field returned by EnvFetcher."""
         plugin = SetStoryEpicPlugin()
         mock_client = Mock()
-        
+
         # Test with different custom field IDs
         custom_fields = ["customfield_10008", "customfield_20009", "epic_link"]
-        
+
         for field_id in custom_fields:
             mock_client.reset_mock()
             mock_env_fetcher.get.return_value = field_id
-            
-            plugin.rest_operation(
-                mock_client, issue_key="TEST-123", epic_key="TEST-100"
-            )
-            
+
+            plugin.rest_operation(mock_client, issue_key="TEST-123", epic_key="TEST-100")
+
             # Verify the correct field ID was used
             call_args = mock_client.request.call_args[1]["json_data"]
             assert field_id in call_args["fields"]
@@ -228,7 +220,7 @@ class TestSetStoryEpicPlugin:
         result = plugin.execute(mock_client, args)
 
         assert result is True
-        
+
         # Verify print output preserves the keys exactly
         captured = capsys.readouterr()
         assert "✅ Story TEST-123 linked to epic TEST-100" in captured.out

@@ -26,17 +26,17 @@ class TestSetProjectPlugin:
         """Test argument registration."""
         plugin = SetProjectPlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         # Verify add_argument was called with correct parameters
         assert mock_parser.add_argument.call_count == 2
         calls = mock_parser.add_argument.call_args_list
-        
+
         # First argument: issue_key
         assert calls[0][0] == ("issue_key",)
         assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
-        
+
         # Second argument: project
         assert calls[1][0] == ("project",)
         assert calls[1][1]["help"] == "The project key to move the issue to"
@@ -47,9 +47,7 @@ class TestSetProjectPlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"key": "NEWPROJ-123"}
 
-        result = plugin.rest_operation(
-            mock_client, issue_key="TEST-123", value="NEWPROJ"
-        )
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", value="NEWPROJ")
 
         # Verify the request
         mock_client.request.assert_called_once_with(
@@ -79,7 +77,7 @@ class TestSetProjectPlugin:
 
         # Verify print output
         captured = capsys.readouterr()
-        assert "✅ Project set to 'PROJ2'" in captured.out
+        assert "✅ Project for PROJ1-123 set to 'PROJ2'" in captured.out
 
     def test_execute_failure(self, capsys):
         """Test execution with API failure."""
@@ -133,10 +131,8 @@ class TestSetProjectPlugin:
 
         for project_key in project_keys:
             mock_client.reset_mock()
-            
-            plugin.rest_operation(
-                mock_client, issue_key="TEST-456", value=project_key
-            )
+
+            plugin.rest_operation(mock_client, issue_key="TEST-456", value=project_key)
 
             # Verify project key is preserved
             call_args = mock_client.request.call_args[1]["json_data"]
@@ -146,9 +142,7 @@ class TestSetProjectPlugin:
         """Test execution when user lacks permission to move issue."""
         plugin = SetProjectPlugin()
         mock_client = Mock()
-        mock_client.request.side_effect = SetProjectError(
-            "You do not have permission to move issues to this project"
-        )
+        mock_client.request.side_effect = SetProjectError("You do not have permission to move issues to this project")
 
         args = Namespace(issue_key="TEST-123", project="RESTRICTED")
 

@@ -30,9 +30,7 @@ class BlockPlugin(JiraPlugin):
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
         parser.add_argument("issue_key", help="The Jira issue key (e.g., PROJ-123)")
-        parser.add_argument(
-            "reason", nargs="+", help="The reason for blocking the issue"
-        )
+        parser.add_argument("reason", nargs="+", help="The reason for blocking the issue")
 
     def execute(self, client: Any, args: Namespace) -> bool:
         """

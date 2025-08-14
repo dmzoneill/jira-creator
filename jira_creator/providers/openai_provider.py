@@ -89,12 +89,8 @@ class OpenAIProvider(AIProvider):
             "temperature": 0.8,
         }
 
-        response: requests.Response = requests.post(
-            self.endpoint, json=body, headers=headers, timeout=120
-        )
+        response: requests.Response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
 
-        raise AiError(
-            f"OpenAI API call failed: {response.status_code} - {response.text}"
-        )
+        raise AiError(f"OpenAI API call failed: {response.status_code} - {response.text}")

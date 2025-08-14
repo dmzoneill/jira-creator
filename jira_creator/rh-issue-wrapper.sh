@@ -15,7 +15,7 @@ export CLI_NAME
 
 if [[ "$1" == "--_completion" ]]; then
   # Register autocomplete just for this CLI call
-  PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator exec pipenv run register-python-argcomplete jira_creator/rh_jira_plugins.py
+  PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator exec pipenv run register-python-argcomplete jira_creator/rh_jira.py
 else
-  PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator exec pipenv run python jira_creator/rh_jira_plugins.py "$@"
+  PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator exec pipenv run python jira_creator/rh_jira.py "$@"
 fi

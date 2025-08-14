@@ -20,34 +20,31 @@ class TestSetWorkstreamPlugin:
         assert plugin.help_text == "Set the workstream of a Jira issue"
         assert plugin.field_name == "workstream"
         assert plugin.argument_name == "workstream_id"
-        assert (
-            plugin.argument_help
-            == "The workstream ID (optional, uses default if not provided)"
-        )
+        assert plugin.argument_help == "The workstream ID (optional, uses default if not provided)"
 
     def test_register_arguments(self):
         """Test argument registration."""
         plugin = SetWorkstreamPlugin()
         mock_parser = Mock(spec=ArgumentParser)
-        
+
         # Create mock for _positionals
         mock_positionals = Mock()
         mock_positionals._actions = []
         mock_parser._positionals = mock_positionals
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         # Verify add_argument was called with correct parameters
         assert mock_parser.add_argument.call_count == 3
         calls = mock_parser.add_argument.call_args_list
-        
+
         # First argument: issue_key
         assert calls[0][0] == ("issue_key",)
         assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
-        
+
         # Second argument: workstream_id (positional, will be filtered out later)
         assert calls[1][0] == ("workstream_id",)
-        
+
         # Third argument: --workstream-id (optional)
         assert calls[2][0] == ("--workstream-id",)
         assert calls[2][1]["dest"] == "workstream_id"
@@ -58,19 +55,19 @@ class TestSetWorkstreamPlugin:
         """Test register_additional_arguments modifies parser correctly."""
         plugin = SetWorkstreamPlugin()
         mock_parser = Mock(spec=ArgumentParser)
-        
+
         # Create mock for _positionals with an action for 'workstream_id'
         mock_action = Mock()
         mock_action.dest = "workstream_id"
         mock_positionals = Mock()
         mock_positionals._actions = [mock_action]
         mock_parser._positionals = mock_positionals
-        
+
         plugin.register_additional_arguments(mock_parser)
-        
+
         # Verify the action was removed
         assert len(mock_parser._positionals._actions) == 0
-        
+
         # Verify add_argument was called for --workstream-id
         mock_parser.add_argument.assert_called_once_with(
             "--workstream-id",
@@ -85,13 +82,11 @@ class TestSetWorkstreamPlugin:
         plugin = SetWorkstreamPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return workstream field
         mock_env_fetcher.get.return_value = "customfield_10020"
 
-        result = plugin.rest_operation(
-            mock_client, issue_key="TEST-123", value="WS-123"
-        )
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", value="WS-123")
 
         # Verify EnvFetcher was called for field only
         mock_env_fetcher.get.assert_called_once_with("JIRA_WORKSTREAM_FIELD")
@@ -110,16 +105,14 @@ class TestSetWorkstreamPlugin:
         plugin = SetWorkstreamPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return field and default ID
         mock_env_fetcher.get.side_effect = lambda key: {
             "JIRA_WORKSTREAM_FIELD": "customfield_10020",
             "JIRA_WORKSTREAM_ID": "WS-DEFAULT",
         }.get(key)
 
-        result = plugin.rest_operation(
-            mock_client, issue_key="TEST-123", value=None
-        )
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", value=None)
 
         # Verify EnvFetcher was called for both field and default ID
         assert mock_env_fetcher.get.call_count == 2
@@ -140,7 +133,7 @@ class TestSetWorkstreamPlugin:
         plugin = SetWorkstreamPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         mock_env_fetcher.get.return_value = "customfield_10020"
 
         args = Namespace(issue_key="TEST-123", workstream_id="WS-456")
@@ -165,7 +158,7 @@ class TestSetWorkstreamPlugin:
         plugin = SetWorkstreamPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return field and default ID
         mock_env_fetcher.get.side_effect = lambda key: {
             "JIRA_WORKSTREAM_FIELD": "customfield_10020",
@@ -194,7 +187,7 @@ class TestSetWorkstreamPlugin:
         plugin = SetWorkstreamPlugin()
         mock_client = Mock()
         mock_client.request.side_effect = SetWorkstreamError("Invalid workstream ID")
-        
+
         mock_env_fetcher.get.return_value = "customfield_10020"
 
         args = Namespace(issue_key="TEST-123", workstream_id="INVALID-WS")
@@ -214,15 +207,15 @@ class TestSetWorkstreamPlugin:
     def test_format_success_message(self, mock_env_fetcher):
         """Test format_success_message method for different cases."""
         plugin = SetWorkstreamPlugin()
-        
+
         # Test with value
         msg = plugin.format_success_message("TEST-123", "WS-789")
         assert msg == "✅ Workstream set to ID 'WS-789'"
-        
+
         # Test without value (default)
         msg = plugin.format_success_message("TEST-123", None)
         assert msg == "✅ Workstream set to default value"
-        
+
         # Test with empty string
         msg = plugin.format_success_message("TEST-123", "")
         assert msg == "✅ Workstream set to default value"
@@ -261,9 +254,7 @@ class TestSetWorkstreamPlugin:
         mock_client = Mock()
         mock_env_fetcher.get.return_value = "customfield_10020"
 
-        plugin.rest_operation(
-            mock_client, issue_key="TEST-456", value="WS-789"
-        )
+        plugin.rest_operation(mock_client, issue_key="TEST-456", value="WS-789")
 
         # Verify the payload structure (workstream is an array with id object)
         call_args = mock_client.request.call_args[1]["json_data"]
@@ -278,20 +269,18 @@ class TestSetWorkstreamPlugin:
         """Test that the plugin uses the field returned by EnvFetcher."""
         plugin = SetWorkstreamPlugin()
         mock_client = Mock()
-        
+
         # Test with different custom field IDs
         custom_fields = ["customfield_10020", "customfield_30030", "workstream_field"]
-        
+
         for field_id in custom_fields:
             mock_client.reset_mock()
             mock_env_fetcher.get.side_effect = lambda key: {
                 "JIRA_WORKSTREAM_FIELD": field_id,
             }.get(key)
-            
-            plugin.rest_operation(
-                mock_client, issue_key="TEST-123", value="WS-999"
-            )
-            
+
+            plugin.rest_operation(mock_client, issue_key="TEST-123", value="WS-999")
+
             # Verify the correct field ID was used
             call_args = mock_client.request.call_args[1]["json_data"]
             assert field_id in call_args["fields"]
@@ -303,7 +292,7 @@ class TestSetWorkstreamPlugin:
         plugin = SetWorkstreamPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return field and default ID
         mock_env_fetcher.get.side_effect = lambda key: {
             "JIRA_WORKSTREAM_FIELD": "customfield_10020",

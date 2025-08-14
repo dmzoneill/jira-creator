@@ -84,11 +84,7 @@ def get_sorted_columns(sort_string: str) -> List[Tuple[str, str]]:
             sort_columns.append(
                 (
                     col.strip(),
-                    (
-                        order.strip().lower()
-                        if order.strip() in ["asc", "desc"]
-                        else "asc"
-                    ),
+                    (order.strip().lower() if order.strip() in ["asc", "desc"] else "asc"),
                 )
             )
         else:
@@ -115,9 +111,7 @@ def filter_columns(issue: dict, view_columns: List[str]) -> List[str]:
     return result
 
 
-def sort_rows(
-    rows: List[Tuple], sort_columns: List[Tuple[str, str]], headers: List[str]
-) -> List[Tuple]:
+def sort_rows(rows: List[Tuple], sort_columns: List[Tuple[str, str]], headers: List[str]) -> List[Tuple]:
     """
     Sort the rows based on the specified columns.
 
@@ -144,9 +138,7 @@ def sort_rows(
     return rows
 
 
-def format_and_print_rows(
-    rows: List[Tuple], headers: List[str], jira_client: JiraClient
-) -> None:
+def format_and_print_rows(rows: List[Tuple], headers: List[str], jira_client: JiraClient) -> None:
     """
     Format the rows to match the columns and print.
 
@@ -175,9 +167,7 @@ def format_and_print_rows(
         if not matched:
             updated_headers.append(header)  # Keep the original header if no match found
 
-    summary_index = (
-        updated_headers.index("summary") if "summary" in updated_headers else -1
-    )
+    summary_index = updated_headers.index("summary") if "summary" in updated_headers else -1
 
     # Ensure that the rows match the expected number of columns
     # for r in rows:
@@ -252,9 +242,7 @@ def flatten_fields(issue: dict) -> dict:
     return issue
 
 
-def clean_values(
-    rows: List[Tuple], placeholder: str = "—", max_length: int = 60
-) -> List[Tuple]:
+def clean_values(rows: List[Tuple], placeholder: str = "—", max_length: int = 60) -> List[Tuple]:
     """
     Replace None values with a placeholder, convert all values to strings,
     and truncate values longer than max_length.
@@ -321,11 +309,7 @@ def massage_issue_list(args: Namespace, issues: list[dict]):
         sprint = "-"
         if sprints is not None:
             sprint = next(
-                (
-                    re.search(r"name=([^,]+)", s).group(1)
-                    for s in sprints
-                    if "state=ACTIVE" in s and "name=" in s
-                ),
+                (re.search(r"name=([^,]+)", s).group(1) for s in sprints if "state=ACTIVE" in s and "name=" in s),
                 "—",
             )
 
@@ -337,11 +321,7 @@ def massage_issue_list(args: Namespace, issues: list[dict]):
             elif col == "status":
                 row_data.append(issue["status"]["name"])
             elif col == "assignee":
-                row_data.append(
-                    issue["assignee"]["displayName"]
-                    if issue.get("assignee")
-                    else "Unassigned"
-                )
+                row_data.append(issue["assignee"]["displayName"] if issue.get("assignee") else "Unassigned")
             elif col == "priority":
                 row_data.append(issue.get("priority", {}).get("name", "—"))
             elif col == "summary":

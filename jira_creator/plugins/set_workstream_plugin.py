@@ -7,7 +7,7 @@ change the workstream of Jira issues.
 """
 
 from argparse import ArgumentParser
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.plugins.setter_base import SetterPlugin
@@ -34,11 +34,11 @@ class SetWorkstreamPlugin(SetterPlugin):
     def register_additional_arguments(self, parser: ArgumentParser) -> None:
         """Override to make workstream_id optional."""
         # Remove the default positional argument
+        # pylint: disable=protected-access
         parser._positionals._actions = [
-            action
-            for action in parser._positionals._actions
-            if action.dest != self.argument_name
+            action for action in parser._positionals._actions if action.dest != self.argument_name
         ]
+        # pylint: enable=protected-access
 
         # Add as optional argument
         parser.add_argument(
@@ -78,5 +78,4 @@ class SetWorkstreamPlugin(SetterPlugin):
         """Format success message for workstream."""
         if value:
             return f"✅ Workstream set to ID '{value}'"
-        else:
-            return "✅ Workstream set to default value"
+        return "✅ Workstream set to default value"

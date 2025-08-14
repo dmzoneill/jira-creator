@@ -31,9 +31,7 @@ class TestSetPriorityPlugin:
         mock_client.request.assert_called_once_with(
             "PUT",
             "/rest/api/2/issue/TEST-123",
-            json_data={
-                "fields": {"priority": {"name": "Critical"}}  # Should be capitalized
-            },
+            json_data={"fields": {"priority": {"name": "Critical"}}},  # Should be capitalized
         )
 
     def test_priority_normalization(self):
@@ -53,9 +51,7 @@ class TestSetPriorityPlugin:
         for input_priority, expected_name in test_cases:
             mock_client.reset_mock()
 
-            plugin.rest_operation(
-                mock_client, issue_key="TEST-123", priority=input_priority
-            )
+            plugin.rest_operation(mock_client, issue_key="TEST-123", priority=input_priority)
 
             call_args = mock_client.request.call_args[1]["json_data"]
             assert call_args["fields"]["priority"]["name"] == expected_name

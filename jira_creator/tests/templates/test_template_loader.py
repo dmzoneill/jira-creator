@@ -26,19 +26,11 @@ def test_template_loader_parses_fields(tmp_path):
     """
 
     # Mock TemplateLoader to raise a FileNotFoundError when get_fields is called
-    with patch(
-        "jira_creator.templates.template_loader.TemplateLoader.get_fields"
-    ) as mock_get_fields:
+    with patch("jira_creator.templates.template_loader.TemplateLoader.get_fields") as mock_get_fields:
         mock_get_fields.side_effect = FileNotFoundError("Template file not found")
 
         # Create a simple template file
-        template_content = (
-            "FIELD|Title\n"
-            "FIELD|Body\n"
-            "TEMPLATE|Description\n"
-            "Title: {{Title}}\n"
-            "Body: {{Body}}"
-        )
+        template_content = "FIELD|Title\nFIELD|Body\nTEMPLATE|Description\nTitle: {{Title}}\nBody: {{Body}}"
         tmpl_file = tmp_path / "story.tmpl"
         tmpl_file.write_text(template_content)
 
@@ -61,9 +53,7 @@ def test_template_loader_renders_description(tmp_path):
     - Creates a template file in the specified temporary directory with predefined content.
     """
 
-    template_content = (
-        "FIELD|Topic\n" "TEMPLATE|Description\n" "You selected: {{Topic}}"
-    )
+    template_content = "FIELD|Topic\nTEMPLATE|Description\nYou selected: {{Topic}}"
     outfile = tmp_path / "task.tmpl"
     outfile.write_text(template_content)
 
@@ -76,7 +66,7 @@ def test_template_loader_renders_description(tmp_path):
         assert "You selected: Automation" in output
 
 
-def test_template_loader_raises_file_not_found(tmp_path):
+def test_template_loader_raises_file_not_found(tmp_path):  # pylint: disable=unused-argument
     """
     Load a test template from a temporary directory and raise a FileNotFoundError if the template file is not found.
 

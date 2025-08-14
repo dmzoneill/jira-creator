@@ -7,7 +7,7 @@ detailed information about a Jira issue.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List, Union
+from typing import Any, Dict
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.exceptions.exceptions import ViewIssueError
@@ -109,7 +109,7 @@ class ViewIssuePlugin(JiraPlugin):
         print("=" * 50)
 
         # Display fields
-        max_key_length = max(len(key) for key in processed_fields.keys())
+        max_key_length = max(len(key) for key in processed_fields)
 
         for key in self.ALLOWED_KEYS:
             if key in processed_fields:
@@ -130,9 +130,7 @@ class ViewIssuePlugin(JiraPlugin):
             EnvFetcher.get("JIRA_WORKSTREAM_FIELD", ""): "workstream",
         }
 
-    def _process_fields(
-        self, fields: Dict[str, Any], custom_fields: Dict[str, str]
-    ) -> Dict[str, Any]:
+    def _process_fields(self, fields: Dict[str, Any], custom_fields: Dict[str, str]) -> Dict[str, Any]:
         """Process and normalize field names."""
         processed = {}
 
@@ -152,9 +150,7 @@ class ViewIssuePlugin(JiraPlugin):
                 field_name = "issue type"
                 field_value = field_value.get("name") if field_value else None
             elif field_name in ["assignee", "reporter", "creator"]:
-                field_value = (
-                    field_value.get("displayName") if field_value else "Unassigned"
-                )
+                field_value = field_value.get("displayName") if field_value else "Unassigned"
             elif field_name == "priority":
                 field_value = field_value.get("name") if field_value else None
             elif field_name == "status":
@@ -171,13 +167,12 @@ class ViewIssuePlugin(JiraPlugin):
         """Format a field value for display."""
         if isinstance(value, dict):
             return str(value)
-        elif isinstance(value, list):
+        if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "None"
-        elif isinstance(value, str) and "\n" in value:
+        if isinstance(value, str) and "\n" in value:
             # Handle multiline strings
             lines = value.split("\n")
             if len(lines) > 3:
                 return lines[0] + "... (truncated)"
             return " / ".join(lines)
-        else:
-            return str(value) if value else "None"
+        return str(value) if value else "None"

@@ -35,12 +35,8 @@ class AddCommentPlugin(JiraPlugin):
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
         parser.add_argument("issue_key", help="The Jira issue key (e.g., PROJ-123)")
-        parser.add_argument(
-            "-t", "--text", help="Comment text (if not provided, opens editor)"
-        )
-        parser.add_argument(
-            "--no-ai", action="store_true", help="Skip AI text improvement"
-        )
+        parser.add_argument("-t", "--text", help="Comment text (if not provided, opens editor)")
+        parser.add_argument("--no-ai", action="store_true", help="Skip AI text improvement")
 
     def execute(self, client: Any, args: Namespace) -> bool:
         """
@@ -137,9 +133,7 @@ class AddCommentPlugin(JiraPlugin):
             AiError: If AI processing fails
         """
         # Get AI provider (for testing injection)
-        ai_provider = self.get_dependency(
-            "ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
-        )
+        ai_provider = self.get_dependency("ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")))
 
         prompt = PromptLibrary.get_prompt(IssueType["COMMENT"])
         return ai_provider.improve_text(prompt, comment)

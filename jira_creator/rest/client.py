@@ -26,7 +26,7 @@ from jira_creator.exceptions.exceptions import JiraClientRequestError
 class JiraClient:
     """
     Simplified Jira client for the plugin architecture.
-    
+
     Provides core HTTP functionality and the specific high-level methods
     that plugins actually use.
     """
@@ -41,11 +41,10 @@ class JiraClient:
         self.jpat: str = EnvFetcher.get("JIRA_JPAT")
         self.epic_field: str = EnvFetcher.get("JIRA_EPIC_FIELD")
         self.board_id: str = EnvFetcher.get("JIRA_BOARD_ID")
-        self.fields_cache_path: str = os.path.expanduser(
-            "~/.config/rh-issue/fields.json"
-        )
+        self.fields_cache_path: str = os.path.expanduser("~/.config/rh-issue/fields.json")
         self.is_speaking: bool = False
 
+    # jscpd:ignore-start
     def generate_curl_command(
         self,
         method: str,
@@ -54,6 +53,7 @@ class JiraClient:
         json_data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
     ) -> None:
+        # jscpd:ignore-end
         """Generate a curl command for debugging HTTP requests."""
         parts = [f"curl -X {method.upper()}"]
 
@@ -67,6 +67,7 @@ class JiraClient:
 
         if params:
             from urllib.parse import urlencode
+
             url += "?" + urlencode(params)
 
         parts.append(f"'{url}'")
@@ -75,6 +76,7 @@ class JiraClient:
 
         print("\n🔧 You can debug with this curl command:\n" + command)
 
+    # jscpd:ignore-start
     def _request(
         self,
         method: str,
@@ -83,11 +85,10 @@ class JiraClient:
         json_data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
     ) -> Tuple[int, Dict[str, Any]]:
+        # jscpd:ignore-end
         """Send a HTTP request and return status code and response data."""
         try:
-            response = requests.request(
-                method, url, headers=headers, json=json_data, params=params, timeout=10
-            )
+            response = requests.request(method, url, headers=headers, json=json_data, params=params, timeout=10)
             if response.status_code == 404:
                 print("❌ Resource not found")
                 return response.status_code, {}
@@ -125,7 +126,7 @@ class JiraClient:
     ) -> Optional[Dict[str, Any]]:
         """
         Perform HTTP request to Jira API with retry logic.
-        
+
         This is the core method that plugins use for all HTTP calls.
         """
         url = f"{self.jira_url}{path}"
@@ -138,14 +139,10 @@ class JiraClient:
         delay = 2
 
         for attempt in range(retries):
-            status_code, result = self._request(
-                method, url, headers, json_data=json_data, params=params
-            )
+            status_code, result = self._request(method, url, headers, json_data=json_data, params=params)
 
             if debug:
-                self.generate_curl_command(
-                    method, url, headers, json_data=json_data, params=params
-                )
+                self.generate_curl_command(method, url, headers, json_data=json_data, params=params)
 
             if 200 <= status_code < 300:
                 return result
@@ -154,21 +151,17 @@ class JiraClient:
                 print(f"Attempt {attempt + 1}: Sleeping before retry...")
                 time.sleep(delay)
 
-        self.generate_curl_command(
-            method, url, headers, json_data=json_data, params=params
-        )
+        self.generate_curl_command(method, url, headers, json_data=json_data, params=params)
         print(f"Attempt {attempt + 1}: Final failure, raising error")
-        raise JiraClientRequestError(
-            f"Failed after {retries} attempts: Status Code {status_code}"
-        )
+        raise JiraClientRequestError(f"Failed after {retries} attempts: Status Code {status_code}")
 
     def get_field_name(self, field_id: str) -> Optional[str]:
         """
         Get the human-readable name for a Jira field ID.
-        
+
         Arguments:
             field_id: The field ID (e.g., "customfield_10001")
-            
+
         Returns:
             The human-readable field name, or None if not found
         """
@@ -180,7 +173,7 @@ class JiraClient:
                 for field in response:
                     if field.get("id") == field_id:
                         return field.get("name")
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             # If field lookup fails, return None (will use original field_id)
             pass
         return None
@@ -188,5 +181,5 @@ class JiraClient:
     # build_payload has been removed - plugins should implement payload building directly
 
     # Note: Plugins should implement their own REST operations.
-    # The above methods have been removed to force plugins to contain 
+    # The above methods have been removed to force plugins to contain
     # both CLI and REST logic as per the plugin architecture design.

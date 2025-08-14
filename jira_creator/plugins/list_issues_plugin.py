@@ -36,28 +36,14 @@ class ListIssuesPlugin(JiraPlugin):
             help="Project key (uses JIRA_PROJECT_KEY env if not specified)",
             default=None,
         )
-        parser.add_argument(
-            "-c", "--component", help="Filter by component name", default=None
-        )
-        parser.add_argument(
-            "-a", "--assignee", help="Filter by assignee username", default=None
-        )
-        parser.add_argument(
-            "-r", "--reporter", help="Filter by reporter username", default=None
-        )
+        parser.add_argument("-c", "--component", help="Filter by component name", default=None)
+        parser.add_argument("-a", "--assignee", help="Filter by assignee username", default=None)
+        parser.add_argument("-r", "--reporter", help="Filter by reporter username", default=None)
         parser.add_argument("-s", "--status", help="Filter by status", default=None)
-        parser.add_argument(
-            "--summary", help="Filter by summary containing text", default=None
-        )
-        parser.add_argument(
-            "--blocked", action="store_true", help="Show only blocked issues"
-        )
-        parser.add_argument(
-            "--unblocked", action="store_true", help="Show only unblocked issues"
-        )
-        parser.add_argument(
-            "--sort", help="Sort by field(s), comma-separated", default="key"
-        )
+        parser.add_argument("--summary", help="Filter by summary containing text", default=None)
+        parser.add_argument("--blocked", action="store_true", help="Show only blocked issues")
+        parser.add_argument("--unblocked", action="store_true", help="Show only unblocked issues")
+        parser.add_argument("--sort", help="Sort by field(s), comma-separated", default="key")
         parser.add_argument(
             "-m",
             "--max-results",
@@ -86,9 +72,7 @@ class ListIssuesPlugin(JiraPlugin):
                 return False
 
             # Get issues
-            issues = self.rest_operation(
-                client, jql=jql, max_results=args.max_results, order_by=args.sort
-            )
+            issues = self.rest_operation(client, jql=jql, max_results=args.max_results, order_by=args.sort)
 
             if not issues:
                 print("📭 No issues found matching your criteria")
@@ -122,18 +106,28 @@ class ListIssuesPlugin(JiraPlugin):
         order_by = kwargs.get("order_by", "key")
 
         # Get all fields that should be included
-        fields_to_include = ["key", "summary", "status", "assignee", "reporter", 
-                           "priority", "issuetype", "created", "updated", "components"]
-        
+        fields_to_include = [
+            "key",
+            "summary",
+            "status",
+            "assignee",
+            "reporter",
+            "priority",
+            "issuetype",
+            "created",
+            "updated",
+            "components",
+        ]
+
         # Add custom fields from environment variables
         sprint_field = EnvFetcher.get("JIRA_SPRINT_FIELD", "")
         if sprint_field:
             fields_to_include.append(sprint_field)
-            
+
         story_points_field = EnvFetcher.get("JIRA_STORY_POINTS_FIELD", "")
         if story_points_field:
             fields_to_include.append(story_points_field)
-            
+
         blocked_field = EnvFetcher.get("JIRA_BLOCKED_FIELD", "")
         if blocked_field:
             fields_to_include.append(blocked_field)
@@ -157,6 +151,7 @@ class ListIssuesPlugin(JiraPlugin):
 
     def _build_jql_query(self, args: Namespace) -> str:
         """Build JQL query from command arguments."""
+        # pylint: disable=too-many-branches
         conditions = []
 
         # Project filter
@@ -197,8 +192,6 @@ class ListIssuesPlugin(JiraPlugin):
         elif args.unblocked:
             blocked_field = EnvFetcher.get("JIRA_BLOCKED_FIELD", "")
             if blocked_field:
-                conditions.append(
-                    f"({blocked_field} != 'True' OR {blocked_field} IS EMPTY)"
-                )
+                conditions.append(f"({blocked_field} != 'True' OR {blocked_field} IS EMPTY)")
 
         return " AND ".join(conditions)

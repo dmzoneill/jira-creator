@@ -10,14 +10,13 @@ import os
 import subprocess
 import tempfile
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.exceptions.exceptions import (
     EditDescriptionError,
     EditIssueError,
     FetchDescriptionError,
-    UpdateDescriptionError,
 )
 from jira_creator.plugins.base import JiraPlugin
 from jira_creator.providers import get_ai_provider
@@ -40,9 +39,7 @@ class EditIssuePlugin(JiraPlugin):
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
         parser.add_argument("issue_key", help="The Jira issue key (e.g., PROJ-123)")
-        parser.add_argument(
-            "--no-ai", action="store_true", help="Skip AI text improvement"
-        )
+        parser.add_argument("--no-ai", action="store_true", help="Skip AI text improvement")
         parser.add_argument(
             "--lint",
             action="store_true",
@@ -79,10 +76,8 @@ class EditIssuePlugin(JiraPlugin):
                 print("🤖 Enhancing description with AI...")
                 issue_type = self._get_issue_type(client, args.issue_key)
                 try:
-                    edited_description = self._enhance_with_ai(
-                        edited_description, issue_type
-                    )
-                except Exception as e:
+                    edited_description = self._enhance_with_ai(edited_description, issue_type)
+                except Exception as e:  # pylint: disable=broad-exception-caught
                     print(f"⚠️  AI enhancement failed, using edited text: {e}")
 
             # Optional linting
@@ -90,9 +85,7 @@ class EditIssuePlugin(JiraPlugin):
                 edited_description = self._lint_description(edited_description)
 
             # Update the issue
-            self.rest_operation(
-                client, issue_key=args.issue_key, description=edited_description
-            )
+            self.rest_operation(client, issue_key=args.issue_key, description=edited_description)
 
             print(f"✅ Successfully updated description for {args.issue_key}")
             return True
@@ -145,9 +138,10 @@ class EditIssuePlugin(JiraPlugin):
             issue_type = response.get("fields", {}).get("issuetype", {}).get("name", "")
             return issue_type.upper()
 
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             return "STORY"  # Default to story type
 
+    # jscpd:ignore-start
     def _edit_description(self, description: str) -> str:
         """Open description in editor for manual editing."""
         editor_func = self.get_dependency("editor_func", subprocess.call)
@@ -167,11 +161,11 @@ class EditIssuePlugin(JiraPlugin):
 
             return edited
 
+    # jscpd:ignore-end
+
     def _enhance_with_ai(self, description: str, issue_type: str) -> str:
         """Enhance description using AI provider."""
-        ai_provider = self.get_dependency(
-            "ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
-        )
+        ai_provider = self.get_dependency("ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")))
 
         # Map issue type to enum
         try:

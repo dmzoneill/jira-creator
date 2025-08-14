@@ -93,17 +93,13 @@ class DeepSeekProvider(AIProvider):
         )
 
         if response.status_code != 200:
-            raise AiError(
-                f"DeepSeek request failed: {response.status_code} - {response.text}"
-            )
+            raise AiError(f"DeepSeek request failed: {response.status_code} - {response.text}")
 
         # Parse the entire response at once
         try:
             response_data: Dict[str, str] = response.json()
             entire_response: str = response_data.get("response", "").strip()
-            entire_response = entire_response.replace("<think>", "").replace(
-                "</think>", ""
-            )
+            entire_response = entire_response.replace("<think>", "").replace("</think>", "")
             return entire_response
         except json.JSONDecodeError as e:
             raise AiError(e) from e

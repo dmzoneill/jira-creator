@@ -50,9 +50,7 @@ class SearchUsersPlugin(JiraPlugin):
         """
         try:
             # Search for users
-            users = self.rest_operation(
-                client, query=args.query, max_results=args.max_results
-            )
+            users = self.rest_operation(client, query=args.query, max_results=args.max_results)
 
             if not users:
                 print("📭 No users found matching your query")

@@ -48,9 +48,7 @@ class SetAcceptanceCriteriaPlugin(JiraPlugin):
             bool: True if successful
         """
         # Join acceptance criteria words
-        criteria = (
-            " ".join(args.acceptance_criteria) if args.acceptance_criteria else ""
-        )
+        criteria = " ".join(args.acceptance_criteria) if args.acceptance_criteria else ""
 
         # Validate input
         if not criteria or not criteria.strip():
@@ -58,9 +56,7 @@ class SetAcceptanceCriteriaPlugin(JiraPlugin):
             criteria = ""
 
         try:
-            self.rest_operation(
-                client, issue_key=args.issue_key, acceptance_criteria=criteria
-            )
+            self.rest_operation(client, issue_key=args.issue_key, acceptance_criteria=criteria)
 
             if criteria:
                 print(f"✅ Acceptance criteria set for {args.issue_key}")

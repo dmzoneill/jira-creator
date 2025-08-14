@@ -19,7 +19,6 @@ Exceptions:
 - AiProviderError: Raised for unsupported providers or initialization errors.
 """
 
-from typing import Type, Union
 
 from jira_creator.exceptions.exceptions import AiProviderError
 

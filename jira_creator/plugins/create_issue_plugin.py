@@ -10,7 +10,7 @@ import os
 import subprocess
 import tempfile
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.exceptions.exceptions import AiError, CreateIssueError
@@ -52,9 +52,7 @@ class CreateIssuePlugin(JiraPlugin):
             action="store_true",
             help="Preview the issue without creating it",
         )
-        parser.add_argument(
-            "--no-ai", action="store_true", help="Skip AI text improvement"
-        )
+        parser.add_argument("--no-ai", action="store_true", help="Skip AI text improvement")
 
     def execute(self, client: Any, args: Namespace) -> bool:
         """
@@ -71,7 +69,6 @@ class CreateIssuePlugin(JiraPlugin):
             # Load template
             template_loader = TemplateLoader(issue_type=args.type.lower())
             fields = template_loader.get_fields()
-            template = template_loader.get_template()
 
             # Gather field values
             field_values = self._gather_field_values(fields, args.edit)
@@ -127,9 +124,7 @@ class CreateIssuePlugin(JiraPlugin):
         path = "/rest/api/2/issue/"
         return client.request("POST", path, json_data=payload)
 
-    def _gather_field_values(
-        self, fields: List[str], edit_mode: bool
-    ) -> Dict[str, str]:
+    def _gather_field_values(self, fields: List[str], edit_mode: bool) -> Dict[str, str]:
         """Gather values for template fields."""
         field_values = {}
 
@@ -148,6 +143,7 @@ class CreateIssuePlugin(JiraPlugin):
 
         return field_values
 
+    # jscpd:ignore-start
     def _edit_description(self, description: str) -> str:
         """Open description in editor for manual editing."""
         editor_func = self.get_dependency("editor_func", subprocess.call)
@@ -162,11 +158,11 @@ class CreateIssuePlugin(JiraPlugin):
             tmp.seek(0)
             return tmp.read()
 
+    # jscpd:ignore-end
+
     def _enhance_with_ai(self, description: str, issue_type: str) -> str:
         """Enhance description using AI provider."""
-        ai_provider = self.get_dependency(
-            "ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
-        )
+        ai_provider = self.get_dependency("ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")))
 
         # Get appropriate prompt for issue type
         issue_type_enum = IssueType[issue_type.upper()]
@@ -174,9 +170,7 @@ class CreateIssuePlugin(JiraPlugin):
 
         return ai_provider.improve_text(prompt, description)
 
-    def _build_payload(
-        self, summary: str, description: str, issue_type: str
-    ) -> Dict[str, Any]:
+    def _build_payload(self, summary: str, description: str, issue_type: str) -> Dict[str, Any]:
         """Build the Jira API payload."""
         # Get configuration from environment
         project_key = EnvFetcher.get("JIRA_PROJECT_KEY")
@@ -211,9 +205,7 @@ class CreateIssuePlugin(JiraPlugin):
 
         return payload
 
-    def _show_dry_run(
-        self, summary: str, description: str, payload: Dict[str, Any]
-    ) -> None:
+    def _show_dry_run(self, summary: str, description: str, payload: Dict[str, Any]) -> None:
         """Display dry run information."""
         print("\n" + "=" * 50)
         print("DRY RUN - Issue Preview")

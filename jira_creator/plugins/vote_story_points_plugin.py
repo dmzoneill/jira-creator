@@ -40,11 +40,7 @@ class VoteStoryPointsPlugin(JiraPlugin):
             return False
 
         try:
-            self.rest_operation(
-                client,
-                issue_key=args.issue_key,
-                points=points
-            )
+            self.rest_operation(client, issue_key=args.issue_key, points=points)
             print(f"✅ Voted {points} points on {args.issue_key}")
             return True
         except VoteStoryPointsError as e:
@@ -63,9 +59,9 @@ class VoteStoryPointsPlugin(JiraPlugin):
         Returns:
             Dict[str, Any]: API response
         """
-        issue_key = kwargs['issue_key']
-        points = kwargs['points']
-        
+        issue_key = kwargs["issue_key"]
+        points = kwargs["points"]
+
         # Get issue ID first
         try:
             issue = client.request("GET", f"/rest/api/2/issue/{issue_key}")
@@ -75,9 +71,9 @@ class VoteStoryPointsPlugin(JiraPlugin):
 
         # Submit vote
         payload = {"issueId": issue_id, "vote": points}
-        
+
         try:
-            response = client.request(
+            client.request(
                 "PUT",
                 "/rest/eausm/latest/planningPoker/vote",
                 json_data=payload,

@@ -38,9 +38,9 @@ class BlockedPlugin(JiraPlugin):
         try:
             result = self.rest_operation(
                 client,
-                project=getattr(args, 'project', None),
-                component=getattr(args, 'component', None),
-                user=getattr(args, 'user', None)
+                project=getattr(args, "project", None),
+                component=getattr(args, "component", None),
+                user=getattr(args, "user", None),
             )
             return isinstance(result, bool) and result
         except ListBlockedError as e:
@@ -59,18 +59,20 @@ class BlockedPlugin(JiraPlugin):
         Returns:
             Union[List[Dict[str, Any]], bool]: List of blocked issues or True if none found
         """
-        project = kwargs.get('project')
-        component = kwargs.get('component')  
-        user = kwargs.get('user')
+        # pylint: disable=fixme
+        # project = kwargs.get("project")  # TODO: Implement project filtering
+        # component = kwargs.get("component")  # TODO: Implement component filtering
+        # pylint: enable=fixme
+        user = kwargs.get("user")
 
         # Get current user if no user specified
         if not user:
             current_user_response = client.request("GET", "/rest/api/2/myself")
             user = current_user_response.get("name") or current_user_response.get("accountId")
-        
+
         # Allow test data injection for testing purposes
-        if '_test_issues' in kwargs:
-            issues = kwargs['_test_issues']
+        if "_test_issues" in kwargs:
+            issues = kwargs.get("_test_issues", [])
         else:
             # For now, return empty list - plugin needs full list_issues implementation
             # This is a placeholder until the full list_issues logic is implemented
@@ -83,23 +85,14 @@ class BlockedPlugin(JiraPlugin):
         blocked_issues: List[Dict[str, Union[str, None]]] = []
         for issue in issues:
             fields = issue["fields"]
-            is_blocked = (
-                fields.get(EnvFetcher.get("JIRA_BLOCKED_FIELD"), {}).get("value")
-                == "True"
-            )
+            is_blocked = fields.get(EnvFetcher.get("JIRA_BLOCKED_FIELD"), {}).get("value") == "True"
             if is_blocked:
                 blocked_issues.append(
                     {
                         "key": issue["key"],
                         "status": fields["status"]["name"],
-                        "assignee": (
-                            fields["assignee"]["displayName"]
-                            if fields["assignee"]
-                            else "Unassigned"
-                        ),
-                        "reason": fields.get(
-                            EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"), "(no reason)"
-                        ),
+                        "assignee": (fields["assignee"]["displayName"] if fields["assignee"] else "Unassigned"),
+                        "reason": fields.get(EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD"), "(no reason)"),
                         "summary": fields["summary"],
                     }
                 )

@@ -72,7 +72,7 @@ class ViewUserPlugin(JiraPlugin):
         try:
             path = f"/rest/api/2/user?accountId={account_id}"
             return client.request("GET", path)
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             # Fallback to username
             path = f"/rest/api/2/user?username={account_id}"
             return client.request("GET", path)
@@ -90,9 +90,7 @@ class ViewUserPlugin(JiraPlugin):
         ]
 
         # Prepare filtered data
-        filtered_user = {
-            k: v for k, v in user.items() if k not in keys_to_drop and v is not None
-        }
+        filtered_user = {k: v for k, v in user.items() if k not in keys_to_drop and v is not None}
 
         # Display header
         print(f"\n👤 User Details: {user.get('displayName', 'Unknown')}")

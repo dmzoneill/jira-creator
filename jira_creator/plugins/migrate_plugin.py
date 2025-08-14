@@ -26,6 +26,7 @@ class MigratePlugin(JiraPlugin):
         """Return the command help text."""
         return "Migrate issue to a new type"
 
+    # jscpd:ignore-start
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments with the argument parser."""
         parser.add_argument("issue_key", help="The Jira issue id/key")
@@ -33,16 +34,11 @@ class MigratePlugin(JiraPlugin):
 
     def execute(self, client: Any, args: Namespace) -> bool:
         """Execute the migrate command."""
+        # jscpd:ignore-end
         try:
-            result = self.rest_operation(
-                client,
-                issue_key=args.issue_key,
-                new_type=args.new_type
-            )
-            new_key = result.get('new_key', args.issue_key)
-            print(
-                f"✅ Migrated {args.issue_key} to {new_key}: {client.jira_url}/browse/{new_key}"
-            )
+            result = self.rest_operation(client, issue_key=args.issue_key, new_type=args.new_type)
+            new_key = result.get("new_key", args.issue_key)
+            print(f"✅ Migrated {args.issue_key} to {new_key}: {client.jira_url}/browse/{new_key}")
             return True
         except MigrateError as e:
             msg = f"❌ Migration failed: {e}"
@@ -60,9 +56,9 @@ class MigratePlugin(JiraPlugin):
         Returns:
             Dict[str, Any]: API response with new_key
         """
-        issue_key = kwargs['issue_key']
-        new_type = kwargs['new_type']
-        
+        issue_key = kwargs["issue_key"]
+        new_type = kwargs["new_type"]
+
         try:
             # Get old issue details
             fields = client.request("GET", f"/rest/api/2/issue/{issue_key}")["fields"]
@@ -100,11 +96,7 @@ class MigratePlugin(JiraPlugin):
             # Try to transition old issue to done/closed
             transitions = client.request("GET", f"/rest/api/2/issue/{issue_key}/transitions")["transitions"]
             transition_id = next(
-                (
-                    t["id"]
-                    for t in transitions
-                    if t["name"].lower() in ["done", "closed", "cancelled"]
-                ),
+                (t["id"] for t in transitions if t["name"].lower() in ["done", "closed", "cancelled"]),
                 None,
             )
             if not transition_id and transitions:
@@ -118,6 +110,6 @@ class MigratePlugin(JiraPlugin):
                 )
 
             return {"new_key": new_key}
-            
+
         except Exception as e:
             raise MigrateError(f"Migration failed: {e}") from e

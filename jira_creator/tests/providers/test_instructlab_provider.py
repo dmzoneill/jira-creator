@@ -57,7 +57,8 @@ def test_improve_text_success():
     mock_response.json.return_value = {"response": " Improved text "}
 
     with patch(
-        "jira_creator.providers.instructlab_provider.requests.post", return_value=mock_response
+        "jira_creator.providers.instructlab_provider.requests.post",
+        return_value=mock_response,
     ) as mock_post:
         result = provider.improve_text("Prompt", "Input text")
 
@@ -81,7 +82,8 @@ def test_improve_text_failure():
     mock_response.text = "Server error"
 
     with patch(
-        "jira_creator.providers.instructlab_provider.requests.post", return_value=mock_response
+        "jira_creator.providers.instructlab_provider.requests.post",
+        return_value=mock_response,
     ):
         with pytest.raises(AiError) as exc_info:
             provider.improve_text("Prompt", "Input text")

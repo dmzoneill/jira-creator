@@ -1,12 +1,12 @@
 ---
 name: CICD
 
-on:
+'on':
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
-    
+    branches: ["main"]
+
 permissions: write-all
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
     secrets: inherit
     uses: dmzoneill/dmzoneill/.github/workflows/dispatch.yaml@main
     with:
-      test-ready: "true" 
+      test-ready: "true"
       pypi-extension: "true"
       deb-build: "true"
       rpm-build: "true"

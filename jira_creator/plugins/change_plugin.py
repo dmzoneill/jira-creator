@@ -26,6 +26,7 @@ class ChangePlugin(JiraPlugin):
         """Return the command help text."""
         return "Change issue type"
 
+    # jscpd:ignore-start
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments with the argument parser."""
         parser.add_argument("issue_key", help="The Jira issue id/key")
@@ -33,12 +34,9 @@ class ChangePlugin(JiraPlugin):
 
     def execute(self, client: Any, args: Namespace) -> bool:
         """Execute the change type command."""
+        # jscpd:ignore-end
         try:
-            self.rest_operation(
-                client,
-                issue_key=args.issue_key,
-                new_type=args.new_type
-            )
+            self.rest_operation(client, issue_key=args.issue_key, new_type=args.new_type)
             print(f"✅ Changed type of {args.issue_key} to {args.new_type}")
             return True
         except ChangeTypeError as e:
@@ -57,15 +55,11 @@ class ChangePlugin(JiraPlugin):
         Returns:
             Dict[str, Any]: API response
         """
-        issue_key = kwargs['issue_key']
-        new_type = kwargs['new_type']
-        
+        issue_key = kwargs["issue_key"]
+        new_type = kwargs["new_type"]
+
         # Implement change_issue_type logic directly
         # This is a simple implementation - may need more complex logic for some Jira instances
-        payload = {
-            "fields": {
-                "issuetype": {"name": new_type}
-            }
-        }
+        payload = {"fields": {"issuetype": {"name": new_type}}}
         client.request("PUT", f"/rest/api/2/issue/{issue_key}", json_data=payload)
         return {"success": True}

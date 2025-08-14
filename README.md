@@ -35,7 +35,7 @@ export JIRA_SPRINT_FIELD="customfield_12310940"
 export JIRA_VOSK_MODEL="/home/daoneill/.vosk/vosk-model-small-en-us-0.15"
 
 # Enable autocomplete
-eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira_plugins.py/rh-issue/')"
+eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira.py/rh-issue/')"
 EOF
 
 source ~/.bashrc.d/jira.sh

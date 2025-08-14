@@ -23,29 +23,23 @@ class TestUnassignPlugin:
         """Test argument registration."""
         plugin = UnassignPlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
-        mock_parser.add_argument.assert_called_once_with(
-            "issue_key", 
-            help="The Jira issue key (e.g., PROJ-123)"
-        )
+
+        mock_parser.add_argument.assert_called_once_with("issue_key", help="The Jira issue key (e.g., PROJ-123)")
 
     def test_rest_operation(self):
         """Test the REST operation for unassigning an issue."""
         plugin = UnassignPlugin()
         mock_client = Mock()
-        
-        result = plugin.rest_operation(
-            mock_client,
-            issue_key="TEST-123"
-        )
-        
+
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123")
+
         # Verify the correct API call was made
         mock_client.request.assert_called_once_with(
             "PUT",
             "/rest/api/2/issue/TEST-123",
-            json_data={"fields": {"assignee": None}}
+            json_data={"fields": {"assignee": None}},
         )
         assert result == mock_client.request.return_value
 
@@ -53,11 +47,11 @@ class TestUnassignPlugin:
         """Test successful execution of unassign command."""
         plugin = UnassignPlugin()
         mock_client = Mock()
-        
+
         args = Namespace(issue_key="TEST-123")
-        
+
         result = plugin.execute(mock_client, args)
-        
+
         assert result is True
         mock_client.request.assert_called_once()
 
@@ -65,11 +59,11 @@ class TestUnassignPlugin:
         """Test that success message is printed."""
         plugin = UnassignPlugin()
         mock_client = Mock()
-        
+
         args = Namespace(issue_key="TEST-123")
-        
+
         plugin.execute(mock_client, args)
-        
+
         captured = capsys.readouterr()
         assert "✅ Issue TEST-123 unassigned" in captured.out
 
@@ -78,12 +72,12 @@ class TestUnassignPlugin:
         plugin = UnassignPlugin()
         mock_client = Mock()
         mock_client.request.side_effect = UnassignIssueError("Issue not found")
-        
+
         args = Namespace(issue_key="TEST-123")
-        
+
         with pytest.raises(UnassignIssueError) as exc_info:
             plugin.execute(mock_client, args)
-        
+
         assert "Issue not found" in str(exc_info.value)
 
     def test_execute_failure_prints_message(self, capsys):
@@ -91,12 +85,12 @@ class TestUnassignPlugin:
         plugin = UnassignPlugin()
         mock_client = Mock()
         mock_client.request.side_effect = UnassignIssueError("Permission denied")
-        
+
         args = Namespace(issue_key="TEST-123")
-        
+
         with pytest.raises(UnassignIssueError):
             plugin.execute(mock_client, args)
-        
+
         captured = capsys.readouterr()
         assert "❌ Failed to unassign issue: Permission denied" in captured.out
 
@@ -104,7 +98,7 @@ class TestUnassignPlugin:
         """Test execution with various issue key formats."""
         plugin = UnassignPlugin()
         mock_client = Mock()
-        
+
         # Test with different issue key formats
         test_cases = [
             "PROJ-123",
@@ -112,18 +106,18 @@ class TestUnassignPlugin:
             "LONGPROJECT-99999",
             "X-1234",
         ]
-        
+
         for issue_key in test_cases:
             mock_client.reset_mock()
             args = Namespace(issue_key=issue_key)
-            
+
             result = plugin.execute(mock_client, args)
-            
+
             assert result is True
             mock_client.request.assert_called_once_with(
                 "PUT",
                 f"/rest/api/2/issue/{issue_key}",
-                json_data={"fields": {"assignee": None}}
+                json_data={"fields": {"assignee": None}},
             )
 
     def test_rest_operation_with_api_response(self):
@@ -132,7 +126,7 @@ class TestUnassignPlugin:
         mock_client = Mock()
         expected_response = {"key": "TEST-123", "fields": {"assignee": None}}
         mock_client.request.return_value = expected_response
-        
+
         result = plugin.rest_operation(mock_client, issue_key="TEST-123")
-        
+
         assert result == expected_response

@@ -1,0 +1,33 @@
+[FORMAT]
+max-line-length=120
+
+[MESSAGES CONTROL]
+# Disable some warnings that are too strict
+disable=
+    too-many-instance-attributes,
+    too-many-arguments,
+    too-many-positional-arguments,
+    too-few-public-methods,
+    duplicate-code,
+    import-outside-toplevel
+
+[MASTER]
+# Ignore patterns for files or directories (regex patterns)
+ignore-patterns=
+    node_modules.*,
+    htmlcov.*,
+    \.git.*,
+    \.pytest_cache.*,
+    build.*,
+    dist.*,
+    .*\.egg-info.*,
+    \.venv.*,
+    venv.*,
+    __pycache__.*
+
+# Files or directories to be skipped
+ignore=
+    node_modules,
+    htmlcov,
+    .git,
+    .pytest_cache

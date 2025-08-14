@@ -148,9 +148,7 @@ def test_request_empty_response_text(mock_request, mock_sleep):
 
 # Test Case 3: Invalid JSON response
 @patch("jira_creator.rest.client.time.sleep")
-@patch(
-    "jira_creator.rest.client.requests.request"
-)  # Mock the request to simulate invalid JSON response
+@patch("jira_creator.rest.client.requests.request")  # Mock the request to simulate invalid JSON response
 def test_request_invalid_json_response(mock_request, mock_sleep):
     """
     This function is a test function that simulates a request to a Jira API endpoint with invalid JSON response. It
@@ -264,9 +262,7 @@ def test_request_500_error(mock_request, mock_sleep):
 
 # Test Case 8: Multiple retries before failure (Test retry logic)
 @patch("jira_creator.rest.client.time.sleep")
-@patch(
-    "jira_creator.rest.client.requests.request"
-)  # Mock the request to simulate failure before success
+@patch("jira_creator.rest.client.requests.request")  # Mock the request to simulate failure before success
 def test_request_retry_logic(mock_request, mock_sleep):
     """
     This function initializes a JiraClient object for handling requests and retries.
@@ -412,9 +408,7 @@ def test_generate_curl_command_all(mock_print):
 
 # Test Case: All retry attempts fail, testing the final return statement
 @patch("jira_creator.rest.client.requests.request")  # Mock the request to simulate failed responses
-@patch(
-    "jira_creator.rest.client.time.sleep"
-)  # Mock time.sleep to prevent actual delays in retry logic
+@patch("jira_creator.rest.client.time.sleep")  # Mock time.sleep to prevent actual delays in retry logic
 def test_request_final_return(mock_sleep, mock_request):
     """
     This function initializes a JiraClient object for making requests to a Jira server. It simulates failed attempts
@@ -470,15 +464,15 @@ def test_request_final_return(mock_sleep, mock_request):
 def test_get_field_name_success():
     """Test successful field name lookup."""
     client = JiraClient()
-    
+
     # Mock successful response with field data
     mock_response = [
         {"id": "customfield_12310243", "name": "Story Points"},
         {"id": "customfield_12316543", "name": "Blocked"},
-        {"id": "summary", "name": "Summary"}
+        {"id": "summary", "name": "Summary"},
     ]
-    
-    with patch.object(client, 'request', return_value=mock_response):
+
+    with patch.object(client, "request", return_value=mock_response):
         result = client.get_field_name("customfield_12310243")
         assert result == "Story Points"
 
@@ -486,14 +480,14 @@ def test_get_field_name_success():
 def test_get_field_name_not_found():
     """Test field name lookup when field not found."""
     client = JiraClient()
-    
+
     # Mock successful response but field not in list
     mock_response = [
         {"id": "customfield_12310243", "name": "Story Points"},
-        {"id": "summary", "name": "Summary"}
+        {"id": "summary", "name": "Summary"},
     ]
-    
-    with patch.object(client, 'request', return_value=mock_response):
+
+    with patch.object(client, "request", return_value=mock_response):
         result = client.get_field_name("customfield_99999")
         assert result is None
 
@@ -501,8 +495,8 @@ def test_get_field_name_not_found():
 def test_get_field_name_empty_response():
     """Test field name lookup with empty response."""
     client = JiraClient()
-    
-    with patch.object(client, 'request', return_value=[]):
+
+    with patch.object(client, "request", return_value=[]):
         result = client.get_field_name("customfield_12310243")
         assert result is None
 
@@ -510,8 +504,8 @@ def test_get_field_name_empty_response():
 def test_get_field_name_none_response():
     """Test field name lookup with None response."""
     client = JiraClient()
-    
-    with patch.object(client, 'request', return_value=None):
+
+    with patch.object(client, "request", return_value=None):
         result = client.get_field_name("customfield_12310243")
         assert result is None
 
@@ -519,7 +513,7 @@ def test_get_field_name_none_response():
 def test_get_field_name_exception():
     """Test field name lookup when request raises exception."""
     client = JiraClient()
-    
-    with patch.object(client, 'request', side_effect=Exception("Request failed")):
+
+    with patch.object(client, "request", side_effect=Exception("Request failed")):
         result = client.get_field_name("customfield_12310243")
         assert result is None

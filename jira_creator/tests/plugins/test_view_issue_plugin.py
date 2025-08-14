@@ -23,12 +23,10 @@ class TestViewIssuePlugin:
         """Test argument registration."""
         plugin = ViewIssuePlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
-        mock_parser.add_argument.assert_called_once_with(
-            "issue_key", help="The Jira issue key (e.g., PROJ-123)"
-        )
+
+        mock_parser.add_argument.assert_called_once_with("issue_key", help="The Jira issue key (e.g., PROJ-123)")
 
     def test_rest_operation(self):
         """Test the REST operation."""
@@ -38,12 +36,10 @@ class TestViewIssuePlugin:
 
         result = plugin.rest_operation(mock_client, issue_key="TEST-123")
 
-        mock_client.request.assert_called_once_with(
-            "GET", "/rest/api/2/issue/TEST-123"
-        )
+        mock_client.request.assert_called_once_with("GET", "/rest/api/2/issue/TEST-123")
         assert result == {"fields": {"summary": "Test Issue"}}
 
-    @patch('jira_creator.plugins.view_issue_plugin.EnvFetcher')
+    @patch("jira_creator.plugins.view_issue_plugin.EnvFetcher")
     def test_execute_successful(self, mock_env_fetcher):
         """Test successful execution."""
         # Setup environment variable mocks
@@ -53,7 +49,7 @@ class TestViewIssuePlugin:
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10003",
             "JIRA_STORY_POINTS_FIELD": "customfield_10004",
             "JIRA_SPRINT_FIELD": "customfield_10005",
-            "JIRA_WORKSTREAM_FIELD": "customfield_10006"
+            "JIRA_WORKSTREAM_FIELD": "customfield_10006",
         }.get(key, default)
 
         plugin = ViewIssuePlugin()
@@ -77,19 +73,19 @@ class TestViewIssuePlugin:
                 "customfield_10003": "Waiting for approval",
                 "customfield_10004": "5",
                 "customfield_10005": ["Sprint 1"],
-                "customfield_10006": "Platform"
+                "customfield_10006": "Platform",
             }
         }
 
         args = Namespace(issue_key="TEST-123")
-        
+
         # Capture print output
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             result = plugin.execute(mock_client, args)
 
         assert result is True
         mock_client.request.assert_called_once()
-        
+
         # Verify print was called with expected header
         print_calls = mock_print.call_args_list
         assert any("📋 Issue: TEST-123" in str(call) for call in print_calls)
@@ -103,7 +99,7 @@ class TestViewIssuePlugin:
 
         args = Namespace(issue_key="TEST-123")
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             with pytest.raises(ViewIssueError):
                 plugin.execute(mock_client, args)
 
@@ -113,7 +109,7 @@ class TestViewIssuePlugin:
     def test_format_value_dict(self):
         """Test formatting dictionary values."""
         plugin = ViewIssuePlugin()
-        
+
         value = {"key": "value"}
         result = plugin._format_value(value)
         assert result == "{'key': 'value'}"
@@ -121,12 +117,12 @@ class TestViewIssuePlugin:
     def test_format_value_list(self):
         """Test formatting list values."""
         plugin = ViewIssuePlugin()
-        
+
         # Non-empty list
         value = ["item1", "item2", "item3"]
         result = plugin._format_value(value)
         assert result == "item1, item2, item3"
-        
+
         # Empty list
         value = []
         result = plugin._format_value(value)
@@ -135,12 +131,12 @@ class TestViewIssuePlugin:
     def test_format_value_multiline_string(self):
         """Test formatting multiline strings."""
         plugin = ViewIssuePlugin()
-        
+
         # Short multiline string
         value = "line1\nline2\nline3"
         result = plugin._format_value(value)
         assert result == "line1 / line2 / line3"
-        
+
         # Long multiline string (should truncate)
         value = "line1\nline2\nline3\nline4\nline5"
         result = plugin._format_value(value)
@@ -149,30 +145,30 @@ class TestViewIssuePlugin:
     def test_format_value_none(self):
         """Test formatting None values."""
         plugin = ViewIssuePlugin()
-        
+
         result = plugin._format_value(None)
         assert result == "None"
-        
+
         result = plugin._format_value("")
         assert result == "None"
 
     def test_format_value_other(self):
         """Test formatting other types of values."""
         plugin = ViewIssuePlugin()
-        
+
         # String
         result = plugin._format_value("simple string")
         assert result == "simple string"
-        
+
         # Number
         result = plugin._format_value(42)
         assert result == "42"
-        
+
         # Boolean
         result = plugin._format_value(True)
         assert result == "True"
 
-    @patch('jira_creator.plugins.view_issue_plugin.EnvFetcher')
+    @patch("jira_creator.plugins.view_issue_plugin.EnvFetcher")
     def test_get_custom_field_mappings(self, mock_env_fetcher):
         """Test getting custom field mappings."""
         mock_env_fetcher.get.side_effect = lambda key, default: {
@@ -181,7 +177,7 @@ class TestViewIssuePlugin:
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10003",
             "JIRA_STORY_POINTS_FIELD": "customfield_10004",
             "JIRA_SPRINT_FIELD": "customfield_10005",
-            "JIRA_WORKSTREAM_FIELD": "customfield_10006"
+            "JIRA_WORKSTREAM_FIELD": "customfield_10006",
         }.get(key, default)
 
         plugin = ViewIssuePlugin()
@@ -193,36 +189,36 @@ class TestViewIssuePlugin:
             "customfield_10003": "blocked reason",
             "customfield_10004": "story points",
             "customfield_10005": "sprint",
-            "customfield_10006": "workstream"
+            "customfield_10006": "workstream",
         }
 
     def test_process_fields_with_custom_fields(self):
         """Test processing fields with custom field mappings."""
         plugin = ViewIssuePlugin()
-        
+
         custom_fields = {
             "customfield_10001": "acceptance criteria",
-            "customfield_10002": "blocked"
+            "customfield_10002": "blocked",
         }
-        
+
         fields = {
             "customfield_10001": "AC text",
             "customfield_10002": "True",
-            "summary": "Test Summary"
+            "summary": "Test Summary",
         }
-        
+
         result = plugin._process_fields(fields, custom_fields)
-        
+
         assert result == {
             "acceptance criteria": "AC text",
             "blocked": "True",
-            "summary": "Test Summary"
+            "summary": "Test Summary",
         }
 
     def test_process_fields_special_handling(self):
         """Test processing fields with special handling."""
         plugin = ViewIssuePlugin()
-        
+
         fields = {
             "components": [{"name": "Comp1"}, {"name": "Comp2"}],
             "issuetype": {"name": "Story"},
@@ -231,11 +227,11 @@ class TestViewIssuePlugin:
             "creator": {"displayName": "Admin User"},
             "priority": {"name": "High"},
             "status": {"name": "In Progress"},
-            "project": {"key": "TEST"}
+            "project": {"key": "TEST"},
         }
-        
+
         result = plugin._process_fields(fields, {})
-        
+
         assert result["component/s"] == ["Comp1", "Comp2"]
         assert result["issue type"] == "Story"
         assert result["assignee"] == "John Doe"
@@ -248,7 +244,7 @@ class TestViewIssuePlugin:
     def test_process_fields_with_none_values(self):
         """Test processing fields with None values."""
         plugin = ViewIssuePlugin()
-        
+
         fields = {
             "components": None,
             "issuetype": None,
@@ -256,11 +252,11 @@ class TestViewIssuePlugin:
             "reporter": None,
             "priority": None,
             "status": None,
-            "project": None
+            "project": None,
         }
-        
+
         result = plugin._process_fields(fields, {})
-        
+
         assert result["component/s"] == []
         assert result["assignee"] == "Unassigned"
         assert result["reporter"] == "Unassigned"
@@ -269,22 +265,18 @@ class TestViewIssuePlugin:
         assert "status" not in result
         assert "project" not in result
 
-    @patch('jira_creator.plugins.view_issue_plugin.EnvFetcher')
+    @patch("jira_creator.plugins.view_issue_plugin.EnvFetcher")
     def test_display_issue_with_minimal_fields(self, mock_env_fetcher):
         """Test displaying issue with minimal fields."""
         mock_env_fetcher.get.return_value = ""
-        
+
         plugin = ViewIssuePlugin()
-        
-        issue_data = {
-            "fields": {
-                "summary": "Minimal Issue"
-            }
-        }
-        
-        with patch('builtins.print') as mock_print:
+
+        issue_data = {"fields": {"summary": "Minimal Issue"}}
+
+        with patch("builtins.print") as mock_print:
             plugin._display_issue(issue_data, "TEST-1")
-        
+
         print_calls = [call[0][0] for call in mock_print.call_args_list]
         assert any("📋 Issue: TEST-1" in call for call in print_calls)
         assert any("Minimal Issue" in call for call in print_calls)
@@ -292,7 +284,7 @@ class TestViewIssuePlugin:
     def test_allowed_keys_constant(self):
         """Test that ALLOWED_KEYS is properly defined."""
         plugin = ViewIssuePlugin()
-        
+
         expected_keys = [
             "acceptance criteria",
             "blocked",
@@ -314,5 +306,5 @@ class TestViewIssuePlugin:
             "updated",
             "workstream",
         ]
-        
+
         assert plugin.ALLOWED_KEYS == expected_keys

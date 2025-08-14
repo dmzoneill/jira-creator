@@ -48,9 +48,7 @@ class TestSearchPlugin:
         mock_client.request.return_value = mock_response
 
         # Call REST operation
-        result = plugin.rest_operation(
-            mock_client, jql="project = TEST", max_results=10
-        )
+        result = plugin.rest_operation(mock_client, jql="project = TEST", max_results=10)
 
         # Verify the request
         mock_client.request.assert_called_once_with(
@@ -116,8 +114,8 @@ class TestSearchPlugin:
         # Verify
         assert result is True
         mock_client.request.assert_called_once()
-        mock_massage.assert_called_once_with(mock_issues)
-        mock_format_print.assert_called_once_with(mock_massaged)
+        mock_massage.assert_called_once_with(mock_issues, mock_client)
+        mock_format_print.assert_called_once_with(mock_massaged, [], mock_client)
 
         # Verify print output was called
         # Note: We can't easily capture print statements, but the test ensures
@@ -206,9 +204,7 @@ class TestSearchPlugin:
         mock_massage.return_value = [{"Key": "TEST-1"}, {"Key": "TEST-2"}]
 
         # Test with results
-        mock_client.request.return_value = {
-            "issues": [{"key": "TEST-1"}, {"key": "TEST-2"}]
-        }
+        mock_client.request.return_value = {"issues": [{"key": "TEST-1"}, {"key": "TEST-2"}]}
         args = Namespace(jql="project = TEST", max_results=50)
         plugin.execute(mock_client, args)
 
@@ -246,22 +242,22 @@ class TestSearchPlugin:
             call_args = mock_client.request.call_args
             assert call_args[1]["params"]["jql"] == jql
 
-    def test_execute_with_search_error(self, capsys):
+    def test_execute_with_search_error_exception(self, capsys):
         """Test handling of SearchError during execution."""
         plugin = SearchPlugin()
         mock_client = Mock()
-        
+
         # Make the request raise SearchError
         mock_client.request.side_effect = SearchError("Invalid JQL syntax")
-        
+
         args = Namespace(jql="invalid query syntax", max_results=50)
-        
+
         # Verify SearchError is raised
         with pytest.raises(SearchError) as exc_info:
             plugin.execute(mock_client, args)
-        
+
         assert "Invalid JQL syntax" in str(exc_info.value)
-        
+
         # Verify error message is printed
         captured = capsys.readouterr()
         assert "❌ Search failed: Invalid JQL syntax" in captured.out

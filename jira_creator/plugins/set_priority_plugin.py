@@ -58,9 +58,7 @@ class SetPriorityPlugin(JiraPlugin):
             SetPriorityError: If setting priority fails
         """
         try:
-            self.rest_operation(
-                client, issue_key=args.issue_key, priority=args.priority
-            )
+            self.rest_operation(client, issue_key=args.issue_key, priority=args.priority)
             print(f"✅ Priority set to '{args.priority}'")
             return True
         except SetPriorityError as e:
@@ -83,9 +81,7 @@ class SetPriorityPlugin(JiraPlugin):
         priority = kwargs["priority"]
 
         # Normalize priority
-        priority_name = self.PRIORITIES.get(
-            priority.lower(), "Normal"  # Default if not found
-        )
+        priority_name = self.PRIORITIES.get(priority.lower(), "Normal")  # Default if not found
 
         path = f"/rest/api/2/issue/{issue_key}"
         payload = {"fields": {"priority": {"name": priority_name}}}

@@ -118,15 +118,11 @@ class OpenAICost:
     def print_cost_metrics():
         print(f"\nTotal Cost: ${OpenAICost.cost:.4f}")
         if OpenAICost.costs:
-            print(
-                f"    Average Cost per Request: ${statistics.mean(OpenAICost.costs):.4f}"
-            )
+            print(f"    Average Cost per Request: ${statistics.mean(OpenAICost.costs):.4f}")
             print(f"    Max Cost for a Request: ${max(OpenAICost.costs):.4f}")
             print(f"    Min Cost for a Request: ${min(OpenAICost.costs):.4f}")
             if len(OpenAICost.costs) > 1:
-                print(
-                    f"    Standard Deviation of Cost: ${statistics.stdev(OpenAICost.costs):.4f}"
-                )
+                print(f"    Standard Deviation of Cost: ${statistics.stdev(OpenAICost.costs):.4f}")
         else:
             print("    No costs recorded.")
 
@@ -198,9 +194,7 @@ class OpenAIProvider:
                 result = result[first_pos : second_pos + 3]  # Include the second '"""'
 
             return result
-        raise Exception(
-            f"OpenAI API call failed: {response.status_code} - {response.text}"
-        )
+        raise Exception(f"OpenAI API call failed: {response.status_code} - {response.text}")
 
 
 class Docstring:
@@ -293,10 +287,7 @@ class Docstring:
         # Remove old entries for each file in the self.cache
         for file_path, entries in self.cache.items():
             self.cache[file_path] = [
-                entry
-                for entry in entries
-                if "last_accessed" in entry
-                and entry["last_accessed"] >= threshold_timestamp
+                entry for entry in entries if "last_accessed" in entry and entry["last_accessed"] >= threshold_timestamp
             ]
 
     def wrap_text(self, text: str, max_length=120, indent=0):
@@ -337,9 +328,7 @@ class Docstring:
         # Create a temporary file
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_file_path = temp_file.name
-            temp_file.write(
-                "".join(self.lines).encode()
-            )  # Write the content to the temporary file
+            temp_file.write("".join(self.lines).encode())  # Write the content to the temporary file
 
         try:
             # Attempt to compile the temporary file
@@ -384,25 +373,15 @@ class Docstring:
 
         t = self.line_index + 1
         # Collect all lines that belong to the class, including "pass" or single-line classes
-        while (
-            t < len(self.lines)
-            and not self.lines[t].startswith("def")
-            and not self.lines[t].startswith("class")
-        ):
+        while t < len(self.lines) and not self.lines[t].startswith("def") and not self.lines[t].startswith("class"):
             prompt_class_code.append(self.lines[t].rstrip())
             t += 1
 
-        class_docstring = self.get_ai_docstring(
-            system_prompt_class, "\n".join(prompt_class_code), output
-        )
+        class_docstring = self.get_ai_docstring(system_prompt_class, "\n".join(prompt_class_code), output)
         class_docstring = self.wrap_text(class_docstring, max_length=120, indent=1)
-        class_docstring[len(class_docstring) - 1] = (
-            class_docstring[len(class_docstring) - 1] + "\n"
-        )
+        class_docstring[len(class_docstring) - 1] = class_docstring[len(class_docstring) - 1] + "\n"
         class_docstring = [line + "\n" for line in class_docstring]
-        class_docstring[len(class_docstring) - 1] = (
-            class_docstring[len(class_docstring) - 1].rstrip() + "\n"
-        )
+        class_docstring[len(class_docstring) - 1] = class_docstring[len(class_docstring) - 1].rstrip() + "\n"
 
         # Check for existing docstring and replace it
         docstring_start_index = None
@@ -411,29 +390,18 @@ class Docstring:
         # Look for the class docstring (the second line should start with """ if it's there)
         if self.lines and self.lines[self.line_index + 1].strip().startswith('"""'):
             # Docstring exists, find the end of it
-            docstring_start_index = (
-                self.line_index + 1
-            )  # The docstring starts from line after the class definition
-            for i, line in enumerate(
-                self.lines[self.line_index + 2 :], start=self.line_index + 2
-            ):
+            docstring_start_index = self.line_index + 1  # The docstring starts from line after the class definition
+            for i, line in enumerate(self.lines[self.line_index + 2 :], start=self.line_index + 2):
                 if line.strip().startswith('"""'):
                     docstring_end_index = i  # End of the docstring
                     break
 
         # If a docstring exists, replace it
         if docstring_start_index is not None and docstring_end_index is not None:
-            self.lines = (
-                self.lines[:docstring_start_index]
-                + self.lines[docstring_end_index + 1 :]
-            )
+            self.lines = self.lines[:docstring_start_index] + self.lines[docstring_end_index + 1 :]
 
         # Insert the new docstring after the class definition
-        self.lines = (
-            self.lines[: self.line_index + 1]
-            + class_docstring
-            + self.lines[self.line_index + 1 :]
-        )
+        self.lines = self.lines[: self.line_index + 1] + class_docstring + self.lines[self.line_index + 1 :]
 
         # self.print_debug("class docstring: " + class_definition.strip(), self.lines)
 
@@ -443,17 +411,12 @@ class Docstring:
         line = self.lines[self.line_index]
         mutliline_line = ""
 
-        if not (
-            line.strip().endswith("):")
-            and not re.search(r"\)\s*->\s*(.*)\s*:.*", line.strip())
-        ):
+        if not (line.strip().endswith("):") and not re.search(r"\)\s*->\s*(.*)\s*:.*", line.strip())):
             self.multiline_index = 0
             # multiline def signiture
             while self.line_index < len(self.lines):
                 mutliline_line += self.lines[self.line_index]
-                if re.match(
-                    r".*\):$", self.lines[self.line_index].strip()
-                ) or re.search(
+                if re.match(r".*\):$", self.lines[self.line_index].strip()) or re.search(
                     r".*\)\s*->\s*(.*)\s*:.*", self.lines[self.line_index].strip()
                 ):
                     break
@@ -463,9 +426,7 @@ class Docstring:
         def_definition = line if mutliline_line == "" else mutliline_line
         output = re.sub("\\s+", " ", def_definition.rstrip().replace("\n", " "))
         print("     -> " + output)
-        prompt_def_code = (
-            mutliline_line.split("\n") if mutliline_line != "" else [def_definition]
-        )
+        prompt_def_code = mutliline_line.split("\n") if mutliline_line != "" else [def_definition]
 
         indent_line = self.count_and_divide_whitespace(
             def_definition if mutliline_line == "" else mutliline_line.splitlines()[0]
@@ -497,64 +458,35 @@ class Docstring:
 
         # Now that we have the full function signature, we generate the docstring
         indent = (
-            self.count_and_divide_whitespace(
-                def_definition
-                if mutliline_line == ""
-                else mutliline_line.splitlines()[0]
-            )
+            self.count_and_divide_whitespace(def_definition if mutliline_line == "" else mutliline_line.splitlines()[0])
             + 1
         )
-        def_docstring = self.get_ai_docstring(
-            system_prompt_def, "\n".join(prompt_def_code), output
-        )
+        def_docstring = self.get_ai_docstring(system_prompt_def, "\n".join(prompt_def_code), output)
         def_docstring = self.wrap_text(def_docstring, max_length=120, indent=indent)
-        def_docstring[len(def_docstring) - 1] = (
-            def_docstring[len(def_docstring) - 1] + "\n"
-        )
+        def_docstring[len(def_docstring) - 1] = def_docstring[len(def_docstring) - 1] + "\n"
         if def_definition.strip() == def_docstring[0].strip():
-            def_docstring = def_docstring[
-                1 if mutliline_line == "" else self.multiline_index :
-            ]
+            def_docstring = def_docstring[1 if mutliline_line == "" else self.multiline_index :]
         def_docstring = [line + "\n" for line in def_docstring]
-        def_docstring[len(def_docstring) - 1] = (
-            def_docstring[len(def_docstring) - 1].rstrip() + "\n"
-        )
+        def_docstring[len(def_docstring) - 1] = def_docstring[len(def_docstring) - 1].rstrip() + "\n"
 
         # Handle one-liner docstring or multi-line docstring
         if '"""' in self.lines[self.line_index + 1]:
             stripped_line = self.lines[self.line_index + 1].strip()
             if re.match(r'"""[\s\S]+?"""', stripped_line):
                 # This is a one-liner or multi-line docstring (we always replace with a multi-line docstring)
-                self.lines = (
-                    self.lines[: self.line_index + 1]
-                    + def_docstring
-                    + self.lines[self.line_index + 2 :]
-                )
+                self.lines = self.lines[: self.line_index + 1] + def_docstring + self.lines[self.line_index + 2 :]
             else:
                 # Replace the entire docstring if it's multi-line
                 end_index = self.line_index + 2
-                while end_index < len(self.lines) and not self.lines[
-                    end_index
-                ].strip().startswith('"""'):
+                while end_index < len(self.lines) and not self.lines[end_index].strip().startswith('"""'):
                     end_index += 1
 
-                if (
-                    end_index < len(self.lines)
-                    and self.lines[end_index].strip() == '"""'
-                ):
+                if end_index < len(self.lines) and self.lines[end_index].strip() == '"""':
                     # Found the end of the docstring, now replace the entire docstring block
-                    self.lines = (
-                        self.lines[: self.line_index + 1]
-                        + def_docstring
-                        + self.lines[end_index + 1 :]
-                    )
+                    self.lines = self.lines[: self.line_index + 1] + def_docstring + self.lines[end_index + 1 :]
         else:
             # If no docstring exists, simply insert the generated docstring
-            self.lines = (
-                self.lines[: self.line_index + 1]
-                + def_docstring
-                + self.lines[self.line_index + 1 :]
-            )
+            self.lines = self.lines[: self.line_index + 1] + def_docstring + self.lines[self.line_index + 1 :]
 
         # self.print_debug("def docstring: " + def_definition.strip(), self.lines)
 
@@ -589,12 +521,8 @@ class Docstring:
                     break
 
         # Generate new file-level docstring
-        general_description = self.get_ai_docstring(
-            system_prompt_general, "".join(self.lines), self.file_path
-        )
-        general_description = self.wrap_text(
-            general_description, max_length=120, indent=0
-        )
+        general_description = self.get_ai_docstring(system_prompt_general, "".join(self.lines), self.file_path)
+        general_description = self.wrap_text(general_description, max_length=120, indent=0)
         docstring = [line + "\n" for line in general_description]
 
         # self.print_debug("docstring_end_index", str(docstring_end_index))
@@ -604,11 +532,7 @@ class Docstring:
 
         # If a docstring exists, replace it with the new one
         if docstring_start_index is not None and docstring_end_index is not None:
-            self.lines = (
-                self.lines[:docstring_start_index]
-                + docstring
-                + self.lines[docstring_end_index + 1 :]
-            )
+            self.lines = self.lines[:docstring_start_index] + docstring + self.lines[docstring_end_index + 1 :]
         else:
             # Insert the generated docstring directly after the shebang (no extra newline)
             self.lines = [shebang] + docstring + self.lines[1:]
@@ -674,9 +598,7 @@ def process_directory(directory_path, recursive=False, debug=False, exit=False):
 
 def main():
     # Set up the argument parser
-    parser = argparse.ArgumentParser(
-        description="Generate file-level docstrings for Python files."
-    )
+    parser = argparse.ArgumentParser(description="Generate file-level docstrings for Python files.")
     parser.add_argument("path", help="Path to a Python file or directory.")
     parser.add_argument(
         "-r",
@@ -705,9 +627,7 @@ def main():
         process_file(args.path, debug=args.debug, exit=args.exit)
     elif os.path.isdir(args.path):
         # If it's a directory, process all Python files
-        process_directory(
-            args.path, recursive=args.recursive, debug=args.debug, exit=args.exit
-        )
+        process_directory(args.path, recursive=args.recursive, debug=args.debug, exit=args.exit)
     else:
         print(f"Error: {args.path} is neither a valid file nor a directory.")
 

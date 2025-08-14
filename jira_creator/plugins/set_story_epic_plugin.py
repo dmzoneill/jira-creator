@@ -44,9 +44,7 @@ class SetStoryEpicPlugin(JiraPlugin):
             bool: True if successful
         """
         try:
-            self.rest_operation(
-                client, issue_key=args.issue_key, epic_key=args.epic_key
-            )
+            self.rest_operation(client, issue_key=args.issue_key, epic_key=args.epic_key)
             print(f"✅ Story {args.issue_key} linked to epic {args.epic_key}")
             return True
 

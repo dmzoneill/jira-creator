@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from jira_creator.core.env_fetcher import EnvFetcher
+
 from jira_creator.core.view_helpers import (  # isort: skip
     clean_values,
     fetch_view_columns,
@@ -66,7 +67,7 @@ def test_filter_columns():
     view_columns = ["summary"]
     result = filter_columns(issue, view_columns)
     assert result == ["Test issue"]
-    
+
     # Test with a column that doesn't exist in the issue
     view_columns = ["summary", "nonexistent", "priority"]
     result = filter_columns(issue, view_columns)
@@ -78,9 +79,7 @@ def test_sort_rows():
     # Rows with tuples: ('column_name', 'value')
     rows = [("summary", "Task 1"), ("summary", "Task 3"), ("summary", "Task 2")]
     headers = ["summary"]  # Column name in the header
-    sort_columns = [
-        ("summary", "asc")
-    ]  # Sorting in ascending order by the column 'summary'
+    sort_columns = [("summary", "asc")]  # Sorting in ascending order by the column 'summary'
 
     # Sort rows using the function
     result = sort_rows(rows, sort_columns, headers)
@@ -287,17 +286,12 @@ def test_format_and_print_rows_truncate_summary():
         format_and_print_rows(rows, headers, MagicMock())  # Pass a mock JiraClient
         mock_print.assert_called()
         # Ensure that long summaries are truncated
-        assert (
-            "A very long summary text that should be truncated"
-            not in mock_print.call_args[0][0]
-        )
+        assert "A very long summary text that should be truncated" not in mock_print.call_args[0][0]
 
 
 # Test for defaulting to first issue keys in massage_issue_list when view_columns is not present
 def test_massage_issue_list_default_view_columns():
-    issues = [
-        {"key": "TEST-1", "summary": "Issue summary", "status": {"name": "To Do"}}
-    ]
+    issues = [{"key": "TEST-1", "summary": "Issue summary", "status": {"name": "To Do"}}]
     args = MagicMock(sort=None)  # No sort argument
     headers, rows = massage_issue_list(args, issues)
 

@@ -109,9 +109,7 @@ def generate_code(command_name, user_prompt):
     # Extract the test files from the generated output
     source = extract_code_from_output(generated_source)
 
-    with open(
-        "jira_creator/" + rest_source_file.format(command_name=command_name), "w"
-    ) as f:
+    with open("jira_creator/" + rest_source_file.format(command_name=command_name), "w") as f:
         f.write(source)
 
     print(f"Rest function generated: {command_name}")

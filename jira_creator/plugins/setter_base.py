@@ -8,7 +8,7 @@ the pattern of setting a single field value on a Jira issue.
 
 from abc import abstractmethod
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from jira_creator.plugins.base import JiraPlugin
 
@@ -25,13 +25,11 @@ class SetterPlugin(JiraPlugin):
     @abstractmethod
     def field_name(self) -> str:
         """Return the human-readable field name (e.g., 'priority', 'status')."""
-        pass
 
     @property
     @abstractmethod
     def argument_name(self) -> str:
         """Return the CLI argument name for the value to set."""
-        pass
 
     @property
     def argument_help(self) -> str:
@@ -81,7 +79,6 @@ class SetterPlugin(JiraPlugin):
 
     def register_additional_arguments(self, parser: ArgumentParser) -> None:
         """Override to add additional arguments in subclasses."""
-        pass
 
     def execute(self, client: Any, args: Namespace) -> bool:
         """
@@ -120,7 +117,7 @@ class SetterPlugin(JiraPlugin):
 
     def format_success_message(self, issue_key: str, value: Any) -> str:
         """Format the success message. Override for custom formatting."""
-        return f"✅ {self.field_name.capitalize()} set to '{value}'"
+        return f"✅ {self.field_name.capitalize()} for {issue_key} set to '{value}'"
 
     @abstractmethod
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
@@ -130,4 +127,3 @@ class SetterPlugin(JiraPlugin):
         Subclasses must implement this to perform the actual API call.
         kwargs will contain 'issue_key', 'value', and 'args'.
         """
-        pass

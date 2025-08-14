@@ -14,9 +14,9 @@ AiProviderError when an unknown provider name is provided.
 """
 
 import pytest
+from providers import get_ai_provider
 
 from jira_creator.exceptions.exceptions import AiProviderError
-from providers import get_ai_provider
 
 
 def test_get_ai_provider_openai():

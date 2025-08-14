@@ -47,9 +47,7 @@ class ChangeTypePlugin(JiraPlugin):
             bool: True if successful
         """
         try:
-            self.rest_operation(
-                client, issue_key=args.issue_key, new_type=args.new_type
-            )
+            self.rest_operation(client, issue_key=args.issue_key, new_type=args.new_type)
             print(f"✅ Issue type changed to '{args.new_type}'")
             return True
 

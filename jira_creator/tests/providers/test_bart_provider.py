@@ -79,7 +79,5 @@ def test_improve_text_failure(mock_post):
     mock_post.return_value = mock_response
 
     provider = BARTProvider()
-    with pytest.raises(
-        AiError, match="BART request failed: 500 - Internal Server Error"
-    ):
+    with pytest.raises(AiError, match="BART request failed: 500 - Internal Server Error"):
         provider.improve_text("Prompt", "Text")

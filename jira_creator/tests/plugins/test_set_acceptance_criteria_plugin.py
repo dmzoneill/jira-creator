@@ -25,17 +25,17 @@ class TestSetAcceptanceCriteriaPlugin:
         """Test argument registration."""
         plugin = SetAcceptanceCriteriaPlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         # Verify add_argument was called with correct parameters
         assert mock_parser.add_argument.call_count == 2
         calls = mock_parser.add_argument.call_args_list
-        
+
         # First argument: issue_key
         assert calls[0][0] == ("issue_key",)
         assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
-        
+
         # Second argument: acceptance_criteria (with nargs="*")
         assert calls[1][0] == ("acceptance_criteria",)
         assert calls[1][1]["nargs"] == "*"
@@ -47,7 +47,7 @@ class TestSetAcceptanceCriteriaPlugin:
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return acceptance criteria field
         mock_env_fetcher.get.return_value = "customfield_10050"
 
@@ -74,7 +74,7 @@ class TestSetAcceptanceCriteriaPlugin:
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         mock_env_fetcher.get.return_value = "customfield_10050"
 
         args = Namespace(
@@ -102,7 +102,7 @@ class TestSetAcceptanceCriteriaPlugin:
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         mock_env_fetcher.get.return_value = "customfield_10050"
 
         args = Namespace(issue_key="TEST-123", acceptance_criteria=[])
@@ -128,12 +128,10 @@ class TestSetAcceptanceCriteriaPlugin:
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         mock_env_fetcher.get.return_value = "customfield_10050"
 
-        args = Namespace(
-            issue_key="TEST-123", acceptance_criteria=["   ", "\t", "\n"]
-        )
+        args = Namespace(issue_key="TEST-123", acceptance_criteria=["   ", "\t", "\n"])
 
         result = plugin.execute(mock_client, args)
 
@@ -155,10 +153,8 @@ class TestSetAcceptanceCriteriaPlugin:
         """Test execution with API failure."""
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()
-        mock_client.request.side_effect = SetAcceptanceCriteriaError(
-            "Field not found"
-        )
-        
+        mock_client.request.side_effect = SetAcceptanceCriteriaError("Field not found")
+
         mock_env_fetcher.get.return_value = "customfield_10050"
 
         args = Namespace(
@@ -261,9 +257,7 @@ class TestSetAcceptanceCriteriaPlugin:
         mock_client = Mock()
         mock_env_fetcher.get.return_value = "customfield_10050"
 
-        plugin.rest_operation(
-            mock_client, issue_key="TEST-456", acceptance_criteria=""
-        )
+        plugin.rest_operation(mock_client, issue_key="TEST-456", acceptance_criteria="")
 
         # Verify empty string is passed through
         call_args = mock_client.request.call_args[1]["json_data"]
@@ -295,24 +289,24 @@ class TestSetAcceptanceCriteriaPlugin:
         """Test that the plugin uses the field returned by EnvFetcher."""
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()
-        
+
         # Test with different custom field IDs
         custom_fields = [
             "customfield_10050",
             "customfield_20060",
             "acceptance_criteria_field",
         ]
-        
+
         for field_id in custom_fields:
             mock_client.reset_mock()
             mock_env_fetcher.get.return_value = field_id
-            
+
             plugin.rest_operation(
                 mock_client,
                 issue_key="TEST-123",
                 acceptance_criteria="Test criteria",
             )
-            
+
             # Verify the correct field ID was used
             call_args = mock_client.request.call_args[1]["json_data"]
             assert field_id in call_args["fields"]

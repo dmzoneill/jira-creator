@@ -23,9 +23,9 @@ class TestMigratePlugin:
         """Test argument registration."""
         plugin = MigratePlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         # Verify arguments were added
         assert mock_parser.add_argument.call_count == 2
         calls = mock_parser.add_argument.call_args_list
@@ -38,7 +38,7 @@ class TestMigratePlugin:
         """Test successful REST operation for issue migration."""
         plugin = MigratePlugin()
         mock_client = Mock()
-        
+
         # Set up client attributes
         mock_client.project_key = "TEST"
         mock_client.priority = "Normal"
@@ -46,14 +46,14 @@ class TestMigratePlugin:
         mock_client.affects_version = "1.0"
         mock_client.epic_field = "customfield_10000"
         mock_client.jira_url = "https://jira.example.com"
-        
+
         # Mock API responses
         mock_client.request.side_effect = [
             # GET old issue
             {
                 "fields": {
                     "summary": "Original Summary",
-                    "description": "Original Description"
+                    "description": "Original Description",
                 }
             },
             # POST create new issue
@@ -64,22 +64,18 @@ class TestMigratePlugin:
             {
                 "transitions": [
                     {"id": "1", "name": "To Do"},
-                    {"id": "2", "name": "Done"}
+                    {"id": "2", "name": "Done"},
                 ]
             },
             # POST transition
-            {}
+            {},
         ]
-        
-        result = plugin.rest_operation(
-            mock_client,
-            issue_key="TEST-123",
-            new_type="bug"
-        )
-        
+
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", new_type="bug")
+
         assert result == {"new_key": "TEST-456"}
         assert mock_client.request.call_count == 5
-        
+
         # Verify create issue payload
         create_call = mock_client.request.call_args_list[1]
         assert create_call[0][0] == "POST"
@@ -94,7 +90,7 @@ class TestMigratePlugin:
         """Test REST operation when migrating to epic type."""
         plugin = MigratePlugin()
         mock_client = Mock()
-        
+
         # Set up client attributes
         mock_client.project_key = "TEST"
         mock_client.priority = "Normal"
@@ -102,16 +98,11 @@ class TestMigratePlugin:
         mock_client.affects_version = ""  # No version
         mock_client.epic_field = "customfield_10000"
         mock_client.jira_url = "https://jira.example.com"
-        
+
         # Mock API responses
         mock_client.request.side_effect = [
             # GET old issue
-            {
-                "fields": {
-                    "summary": "Epic Summary",
-                    "description": "Epic Description"
-                }
-            },
+            {"fields": {"summary": "Epic Summary", "description": "Epic Description"}},
             # POST create new issue
             {"key": "TEST-789"},
             # POST add comment
@@ -119,15 +110,11 @@ class TestMigratePlugin:
             # GET transitions
             {"transitions": []},  # No transitions available
         ]
-        
-        result = plugin.rest_operation(
-            mock_client,
-            issue_key="TEST-123",
-            new_type="epic"
-        )
-        
+
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", new_type="epic")
+
         assert result == {"new_key": "TEST-789"}
-        
+
         # Verify epic field was set
         create_call = mock_client.request.call_args_list[1]
         payload = create_call[1]["json_data"]["fields"]
@@ -138,7 +125,7 @@ class TestMigratePlugin:
         """Test REST operation when old issue has no fields."""
         plugin = MigratePlugin()
         mock_client = Mock()
-        
+
         # Set up client attributes
         mock_client.project_key = "TEST"
         mock_client.priority = "Normal"
@@ -146,7 +133,7 @@ class TestMigratePlugin:
         mock_client.affects_version = ""
         mock_client.epic_field = "customfield_10000"
         mock_client.jira_url = "https://jira.example.com"
-        
+
         # Mock API responses with missing fields
         mock_client.request.side_effect = [
             # GET old issue with empty fields
@@ -156,23 +143,15 @@ class TestMigratePlugin:
             # POST add comment
             {},
             # GET transitions with fallback
-            {
-                "transitions": [
-                    {"id": "3", "name": "In Progress"}
-                ]
-            },
+            {"transitions": [{"id": "3", "name": "In Progress"}]},
             # POST transition
-            {}
+            {},
         ]
-        
-        result = plugin.rest_operation(
-            mock_client,
-            issue_key="TEST-123",
-            new_type="task"
-        )
-        
+
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", new_type="task")
+
         assert result == {"new_key": "TEST-999"}
-        
+
         # Verify default values were used
         create_call = mock_client.request.call_args_list[1]
         payload = create_call[1]["json_data"]["fields"]
@@ -183,7 +162,7 @@ class TestMigratePlugin:
         """Test REST operation with transition name not found."""
         plugin = MigratePlugin()
         mock_client = Mock()
-        
+
         # Set up client attributes
         mock_client.project_key = "TEST"
         mock_client.priority = "Normal"
@@ -191,7 +170,7 @@ class TestMigratePlugin:
         mock_client.affects_version = ""
         mock_client.epic_field = "customfield_10000"
         mock_client.jira_url = "https://jira.example.com"
-        
+
         # Mock API responses
         mock_client.request.side_effect = [
             # GET old issue
@@ -204,19 +183,15 @@ class TestMigratePlugin:
             {
                 "transitions": [
                     {"id": "5", "name": "Review"},
-                    {"id": "6", "name": "Approved"}
+                    {"id": "6", "name": "Approved"},
                 ]
             },
             # POST transition with first available
-            {}
+            {},
         ]
-        
-        plugin.rest_operation(
-            mock_client,
-            issue_key="TEST-123",
-            new_type="story"
-        )
-        
+
+        plugin.rest_operation(mock_client, issue_key="TEST-123", new_type="story")
+
         # Verify first transition was used
         transition_call = mock_client.request.call_args_list[4]
         assert transition_call[0][0] == "POST"
@@ -228,14 +203,10 @@ class TestMigratePlugin:
         plugin = MigratePlugin()
         mock_client = Mock()
         mock_client.request.side_effect = Exception("API Error")
-        
+
         with pytest.raises(MigrateError) as exc_info:
-            plugin.rest_operation(
-                mock_client,
-                issue_key="TEST-123",
-                new_type="bug"
-            )
-        
+            plugin.rest_operation(mock_client, issue_key="TEST-123", new_type="bug")
+
         assert "Migration failed: API Error" in str(exc_info.value)
 
     def test_execute_success(self):
@@ -243,34 +214,30 @@ class TestMigratePlugin:
         plugin = MigratePlugin()
         mock_client = Mock()
         mock_client.jira_url = "https://jira.example.com"
-        
+
         # Mock rest_operation to return new key
         plugin.rest_operation = Mock(return_value={"new_key": "TEST-456"})
-        
+
         args = Namespace(issue_key="TEST-123", new_type="bug")
-        
+
         result = plugin.execute(mock_client, args)
-        
+
         assert result is True
-        plugin.rest_operation.assert_called_once_with(
-            mock_client,
-            issue_key="TEST-123",
-            new_type="bug"
-        )
+        plugin.rest_operation.assert_called_once_with(mock_client, issue_key="TEST-123", new_type="bug")
 
     def test_execute_success_same_key(self):
         """Test successful execution when new key is not provided."""
         plugin = MigratePlugin()
         mock_client = Mock()
         mock_client.jira_url = "https://jira.example.com"
-        
+
         # Mock rest_operation to return empty dict (no new_key)
         plugin.rest_operation = Mock(return_value={})
-        
+
         args = Namespace(issue_key="TEST-123", new_type="bug")
-        
+
         result = plugin.execute(mock_client, args)
-        
+
         assert result is True
         # Should use original key in print message
 
@@ -278,12 +245,12 @@ class TestMigratePlugin:
         """Test execution when migration fails."""
         plugin = MigratePlugin()
         mock_client = Mock()
-        
+
         # Mock rest_operation to raise error
         plugin.rest_operation = Mock(side_effect=MigrateError("Failed"))
-        
+
         args = Namespace(issue_key="TEST-123", new_type="bug")
-        
+
         with pytest.raises(MigrateError):
             plugin.execute(mock_client, args)
 
@@ -292,13 +259,13 @@ class TestMigratePlugin:
         plugin = MigratePlugin()
         mock_client = Mock()
         mock_client.jira_url = "https://jira.example.com"
-        
+
         plugin.rest_operation = Mock(return_value={"new_key": "TEST-456"})
-        
+
         args = Namespace(issue_key="TEST-123", new_type="bug")
-        
+
         plugin.execute(mock_client, args)
-        
+
         captured = capsys.readouterr()
         assert "✅ Migrated TEST-123 to TEST-456: https://jira.example.com/browse/TEST-456" in captured.out
 
@@ -306,13 +273,13 @@ class TestMigratePlugin:
         """Test that error message is printed correctly."""
         plugin = MigratePlugin()
         mock_client = Mock()
-        
+
         plugin.rest_operation = Mock(side_effect=MigrateError("API failed"))
-        
+
         args = Namespace(issue_key="TEST-123", new_type="bug")
-        
+
         with pytest.raises(MigrateError):
             plugin.execute(mock_client, args)
-        
+
         captured = capsys.readouterr()
         assert "❌ Migration failed: API failed" in captured.out

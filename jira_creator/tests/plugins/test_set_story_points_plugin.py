@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetStoryPointsError
 from jira_creator.plugins.set_story_points_plugin import SetStoryPointsPlugin
 
 
@@ -26,25 +25,25 @@ class TestSetStoryPointsPlugin:
         """Test argument registration."""
         plugin = SetStoryPointsPlugin()
         mock_parser = Mock(spec=ArgumentParser)
-        
+
         # Create mock for _positionals
         mock_positionals = Mock()
         mock_positionals._actions = []
         mock_parser._positionals = mock_positionals
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         # Verify add_argument was called with correct parameters
         assert mock_parser.add_argument.call_count == 3
         calls = mock_parser.add_argument.call_args_list
-        
+
         # First argument: issue_key
         assert calls[0][0] == ("issue_key",)
         assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
-        
+
         # Second argument: points (positional, will be removed)
         assert calls[1][0] == ("points",)
-        
+
         # Third argument: points (with type=int)
         assert calls[2][0] == ("points",)
         assert calls[2][1]["type"] == int
@@ -54,23 +53,21 @@ class TestSetStoryPointsPlugin:
         """Test register_additional_arguments modifies parser correctly."""
         plugin = SetStoryPointsPlugin()
         mock_parser = Mock(spec=ArgumentParser)
-        
+
         # Create mock for _positionals with an action for 'points'
         mock_action = Mock()
         mock_action.dest = "points"
         mock_positionals = Mock()
         mock_positionals._actions = [mock_action]
         mock_parser._positionals = mock_positionals
-        
+
         plugin.register_additional_arguments(mock_parser)
-        
+
         # Verify the action was removed
         assert len(mock_parser._positionals._actions) == 0
-        
+
         # Verify add_argument was called for points with type=int
-        mock_parser.add_argument.assert_called_once_with(
-            "points", type=int, help="The story points value (integer)"
-        )
+        mock_parser.add_argument.assert_called_once_with("points", type=int, help="The story points value (integer)")
 
     @patch("jira_creator.plugins.set_story_points_plugin.EnvFetcher")
     def test_rest_operation(self, mock_env_fetcher):
@@ -78,13 +75,11 @@ class TestSetStoryPointsPlugin:
         plugin = SetStoryPointsPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return story points field
         mock_env_fetcher.get.return_value = "customfield_10004"
 
-        result = plugin.rest_operation(
-            mock_client, issue_key="TEST-123", value=5
-        )
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", value=5)
 
         # Verify EnvFetcher was called
         mock_env_fetcher.get.assert_called_once_with("JIRA_STORY_POINTS_FIELD")
@@ -103,7 +98,7 @@ class TestSetStoryPointsPlugin:
         plugin = SetStoryPointsPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         # Mock EnvFetcher.get to return story points field
         mock_env_fetcher.get.return_value = "customfield_10004"
 
@@ -121,7 +116,7 @@ class TestSetStoryPointsPlugin:
 
         # Verify print output
         captured = capsys.readouterr()
-        assert "✅ Story points set to '8'" in captured.out
+        assert "✅ Story points for TEST-123 set to '8'" in captured.out
 
     @patch("jira_creator.plugins.set_story_points_plugin.EnvFetcher")
     def test_execute_with_zero_points(self, mock_env_fetcher, capsys):
@@ -129,7 +124,7 @@ class TestSetStoryPointsPlugin:
         plugin = SetStoryPointsPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
-        
+
         mock_env_fetcher.get.return_value = "customfield_10004"
 
         args = Namespace(issue_key="TEST-123", points=0)
@@ -146,7 +141,7 @@ class TestSetStoryPointsPlugin:
 
         # Verify print output
         captured = capsys.readouterr()
-        assert "✅ Story points set to '0'" in captured.out
+        assert "✅ Story points for TEST-123 set to '0'" in captured.out
 
     @patch("jira_creator.plugins.set_story_points_plugin.EnvFetcher")
     def test_execute_failure(self, mock_env_fetcher, capsys):
@@ -154,7 +149,7 @@ class TestSetStoryPointsPlugin:
         plugin = SetStoryPointsPlugin()
         mock_client = Mock()
         mock_client.request.side_effect = Exception("Invalid story points value")
-        
+
         mock_env_fetcher.get.return_value = "customfield_10004"
 
         args = Namespace(issue_key="TEST-123", points=100)
@@ -199,9 +194,7 @@ class TestSetStoryPointsPlugin:
         mock_env_fetcher.get.return_value = "customfield_10004"
 
         # Negative points might be invalid in Jira, but the plugin should still send them
-        plugin.rest_operation(
-            mock_client, issue_key="TEST-456", value=-5
-        )
+        plugin.rest_operation(mock_client, issue_key="TEST-456", value=-5)
 
         # Verify the negative value is passed through
         call_args = mock_client.request.call_args[1]["json_data"]
@@ -216,9 +209,7 @@ class TestSetStoryPointsPlugin:
 
         # Test with a large value
         large_value = 999999
-        plugin.rest_operation(
-            mock_client, issue_key="TEST-789", value=large_value
-        )
+        plugin.rest_operation(mock_client, issue_key="TEST-789", value=large_value)
 
         # Verify the large value is passed through
         call_args = mock_client.request.call_args[1]["json_data"]
@@ -229,18 +220,16 @@ class TestSetStoryPointsPlugin:
         """Test that the plugin uses the field returned by EnvFetcher."""
         plugin = SetStoryPointsPlugin()
         mock_client = Mock()
-        
+
         # Test with different custom field IDs
         custom_fields = ["customfield_10001", "customfield_20002", "story_points_field"]
-        
+
         for field_id in custom_fields:
             mock_client.reset_mock()
             mock_env_fetcher.get.return_value = field_id
-            
-            plugin.rest_operation(
-                mock_client, issue_key="TEST-123", value=5
-            )
-            
+
+            plugin.rest_operation(mock_client, issue_key="TEST-123", value=5)
+
             # Verify the correct field ID was used
             call_args = mock_client.request.call_args[1]["json_data"]
             assert field_id in call_args["fields"]

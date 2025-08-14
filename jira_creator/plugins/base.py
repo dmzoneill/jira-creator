@@ -9,7 +9,7 @@ executing commands, and performing REST operations.
 
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser, Namespace
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 
 class JiraPlugin(ABC):
@@ -39,7 +39,6 @@ class JiraPlugin(ABC):
         Returns:
             str: The command name as it appears in the CLI (e.g., 'add-comment')
         """
-        pass  # pragma: no cover
 
     @property
     @abstractmethod
@@ -50,7 +49,6 @@ class JiraPlugin(ABC):
         Returns:
             str: Brief description of what the command does
         """
-        pass  # pragma: no cover
 
     @abstractmethod
     def register_arguments(self, parser: ArgumentParser) -> None:
@@ -60,7 +58,6 @@ class JiraPlugin(ABC):
         Arguments:
             parser: ArgumentParser instance to add arguments to
         """
-        pass  # pragma: no cover
 
     @abstractmethod
     def execute(self, client: Any, args: Namespace) -> bool:
@@ -80,7 +77,6 @@ class JiraPlugin(ABC):
         Raises:
             Various exceptions based on the specific command implementation
         """
-        pass  # pragma: no cover
 
     @abstractmethod
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
@@ -100,7 +96,6 @@ class JiraPlugin(ABC):
         Raises:
             Various exceptions based on the specific operation
         """
-        pass  # pragma: no cover
 
     def get_dependency(self, dep_name: str, default: Optional[Any] = None) -> Any:
         """

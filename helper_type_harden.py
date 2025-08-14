@@ -52,9 +52,7 @@ def improve_text(prompt: str, text: str) -> str:
 
 def validate_pycompile(file_path: str) -> bool:
     try:
-        result = subprocess.run(
-            ["python3", "-m", "py_compile", file_path], capture_output=True, text=True
-        )
+        result = subprocess.run(["python3", "-m", "py_compile", file_path], capture_output=True, text=True)
         if result.returncode != 0:
             print(f"Syntax error in {file_path}: {result.stderr}")
             return False
@@ -128,9 +126,7 @@ def process_directory(directory: str, debug: bool, validate: bool, recursive: bo
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Harden Python code using OpenAI API")
     parser.add_argument("path", help="Path to the Python file or directory to harden")
-    parser.add_argument(
-        "--recursive", action="store_true", help="Recursively process directories"
-    )
+    parser.add_argument("--recursive", action="store_true", help="Recursively process directories")
     parser.add_argument("--debug", action="store_true", help="Enable debug output")
     parser.add_argument(
         "--validate-pycompile",
@@ -140,9 +136,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if os.path.isdir(args.path):
-        process_directory(
-            args.path, args.debug, args.validate_pycompile, args.recursive
-        )
+        process_directory(args.path, args.debug, args.validate_pycompile, args.recursive)
     elif os.path.isfile(args.path):
         harden_file(args.path, args.debug, args.validate_pycompile)
     else:

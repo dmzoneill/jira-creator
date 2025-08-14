@@ -85,6 +85,4 @@ class InstructLabProvider(AIProvider):
         )
         if response.status_code == 200:
             return response.json().get("response", "").strip()
-        raise AiError(
-            f"InstructLab request failed: {response.status_code} - {response.text}"
-        )
+        raise AiError(f"InstructLab request failed: {response.status_code} - {response.text}")

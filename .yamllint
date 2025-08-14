@@ -1,0 +1,27 @@
+---
+extends: default
+
+ignore: |
+  node_modules/
+  .git/
+  htmlcov/
+  .pytest_cache/
+  .venv/
+  venv/
+  build/
+  dist/
+  *.egg-info/
+
+rules:
+  line-length:
+    max: 120
+    level: warning
+  document-start:
+    present: true
+  comments:
+    min-spaces-from-content: 2
+  indentation:
+    spaces: 2
+    indent-sequences: true
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no']

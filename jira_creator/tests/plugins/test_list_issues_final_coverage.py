@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Tests for final missing branch coverage in list_issues_plugin.py."""
 
-from unittest.mock import Mock, patch
 from argparse import Namespace
+from unittest.mock import patch
 
 from jira_creator.plugins.list_issues_plugin import ListIssuesPlugin
 
@@ -18,9 +18,9 @@ class TestListIssuesFinalCoverage:
             "JIRA_PROJECT_KEY": "TEST",
             "JIRA_COMPONENT_NAME": "",  # Empty component from env
         }.get(key, default)
-        
+
         plugin = ListIssuesPlugin()
-        
+
         # Create args where component is empty string (truthy for if check, but falsy after or)
         args = Namespace(
             project="TEST",
@@ -30,12 +30,12 @@ class TestListIssuesFinalCoverage:
             reporter=None,
             summary=None,
             blocked=False,
-            unblocked=False
+            unblocked=False,
         )
-        
+
         # Build JQL - should not include component condition due to empty result
         jql = plugin._build_jql_query(args)
-        
+
         assert jql == "project = TEST"
         assert "component" not in jql
 
@@ -47,9 +47,9 @@ class TestListIssuesFinalCoverage:
             "JIRA_PROJECT_KEY": "TEST",
             "JIRA_BLOCKED_FIELD": "",  # Empty blocked field
         }.get(key, default)
-        
+
         plugin = ListIssuesPlugin()
-        
+
         # Create args with unblocked=True but empty blocked field
         args = Namespace(
             project="TEST",
@@ -59,12 +59,12 @@ class TestListIssuesFinalCoverage:
             reporter=None,
             summary=None,
             blocked=False,
-            unblocked=True  # This triggers the unblocked logic
+            unblocked=True,  # This triggers the unblocked logic
         )
-        
+
         # Build JQL - should not include unblocked condition due to empty blocked field
         jql = plugin._build_jql_query(args)
-        
+
         assert jql == "project = TEST"
         assert "!=" not in jql
         assert "EMPTY" not in jql

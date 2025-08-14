@@ -6,15 +6,11 @@ This plugin implements the validate-issue command, allowing users to validate
 Jira issues against various criteria and quality standards.
 """
 
-import hashlib
-import json
-import os
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.plugins.base import JiraPlugin
-from jira_creator.providers import get_ai_provider
 
 
 class ValidateIssuePlugin(JiraPlugin):
@@ -33,9 +29,7 @@ class ValidateIssuePlugin(JiraPlugin):
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
         parser.add_argument("issue_key", help="The Jira issue key (e.g., PROJ-123)")
-        parser.add_argument(
-            "--no-ai", action="store_true", help="Skip AI-powered quality checks"
-        )
+        parser.add_argument("--no-ai", action="store_true", help="Skip AI-powered quality checks")
         parser.add_argument(
             "--no-cache",
             action="store_true",
@@ -59,9 +53,7 @@ class ValidateIssuePlugin(JiraPlugin):
             fields = issue_data.get("fields", {})
 
             # Run validations
-            issues = self._run_validations(
-                fields, args.issue_key, args.no_ai, args.no_cache
-            )
+            issues = self._run_validations(fields, args.issue_key, args.no_ai, args.no_cache)
 
             # Display results
             if issues:
@@ -72,14 +64,14 @@ class ValidateIssuePlugin(JiraPlugin):
                 print("=" * 50)
                 print(f"\n📊 Total issues: {len(issues)}")
                 return False
-            else:
-                print(f"✅ {args.issue_key} passed all validations")
-                return True
+
+            print(f"✅ {args.issue_key} passed all validations")
+            return True
 
         except Exception as e:
             msg = f"❌ Failed to validate issue: {e}"
             print(msg)
-            raise Exception(msg) from e
+            raise ValueError(msg) from e
 
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
         """
@@ -96,10 +88,9 @@ class ValidateIssuePlugin(JiraPlugin):
         path = f"/rest/api/2/issue/{issue_key}"
         return client.request("GET", path)
 
-    def _run_validations(
-        self, fields: Dict[str, Any], issue_key: str, no_ai: bool, no_cache: bool
-    ) -> List[str]:
+    def _run_validations(self, fields: Dict[str, Any], issue_key: str, no_ai: bool, no_cache: bool) -> List[str]:
         """Run all validation checks on the issue."""
+        # pylint: disable=too-many-locals
         issues = []
 
         # Extract fields
@@ -143,9 +134,7 @@ class ValidateIssuePlugin(JiraPlugin):
 
         # AI validations (if enabled)
         if not no_ai and issue_type in ["story", "bug", "task"]:
-            ai_issues = self._validate_with_ai(
-                fields, issue_key, acceptance_criteria_field, no_cache
-            )
+            ai_issues = self._validate_with_ai(fields, issue_key, acceptance_criteria_field, no_cache)
             issues.extend(ai_issues)
 
         return issues
@@ -153,25 +142,19 @@ class ValidateIssuePlugin(JiraPlugin):
     def _validate_with_ai(
         self,
         fields: Dict[str, Any],
-        issue_key: str,
+        issue_key: str,  # pylint: disable=unused-argument
         acceptance_criteria_field: str,
-        no_cache: bool,
+        no_cache: bool,  # pylint: disable=unused-argument
     ) -> List[str]:
         """Validate fields using AI for quality checks."""
         issues = []
 
-        # Get AI provider
-        ai_provider = self.get_dependency(
-            "ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
-        )
+        # Get AI provider (for future use)
+        # ai_provider = self.get_dependency("ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")))
 
         # Fields to validate with AI
         description = fields.get("description", "")
-        acceptance_criteria = (
-            fields.get(acceptance_criteria_field, "")
-            if acceptance_criteria_field
-            else ""
-        )
+        acceptance_criteria = fields.get(acceptance_criteria_field, "") if acceptance_criteria_field else ""
 
         # Check description quality
         if description and len(description) < 50:

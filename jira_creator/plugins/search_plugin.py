@@ -7,7 +7,7 @@ for Jira issues using JQL (Jira Query Language).
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list
 from jira_creator.exceptions.exceptions import SearchError
@@ -29,9 +29,7 @@ class SearchPlugin(JiraPlugin):
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
-        parser.add_argument(
-            "jql", help="JQL query string (e.g., 'project = ABC AND status = Open')"
-        )
+        parser.add_argument("jql", help="JQL query string (e.g., 'project = ABC AND status = Open')")
         parser.add_argument(
             "-m",
             "--max-results",
@@ -53,17 +51,15 @@ class SearchPlugin(JiraPlugin):
         """
         try:
             # Perform the search
-            results = self.rest_operation(
-                client, jql=args.jql, max_results=args.max_results
-            )
+            results = self.rest_operation(client, jql=args.jql, max_results=args.max_results)
 
             if not results:
                 print("📭 No issues found matching your query")
                 return True
 
             # Process and display results
-            massaged_issues = massage_issue_list(results)
-            format_and_print_rows(massaged_issues)
+            massaged_issues = massage_issue_list(results, client)
+            format_and_print_rows(massaged_issues, [], client)
 
             print(f"\n📊 Found {len(results)} issue(s)")
             return True

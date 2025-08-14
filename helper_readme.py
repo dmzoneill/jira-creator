@@ -32,9 +32,7 @@ class OpenAIProvider:
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
 
-        raise Exception(
-            f"OpenAI API call failed: {response.status_code} - {response.text}"
-        )
+        raise Exception(f"OpenAI API call failed: {response.status_code} - {response.text}")
 
 
 def extract_argparse_commands(cli_script):

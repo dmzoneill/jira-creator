@@ -26,17 +26,17 @@ class TestSetComponentPlugin:
         """Test argument registration."""
         plugin = SetComponentPlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         # Verify add_argument was called with correct parameters
         assert mock_parser.add_argument.call_count == 2
         calls = mock_parser.add_argument.call_args_list
-        
+
         # First argument: issue_key
         assert calls[0][0] == ("issue_key",)
         assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
-        
+
         # Second argument: component
         assert calls[1][0] == ("component",)
         assert calls[1][1]["help"] == "The component name to set for the issue"
@@ -47,9 +47,7 @@ class TestSetComponentPlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
 
-        result = plugin.rest_operation(
-            mock_client, issue_key="TEST-123", value="Backend"
-        )
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", value="Backend")
 
         # Verify the request
         mock_client.request.assert_called_once_with(
@@ -79,7 +77,7 @@ class TestSetComponentPlugin:
 
         # Verify print output
         captured = capsys.readouterr()
-        assert "✅ Component set to 'Frontend'" in captured.out
+        assert "✅ Component for TEST-123 set to 'Frontend'" in captured.out
 
     def test_execute_failure(self, capsys):
         """Test execution with API failure."""
@@ -133,10 +131,8 @@ class TestSetComponentPlugin:
 
         for component in special_components:
             mock_client.reset_mock()
-            
-            plugin.rest_operation(
-                mock_client, issue_key="TEST-456", value=component
-            )
+
+            plugin.rest_operation(mock_client, issue_key="TEST-456", value=component)
 
             # Verify special characters are preserved
             call_args = mock_client.request.call_args[1]["json_data"]

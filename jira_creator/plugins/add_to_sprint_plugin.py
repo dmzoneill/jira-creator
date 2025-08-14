@@ -114,9 +114,7 @@ class AddToSprintPlugin(JiraPlugin):
 
         return response
 
-    def _find_sprint_id(
-        self, client: Any, board_id: str, sprint_name: str
-    ) -> Optional[int]:
+    def _find_sprint_id(self, client: Any, board_id: str, sprint_name: str) -> Optional[int]:
         """
         Find sprint ID by name.
 
@@ -132,10 +130,7 @@ class AddToSprintPlugin(JiraPlugin):
         max_results = 50
 
         while True:
-            path = (
-                f"/rest/agile/1.0/board/{board_id}/sprint"
-                f"?startAt={start_at}&maxResults={max_results}"
-            )
+            path = f"/rest/agile/1.0/board/{board_id}/sprint" f"?startAt={start_at}&maxResults={max_results}"
             res = client.request("GET", path)
             sprints: List[Dict[str, Any]] = res.get("values", [])
 

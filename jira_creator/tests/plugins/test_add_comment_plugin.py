@@ -2,7 +2,7 @@
 """Tests for the add comment plugin."""
 
 from argparse import Namespace
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock
 
 import pytest
 
@@ -85,9 +85,7 @@ class TestAddCommentPlugin:
         plugin = AddCommentPlugin(editor_func=mock_editor)
         mock_client = Mock()
 
-        args = Namespace(
-            issue_key="TEST-123", text=None, no_ai=True  # No text provided
-        )
+        args = Namespace(issue_key="TEST-123", text=None, no_ai=True)  # No text provided
 
         result = plugin.execute(mock_client, args)
 
@@ -102,9 +100,7 @@ class TestAddCommentPlugin:
         plugin = AddCommentPlugin()
         mock_client = Mock()
 
-        args = Namespace(
-            issue_key="TEST-123", text="   ", no_ai=True  # Empty/whitespace only
-        )
+        args = Namespace(issue_key="TEST-123", text="   ", no_ai=True)  # Empty/whitespace only
 
         result = plugin.execute(mock_client, args)
 

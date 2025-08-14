@@ -8,7 +8,6 @@ discovery, loading, and registration of command plugins.
 
 import importlib
 import inspect
-import os
 from pathlib import Path
 from typing import Dict, List, Optional, Type
 
@@ -53,7 +52,7 @@ class PluginRegistry:
                 module = importlib.import_module(module_name)
 
                 # Find all classes that inherit from JiraPlugin
-                for name, cls in inspect.getmembers(module, inspect.isclass):
+                for _, cls in inspect.getmembers(module, inspect.isclass):
                     if (  # pragma: no cover
                         issubclass(cls, JiraPlugin)  # pragma: no cover
                         and cls != JiraPlugin  # pragma: no cover
@@ -65,7 +64,7 @@ class PluginRegistry:
                         self._plugins[command_name] = plugin_instance  # pragma: no cover
                         self._plugin_classes[command_name] = cls  # pragma: no cover
 
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 # Log error but continue loading other plugins
                 print(f"Warning: Failed to load plugin {file_path.name}: {e}")
 

@@ -75,7 +75,7 @@ class GetSprintPlugin(JiraPlugin):
         except Exception as e:
             msg = f"❌ Failed to get sprint: {e}"
             print(msg)
-            raise Exception(msg) from e
+            raise ValueError(msg) from e
 
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
         """

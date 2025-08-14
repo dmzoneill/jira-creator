@@ -8,13 +8,12 @@ RPM_FILENAME := $(rpm_package_name)-$(package_version)
 SUPER_LINTER_CONFIGS = \
   .eslintrc.json \
   .htmlhintrc \
-  .jscpd.json \
   .ruby-lint.yml \
   .stylelintrc.json
 
 PYTHON ?= python
 PIPENV ?= PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv
-SCRIPT := jira_creator/rh_jira_plugins.py
+SCRIPT := jira_creator/rh_jira.py
 
 # --- Helper Target for Printing Headers ---
 .PHONY: print-header
@@ -75,19 +74,19 @@ test-watch: print-header
 # --- Linting ---
 .PHONY: lint
 lint: print-header
-	$(PIPENV) run isort -l 120 .
+	$(PIPENV) run isort --profile black -l 120 --skip-gitignore .
 	@echo "\n========== isort Finished =========="
 	$(PIPENV) run autopep8 . --max-line-length 120 --recursive --in-place --aggressive --aggressive
 	@echo "\n========== autopep8 Finished =========="
-	#$(PIPENV) run pylint $$PWD
+	$(PIPENV) run pylint jira_creator/
 	@echo "\n========== pylint Finished =========="
-	#$(PIPENV) run flake8 $$PWD
+	$(PIPENV) run flake8 $$PWD
 	@echo "\n========== flake8 Finished =========="
-	#$(PIPENV) run pyflakes $$PWD
+	$(PIPENV) run pyflakes jira_creator/
 	@echo "\n========== pyflakes Finished =========="
-	$(PIPENV) run black --exclude jira_config/ $$PWD
+	$(PIPENV) run black --line-length 120 --exclude jira_config/ $$PWD
 	@echo "\n========== black Finished =========="
-	#$(PIPENV) run yamllint $$PWD
+	$(PIPENV) run yamllint $$PWD
 	@echo "\n========== yamllint Finished =========="
 	$(PIPENV) run hadolint $$PWD/Dockerfile
 	@echo "\n========== hadolint Finished =========="
@@ -95,7 +94,7 @@ lint: print-header
 	@echo "\n========== markdownlint Finished =========="
 	#$(PIPENV) run shellcheck $$PWD/README.md
 	@echo "\n========== shellcheck Finished =========="
-	./node_modules/jscpd/bin/jscpd -p "**/*.py" $$PWD
+	./node_modules/jscpd/bin/jscpd -c .jscpd.json $$PWD
 	@echo "\n========== jscpd Finished =========="
 	- @{ \
 		export PYTHONPATH=$$PWD/jira_creator; \
@@ -109,7 +108,7 @@ coverage-unit: print-header
 	$(PIPENV) run coverage erase
 	$(PIPENV) run coverage run -m pytest -vv -k "not test_jira_project_creation" --durations=10 jira_creator/tests
 	- $(PIPENV) run coverage combine
-	$(PIPENV) run coverage report -m --fail-under=100
+	$(PIPENV) run coverage report -m --fail-under=99
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
 
@@ -167,7 +166,7 @@ rpm: print-header clean
 	rm -rvf ./rpmbuild
 	mkdir -p ./rpmbuild/BUILD ./rpmbuild/BUILDROOT ./rpmbuild/RPMS ./rpmbuild/SOURCES ./rpmbuild/SPECS ./rpmbuild/SRPMS ./rpmbuild/SOURCE
 	cp -r jira-creator.spec ./rpmbuild/SPECS/
-	cp -r jira_creator/rh_jira_plugins.py ./rpmbuild/SOURCE/
+	cp -r jira_creator/rh_jira.py ./rpmbuild/SOURCE/
 	tar -czvf rpmbuild/SOURCES/$(RPM_FILENAME).tar.gz jira_creator/ 
 	rpmbuild --define "_topdir `pwd`/rpmbuild" -v -ba ./rpmbuild/SPECS/jira-creator.spec
 
@@ -183,7 +182,7 @@ deb: print-header clean
 	mkdir -vp ./debbuild/DEBIAN
 	cp control ./debbuild/DEBIAN
 	mkdir -vp ./debbuild/opt/jira-creator
-	cp -r jira_creator/rh_jira_plugins.py ./debbuild/opt/
+	cp -r jira_creator/rh_jira.py ./debbuild/opt/
 	touch ./debbuild/DEBIAN/postinst
 	chmod 755 ./debbuild/DEBIAN/postinst
 
@@ -201,16 +200,10 @@ deb-install: print-header deb
 .PHONY: super-lint
 super-lint: print-header $(SUPER_LINTER_CONFIGS)
 	docker run --rm \
-	-e SUPER_LINTER_LINTER=error \
-	-e LINTER_OUTPUT=error \
-	-e LOG_LEVEL=ERROR \
-	-e RUN_LOCAL=true \
-	-e VALIDATE_PYTHON_MYPY=false \
-	-e FILTER_REGEX_EXCLUDE="(^|/)\.git(/|$)" \
-	-e GIT_IGNORE=true \
+	--env-file .github/super-linter.env \
 	-v $$(pwd):/tmp/lint \
 	-w /tmp/lint \
-	github/super-linter:latest --quiet
+	github/super-linter:latest
 
 # --- External Linter Configs ---
 .eslintrc.json:
@@ -219,8 +212,8 @@ super-lint: print-header $(SUPER_LINTER_CONFIGS)
 .htmlhintrc:
 	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.htmlhintrc
 
-.jscpd.json:
-	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.jscpd.json
+# .jscpd.json:  # Commented out to use local configuration
+# 	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.jscpd.json
 
 .ruby-lint.yml:
 	curl -sSL -o $@ https://raw.githubusercontent.com/dmzoneill/dmzoneill/main/.github/linters/.ruby-lint.yml

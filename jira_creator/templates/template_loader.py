@@ -53,9 +53,7 @@ class TemplateLoader:
         - Calls the '_load_template' method to load the template file content.
         """
 
-        self.template_path: Path = (
-            Path(EnvFetcher.get("TEMPLATE_DIR")) / f"{issue_type}.tmpl"
-        )
+        self.template_path: Path = Path(EnvFetcher.get("TEMPLATE_DIR")) / f"{issue_type}.tmpl"
         if not self.template_path.exists():
             err = f"Template file not found: {self.template_path}"
             raise FileNotFoundError(err)

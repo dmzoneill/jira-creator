@@ -5,8 +5,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
-
 from jira_creator.plugins.base import JiraPlugin
 from jira_creator.plugins.registry import PluginRegistry
 
@@ -88,9 +86,7 @@ class TestPluginRegistry:
         registry.register_all(mock_subparsers)
 
         # Verify add_parser was called correctly
-        mock_subparsers.add_parser.assert_called_once_with(
-            "mock-command", help="Mock command for testing"
-        )
+        mock_subparsers.add_parser.assert_called_once_with("mock-command", help="Mock command for testing")
 
         # Verify register_arguments was called
         assert mock_parser.add_argument.called

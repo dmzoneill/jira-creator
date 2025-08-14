@@ -33,12 +33,12 @@ class SetStoryPointsPlugin(SetterPlugin):
 
     def register_additional_arguments(self, parser: ArgumentParser) -> None:
         """Override to add type validation for points."""
-        # Remove the default positional argument
+        # pylint: disable=protected-access
+        # Remove the default positional argument - necessary to override parent class behavior
         parser._positionals._actions = [
-            action
-            for action in parser._positionals._actions
-            if action.dest != self.argument_name
+            action for action in parser._positionals._actions if action.dest != self.argument_name
         ]
+        # pylint: enable=protected-access
 
         # Add with type validation
         parser.add_argument("points", type=int, help=self.argument_help)

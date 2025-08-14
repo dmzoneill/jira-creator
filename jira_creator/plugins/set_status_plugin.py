@@ -79,9 +79,7 @@ class SetStatusPlugin(JiraPlugin):
 
         if not transition_id:
             available = [t["name"] for t in transitions]
-            raise SetStatusError(
-                f"Status '{status}' not available. Available transitions: {', '.join(available)}"
-            )
+            raise SetStatusError(f"Status '{status}' not available. Available transitions: {', '.join(available)}")
 
         # Perform transition
         path = f"/rest/api/2/issue/{issue_key}/transitions"
@@ -95,9 +93,7 @@ class SetStatusPlugin(JiraPlugin):
         response = client.request("GET", path)
         return response.get("transitions", [])
 
-    def _find_transition_id(
-        self, transitions: List[Dict], status: str
-    ) -> Optional[str]:
+    def _find_transition_id(self, transitions: List[Dict], status: str) -> Optional[str]:
         """Find transition ID for the given status name."""
         status_lower = status.lower()
 
@@ -131,6 +127,6 @@ class SetStatusPlugin(JiraPlugin):
                     json_data={"issueToMove": issue_key, "parentKey": epic_key},
                 )
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             # Don't fail the whole operation if ranking fails
             print(f"⚠️  Could not complete ranking operations: {e}")

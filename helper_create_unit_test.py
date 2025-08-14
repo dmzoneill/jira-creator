@@ -180,14 +180,10 @@ def generate_unit_tests(command_name):
     cli_unit_test, rest_unit_test = extract_tests_from_output(generated_unit_tests)
 
     # Write the unit tests to the respective files
-    with open(
-        "jira_creator/" + CLI_TEST_PATH.format(command_name=command_name), "w"
-    ) as f:
+    with open("jira_creator/" + CLI_TEST_PATH.format(command_name=command_name), "w") as f:
         f.write(cli_unit_test)
 
-    with open(
-        "jira_creator/" + REST_TEST_PATH.format(command_name=command_name), "w"
-    ) as f:
+    with open("jira_creator/" + REST_TEST_PATH.format(command_name=command_name), "w") as f:
         f.write(rest_unit_test)
 
     print(f"Unit tests generated for command: {command_name}")

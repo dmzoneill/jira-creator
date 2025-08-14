@@ -55,11 +55,14 @@ class OpenIssuePlugin(JiraPlugin):
 
             # Open in browser based on platform
             if sys.platform == "darwin":  # macOS
-                subprocess.Popen(["open", issue_url])
-            elif sys.platform == "linux" or sys.platform == "linux2":  # Linux
-                subprocess.Popen(["xdg-open", issue_url])
+                with subprocess.Popen(["open", issue_url]):
+                    pass
+            elif sys.platform in ("linux", "linux2"):  # Linux
+                with subprocess.Popen(["xdg-open", issue_url]):
+                    pass
             elif sys.platform == "win32":  # Windows
-                subprocess.Popen(["start", issue_url], shell=True)
+                with subprocess.Popen(["start", issue_url], shell=True):
+                    pass
             else:
                 raise OpenIssueError(f"Unsupported platform: {sys.platform}")
 

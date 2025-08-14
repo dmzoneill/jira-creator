@@ -12,7 +12,6 @@ from argparse import ArgumentParser, Namespace
 
 import argcomplete
 
-from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.plugins import PluginRegistry
 from jira_creator.rest.client import JiraClient
 
@@ -36,13 +35,9 @@ class PluginBasedJiraCLI:
         """Run the CLI application."""
         # Set up argument parser
         prog_name = os.environ.get("CLI_NAME", os.path.basename(sys.argv[0]))
-        parser = ArgumentParser(
-            description="JIRA Issue Tool (Plugin-based)", prog=prog_name
-        )
+        parser = ArgumentParser(description="JIRA Issue Tool (Plugin-based)", prog=prog_name)
 
-        subparsers = parser.add_subparsers(
-            dest="command", required=True, help="Available commands"
-        )
+        subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
 
         # Discover and register plugins
         self.registry.discover_plugins()
@@ -82,7 +77,7 @@ class PluginBasedJiraCLI:
         except KeyboardInterrupt:
             print("\n⚠️  Operation cancelled by user")
             sys.exit(130)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"❌ Command failed: {e}")
             sys.exit(1)
 

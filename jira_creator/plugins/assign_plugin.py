@@ -29,9 +29,7 @@ class AssignPlugin(JiraPlugin):
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
         parser.add_argument("issue_key", help="The Jira issue key (e.g., PROJ-123)")
-        parser.add_argument(
-            "assignee", help="Username of the person to assign the issue to"
-        )
+        parser.add_argument("assignee", help="Username of the person to assign the issue to")
 
     def execute(self, client: Any, args: Namespace) -> bool:
         """
@@ -45,9 +43,7 @@ class AssignPlugin(JiraPlugin):
             bool: True if successful
         """
         try:
-            self.rest_operation(
-                client, issue_key=args.issue_key, assignee=args.assignee
-            )
+            self.rest_operation(client, issue_key=args.issue_key, assignee=args.assignee)
             print(f"✅ Issue {args.issue_key} assigned to {args.assignee}")
             return True
 

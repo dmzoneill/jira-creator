@@ -28,9 +28,7 @@ class CloneIssuePlugin(JiraPlugin):
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
-        parser.add_argument(
-            "issue_key", help="The Jira issue key to clone (e.g., PROJ-123)"
-        )
+        parser.add_argument("issue_key", help="The Jira issue key to clone (e.g., PROJ-123)")
         parser.add_argument(
             "-s",
             "--summary-suffix",

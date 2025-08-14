@@ -23,16 +23,16 @@ class TestAssignPlugin:
         """Test argument registration."""
         plugin = AssignPlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         assert mock_parser.add_argument.call_count == 2
         calls = mock_parser.add_argument.call_args_list
-        
+
         # Check issue_key argument
         assert calls[0][0][0] == "issue_key"
         assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
-        
+
         # Check assignee argument
         assert calls[1][0][0] == "assignee"
         assert calls[1][1]["help"] == "Username of the person to assign the issue to"
@@ -41,18 +41,14 @@ class TestAssignPlugin:
         """Test the REST operation for assigning an issue."""
         plugin = AssignPlugin()
         mock_client = Mock()
-        
-        result = plugin.rest_operation(
-            mock_client,
-            issue_key="TEST-123",
-            assignee="john.doe"
-        )
-        
+
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", assignee="john.doe")
+
         # Verify the correct API call was made
         mock_client.request.assert_called_once_with(
             "PUT",
             "/rest/api/2/issue/TEST-123",
-            json_data={"fields": {"assignee": {"name": "john.doe"}}}
+            json_data={"fields": {"assignee": {"name": "john.doe"}}},
         )
         assert result == mock_client.request.return_value
 
@@ -60,11 +56,11 @@ class TestAssignPlugin:
         """Test successful execution of assign command."""
         plugin = AssignPlugin()
         mock_client = Mock()
-        
+
         args = Namespace(issue_key="TEST-123", assignee="john.doe")
-        
+
         result = plugin.execute(mock_client, args)
-        
+
         assert result is True
         mock_client.request.assert_called_once()
 
@@ -72,11 +68,11 @@ class TestAssignPlugin:
         """Test that success message is printed."""
         plugin = AssignPlugin()
         mock_client = Mock()
-        
+
         args = Namespace(issue_key="TEST-123", assignee="john.doe")
-        
+
         plugin.execute(mock_client, args)
-        
+
         captured = capsys.readouterr()
         assert "✅ Issue TEST-123 assigned to john.doe" in captured.out
 
@@ -85,12 +81,12 @@ class TestAssignPlugin:
         plugin = AssignPlugin()
         mock_client = Mock()
         mock_client.request.side_effect = AssignIssueError("User not found")
-        
+
         args = Namespace(issue_key="TEST-123", assignee="nonexistent.user")
-        
+
         with pytest.raises(AssignIssueError) as exc_info:
             plugin.execute(mock_client, args)
-        
+
         assert "User not found" in str(exc_info.value)
 
     def test_execute_failure_prints_message(self, capsys):
@@ -98,12 +94,12 @@ class TestAssignPlugin:
         plugin = AssignPlugin()
         mock_client = Mock()
         mock_client.request.side_effect = AssignIssueError("Permission denied")
-        
+
         args = Namespace(issue_key="TEST-123", assignee="john.doe")
-        
+
         with pytest.raises(AssignIssueError):
             plugin.execute(mock_client, args)
-        
+
         captured = capsys.readouterr()
         assert "❌ Failed to assign issue: Permission denied" in captured.out
 
@@ -111,23 +107,23 @@ class TestAssignPlugin:
         """Test execution with various issue key formats."""
         plugin = AssignPlugin()
         mock_client = Mock()
-        
+
         # Test with different issue key formats
         test_cases = [
             ("PROJ-123", "user1"),
             ("ABC-1", "user2"),
             ("LONGPROJECT-99999", "user3.name"),
         ]
-        
+
         for issue_key, assignee in test_cases:
             mock_client.reset_mock()
             args = Namespace(issue_key=issue_key, assignee=assignee)
-            
+
             result = plugin.execute(mock_client, args)
-            
+
             assert result is True
             mock_client.request.assert_called_once_with(
                 "PUT",
                 f"/rest/api/2/issue/{issue_key}",
-                json_data={"fields": {"assignee": {"name": assignee}}}
+                json_data={"fields": {"assignee": {"name": assignee}}},
             )

@@ -26,17 +26,17 @@ class TestSetSummaryPlugin:
         """Test argument registration."""
         plugin = SetSummaryPlugin()
         mock_parser = Mock()
-        
+
         plugin.register_arguments(mock_parser)
-        
+
         # Verify add_argument was called with correct parameters
         assert mock_parser.add_argument.call_count == 2
         calls = mock_parser.add_argument.call_args_list
-        
+
         # First argument: issue_key
         assert calls[0][0] == ("issue_key",)
         assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
-        
+
         # Second argument: summary
         assert calls[1][0] == ("summary",)
         assert calls[1][1]["help"] == "The new summary text for the issue"
@@ -47,9 +47,7 @@ class TestSetSummaryPlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
 
-        result = plugin.rest_operation(
-            mock_client, issue_key="TEST-123", value="New summary text"
-        )
+        result = plugin.rest_operation(mock_client, issue_key="TEST-123", value="New summary text")
 
         # Verify the request
         mock_client.request.assert_called_once_with(
@@ -79,7 +77,7 @@ class TestSetSummaryPlugin:
 
         # Verify print output
         captured = capsys.readouterr()
-        assert "✅ Summary set to 'Updated issue summary'" in captured.out
+        assert "✅ Summary for TEST-123 set to 'Updated issue summary'" in captured.out
 
     def test_execute_failure(self, capsys):
         """Test execution with API failure."""
@@ -140,10 +138,8 @@ class TestSetSummaryPlugin:
 
         for summary in special_summaries:
             mock_client.reset_mock()
-            
-            plugin.rest_operation(
-                mock_client, issue_key="TEST-456", value=summary
-            )
+
+            plugin.rest_operation(mock_client, issue_key="TEST-456", value=summary)
 
             # Verify special characters are preserved
             call_args = mock_client.request.call_args[1]["json_data"]
@@ -153,9 +149,7 @@ class TestSetSummaryPlugin:
         """Test execution with empty summary."""
         plugin = SetSummaryPlugin()
         mock_client = Mock()
-        mock_client.request.side_effect = SetSummaryError(
-            "Summary cannot be empty"
-        )
+        mock_client.request.side_effect = SetSummaryError("Summary cannot be empty")
 
         args = Namespace(issue_key="TEST-123", summary="")
 
@@ -180,7 +174,7 @@ class TestSetSummaryPlugin:
         base_text = "This is a very long summary that contains many words "
         long_summary = base_text * 5  # This creates a string longer than 255 chars
         truncated_summary = long_summary[:255]
-        
+
         args = Namespace(issue_key="TEST-123", summary=truncated_summary)
 
         result = plugin.execute(mock_client, args)

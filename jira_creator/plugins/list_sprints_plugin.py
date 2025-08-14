@@ -68,7 +68,7 @@ class ListSprintsPlugin(JiraPlugin):
         except Exception as e:
             msg = f"❌ Failed to list sprints: {e}"
             print(msg)
-            raise Exception(msg) from e
+            raise ValueError(msg) from e
 
     def rest_operation(self, client: Any, **kwargs) -> List[Dict[str, Any]]:
         """
@@ -87,10 +87,7 @@ class ListSprintsPlugin(JiraPlugin):
         max_results = 50
 
         while True:
-            path = (
-                f"/rest/agile/1.0/board/{board_id}/sprint"
-                f"?startAt={start_at}&maxResults={max_results}"
-            )
+            path = f"/rest/agile/1.0/board/{board_id}/sprint" f"?startAt={start_at}&maxResults={max_results}"
 
             res = client.request("GET", path)
             sprints = res.get("values", [])

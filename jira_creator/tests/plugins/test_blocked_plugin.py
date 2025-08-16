@@ -204,7 +204,8 @@ class TestBlockedPlugin:
         }
 
         # Test assignee display logic
-        assignee = fields["assignee"]["displayName"] if fields["assignee"] else "Unassigned"
+        assignee_field = fields.get("assignee")
+        assignee = assignee_field.get("displayName") if assignee_field else "Unassigned"
         assert assignee == "Unassigned"
 
     def test_rest_operation_current_user_accountid_fallback(self):

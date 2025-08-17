@@ -60,7 +60,9 @@ class TestBlockedPlugin:
         args = Namespace(user="john.doe", project="PROJ", component="Backend")
 
         # Mock rest_operation to return dict
-        with patch.object(plugin, "rest_operation", return_value={"blocked_issues": [], "message": "No issues found"}) as mock_rest:
+        with patch.object(
+            plugin, "rest_operation", return_value={"blocked_issues": [], "message": "No issues found"}
+        ) as mock_rest:
             result = plugin.execute(mock_client, args)
 
         assert result is True
@@ -232,7 +234,9 @@ class TestBlockedPlugin:
         args = Namespace()
         # Don't set user, project, or component attributes
 
-        with patch.object(plugin, "rest_operation", return_value={"blocked_issues": [], "message": "No issues found"}) as mock_rest:
+        with patch.object(
+            plugin, "rest_operation", return_value={"blocked_issues": [], "message": "No issues found"}
+        ) as mock_rest:
             result = plugin.execute(mock_client, args)
 
         assert result is True

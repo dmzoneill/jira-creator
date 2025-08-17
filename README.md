@@ -5,13 +5,13 @@
 [![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/commits/main)
 
-Effortlessly generate JIRA issues such as stories, bugs, epics, spikes, and tasks employing predefined templates and optional AI-boosted descriptions.
+Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates and optional AI-enhanced descriptions
 
 ---
 
-## ⚡ Quick Start Guide (Under 30 Seconds)
+## ⚡ Quick Start (Under 30 Seconds)
 
-### 1. Config File Creation and Autocomplete Activation
+### 1. Create your config file and enable autocomplete
 
 ```bash
 mkdir -p ~/.bashrc.d
@@ -41,18 +41,14 @@ EOF
 source ~/.bashrc.d/jira.sh
 ```
 
----
-
-### 2. Command-line Tool Wrapper Link Creation
+### 2. Link the command-line tool wrapper
 
 ```bash
 chmod +x jira_creator/rh-issue-wrapper.sh
 sudo ln -s $(pwd)/jira_creator/rh-issue-wrapper.sh /usr/local/bin/rh-issue
 ```
 
----
-
-### 3. Execute the Program
+### 3. Run it
 
 ```bash
 rh-issue create story "Improve onboarding experience"
@@ -62,88 +58,312 @@ rh-issue create story "Improve onboarding experience"
 
 ## 🧪 Usage & Commands
 
-This document describes the various commands that can be used to manage JIRA issues from the command-line.
+## Commands
 
-## :mag_right: Search Issues
+### add-comment
+Add a comment to a Jira issue.
 
-The `search` command allows you to find issues using a JIRA Query Language (JQL) expression.
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `-t, --text`: Comment text. If not provided, an editor will open for you to enter your comment.
+  - `--no-ai`: Skip AI text improvement.
 
-**Example:**
+- **Example:**
+  ```bash
+  jira-cli add-comment PROJ-123 -t "This issue is resolved."
+  ```
 
-```bash
-search "project = 'PROJ' AND status = 'In Progress'"
-```
+### add-flag
+Add a flag to a Jira issue.
 
-## :page_with_curl: List Issues
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
 
-The `list-issues` command retrieves a list of all issues in a specific project, with options to filter by component, assignee, status, summary and reporter. You can customize the output by specifying the columns to show and the order to sort them.
+- **Example:**
+  ```bash
+  jira-cli add-flag PROJ-123
+  ```
 
-**Example:**
+### add-to-sprint
+Add an issue to a sprint and optionally assign it.
 
-```bash
-list-issues --project 'PROJ' --status 'In Progress' --columns 'key, summary, status' --sort 'key'
-```
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `sprint_name` (required): The name of the sprint.
+  - `-a, --assignee`: Assignee username. Defaults to the current user if not specified.
 
-## :beetle: Create Issue
+- **Example:**
+  ```bash
+  jira-cli add-to-sprint PROJ-123 "Sprint 1" -a username
+  ```
 
-The `create-issue` command is used to create a new issue. You can specify the type of the issue (bug, story, epic, task, spike) and its summary. The `--edit` flag allows you to modify the issue before it's created, while the `--dry-run` flag simulates the issue creation without actually doing it.
+### assign
+Assign a Jira issue to a user.
 
-**Example:**
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `assignee` (required): Username of the person to assign the issue to.
 
-```bash
-create-issue --type bug --summary "This is a test bug"
-```
+- **Example:**
+  ```bash
+  jira-cli assign PROJ-123 username
+  ```
 
-## :pencil: Edit Issue
+### block
+Mark a Jira issue as blocked.
 
-The `edit-issue` command allows you to modify an existing issue. The issue to edit is specified by its key. The `--no-ai` flag can be used to disable AI assistance during editing.
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `reason` (required): The reason for blocking the issue.
 
-**Example:**
+- **Example:**
+  ```bash
+  jira-cli block PROJ-123 "Waiting for approval."
+  ```
 
-```bash
-edit-issue --issue_key PROJ-123
-```
+### blocked
+List blocked issues.
 
-## :inbox_tray: Set Priority
+- **Arguments:**
+  - `--user`: Filter by assignee (username).
+  - `--project`: Project key override.
+  - `--component`: Component name override.
 
-The `set-priority` command allows you to change the priority of an issue. You can specify the issue by its key and set the priority to normal, major or critical.
+- **Example:**
+  ```bash
+  jira-cli blocked --user username
+  ```
 
-**Example:**
+### change
+Change issue type.
 
-```bash
-set-priority --issue_key PROJ-123 --priority major
-```
+- **Arguments:**
+  - `issue_key` (required): The Jira issue id/key.
+  - `new_type` (required): New issue type.
 
-## :chart_with_upwards_trend: Set Story Epic
+- **Example:**
+  ```bash
+  jira-cli change PROJ-123 "Bug"
+  ```
 
-The `set-story-epic` command links a story issue to an epic issue. Both the story issue and the epic issue are specified by their keys.
+### clone-issue
+Create a copy of an existing Jira issue.
 
-**Example:**
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key to clone (e.g., `PROJ-123`).
+  - `-s, --summary-suffix`: Suffix to add to the cloned issue summary (default: ' (Clone)').
 
-```bash
-set-story-epic --issue_key PROJ-123 --epic_key PROJ-124
-```
+- **Example:**
+  ```bash
+  jira-cli clone-issue PROJ-123 -s " (Clone)"
+  ```
 
-## :lock: Block and Unblock Issue
+### create-issue
+Create a new Jira issue using templates.
 
-The `block` command allows you to block an issue, specifying the reason for the block. The `unblock` command removes the block from an issue. Both commands require the key of the issue.
+- **Arguments:**
+  - `type` (required): Type of issue to create.
+  - `summary` (required): Issue summary/title.
+  - `-e, --edit`: Open editor to modify the description before submission.
+  - `--dry-run`: Preview the issue without creating it.
+  - `--no-ai`: Skip AI text improvement.
 
-**Example:**
+- **Example:**
+  ```bash
+  jira-cli create-issue "Task" "Implement new feature" --edit
+  ```
 
-```bash
-block --issue_key PROJ-123 --reason "Waiting for PROJ-124"
-unblock --issue_key PROJ-123
-```
+### edit-issue
+Edit a Jira issue description.
 
-And many more...
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `--no-ai`: Skip AI text improvement.
+  - `--lint`: Run interactive linting on the description.
 
-Review each command and arguments to understand the depth of each command, and how it can be used to manage Jira issues effectively. It is recommended to always use the `--dry-run` flag when unsure about a command's effect.
+- **Example:**
+  ```bash
+  jira-cli edit-issue PROJ-123 --lint
+  ```
+
+### list-issues
+List issues from a project with various filters.
+
+- **Arguments:**
+  - `-p, --project`: Project key (uses the `JIRA_PROJECT_KEY` env if not specified).
+  - `-c, --component`: Filter by component name.
+  - `-a, --assignee`: Filter by assignee username.
+  - `-r, --reporter`: Filter by reporter username.
+  - `-s, --status`: Filter by status.
+  - `--summary`: Filter by summary containing text.
+  - `--blocked`: Show only blocked issues.
+  - `--unblocked`: Show only unblocked issues.
+  - `--sort`: Sort by field(s), comma-separated.
+  - `-m, --max-results`: Maximum number of results (default: 100).
+
+- **Example:**
+  ```bash
+  jira-cli list-issues -p "PROJ" --status "Open" --sort "priority"
+  ```
+
+### open-issue
+Open a Jira issue in your web browser.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+
+- **Example:**
+  ```bash
+  jira-cli open-issue PROJ-123
+  ```
+
+### remove-flag
+Remove a flag from a Jira issue.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+
+- **Example:**
+  ```bash
+  jira-cli remove-flag PROJ-123
+  ```
+
+### search
+Search for issues using JQL (Jira Query Language).
+
+- **Arguments:**
+  - `jql` (required): JQL query string (e.g., `'project = ABC AND status = Open'`).
+  - `-m, --max-results`: Maximum number of results to return (default: 50).
+
+- **Example:**
+  ```bash
+  jira-cli search "project = ABC AND status = Open" -m 20
+  ```
+
+### set-acceptance-criteria
+Set the acceptance criteria for a Jira issue.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `acceptance_criteria` (required): The acceptance criteria (can be multiple words).
+
+- **Example:**
+  ```bash
+  jira-cli set-acceptance-criteria PROJ-123 "Acceptance criteria must be met."
+  ```
+
+### set-priority
+Set the priority of a Jira issue.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `priority` (required): Priority level to set.
+
+- **Example:**
+  ```bash
+  jira-cli set-priority PROJ-123 "High"
+  ```
+
+### set-status
+Set the status of a Jira issue.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `status` (required): The status to transition to.
+
+- **Example:**
+  ```bash
+  jira-cli set-status PROJ-123 "In Progress"
+  ```
+
+### set-summary
+Set the summary of a Jira issue.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `summary` (required): The new summary text for the issue.
+
+- **Example:**
+  ```bash
+  jira-cli set-summary PROJ-123 "Updated issue summary"
+  ```
+
+### unassign
+Remove the assignee from a Jira issue.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+
+- **Example:**
+  ```bash
+  jira-cli unassign PROJ-123
+  ```
+
+### unblock
+Remove the blocked status from a Jira issue.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+
+- **Example:**
+  ```bash
+  jira-cli unblock PROJ-123
+  ```
+
+### validate-issue
+Validate a Jira issue against quality standards.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+  - `--no-ai`: Skip AI-powered quality checks.
+  - `--no-cache`: Skip cache and force fresh validation.
+
+- **Example:**
+  ```bash
+  jira-cli validate-issue PROJ-123 --no-ai
+  ```
+
+### view-issue
+View detailed information about a Jira issue.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
+
+- **Example:**
+  ```bash
+  jira-cli view-issue PROJ-123
+  ```
+
+### view-user
+View detailed information about a Jira user.
+
+- **Arguments:**
+  - `account_id` (required): The user's account ID or username.
+
+- **Example:**
+  ```bash
+  jira-cli view-user username
+  ```
+
+### vote-story-points
+Vote on story points.
+
+- **Arguments:**
+  - `issue_key` (required): The Jira issue id/key.
+  - `points` (required): Number of story points to vote.
+
+- **Example:**
+  ```bash
+  jira-cli vote-story-points PROJ-123 5
+  ```
 
 ---
 
 ## 🤖 AI Provider Support
 
-You have the option to integrate different AI providers by modifying `JIRA_AI_PROVIDER`. Ollama can be employed to manage various models.
+You can integrate different AI providers by setting the `JIRA_AI_PROVIDER` environment variable.
+
+For model management, you can use Ollama:
 
 ```bash
 mkdir -vp ~/.ollama-models
@@ -209,7 +429,7 @@ export JIRA_AI_PROVIDER=noop
 
 ---
 
-## 🛠 Developer Setup
+## 🛠 Dev Setup
 
 ```bash
 pipenv install --dev
@@ -225,15 +445,15 @@ make super-lint
 
 ---
 
-## ⚙️ Functionality Overview
+## ⚙️ How It Works
 
-- The tool gathers field definitions from `.tmpl` files located under `templates/`
-- Employs `TemplateLoader` for generating Markdown descriptions
-- Optionally applies AI for enhancing readability and structure
-- Sends to JIRA through REST API (or performs a dry run)
+- Loads field definitions from `.tmpl` files located in the `templates/` directory
+- Uses `TemplateLoader` to generate Markdown descriptions
+- Optionally applies AI cleanup for improved readability and structure
+- Sends issues to JIRA via REST API (or performs dry runs)
 
 ---
 
 ## 📜 License
 
-This project falls under the terms of the [Apache License](./LICENSE).
+This project is licensed under the [Apache License](./LICENSE)

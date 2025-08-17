@@ -27,7 +27,7 @@ class PluginRegistry:
         self._plugins: Dict[str, JiraPlugin] = {}
         self._plugin_classes: Dict[str, Type[JiraPlugin]] = {}
 
-    def discover_plugins(self, plugin_dir: str = None) -> None:
+    def discover_plugins(self, plugin_dir: Optional[str] = None) -> None:
         """
         Automatically discover and load all plugins from the plugin directory.
 
@@ -37,12 +37,12 @@ class PluginRegistry:
         if plugin_dir is None:
             # Get the directory where this file is located
             current_dir = Path(__file__).parent
-            plugin_dir = current_dir
+            plugin_dir_path = current_dir
         else:
-            plugin_dir = Path(plugin_dir)
+            plugin_dir_path = Path(plugin_dir)
 
         # Find all Python files ending with _plugin.py
-        for file_path in plugin_dir.glob("*_plugin.py"):
+        for file_path in plugin_dir_path.glob("*_plugin.py"):
             if file_path.name.startswith("_"):
                 continue  # Skip private modules
 

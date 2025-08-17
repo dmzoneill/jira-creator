@@ -1,163 +1,199 @@
+#!/usr/bin/env python
+"""
+Generate README.md based on current plugin-based architecture.
+
+This module dynamically discovers all available plugins and generates
+comprehensive documentation for the jira-creator CLI tool.
+"""
+
 import os
-import re
+from argparse import ArgumentParser
+from typing import List, Tuple
 
-import requests
-
-
-# /* jscpd:ignore-start */
-class OpenAIProvider:
-    def __init__(self):
-        self.api_key = os.getenv("JIRA_AI_API_KEY")
-        if not self.api_key:
-            raise EnvironmentError("JIRA_AI_API_KEY not set in environment.")
-        self.endpoint = "https://api.openai.com/v1/chat/completions"
-        self.model = os.getenv("OPENJIRA_AI_MODEL", "gpt-4")
-
-    def improve_text(self, prompt: str, text: str) -> str:
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-
-        body = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": text},
-            ],
-            "temperature": 0.8,
-        }
-
-        response = requests.post(self.endpoint, json=body, headers=headers, timeout=300)
-        if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"].strip()
-
-        raise Exception(f"OpenAI API call failed: {response.status_code} - {response.text}")
+# Import the plugin system
+from jira_creator.plugins import PluginRegistry
+from jira_creator.providers import get_ai_provider
 
 
-def extract_argparse_commands(cli_script):
-    with open(cli_script_path, "r") as f:
-        lines = f.readlines()
+def extract_plugin_commands() -> str:
+    """
+    Extract commands and arguments from all discovered plugins.
+
+    Returns:
+        str: Formatted command documentation
+    """
+    registry = PluginRegistry()
+    registry.discover_plugins()
 
     formatted_output = []
-    current_command = None
-    current_args = []
 
-    # Regex patterns to match the command and argument lines
-    command_pattern = re.compile(r'\s*(\w+)\s*=\s*add\("([^"]+)",\s*"([^"]+)"\)')
-    argument_pattern = re.compile(r"\s*(\w+)\.add_argument\(([^)]+)\)")
+    # Sort plugins by command name for consistent output
+    for command_name in sorted(registry._plugins.keys()):
+        plugin = registry._plugins[command_name]
 
-    for line in lines:
-        # Check for command definitions (e.g., ai_helper = add("ai-helper", "AI Helper"))
-        command_match = command_pattern.match(line)
-        if command_match:
-            # If there was a previous command, add it to the formatted output
-            if current_command:
-                formatted_output.append(format_command(current_command, current_args))
-            # Start a new command
-            current_command = command_match.group(2)  # Command name (e.g., "ai-helper")
-            current_args = []
+        # Create a temporary parser to extract arguments
+        temp_parser = ArgumentParser()
+        plugin.register_arguments(temp_parser)
 
-        # Check for argument definitions (e.g., ai_helper.add_argument("prompt", help="A string..."))
-        argument_match = argument_pattern.match(line)
-        if argument_match:
-            argument_name = argument_match.group(2).strip('"')
-            argument_help = None
-            # Look for help text in the argument definition
-            help_match = re.search(r'help\s*=\s*"([^"]+)"', line)
-            if help_match:
-                argument_help = help_match.group(1)
-            current_args.append((argument_name, argument_help))
+        # Extract argument information
+        arguments = []
+        for action in temp_parser._actions:
+            # Skip help and positional args that are added automatically
+            if action.dest in ("help",):
+                continue
 
-    # Don't forget to append the last command and its arguments
-    if current_command:
-        formatted_output.append(format_command(current_command, current_args))
+            arg_names = action.option_strings if action.option_strings else [action.dest]
+            arg_help = action.help if action.help else "No description available"
+
+            arguments.append((arg_names, arg_help, action.required if hasattr(action, "required") else False))
+
+        formatted_output.append(format_command(command_name, plugin.help_text, arguments))
 
     return "\n\n".join(formatted_output)
 
 
-def format_command(command_name, arguments):
-    """Format a command with its arguments into a human-readable string."""
+def format_command(command_name: str, help_text: str, arguments: List[Tuple]) -> str:
+    """
+    Format a command with its arguments into a human-readable string.
+
+    Arguments:
+        command_name: The command name
+        help_text: Brief description of the command
+        arguments: List of (arg_names, help_text, required) tuples
+
+    Returns:
+        str: Formatted command documentation
+    """
     formatted_args = []
-    for arg, help_text in arguments:
-        arg_str = f"  - **name**: {arg}"
-        if help_text:
-            arg_str += f"\n    - **help**: {help_text}"
+
+    for arg_names, arg_help, required in arguments:
+        if isinstance(arg_names, list):
+            arg_display = ", ".join(arg_names)
+        else:
+            arg_display = str(arg_names)
+
+        required_text = " (required)" if required else ""
+        arg_str = f"  - **{arg_display}**{required_text}: {arg_help}"
         formatted_args.append(arg_str)
 
-    return f"**{command_name}**:\n" + "\n".join(formatted_args)
+    result = f"**{command_name}**\n{help_text}\n"
+    if formatted_args:
+        result += "\nArguments:\n" + "\n".join(formatted_args)
+
+    return result
 
 
-def generate_readme(cli_script, output_readme):
-    """Generate the README.md file using OpenAI API."""
-    # Step 1: Extract commands and arguments from CLI script
-    commands = extract_argparse_commands(cli_script)
+def create_basic_template() -> str:
+    """
+    Create a basic README template if none exists.
 
-    # Template format for the README structure
-    template = open("readme.tmpl", "r").read()
+    Returns:
+        str: Basic template content
+    """
+    return """# jira-creator
 
-    # Step 3: Initialize OpenAIProvider
-    openai_provider = OpenAIProvider()
+CLI and tools to automate JIRA issue creation with AI-powered enhancements.
 
-    # Step 4: Improve the README content using OpenAI
-    commands = openai_provider.improve_text(
-        """A user will provide you with a list of function signitures.
-        Output README markdown **only**
-        Be sure to provide:
-        - Descriptions for each command and argument.
-        - Examples of how to use the commands.
-        - Any relevant explanations to improve understanding of the tool.
-        - Add icons next to headers for look and feel
-        - Provide fully detailed commands and argument and examples
-        """,
-        commands,
-    )
+## 🚀 Installation
 
-    # Step 4: Improve the README content using OpenAI
-    template = openai_provider.improve_text(
-        """Update and improve this README template.
-        Dont add trailing period to \"# headers\".
-        Leave autofix as autofix.
-        Leave \"command line\" be \"command-line\".
-        Avoid trailing whitespace, remove where necessary.
-        """,
-        template,
-    )
+```bash
+pip install jira-creator
+```
 
-    # Prepare the final prompt to pass to OpenAI
-    template = template.replace("==COMMANDS==", commands)
+## ⚙️ Configuration
 
-    # # Step 4: Improve the README content using OpenAI
-    # template = openai_provider.improve_text(
-    #     """I need you to create a table of contents for this readme.
-    #     Pleace the TOC at "==TOC==" in the code.
-    #     To achieve the TOC you will need to add anchors before headers.
-    #     Headers are text proceeeded by 1+ # at the start of the line.
-    #     E.g: <a name="desc"></a> and then in the TOC use markdown hyperlink format
-    #     to link to these anchors. E.G "1. [ Description. ](#desc)".
-    #     Here is a full exmaple:
-    #         1. [ Description. ](#desc)
-    #         2. [ Usage tips. ](#usage)
-    #         <a name="desc"></a>
-    #         ## 1. Description
-    #         sometext
-    #         <a name="usage"></a>
-    #         ## 2. Usage tips
-    #         sometext
-    #     """,
-    #     template,
-    # )
+Set up your environment variables:
 
-    # Step 5: Write the new README content to the output file
+```bash
+export JIRA_JPAT="your_jira_personal_access_token"
+export JIRA_URL="https://your-jira-instance.com"
+export JIRA_PROJECT_KEY="YOUR_PROJECT"
+# ... other configuration variables
+```
+
+## 📚 Available Commands
+
+==COMMANDS==
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0.
+"""
+
+
+def generate_readme(output_readme: str = "README.md") -> None:
+    """
+    Generate the README.md file using plugin discovery and AI enhancement.
+
+    Arguments:
+        output_readme: Output file path for the generated README
+    """
+    # Step 1: Extract commands and arguments from discovered plugins
+    print("🔍 Discovering plugins...")
+    commands = extract_plugin_commands()
+    print(f"📋 Found {len(commands.split('**')) - 1} commands")
+
+    # Step 2: Read template
+    try:
+        with open("readme.tmpl", "r") as f:
+            template = f.read()
+    except FileNotFoundError:
+        print("❌ readme.tmpl not found. Creating basic template...")
+        template = create_basic_template()
+
+    # Step 3: Try to get AI provider for enhancement
+    try:
+        provider_name = os.getenv("JIRA_AI_PROVIDER", "openai")
+        ai_provider = get_ai_provider(provider_name)
+
+        # Step 4: Improve the README content using AI
+        print("🤖 Enhancing commands documentation with AI...")
+        commands = ai_provider.improve_text(
+            """A user will provide you with a list of CLI commands and their arguments.
+            Output improved README markdown **only** for the commands section.
+            Be sure to provide:
+            - Clear descriptions for each command and argument
+            - Practical examples of how to use the commands
+            - Any relevant tips to improve understanding of the tool
+            - Use emojis sparingly for better readability
+            - Provide detailed usage examples for complex commands
+            """,
+            commands,
+        )
+
+        print("🤖 Enhancing README template with AI...")
+        template = ai_provider.improve_text(
+            """Update and improve this README template for a modern CLI tool.
+            Don't add trailing periods to "# headers".
+            Keep "command-line" hyphenated.
+            Remove trailing whitespace.
+            Ensure the content is clear and professional.
+            """,
+            template,
+        )
+
+    except Exception as e:
+        print(f"⚠️  AI enhancement failed: {e}")
+        print("📝 Proceeding with basic documentation...")
+
+    # Step 5: Replace placeholder with commands
+    if "==COMMANDS==" in template:
+        template = template.replace("==COMMANDS==", commands)
+    else:
+        # If no placeholder, append commands at the end
+        template += "\n\n## 📚 Available Commands\n\n" + commands
+
+    # Step 6: Write the README
     with open(output_readme, "w") as f:
         f.write(template)
 
-    print(f"README updated and saved to {output_readme}")
+    print(f"✅ README updated and saved to {output_readme}")
 
 
 if __name__ == "__main__":
-    # Example usage
-    cli_script_path = "jira_creator/rh_jira.py"
-    output_readme_path = "README.md"
-    generate_readme(cli_script_path, output_readme_path)
-# /* jscpd:ignore-end */
+    # Generate README based on current plugin architecture
+    generate_readme("README.md")

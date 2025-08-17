@@ -60,22 +60,23 @@ class TestBlockedPluginDeadCode:
         result = plugin.rest_operation(mock_client, _test_issues=test_issues)
 
         # Verify the result
-        assert isinstance(result, list)
-        assert len(result) == 2  # Only 2 blocked issues
+        assert isinstance(result, dict)
+        assert "blocked_issues" in result
+        assert len(result["blocked_issues"]) == 2  # Only 2 blocked issues
 
         # Check first blocked issue
-        assert result[0]["key"] == "TEST-100"
-        assert result[0]["status"] == "In Progress"
-        assert result[0]["assignee"] == "John Doe"
-        assert result[0]["reason"] == "Waiting for external dependency"
-        assert result[0]["summary"] == "Blocked issue with reason"
+        assert result["blocked_issues"][0]["key"] == "TEST-100"
+        assert result["blocked_issues"][0]["status"] == "In Progress"
+        assert result["blocked_issues"][0]["assignee"] == "John Doe"
+        assert result["blocked_issues"][0]["reason"] == "Waiting for external dependency"
+        assert result["blocked_issues"][0]["summary"] == "Blocked issue with reason"
 
         # Check second blocked issue (unassigned, no reason)
-        assert result[1]["key"] == "TEST-101"
-        assert result[1]["status"] == "Open"
-        assert result[1]["assignee"] == "Unassigned"
-        assert result[1]["reason"] is None  # The actual code returns None, not "(no reason)"
-        assert result[1]["summary"] == "Blocked issue without assignee"
+        assert result["blocked_issues"][1]["key"] == "TEST-101"
+        assert result["blocked_issues"][1]["status"] == "Open"
+        assert result["blocked_issues"][1]["assignee"] == "Unassigned"
+        assert result["blocked_issues"][1]["reason"] is None  # The actual code returns None, not "(no reason)"
+        assert result["blocked_issues"][1]["summary"] == "Blocked issue without assignee"
 
         # Check console output
         captured = capsys.readouterr()
@@ -121,8 +122,8 @@ class TestBlockedPluginDeadCode:
         # Call with test data
         result = plugin.rest_operation(mock_client, _test_issues=test_issues)
 
-        # Should return True when no blocked issues found
-        assert result is True
+        # Should return dict when no blocked issues found
+        assert result == {"blocked_issues": [], "message": "No blocked issues found"}
 
         # Check console output
         captured = capsys.readouterr()

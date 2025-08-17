@@ -42,13 +42,14 @@ class BlockedPlugin(JiraPlugin):
                 component=getattr(args, "component", None),
                 user=getattr(args, "user", None),
             )
-            return isinstance(result, bool) and result
+            # Success if we got a result, regardless of whether issues were found
+            return isinstance(result, dict) and "blocked_issues" in result
         except ListBlockedError as e:
             msg = f"❌ Failed to list blocked issues: {e}"
             print(msg)
             raise ListBlockedError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> Union[List[Dict[str, Any]], bool]:
+    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
         """
         Perform the REST API operation to list blocked issues.
 
@@ -57,7 +58,7 @@ class BlockedPlugin(JiraPlugin):
             **kwargs: May contain 'project', 'component', 'user', and '_test_issues'
 
         Returns:
-            Union[List[Dict[str, Any]], bool]: List of blocked issues or True if none found
+            Dict[str, Any]: Response containing blocked issues and status
         """
         # pylint: disable=fixme
         # project = kwargs.get("project")  # TODO: Implement project filtering
@@ -80,7 +81,7 @@ class BlockedPlugin(JiraPlugin):
 
         if not issues:
             print("✅ No issues found.")
-            return True
+            return {"blocked_issues": [], "message": "No issues found"}
 
         blocked_issues: List[Dict[str, Union[str, None]]] = []
         for issue in issues:
@@ -99,7 +100,7 @@ class BlockedPlugin(JiraPlugin):
 
         if not blocked_issues:
             print("✅ No blocked issues found.")
-            return True
+            return {"blocked_issues": [], "message": "No blocked issues found"}
 
         print("🔒 Blocked issues:")
         print("-" * 80)
@@ -109,4 +110,4 @@ class BlockedPlugin(JiraPlugin):
             print(f"  📄 {i['summary']}")
             print("-" * 80)
 
-        return blocked_issues
+        return {"blocked_issues": blocked_issues, "message": f"Found {len(blocked_issues)} blocked issues"}

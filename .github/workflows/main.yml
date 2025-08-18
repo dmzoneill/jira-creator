@@ -1,11 +1,12 @@
 ---
 name: CICD
 
-on:  # yamllint disable-line rule:truthy
+on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
+    
 permissions: write-all
 
 jobs:

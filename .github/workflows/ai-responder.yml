@@ -1,7 +1,7 @@
 ---
 name: AI Issue Responder
 
-"on":
+on:
   issues:
     types: [opened]
 

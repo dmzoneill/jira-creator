@@ -114,6 +114,22 @@ class TestCoverageImprovements:
                 assert "test_field" in result
                 assert "another_field" in result
 
+    def test_stub_plugin_methods(self):
+        """Test the stub plugin methods for coverage."""
+        plugin = MockValidPlugin()
+
+        # Test register_arguments returns None
+        result = plugin.register_arguments(None)
+        assert result is None
+
+        # Test execute returns True
+        result = plugin.execute(None, None)
+        assert result is True
+
+        # Test rest_operation returns empty dict
+        result = plugin.rest_operation(None)
+        assert result == {}
+
     def test_plugin_registry_custom_plugin_dir(self):
         """Test registry.py line 43: custom plugin_dir path conversion."""
         registry = PluginRegistry()

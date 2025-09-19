@@ -102,6 +102,18 @@ class TestPluginRegistry:
         assert registry._plugins == {}
         assert registry._plugin_classes == {}
 
+    def test_mock_plugin_methods(self):
+        """Test MockPlugin methods for coverage."""
+        plugin = MockPlugin()
+
+        # Test execute method
+        result = plugin.execute(None, None)
+        assert result is True
+
+        # Test rest_operation method
+        result = plugin.rest_operation(None)
+        assert result == {}
+
     @patch("jira_creator.plugins.registry.Path")
     @patch("importlib.import_module")
     def test_discover_plugins_error_handling(self, mock_import, mock_path):

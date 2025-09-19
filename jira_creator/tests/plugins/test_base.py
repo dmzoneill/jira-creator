@@ -59,3 +59,23 @@ class TestJiraPlugin:
                 pass
 
             IncompletePlugin()
+
+    def test_mock_plugin_methods(self):
+        """Test MockPlugin methods for coverage."""
+        plugin = MockPlugin()
+
+        # Test register_arguments
+        from argparse import ArgumentParser
+
+        parser = ArgumentParser()
+        plugin.register_arguments(parser)
+        # Verify the argument was added
+        assert "test_arg" in [action.dest for action in parser._actions]
+
+        # Test execute
+        result = plugin.execute(None, None)
+        assert result is True
+
+        # Test rest_operation
+        result = plugin.rest_operation(None)
+        assert result == {"status": "success"}

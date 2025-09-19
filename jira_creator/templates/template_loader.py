@@ -129,6 +129,15 @@ class TemplateLoader:
                 end: int = line.find("}}")
                 placeholder: str = line[start:end]
                 value: str = values.get(placeholder, "")
-                line = line.replace(f"{{{{{placeholder}}}}}", value)
+
+                # Create the replacement string
+                placeholder_pattern = f"{{{{{placeholder}}}}}"
+
+                # Avoid infinite loop: if the value is the same as the placeholder pattern,
+                # break out of the loop to prevent infinite replacement
+                if value == placeholder_pattern:
+                    break
+
+                line = line.replace(placeholder_pattern, value)
             description += line + "\n"
         return description

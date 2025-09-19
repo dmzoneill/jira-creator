@@ -2,7 +2,7 @@
 """Tests for the create issue plugin."""
 
 from argparse import ArgumentParser, Namespace
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
@@ -295,6 +295,7 @@ class TestCreateIssuePlugin:
                 "description": "Test Description",
                 "issuetype": {"name": "Bug"},
                 "priority": {"name": "Normal"},
+                "versions": [{"name": "2.5"}],
             }
         }
 
@@ -323,6 +324,58 @@ class TestCreateIssuePlugin:
                 "versions": [{"name": "1.0"}],
                 "components": [{"name": "Backend"}],
                 "customfield_10001": "TEST-100",
+            }
+        }
+
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
+    def test_build_payload_bug_with_template_version(self, mock_env_fetcher):
+        """Test building payload for bug with affected version from template field."""
+        mock_env_fetcher.get.side_effect = lambda key: {
+            "JIRA_PROJECT_KEY": "TEST",
+            "JIRA_AFFECTS_VERSION": "",
+            "JIRA_COMPONENT_NAME": "",
+            "JIRA_PRIORITY": "Normal",
+            "JIRA_EPIC_FIELD": "",
+        }.get(key, "")
+
+        plugin = CreateIssuePlugin()
+        field_values = {"Affected Version": "2.1.3"}
+        payload = plugin._build_payload("Bug Summary", "Bug Description", "bug", field_values)
+
+        assert payload == {
+            "fields": {
+                "project": {"key": "TEST"},
+                "summary": "Bug Summary",
+                "description": "Bug Description",
+                "issuetype": {"name": "Bug"},
+                "priority": {"name": "Normal"},
+                "versions": [{"name": "2.1.3"}],
+            }
+        }
+
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
+    def test_build_payload_bug_env_version_fallback(self, mock_env_fetcher):
+        """Test building payload for bug with affected version from environment."""
+        mock_env_fetcher.get.side_effect = lambda key: {
+            "JIRA_PROJECT_KEY": "TEST",
+            "JIRA_AFFECTS_VERSION": "1.0.0",
+            "JIRA_COMPONENT_NAME": "",
+            "JIRA_PRIORITY": "Normal",
+            "JIRA_EPIC_FIELD": "",
+        }.get(key, "")
+
+        plugin = CreateIssuePlugin()
+        field_values = {"Affected Version": ""}  # Empty template field
+        payload = plugin._build_payload("Bug Summary", "Bug Description", "bug", field_values)
+
+        assert payload == {
+            "fields": {
+                "project": {"key": "TEST"},
+                "summary": "Bug Summary",
+                "description": "Bug Description",
+                "issuetype": {"name": "Bug"},
+                "priority": {"name": "Normal"},
+                "versions": [{"name": "1.0.0"}],
             }
         }
 
@@ -449,17 +502,21 @@ class TestCreateIssuePlugin:
         assert plugin.get_dependency("nonexistent", "default") == "default"
 
     @patch("jira_creator.plugins.create_issue_plugin.subprocess.call")
-    def test_edit_description_default_behavior(self, mock_subprocess):
+    @patch("builtins.open", new_callable=mock_open, read_data="Edited content")
+    def test_edit_description_default_behavior(self, mock_file_open, mock_subprocess):
         """Test edit description with default subprocess behavior."""
         plugin = CreateIssuePlugin()
 
         with patch("tempfile.NamedTemporaryFile") as mock_temp:
             mock_file = Mock()
             mock_file.name = "/tmp/test.md"
-            mock_file.read.return_value = "Edited content"
+            mock_file.write.return_value = None
+            mock_file.flush.return_value = None
             mock_temp.return_value.__enter__.return_value = mock_file
 
-            result = plugin._edit_description("Original content")
+            with patch("os.unlink") as mock_unlink:
+                result = plugin._edit_description("Original content")
 
         assert result == "Edited content"
         mock_subprocess.assert_called_once()
+        mock_unlink.assert_called_once_with("/tmp/test.md")

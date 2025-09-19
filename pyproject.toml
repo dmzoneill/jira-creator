@@ -8,10 +8,21 @@ license = "Apache-2.0"
 authors = [
   { name = "David O Neill", email = "dmz.oneill@gmail.com" }
 ]
-dependencies = []
+dependencies = [
+    "requests",
+    "argcomplete",
+]
 
 [project.scripts]
 jira-creator = "jira_creator.rh_jira:main"
+rh-issue = "jira_creator.rh_jira:main"
+
+[tool.setuptools.packages.find]
+include = ["jira_creator*"]
+exclude = ["tests*", "node_modules*", "jira_creator.tests*"]
+
+[tool.setuptools.package-data]
+jira_creator = ["templates/*.tmpl"]
 
 [build-system]
 requires = [

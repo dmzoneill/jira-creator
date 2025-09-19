@@ -84,11 +84,12 @@ class JiraClient:
         headers: Dict[str, str],
         json_data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
+        timeout: int = 10,
     ) -> Tuple[int, Dict[str, Any]]:
         # jscpd:ignore-end
         """Send a HTTP request and return status code and response data."""
         try:
-            response = requests.request(method, url, headers=headers, json=json_data, params=params, timeout=10)
+            response = requests.request(method, url, headers=headers, json=json_data, params=params, timeout=timeout)
             if response.status_code == 404:
                 print("❌ Resource not found")
                 return response.status_code, {}
@@ -123,6 +124,7 @@ class JiraClient:
         json_data: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
         debug: bool = False,
+        timeout: int = 10,
     ) -> Optional[Dict[str, Any]]:
         """
         Perform HTTP request to Jira API with retry logic.
@@ -139,7 +141,9 @@ class JiraClient:
         delay = 2
 
         for attempt in range(retries):
-            status_code, result = self._request(method, url, headers, json_data=json_data, params=params)
+            status_code, result = self._request(
+                method, url, headers, json_data=json_data, params=params, timeout=timeout
+            )
 
             if debug:
                 self.generate_curl_command(method, url, headers, json_data=json_data, params=params)

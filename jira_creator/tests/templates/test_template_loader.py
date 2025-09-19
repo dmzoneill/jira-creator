@@ -107,3 +107,28 @@ def test_get_template_returns_joined_string(tmp_path):
 
         assert loader.template_lines == ["line1", "line2", "line3"]
         assert loader.get_template() == "line1\nline2\nline3"
+
+
+def test_template_loader_prevents_infinite_loop(tmp_path):
+    """
+    Prevents infinite loop when placeholder value equals placeholder pattern.
+
+    Arguments:
+    - tmp_path (path): Path to a temporary directory where the template file will be created.
+
+    Side Effects:
+    - Creates a template file that would cause infinite loop without protection.
+    """
+    template_content = "FIELD|Description\nTEMPLATE|Description\nContent: {{Description}}"
+    tmpl_file = tmp_path / "test.tmpl"
+    tmpl_file.write_text(template_content)
+
+    with patch("jira_creator.templates.template_loader.EnvFetcher.get") as mock_get_fields:
+        mock_get_fields.return_value = tmp_path
+
+        loader = TemplateLoader("test")
+        # Use a value that equals the placeholder pattern - this would cause infinite loop without protection
+        output = loader.render_description({"Description": "{{Description}}"})
+
+        # The placeholder should remain unreplaced to prevent infinite loop
+        assert "Content: {{Description}}" in output

@@ -6,11 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import (
-    EditDescriptionError,
-    EditIssueError,
-    FetchDescriptionError,
-)
+from jira_creator.exceptions.exceptions import EditDescriptionError, EditIssueError, FetchDescriptionError
 from jira_creator.plugins.edit_issue_plugin import EditIssuePlugin
 
 

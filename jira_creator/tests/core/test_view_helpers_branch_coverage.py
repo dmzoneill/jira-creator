@@ -4,10 +4,7 @@
 from unittest.mock import Mock, patch
 
 from jira_creator.core.env_fetcher import EnvFetcher
-from jira_creator.core.view_helpers import (
-    clean_values,
-    format_and_print_rows,
-)
+from jira_creator.core.view_helpers import clean_values, format_and_print_rows
 
 
 class TestViewHelpersBranchCoverage:

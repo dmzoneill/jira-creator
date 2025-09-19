@@ -88,7 +88,7 @@ class CreateIssuePlugin(JiraPlugin):
                     print(f"⚠️  AI enhancement failed, using original text: {e}")
 
             # Build payload
-            payload = self._build_payload(args.summary, description, args.type)
+            payload = self._build_payload(args.summary, description, args.type, field_values)
 
             # Dry run or create
             if args.dry_run:
@@ -146,17 +146,23 @@ class CreateIssuePlugin(JiraPlugin):
     # jscpd:ignore-start
     def _edit_description(self, description: str) -> str:
         """Open description in editor for manual editing."""
-        editor_func = self.get_dependency("editor_func", subprocess.call)
+        editor_func = self.get_dependency("editor_func", lambda: subprocess.call)
 
         with tempfile.NamedTemporaryFile(mode="w+", suffix=".md", delete=False) as tmp:
             tmp.write(description)
             tmp.flush()
+            tmp_name = tmp.name
 
+        try:
             editor = os.environ.get("EDITOR", "vim")
-            editor_func([editor, tmp.name])
+            editor_func([editor, tmp_name])
 
-            tmp.seek(0)
-            return tmp.read()
+            # Reopen the file to read the edited content
+            with open(tmp_name, "r", encoding="utf-8") as f:
+                return f.read()
+        finally:
+            # Clean up the temporary file
+            os.unlink(tmp_name)
 
     # jscpd:ignore-end
 
@@ -170,7 +176,9 @@ class CreateIssuePlugin(JiraPlugin):
 
         return ai_provider.improve_text(prompt, description)
 
-    def _build_payload(self, summary: str, description: str, issue_type: str) -> Dict[str, Any]:
+    def _build_payload(
+        self, summary: str, description: str, issue_type: str, field_values: Dict[str, str] = None
+    ) -> Dict[str, Any]:
         """Build the Jira API payload."""
         # Get configuration from environment
         project_key = EnvFetcher.get("JIRA_PROJECT_KEY")
@@ -190,8 +198,14 @@ class CreateIssuePlugin(JiraPlugin):
             }
         }
 
-        # Add optional fields
-        if affects_version:
+        # Handle affected version for bugs
+        if issue_type.lower() == "bug":
+            # Priority: template field > environment variable > default
+            template_version = field_values.get("Affected Version", "").strip() if field_values else ""
+            final_version = template_version or affects_version or "2.5"
+            payload["fields"]["versions"] = [{"name": final_version}]
+        elif affects_version:
+            # For non-bugs, only add if environment variable is set
             payload["fields"]["versions"] = [{"name": affects_version}]
 
         if component_name:

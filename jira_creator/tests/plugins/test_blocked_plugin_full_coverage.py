@@ -197,3 +197,93 @@ class TestBlockedPluginFullCoverage:
 
         finally:
             blocked_module.BlockedPlugin.rest_operation = original_rest_operation
+
+
+def mock_env_get(key):
+    """Mock function for environment variable access."""
+    return {
+        "JIRA_BLOCKED_FIELD": "customfield_10001",
+        "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
+    }.get(key)
+
+
+def test_no_issues_path(capsys):
+    """Test the path when no issues are found (lines 82-84)."""
+    import jira_creator.plugins.blocked_plugin as blocked_module
+
+    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=mock_env_get):
+        plugin = blocked_module.BlockedPlugin()
+        mock_client = Mock()
+
+        # Mock the client.request to return user info
+        mock_client.request.return_value = {"name": "testuser"}
+
+        # Use actual rest_operation with empty _test_issues
+        result = plugin.execute(mock_client, type("Args", (), {"project": None, "component": None, "user": None})())
+
+        assert result is True
+        captured = capsys.readouterr()
+        assert "✅ No issues found." in captured.out
+
+
+def test_no_blocked_issues_path(capsys):
+    """Test the path when no blocked issues are found (lines 101-103)."""
+    import jira_creator.plugins.blocked_plugin as blocked_module
+
+    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=mock_env_get):
+        plugin = blocked_module.BlockedPlugin()
+        mock_client = Mock()
+        mock_client.request.return_value = {"name": "testuser"}
+
+        # Mock issues that are not blocked
+        unblocked_issues = [
+            {
+                "key": "TEST-1",
+                "fields": {
+                    "summary": "Unblocked issue",
+                    "status": {"name": "In Progress"},
+                    "assignee": {"displayName": "John Doe"},
+                    "customfield_10001": {"value": "False"},  # Not blocked
+                },
+            }
+        ]
+
+        result = plugin.rest_operation(mock_client, _test_issues=unblocked_issues)
+
+        assert result["blocked_issues"] == []
+        assert "No blocked issues found" in result["message"]
+
+
+def test_blocked_issues_return_path(capsys):
+    """Test the path that returns blocked issues (lines 105-113)."""
+    import jira_creator.plugins.blocked_plugin as blocked_module
+
+    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=mock_env_get):
+        plugin = blocked_module.BlockedPlugin()
+        mock_client = Mock()
+        mock_client.request.return_value = {"name": "testuser"}
+
+        # Mock issues that are blocked
+        blocked_issues = [
+            {
+                "key": "TEST-1",
+                "fields": {
+                    "summary": "Blocked issue",
+                    "status": {"name": "Blocked"},
+                    "assignee": {"displayName": "John Doe"},
+                    "customfield_10001": {"value": "True"},  # Blocked
+                    "customfield_10002": "Waiting for external dependency",
+                },
+            }
+        ]
+
+        result = plugin.rest_operation(mock_client, _test_issues=blocked_issues)
+
+        # Should return dict with blocked issues
+        assert isinstance(result, dict)
+        assert "blocked_issues" in result
+        assert len(result["blocked_issues"]) == 1
+        assert result["blocked_issues"][0]["key"] == "TEST-1"
+
+        captured = capsys.readouterr()
+        assert "🔒 Blocked issues:" in captured.out

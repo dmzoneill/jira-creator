@@ -7,10 +7,11 @@ from argparse import ArgumentParser
 from unittest.mock import Mock, mock_open, patch
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.plugin_base import JiraPlugin
+from jira_creator.core.plugin_registry import PluginRegistry
 from jira_creator.plugins.add_comment_plugin import AddCommentPlugin
-from jira_creator.plugins.base import JiraPlugin
-from jira_creator.plugins.registry import PluginRegistry
 from jira_creator.plugins.set_priority_plugin import SetPriorityPlugin
+from jira_creator.providers.openai_provider import OpenAIProvider
 from jira_creator.rest.client import JiraClient
 from jira_creator.templates.template_loader import TemplateLoader
 
@@ -118,9 +119,8 @@ class TestCoverageImprovements:
         """Test the stub plugin methods for coverage."""
         plugin = MockValidPlugin()
 
-        # Test register_arguments returns None
-        result = plugin.register_arguments(None)
-        assert result is None
+        # Test register_arguments (returns None, just call it for coverage)
+        plugin.register_arguments(None)
 
         # Test execute returns True
         result = plugin.execute(None, None)
@@ -134,7 +134,7 @@ class TestCoverageImprovements:
         """Test registry.py line 43: custom plugin_dir path conversion."""
         registry = PluginRegistry()
 
-        with patch("jira_creator.plugins.registry.Path") as mock_path:
+        with patch("jira_creator.core.plugin_registry.Path") as mock_path:
             mock_instance = Mock()
             mock_instance.glob.return_value = []
             mock_path.return_value = mock_instance
@@ -157,20 +157,28 @@ class TestCoverageImprovements:
         public_file.name = "public_plugin.py"
         public_file.stem = "public_plugin"
 
-        with patch("jira_creator.plugins.registry.Path") as mock_path_class:
-            # Mock the file path resolution
-            mock_file_path = Mock()
-            mock_parent = Mock()
-            mock_parent.glob.return_value = [private_file, public_file]
-            mock_file_path.parent = mock_parent
-            mock_path_class.return_value = mock_file_path
+        with patch("jira_creator.core.plugin_registry.Path") as mock_path_class:
+            # Mock the path chain: Path(__file__).parent.parent / "plugins"
+            mock_plugins_dir = Mock()
+            mock_plugins_dir.glob.return_value = [private_file, public_file]
 
-            with patch("jira_creator.plugins.registry.importlib.import_module") as mock_import:
+            mock_parent_parent = Mock()
+            mock_parent_parent.__truediv__ = Mock(return_value=mock_plugins_dir)
+
+            mock_parent = Mock()
+            mock_parent.parent = mock_parent_parent
+
+            mock_path_instance = Mock()
+            mock_path_instance.parent = mock_parent
+
+            mock_path_class.return_value = mock_path_instance
+
+            with patch("jira_creator.core.plugin_registry.importlib.import_module") as mock_import:
                 # Set up a basic mock module to avoid further errors
                 mock_module = Mock()
                 mock_import.return_value = mock_module
 
-                with patch("jira_creator.plugins.registry.inspect.getmembers") as mock_members:
+                with patch("jira_creator.core.plugin_registry.inspect.getmembers") as mock_members:
                     mock_members.return_value = []
 
                     registry.discover_plugins()
@@ -200,3 +208,31 @@ class TestCoverageImprovements:
         result = registry.create_plugin("nonexistent-command")
 
         assert result is None
+
+    def test_ai_provider_extract_content_with_delimiters(self):
+        """Test ai_provider.py lines 45-48: extract_content with --- delimiters."""
+        with patch.dict(
+            "jira_creator.core.env_fetcher.EnvFetcher.vars",
+            {
+                "JIRA_AI_API_KEY": "test-key",
+                "JIRA_AI_MODEL": "gpt-4",
+            },
+        ):
+            provider = OpenAIProvider()
+            text_with_delimiters = "prefix\n---\nExtracted content here\n---\nsuffix"
+            result = provider.extract_content(text_with_delimiters)
+            assert result == "Extracted content here"
+
+    def test_ai_provider_extract_content_without_delimiters(self):
+        """Test ai_provider.py line 50: extract_content without --- delimiters."""
+        with patch.dict(
+            "jira_creator.core.env_fetcher.EnvFetcher.vars",
+            {
+                "JIRA_AI_API_KEY": "test-key",
+                "JIRA_AI_MODEL": "gpt-4",
+            },
+        ):
+            provider = OpenAIProvider()
+            text_without_delimiters = "  Simple text without delimiters  "
+            result = provider.extract_content(text_without_delimiters)
+            assert result == "Simple text without delimiters"

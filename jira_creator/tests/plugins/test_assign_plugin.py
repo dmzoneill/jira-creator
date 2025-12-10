@@ -127,3 +127,74 @@ class TestAssignPlugin:
                 f"/rest/api/2/issue/{issue_key}",
                 json_data={"fields": {"assignee": {"name": assignee}}},
             )
+
+    def test_get_fix_capabilities(self):
+        """Test get_fix_capabilities returns expected capabilities - covers line 76."""
+        plugin = AssignPlugin()
+
+        capabilities = plugin.get_fix_capabilities()
+
+        assert isinstance(capabilities, list)
+        assert len(capabilities) == 1
+        assert capabilities[0]["method_name"] == "assign_to_current_user"
+        assert "description" in capabilities[0]
+        assert "params" in capabilities[0]
+        assert "conditions" in capabilities[0]
+        assert "required_status" in capabilities[0]["conditions"]
+
+    def test_execute_fix_success(self):
+        """Test execute_fix with successful execution - covers lines 100-110."""
+        plugin = AssignPlugin()
+        mock_client = Mock()
+
+        # Mock current user response
+        mock_client.request.side_effect = [
+            {"name": "current.user", "emailAddress": "current.user@example.com"},  # GET /rest/api/2/myself
+            {"key": "TEST-123"},  # PUT assign issue
+        ]
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "assign_to_current_user", args)
+
+        assert result is True
+        # Should have made 2 API calls: get current user, then assign
+        assert mock_client.request.call_count == 2
+
+    def test_execute_fix_exception_getting_user(self):
+        """Test execute_fix with exception when getting current user - covers lines 111-112."""
+        plugin = AssignPlugin()
+        mock_client = Mock()
+
+        # Mock API error when getting current user
+        mock_client.request.side_effect = Exception("API Error")
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "assign_to_current_user", args)
+
+        assert result is False
+
+    def test_execute_fix_exception_during_assign(self):
+        """Test execute_fix with exception during assignment - covers lines 111-112."""
+        plugin = AssignPlugin()
+        mock_client = Mock()
+
+        # Mock current user success, but assign fails
+        mock_client.request.side_effect = [
+            {"name": "current.user"},  # GET current user succeeds
+            Exception("Assignment failed"),  # PUT assign fails
+        ]
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "assign_to_current_user", args)
+
+        assert result is False
+
+    def test_execute_fix_unknown_method(self):
+        """Test execute_fix with unknown method - covers line 114."""
+        plugin = AssignPlugin()
+        mock_client = Mock()
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "unknown_method", args)
+
+        assert result is False

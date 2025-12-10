@@ -130,8 +130,8 @@ def sort_rows(rows: List[Tuple], sort_columns: List[Tuple[str, str]], headers: L
     try:
         for col, order in reversed(sort_columns):
             col_index = headers.index(col)  # Use headers passed as an argument
-            rows.sort(key=lambda x: x[col_index], reverse=(order == "desc"))
-    except Exception as e:
+            rows.sort(key=lambda x, idx=col_index: x[idx], reverse=order == "desc")
+    except (ValueError, IndexError) as e:
         print("Error sorting rows based on the columns.")
         print(f"Error details: {e}")
         traceback.print_exc()

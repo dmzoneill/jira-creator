@@ -8,7 +8,7 @@ change the summary of Jira issues.
 
 from typing import Any, Dict
 
-from jira_creator.plugins.setter_base import SetterPlugin
+from jira_creator.core.plugin_setter_base import SetterPlugin
 
 
 class SetSummaryPlugin(SetterPlugin):

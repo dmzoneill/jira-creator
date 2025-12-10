@@ -89,3 +89,59 @@ def test_improve_text_failure():
             provider.improve_text("Prompt", "Input text")
 
     assert "InstructLab request failed: 500 - Server error" in str(exc_info.value)
+
+
+@patch("jira_creator.providers.instructlab_provider.requests.post")
+def test_analyze_error_success(mock_post):
+    """Test analyze_error with successful response."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"response": " Error analysis from InstructLab "}
+    mock_post.return_value = mock_response
+
+    provider = InstructLabProvider()
+    result = provider.analyze_error("test prompt", '{"error": "test"}')
+
+    assert result == "Error analysis from InstructLab"
+    mock_post.assert_called_once()
+
+
+@patch("jira_creator.providers.instructlab_provider.requests.post")
+def test_analyze_error_failure(mock_post):
+    """Test analyze_error with API failure."""
+    mock_response = MagicMock()
+    mock_response.status_code = 503
+    mock_response.text = "Service Unavailable"
+    mock_post.return_value = mock_response
+
+    provider = InstructLabProvider()
+    with pytest.raises(AiError, match="InstructLab request failed: 503 - Service Unavailable"):
+        provider.analyze_error("test prompt", '{"error": "test"}')
+
+
+@patch("jira_creator.providers.instructlab_provider.requests.post")
+def test_analyze_and_fix_error_success(mock_post):
+    """Test analyze_and_fix_error with successful response."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"response": " Fix proposal from InstructLab "}
+    mock_post.return_value = mock_response
+
+    provider = InstructLabProvider()
+    result = provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
+
+    assert result == "Fix proposal from InstructLab"
+    mock_post.assert_called_once()
+
+
+@patch("jira_creator.providers.instructlab_provider.requests.post")
+def test_analyze_and_fix_error_failure(mock_post):
+    """Test analyze_and_fix_error with API failure."""
+    mock_response = MagicMock()
+    mock_response.status_code = 400
+    mock_response.text = "Bad Request"
+    mock_post.return_value = mock_response
+
+    provider = InstructLabProvider()
+    with pytest.raises(AiError, match="InstructLab request failed: 400 - Bad Request"):
+        provider.analyze_and_fix_error("test prompt", '{"error": "test"}')

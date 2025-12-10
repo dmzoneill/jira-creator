@@ -78,3 +78,66 @@ class TestSetPriorityPlugin:
 
         with pytest.raises(SetPriorityError):
             plugin.execute(mock_client, args)
+
+    def test_get_fix_capabilities(self):
+        """Test get_fix_capabilities returns expected capabilities - covers line 93."""
+        plugin = SetPriorityPlugin()
+
+        capabilities = plugin.get_fix_capabilities()
+
+        assert isinstance(capabilities, list)
+        assert len(capabilities) == 1
+        assert capabilities[0]["method_name"] == "set_priority"
+        assert "description" in capabilities[0]
+        assert "params" in capabilities[0]
+        assert "conditions" in capabilities[0]
+
+    def test_execute_fix_success_with_priority(self):
+        """Test execute_fix with priority specified - covers lines 117-127."""
+        plugin = SetPriorityPlugin()
+        mock_client = Mock()
+        mock_client.request.return_value = {"key": "TEST-123"}
+
+        args = {"issue_key": "TEST-123", "priority": "major"}
+        result = plugin.execute_fix(mock_client, "set_priority", args)
+
+        assert result is True
+        mock_client.request.assert_called_once()
+
+    def test_execute_fix_success_default_priority(self):
+        """Test execute_fix without priority (uses default 'normal') - covers lines 117-127."""
+        plugin = SetPriorityPlugin()
+        mock_client = Mock()
+        mock_client.request.return_value = {"key": "TEST-123"}
+
+        args = {"issue_key": "TEST-123"}  # No priority specified
+        result = plugin.execute_fix(mock_client, "set_priority", args)
+
+        assert result is True
+        # Should use default 'normal' priority (normalized to 'Normal')
+        call_args = mock_client.request.call_args[1]["json_data"]
+        assert call_args["fields"]["priority"]["name"] == "Normal"
+
+    def test_execute_fix_invalid_priority(self):
+        """Test execute_fix with invalid priority falls back to 'normal' - covers lines 122-123."""
+        plugin = SetPriorityPlugin()
+        mock_client = Mock()
+        mock_client.request.return_value = {"key": "TEST-123"}
+
+        args = {"issue_key": "TEST-123", "priority": "invalid"}
+        result = plugin.execute_fix(mock_client, "set_priority", args)
+
+        assert result is True
+        # Should fallback to 'normal' (normalized to 'Normal')
+        call_args = mock_client.request.call_args[1]["json_data"]
+        assert call_args["fields"]["priority"]["name"] == "Normal"
+
+    def test_execute_fix_unknown_method(self):
+        """Test execute_fix with unknown method - covers line 129."""
+        plugin = SetPriorityPlugin()
+        mock_client = Mock()
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "unknown_method", args)
+
+        assert result is False

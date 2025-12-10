@@ -8,9 +8,9 @@ the pattern of setting a single field value on a Jira issue.
 
 from abc import abstractmethod
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-from jira_creator.plugins.base import JiraPlugin
+from jira_creator.core.plugin_base import JiraPlugin
 
 
 class SetterPlugin(JiraPlugin):
@@ -45,6 +45,25 @@ class SetterPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return f"Set the {self.field_name} of a Jira issue"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Issue Modification"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands for setter plugins."""
+        # Provide sensible default examples based on field name
+        examples_map = {
+            "priority": ["set-priority AAP-12345 High"],
+            "story points": ["set-story-points AAP-12345 5"],
+            "component": ["set-component AAP-12345 'API Gateway'"],
+            "workstream": ["set-workstream AAP-12345 Authentication"],
+            "project": ["set-project AAP-12345 NEWPROJ"],
+            "summary": ["set-summary AAP-12345 'Updated issue summary'"],
+        }
+        return examples_map.get(self.field_name.lower(), [f"{self.command_name} AAP-12345 <value>"])
 
     def get_exception_class(self):
         """Get the appropriate exception class for this setter."""

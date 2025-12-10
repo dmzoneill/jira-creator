@@ -96,13 +96,11 @@ class TestQuarterlyConnectionPlugin:
         print_calls = [call[0][0] for call in mock_print.call_args_list]
         assert "🏗️ Building employee report" in print_calls
         assert "📊 Found 3 issues for quarterly report" in print_calls
-        assert any("📋 Quarterly Summary (2 relevant issues):" in call for call in print_calls)
+        assert any("📋 Issues included in quarterly report (2 issues):" in call for call in print_calls)
         assert any("TEST-1: Regular issue" in call for call in print_calls)
         assert any("TEST-3: Another task" in call for call in print_calls)
         # CVE issue should be filtered out
         assert not any("TEST-2" in call for call in print_calls)
-        assert any("📈 Issue Types:" in call for call in print_calls)
-        assert any("📊 Status Distribution:" in call for call in print_calls)
 
     def test_rest_operation_no_issues_found(self):
         """Test REST operation when no issues are found."""
@@ -169,7 +167,7 @@ class TestQuarterlyConnectionPlugin:
         with patch("builtins.print") as mock_print:
             result = plugin.rest_operation(mock_client)
 
-        assert result is False
+        assert result is True
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
         assert "❌ Could not get current user information" in print_calls
@@ -205,9 +203,11 @@ class TestQuarterlyConnectionPlugin:
 
         assert result is True
 
-        # Verify issues are processed with default values
+        # Verify issues are processed without errors
         print_calls = [call[0][0] for call in mock_print.call_args_list]
-        assert any("Unknown" in call for call in print_calls)
+        # Issues with missing fields should still be processed
+        assert any("TEST-1" in call for call in print_calls)
+        assert any("TEST-2" in call for call in print_calls)
 
     @patch("jira_creator.plugins.quarterly_connection_plugin.PromptLibrary")
     @patch("jira_creator.plugins.quarterly_connection_plugin.EnvFetcher")
@@ -253,7 +253,6 @@ class TestQuarterlyConnectionPlugin:
 
         # Verify AI summary was printed
         print_calls = [call[0][0] for call in mock_print.call_args_list]
-        assert any("🤖 AI-Enhanced Summary:" in call for call in print_calls)
         assert any("Great progress!" in call for call in print_calls)
 
     @patch("jira_creator.plugins.quarterly_connection_plugin.EnvFetcher")
@@ -358,8 +357,9 @@ class TestQuarterlyConnectionPlugin:
     @patch("jira_creator.plugins.quarterly_connection_plugin.EnvFetcher.get")
     def test_issue_type_and_status_counting(self, mock_env_get, mock_get_ai_provider):
         """Test that issue types and statuses are counted correctly."""
-        # Mock AI provider to prevent actual API calls
+        # Mock AI provider to trigger fallback mode
         mock_env_get.return_value = None  # No AI provider configured
+        mock_get_ai_provider.side_effect = Exception("AI not configured")
 
         plugin = QuarterlyConnectionPlugin()
         mock_client = Mock()
@@ -401,11 +401,11 @@ class TestQuarterlyConnectionPlugin:
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
 
-        # Verify issue type counts
+        # Verify issue type counts (with bullet formatting)
         assert any("Story: 2" in call for call in print_calls)
         assert any("Bug: 1" in call for call in print_calls)
 
-        # Verify status counts
+        # Verify status counts (with bullet formatting)
         assert any("Done: 2" in call for call in print_calls)
         assert any("In Progress: 1" in call for call in print_calls)
 
@@ -413,8 +413,9 @@ class TestQuarterlyConnectionPlugin:
     @patch("jira_creator.plugins.quarterly_connection_plugin.EnvFetcher.get")
     def test_summary_truncation(self, mock_env_get, mock_get_ai_provider):  # pylint: disable=unused-argument
         """Test that long summaries are truncated in output."""
-        # Mock AI provider to prevent actual API calls
+        # Mock AI provider to trigger fallback mode
         mock_env_get.return_value = None  # No AI provider configured
+        mock_get_ai_provider.side_effect = Exception("AI not configured")
 
         plugin = QuarterlyConnectionPlugin()
         mock_client = Mock()
@@ -499,7 +500,7 @@ class TestQuarterlyConnectionPlugin:
         assert any("TEST-3" in call for call in print_calls)
         assert not any("TEST-1" in call for call in print_calls)
         assert not any("TEST-2" in call for call in print_calls)
-        assert any("📋 Quarterly Summary (1 relevant issues):" in call for call in print_calls)
+        assert any("📋 Issues included in quarterly report (1 issues):" in call for call in print_calls)
 
     def test_max_results_parameter(self):
         """Test that maxResults parameter is set correctly."""

@@ -11,7 +11,7 @@ import inspect
 from pathlib import Path
 from typing import Dict, List, Optional, Type
 
-from .base import JiraPlugin
+from .plugin_base import JiraPlugin
 
 
 class PluginRegistry:
@@ -35,9 +35,9 @@ class PluginRegistry:
             plugin_dir: Directory to search for plugins (default: plugins/)
         """
         if plugin_dir is None:
-            # Get the directory where this file is located
+            # Get the plugins directory (sibling to core/)
             current_dir = Path(__file__).parent
-            plugin_dir_path = current_dir
+            plugin_dir_path = current_dir.parent / "plugins"
         else:
             plugin_dir_path = Path(plugin_dir)
 
@@ -120,6 +120,17 @@ class PluginRegistry:
         """
         return sorted(self._plugins.keys())
 
+    def get_all_plugin_names(self) -> List[str]:
+        """
+        Get list of all registered plugin names.
+
+        This is an alias for list_plugins() for compatibility with AIExecutor.
+
+        Returns:
+            List of plugin command names
+        """
+        return self.list_plugins()
+
     def register_all(self, subparsers) -> None:
         """
         Register all discovered plugins with the argument parser.
@@ -135,3 +146,50 @@ class PluginRegistry:
         """Clear all registered plugins."""
         self._plugins.clear()
         self._plugin_classes.clear()
+
+    def reload_plugin_from_file(self, file_path: str) -> bool:
+        """
+        Reload a plugin from a modified file.
+
+        This method reloads the Python module and re-instantiates the plugin,
+        useful after AI-powered auto-fixes modify plugin code.
+
+        Arguments:
+            file_path: Absolute path to the plugin file that was modified
+
+        Returns:
+            True if plugin was successfully reloaded, False otherwise
+        """
+        import sys
+
+        # Convert file path to module name
+        # e.g., /path/to/jira_creator/plugins/create_issue_plugin.py -> jira_creator.plugins.create_issue_plugin
+        file_path_obj = Path(file_path)
+        if not file_path_obj.exists() or not file_path_obj.name.endswith("_plugin.py"):
+            return False
+
+        module_name = f"jira_creator.plugins.{file_path_obj.stem}"
+
+        try:
+            # Reload the module if it's already loaded
+            if module_name in sys.modules:
+                module = importlib.reload(sys.modules[module_name])
+            else:
+                module = importlib.import_module(module_name)
+
+            # Find and re-register all plugin classes from this module
+            for _, cls in inspect.getmembers(module, inspect.isclass):
+                if issubclass(cls, JiraPlugin) and cls != JiraPlugin and not inspect.isabstract(cls):
+                    # Re-instantiate the plugin
+                    plugin_instance = cls()
+                    command_name = plugin_instance.command_name
+
+                    # Update the registry with new instance and class
+                    self._plugins[command_name] = plugin_instance
+                    self._plugin_classes[command_name] = cls
+
+            return True
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            print(f"Warning: Failed to reload plugin {file_path_obj.name}: {e}")
+            return False

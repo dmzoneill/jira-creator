@@ -7,10 +7,10 @@ Jira issues to a new issue type.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import MigrateError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class MigratePlugin(JiraPlugin):
@@ -25,6 +25,16 @@ class MigratePlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return the command help text."""
         return "Migrate issue to a new type"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Utilities"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["migrate AAP-12345 NEWPROJ"]
 
     # jscpd:ignore-start
     def register_arguments(self, parser: ArgumentParser) -> None:

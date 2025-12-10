@@ -7,11 +7,11 @@ detailed information about a Jira issue.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import ViewIssueError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class ViewIssuePlugin(JiraPlugin):
@@ -49,6 +49,16 @@ class ViewIssuePlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "View detailed information about a Jira issue"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Search & View"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["view-issue AAP-12345", "view-issue AAP-12345 --output json"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

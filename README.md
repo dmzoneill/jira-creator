@@ -16,23 +16,31 @@ Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardi
 ```bash
 mkdir -p ~/.bashrc.d
 cat <<EOF > ~/.bashrc.d/jira.sh
-export JIRA_JPAT="your_jira_personal_access_token"
-export JIRA_AI_PROVIDER=openai
-export JIRA_AI_API_KEY=sk-...
-export JIRA_AI_MODEL="gpt-4o-mini"
-export JIRA_URL="https://issues.redhat.com"
-export JIRA_PROJECT_KEY="AAP"
-export JIRA_AFFECTS_VERSION="aa-latest"
-export JIRA_COMPONENT_NAME="analytics-hcc-service"
-export JIRA_PRIORITY="Normal"
-export JIRA_BOARD_ID=21125
-export JIRA_EPIC_FIELD="customfield_12311140"
 export JIRA_ACCEPTANCE_CRITERIA_FIELD="customfield_12315940"
+export JIRA_AFFECTS_VERSION=""
+
+export JIRA_AI_API_KEY="..................."
+
+export JIRA_AI_MODEL="claude-sonnet-4-5@20250929"
+export JIRA_AI_PROVIDER="vertex"
+export JIRA_AI_URL="http://dontcare/"
 export JIRA_BLOCKED_FIELD="customfield_12316543"
 export JIRA_BLOCKED_REASON_FIELD="customfield_12316544"
-export JIRA_STORY_POINTS_FIELD="customfield_12310243"
+export JIRA_BOARD_ID="21125"
+export JIRA_COMPONENT_NAME="analytics-hcc-service"
+export JIRA_EPIC_FIELD="customfield_12311140"
+
+export JIRA_JPAT=" .......................... "
+
+export JIRA_PRIORITY="Normal"
+export JIRA_PROJECT_KEY="AAP"
 export JIRA_SPRINT_FIELD="customfield_12310940"
-export JIRA_VOSK_MODEL="/home/daoneill/.vosk/vosk-model-small-en-us-0.15"
+export JIRA_STORY_POINTS_FIELD="customfield_12310243"
+export JIRA_URL="https://issues.redhat.com"
+export JIRA_VIEW_COLUMNS="key,issuetype,status,priority,summary,assignee,reporter,sprint,JIRA_STORY_POINTS_FIELD,JIRA_BLOCKED_FIELD"
+export JIRA_VOSK_MODEL="~/.vosk/vosk-model-small-en-us-0.15"
+export JIRA_WORKSTREAM="44650"
+export JIRA_WORKSTREAM_FIELD="customfield_12319275"
 
 # Enable autocomplete
 eval "$(/usr/local/bin/rh-issue --_completion | sed 's/rh_jira.py/rh-issue/')"
@@ -58,304 +66,193 @@ rh-issue create story "Improve onboarding experience"
 
 ## 🧪 Usage & Commands
 
-## Commands
-
-### add-comment
-Add a comment to a Jira issue.
+For a complete list of all available commands with examples, run:
 
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `-t, --text`: Comment text. If not provided, an editor will open for you to enter your comment.
-  - `--no-ai`: Skip AI text improvement.
-
-- **Example:**
-  ```bash
-  jira-cli add-comment PROJ-123 -t "This issue is resolved."
-  ```
-
-### add-flag
-Add a flag to a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-
-- **Example:**
-  ```bash
-  jira-cli add-flag PROJ-123
-  ```
-
-### add-to-sprint
-Add an issue to a sprint and optionally assign it.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `sprint_name` (required): The name of the sprint.
-  - `-a, --assignee`: Assignee username. Defaults to the current user if not specified.
-
-- **Example:**
-  ```bash
-  jira-cli add-to-sprint PROJ-123 "Sprint 1" -a username
-  ```
-
-### assign
-Assign a Jira issue to a user.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `assignee` (required): Username of the person to assign the issue to.
-
-- **Example:**
-  ```bash
-  jira-cli assign PROJ-123 username
-  ```
-
-### block
-Mark a Jira issue as blocked.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `reason` (required): The reason for blocking the issue.
-
-- **Example:**
-  ```bash
-  jira-cli block PROJ-123 "Waiting for approval."
-  ```
-
-### blocked
-List blocked issues.
-
-- **Arguments:**
-  - `--user`: Filter by assignee (username).
-  - `--project`: Project key override.
-  - `--component`: Component name override.
-
-- **Example:**
-  ```bash
-  jira-cli blocked --user username
-  ```
-
-### change
-Change issue type.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue id/key.
-  - `new_type` (required): New issue type.
-
-- **Example:**
-  ```bash
-  jira-cli change PROJ-123 "Bug"
-  ```
-
-### clone-issue
-Create a copy of an existing Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key to clone (e.g., `PROJ-123`).
-  - `-s, --summary-suffix`: Suffix to add to the cloned issue summary (default: ' (Clone)').
-
-- **Example:**
-  ```bash
-  jira-cli clone-issue PROJ-123 -s " (Clone)"
-  ```
-
-### create-issue
-Create a new Jira issue using templates.
-
-- **Arguments:**
-  - `type` (required): Type of issue to create.
-  - `summary` (required): Issue summary/title.
-  - `-e, --edit`: Open editor to modify the description before submission.
-  - `--dry-run`: Preview the issue without creating it.
-  - `--no-ai`: Skip AI text improvement.
-
-- **Example:**
-  ```bash
-  jira-cli create-issue "Task" "Implement new feature" --edit
-  ```
-
-### edit-issue
-Edit a Jira issue description.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `--no-ai`: Skip AI text improvement.
-  - `--lint`: Run interactive linting on the description.
-
-- **Example:**
-  ```bash
-  jira-cli edit-issue PROJ-123 --lint
-  ```
-
-### list-issues
-List issues from a project with various filters.
-
-- **Arguments:**
-  - `-p, --project`: Project key (uses the `JIRA_PROJECT_KEY` env if not specified).
-  - `-c, --component`: Filter by component name.
-  - `-a, --assignee`: Filter by assignee username.
-  - `-r, --reporter`: Filter by reporter username.
-  - `-s, --status`: Filter by status.
-  - `--summary`: Filter by summary containing text.
-  - `--blocked`: Show only blocked issues.
-  - `--unblocked`: Show only unblocked issues.
-  - `--sort`: Sort by field(s), comma-separated.
-  - `-m, --max-results`: Maximum number of results (default: 100).
-
-- **Example:**
-  ```bash
-  jira-cli list-issues -p "PROJ" --status "Open" --sort "priority"
-  ```
-
-### open-issue
-Open a Jira issue in your web browser.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-
-- **Example:**
-  ```bash
-  jira-cli open-issue PROJ-123
-  ```
-
-### remove-flag
-Remove a flag from a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-
-- **Example:**
-  ```bash
-  jira-cli remove-flag PROJ-123
-  ```
-
-### search
-Search for issues using JQL (Jira Query Language).
-
-- **Arguments:**
-  - `jql` (required): JQL query string (e.g., `'project = ABC AND status = Open'`).
-  - `-m, --max-results`: Maximum number of results to return (default: 50).
-
-- **Example:**
-  ```bash
-  jira-cli search "project = ABC AND status = Open" -m 20
-  ```
-
-### set-acceptance-criteria
-Set the acceptance criteria for a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `acceptance_criteria` (required): The acceptance criteria (can be multiple words).
-
-- **Example:**
-  ```bash
-  jira-cli set-acceptance-criteria PROJ-123 "Acceptance criteria must be met."
-  ```
-
-### set-priority
-Set the priority of a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `priority` (required): Priority level to set.
-
-- **Example:**
-  ```bash
-  jira-cli set-priority PROJ-123 "High"
-  ```
-
-### set-status
-Set the status of a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `status` (required): The status to transition to.
-
-- **Example:**
-  ```bash
-  jira-cli set-status PROJ-123 "In Progress"
-  ```
-
-### set-summary
-Set the summary of a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `summary` (required): The new summary text for the issue.
-
-- **Example:**
-  ```bash
-  jira-cli set-summary PROJ-123 "Updated issue summary"
-  ```
-
-### unassign
-Remove the assignee from a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-
-- **Example:**
-  ```bash
-  jira-cli unassign PROJ-123
-  ```
-
-### unblock
-Remove the blocked status from a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-
-- **Example:**
-  ```bash
-  jira-cli unblock PROJ-123
-  ```
-
-### validate-issue
-Validate a Jira issue against quality standards.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-  - `--no-ai`: Skip AI-powered quality checks.
-  - `--no-cache`: Skip cache and force fresh validation.
-
-- **Example:**
-  ```bash
-  jira-cli validate-issue PROJ-123 --no-ai
-  ```
-
-### view-issue
-View detailed information about a Jira issue.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue key (e.g., `PROJ-123`).
-
-- **Example:**
-  ```bash
-  jira-cli view-issue PROJ-123
-  ```
-
-### view-user
-View detailed information about a Jira user.
-
-- **Arguments:**
-  - `account_id` (required): The user's account ID or username.
-
-- **Example:**
-  ```bash
-  jira-cli view-user username
-  ```
-
-### vote-story-points
-Vote on story points.
-
-- **Arguments:**
-  - `issue_key` (required): The Jira issue id/key.
-  - `points` (required): Number of story points to vote.
-
-- **Example:**
-  ```bash
-  jira-cli vote-story-points PROJ-123 5
-  ```
+```bash
+rh-issue --help
+```
+
+Example output:
+
+```
+     _ ___ ____      _      ____ ____  _____    _  _____ ___  ____
+    | |_ _|  _ \    / \    / ___|  _ \| ____|  / \|_   _/ _ \|  _ \
+ _  | || || |_) |  / _ \  | |   | |_) |  _|   / _ \ | || | | | |_) |
+| |_| || ||  _ <  / ___ \ | |___|  _ <| |___ / ___ \| || |_| |  _ <
+ \___/|___|_| \_\/_/   \_\ \____|_| \_\_____/_/   \_\_| \___/|_| \_\
+
+                   AI-Powered Issue Management 🚀
+
+
+DESCRIPTION
+  A powerful CLI tool for managing JIRA issues with AI-powered
+  quality checks, automated fixes, and streamlined workflows.
+
+USAGE
+  rh-issue <command> [options]
+
+COMMANDS
+
+  📝 Issue Creation & Management
+    batch-create                   Create multiple Jira issues from a directory of input files
+      $ rh-issue batch-create /path/to/issues/
+      $ rh-issue batch-create ./issue-templates/ --dry-run
+
+    clone-issue                    Create a copy of an existing Jira issue
+      $ rh-issue clone-issue AAP-12345
+      $ rh-issue clone-issue AAP-12345 --new-summary "Cloned issue"
+
+    create-issue                   Create a new Jira issue using templates
+      $ rh-issue create-issue bug 'Login page crashes on submit'
+      $ rh-issue create-issue story 'Add password reset feature' --story-points 5
+      $ rh-issue create-issue task 'Update documentation' --edit
+
+    edit-issue                     Edit a Jira issue description
+      $ rh-issue edit-issue AAP-12345
+
+    update-description             Update the description of a Jira issue from file or stdin
+      $ rh-issue update-description AAP-12345 description.md
+      $ rh-issue cat description.txt | update-description AAP-12345 -
+
+  🔍 Search & View
+    list-blocked                   List all blocked issues with blocker details
+      $ rh-issue list-blocked
+      $ rh-issue list-blocked --project AAP
+
+    list-issues                    List issues from a project with various filters
+      $ rh-issue list-issues AAP
+      $ rh-issue list-issues AAP --status "In Progress" --assignee jsmith
+
+    search                         Search for issues using JQL (Jira Query Language)
+      $ rh-issue search "project = AAP AND status = Open"
+      $ rh-issue search "assignee = currentUser()"
+
+    search-users                   Search for Jira users by name or email
+      $ rh-issue search-users "John Smith"
+      $ rh-issue search-users jsmith@example.com
+
+    view-issue                     View detailed information about a Jira issue
+      $ rh-issue view-issue AAP-12345
+      $ rh-issue view-issue AAP-12345 --output json
+
+    view-user                      View detailed information about a Jira user
+      $ rh-issue view-user jsmith
+
+  ✏️  Issue Modification
+    assign                         Assign a Jira issue to a user
+      $ rh-issue assign AAP-12345 jsmith
+
+    change                         Change issue type
+      $ rh-issue change AAP-12345
+
+    change-type                    Change the type of a Jira issue
+      $ rh-issue change-type AAP-12345 story
+      $ rh-issue change-type AAP-12345 bug
+
+    set-acceptance-criteria        Set the acceptance criteria for a Jira issue
+      $ rh-issue set-acceptance-criteria AAP-12345 "User can login successfully"
+
+    set-component                  Set the component of a Jira issue
+      $ rh-issue set-component AAP-12345 'API Gateway'
+
+    set-priority                   Set the priority of a Jira issue
+
+    set-project                    Set the project of a Jira issue
+      $ rh-issue set-project AAP-12345 NEWPROJ
+
+    set-status                     Set the status of a Jira issue
+      $ rh-issue set-status AAP-12345 "In Progress"
+      $ rh-issue set-status AAP-12345 Done
+
+    set-story-epic                 Link a story to an epic
+      $ rh-issue set-story-epic AAP-12345 AAP-100
+
+    set-story-points               Set the story points of a Jira issue
+      $ rh-issue set-story-points AAP-12345 5
+
+    set-summary                    Set the summary of a Jira issue
+      $ rh-issue set-summary AAP-12345 'Updated issue summary'
+
+    set-workstream                 Set the workstream of a Jira issue
+      $ rh-issue set-workstream AAP-12345 Authentication
+
+    unassign                       Remove the assignee from a Jira issue
+      $ rh-issue unassign AAP-12345
+
+  🎯 Sprint Management
+    add-to-sprint                  Add an issue to a sprint and optionally assign it
+      $ rh-issue add-to-sprint AAP-12345 123
+
+    get-sprint                     Get the current active sprint
+      $ rh-issue get-sprint 123
+
+    list-sprints                   List all sprints for a board
+      $ rh-issue list-sprints 123
+
+    remove-sprint                  Remove an issue from its current sprint
+      $ rh-issue remove-sprint AAP-12345
+
+  🔗 Issue Relationships
+    add-flag                       Add a flag to a Jira issue
+      $ rh-issue add-flag AAP-12345
+
+    add-link                       Create an issue link between two Jira issues
+      $ rh-issue add-link AAP-12345 AAP-12346 blocks
+      $ rh-issue add-link AAP-12345 AAP-12347 relates-to
+
+    remove-flag                    Remove a flag from a Jira issue
+      $ rh-issue remove-flag AAP-12345
+
+  🚧 Blocking & Issues
+    block                          Mark a Jira issue as blocked
+      $ rh-issue block AAP-12345 AAP-12346
+      $ rh-issue block AAP-12345 AAP-12346 "Waiting for API changes"
+
+    blocked                        List blocked issues
+      $ rh-issue blocked
+
+    unblock                        Remove the blocked status from a Jira issue
+      $ rh-issue unblock AAP-12345 AAP-12346
+
+  ✅ Quality & Validation
+    lint                           Lint a single Jira issue for quality and completeness
+      $ rh-issue lint AAP-12345
+      $ rh-issue lint AAP-12345 --fix
+
+    lint-all                       Lint multiple Jira issues for quality and completeness
+      $ rh-issue lint-all --project AAP
+      $ rh-issue lint-all --project AAP --ai-fix
+
+    validate-issue                 Validate a Jira issue against quality standards
+      $ rh-issue validate-issue AAP-12345
+
+    vote-story-points              Vote on story points
+      $ rh-issue vote-story-points AAP-12345 5
+
+  📊 Reporting
+    quarterly-connection           Perform a quarterly connection report
+      $ rh-issue quarterly-connection --quarter Q1
+
+  🛠️  Utilities
+    add-comment                    Add a comment to a Jira issue
+      $ rh-issue add-comment AAP-12345 "Adding a status update"
+
+    config                         Manage configuration profiles for common settings
+      $ rh-issue config
+      $ rh-issue config --show-all
+
+    migrate                        Migrate issue to a new type
+      $ rh-issue migrate AAP-12345 NEWPROJ
+
+    open-issue                     Open a Jira issue in your web browser
+      $ rh-issue open-issue AAP-12345
+
+OPTIONS
+  -h, --help              Show this help message and exit
+
+───────────────────────────────────────────────────────────────────────────────
+For more information, visit: https://github.com/dmzoneill/jira-creator
+```
 
 ---
 
@@ -426,6 +323,93 @@ export JIRA_AI_URL=http://localhost:8000/bart
 ```bash
 export JIRA_AI_PROVIDER=noop
 ```
+
+---
+
+## 🔌 Plugin Development
+
+jira-creator uses a plugin architecture. Each command is implemented as a plugin that inherits from `JiraPlugin`.
+
+### Required Plugin Structure
+
+```python
+from argparse import ArgumentParser, Namespace
+from typing import Any, Dict, List
+
+from jira_creator.core.plugin_base import JiraPlugin
+
+
+class AddFlagPlugin(JiraPlugin):
+    """Plugin for adding flags to Jira issues."""
+
+    @property
+    def command_name(self) -> str:
+        """Return the CLI command name (e.g., 'add-flag')."""
+        return "add-flag"
+
+    @property
+    def category(self) -> str:
+        """Return the help category. Defaults to 'Other' if not specified."""
+        return "Issue Relationships"
+
+    @property
+    def help_text(self) -> str:
+        """Return brief help text for the command."""
+        return "Add a flag to a Jira issue"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example command invocations (optional)."""
+        return ["add-flag AAP-12345"]
+
+    def register_arguments(self, parser: ArgumentParser) -> None:
+        """Register command-specific arguments."""
+        parser.add_argument("issue_key", help="The Jira issue key (e.g., PROJ-123)")
+
+    def execute(self, client: Any, args: Namespace) -> bool:
+        """
+        Execute the command.
+
+        Args:
+            client: JiraClient instance
+            args: Parsed command arguments
+
+        Returns:
+            bool: True if successful
+        """
+        self.rest_operation(client, issue_key=args.issue_key)
+        print(f"✅ Flag added to {args.issue_key}")
+        return True
+
+    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+        """
+        Perform the REST API operation.
+
+        Args:
+            client: JiraClient instance
+            **kwargs: Operation-specific parameters
+
+        Returns:
+            Dict containing the API response
+        """
+        return client.ops.add_flag(**kwargs)
+```
+
+### Available Categories
+
+Plugins can specify one of these categories for help organization:
+- `Issue Creation & Management` - Creating and cloning issues
+- `Search & View` - Searching and viewing issues/users
+- `Issue Modification` - Updating issue fields
+- `Sprint Management` - Sprint-related operations
+- `Issue Relationships` - Links, flags, and relationships
+- `Blocking & Issues` - Blocking status management
+- `Quality & Validation` - Linting and validation
+- `Reporting` - Reports and analytics
+- `Utilities` - Helper commands
+- `Other` - Default for uncategorized plugins
+
+Plugins without a `category` property default to "Other".
 
 ---
 

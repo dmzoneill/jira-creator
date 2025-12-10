@@ -26,7 +26,6 @@ print-header:
 .PHONY: install-linters
 install-linters: print-header
 	- sudo dnf install -y yamllint hadolint shellcheck
-	- sudo apt install -y yamllint hadolint shellcheck
 	- npm install jscpd textlint markdownlint hadolint
 	$(PIPENV) run pip install pylint flake8 pyflakes black
 
@@ -94,7 +93,7 @@ lint: print-header
 	@echo "\n========== markdownlint Finished =========="
 	#$(PIPENV) run shellcheck $$PWD/README.md
 	@echo "\n========== shellcheck Finished =========="
-	./node_modules/jscpd/bin/jscpd -c .jscpd.json $$PWD
+	jscpd -c .jscpd.json $$PWD
 	@echo "\n========== jscpd Finished =========="
 	- @{ \
 		export PYTHONPATH=$$PWD/jira_creator; \

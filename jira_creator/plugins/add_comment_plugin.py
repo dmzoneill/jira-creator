@@ -10,11 +10,11 @@ import os
 import subprocess
 import tempfile
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import AddCommentError, AiError
-from jira_creator.plugins.base import JiraPlugin
 from jira_creator.providers import get_ai_provider
 from jira_creator.rest.prompts import IssueType, PromptLibrary
 
@@ -31,6 +31,16 @@ class AddCommentPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Add a comment to a Jira issue"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Utilities"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ['add-comment AAP-12345 "Adding a status update"']
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

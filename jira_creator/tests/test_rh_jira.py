@@ -26,10 +26,10 @@ class TestPluginBasedJiraCLI:
 
         cli = PluginBasedJiraCLI()
 
-        # First call should create client
+        # First call should create client with registry
         client1 = cli._get_client()
         assert client1 is mock_client_instance
-        mock_client_class.assert_called_once_with()  # No arguments
+        mock_client_class.assert_called_once_with(plugin_registry=cli.registry)
 
         # Second call should return cached client
         client2 = cli._get_client()
@@ -64,7 +64,9 @@ class TestPluginBasedJiraCLI:
         cli.run()
 
         # Verify parser was created with CLI_NAME
-        mock_parser_class.assert_called_once_with(description="JIRA Issue Tool (Plugin-based)", prog="test-cli")
+        mock_parser_class.assert_called_once_with(
+            description="JIRA Issue Tool (Plugin-based)", prog="test-cli", add_help=False
+        )
 
         # Verify plugin discovery and registration
         cli.registry.discover_plugins.assert_called_once()
@@ -104,7 +106,9 @@ class TestPluginBasedJiraCLI:
         cli.run()
 
         # Verify parser was created with basename of argv[0]
-        mock_parser_class.assert_called_once_with(description="JIRA Issue Tool (Plugin-based)", prog="jira-cli")
+        mock_parser_class.assert_called_once_with(
+            description="JIRA Issue Tool (Plugin-based)", prog="jira-cli", add_help=False
+        )
 
     def test_dispatch_command_success(self):
         """Test successful command dispatch."""

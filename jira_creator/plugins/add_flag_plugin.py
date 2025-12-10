@@ -7,9 +7,9 @@ Jira issues for attention.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-from jira_creator.plugins.base import JiraPlugin
+from jira_creator.core.plugin_base import JiraPlugin
 
 
 class AddFlagPlugin(JiraPlugin):
@@ -24,6 +24,16 @@ class AddFlagPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Add a flag to a Jira issue"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Issue Relationships"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["add-flag AAP-12345"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

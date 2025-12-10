@@ -197,3 +197,15 @@ class SetSummaryError(BaseException):
 
 class SetWorkstreamError(BaseException):
     """This class represents a custom exception for errors related to setting the workstream."""
+
+
+class AddLinkError(BaseException):
+    """This class represents a custom exception for errors related to adding issue links."""
+
+
+class BatchCreateError(BaseException):
+    """This class represents a custom exception for batch create operation errors."""
+
+
+class ConfigError(BaseException):
+    """This class represents a custom exception for configuration operation errors."""

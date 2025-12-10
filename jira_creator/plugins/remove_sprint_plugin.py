@@ -7,10 +7,10 @@ issues from their current sprint and move them to the backlog.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import RemoveFromSprintError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class RemoveSprintPlugin(JiraPlugin):
@@ -25,6 +25,16 @@ class RemoveSprintPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Remove an issue from its current sprint"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Sprint Management"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["remove-sprint AAP-12345"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

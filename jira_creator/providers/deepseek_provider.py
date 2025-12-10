@@ -100,6 +100,88 @@ class DeepSeekProvider(AIProvider):
             response_data: Dict[str, str] = response.json()
             entire_response: str = response_data.get("response", "").strip()
             entire_response = entire_response.replace("<think>", "").replace("</think>", "")
+            return self.extract_content(entire_response)
+        except json.JSONDecodeError as e:
+            raise AiError(e) from e
+
+    def analyze_error(self, prompt: str, error_context: str) -> str:
+        """
+        Analyze a JIRA API error and suggest code-level fixes.
+
+        Arguments:
+        - prompt (str): The system prompt for error analysis.
+        - error_context (str): JSON-formatted error context.
+
+        Return:
+        - str: Markdown-formatted analysis with root cause, proposed fix, and workarounds.
+
+        Exceptions:
+        - AiError: Raised if the POST request fails or if there is an issue parsing the JSON response.
+        """
+        full_prompt = f"{prompt}\n\nAnalyze this error:\n\n{error_context}"
+
+        # Send the POST request
+        response: requests.Response = requests.post(
+            self.url,
+            headers=self.headers,
+            json={
+                "model": self.model,
+                "prompt": full_prompt,
+                "stream": False,
+                "temperature": 0.3,  # Lower temperature for more deterministic analysis
+            },
+            timeout=120,
+        )
+
+        if response.status_code != 200:
+            raise AiError(f"DeepSeek request failed: {response.status_code} - {response.text}")
+
+        # Parse the response
+        try:
+            response_data: Dict[str, str] = response.json()
+            entire_response: str = response_data.get("response", "").strip()
+            entire_response = entire_response.replace("<think>", "").replace("</think>", "")
+            return entire_response
+        except json.JSONDecodeError as e:
+            raise AiError(e) from e
+
+    def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
+        """
+        Analyze an error and return a structured fix proposal in JSON format.
+
+        Arguments:
+        - prompt (str): The system prompt for error analysis and fix generation.
+        - error_context (str): JSON-formatted error context.
+
+        Return:
+        - str: JSON-formatted fix proposal.
+
+        Exceptions:
+        - AiError: Raised if the POST request fails or if there is an issue parsing the JSON response.
+        """
+        full_prompt = f"{prompt}\n\nAnalyze this error and propose a fix:\n\n{error_context}"
+
+        # Send the POST request
+        response: requests.Response = requests.post(
+            self.url,
+            headers=self.headers,
+            json={
+                "model": self.model,
+                "prompt": full_prompt,
+                "stream": False,
+                "temperature": 0.3,  # Lower temperature for more deterministic analysis
+            },
+            timeout=120,
+        )
+
+        if response.status_code != 200:
+            raise AiError(f"DeepSeek request failed: {response.status_code} - {response.text}")
+
+        # Parse the response
+        try:
+            response_data: Dict[str, str] = response.json()
+            entire_response: str = response_data.get("response", "").strip()
+            entire_response = entire_response.replace("<think>", "").replace("</think>", "")
             return entire_response
         except json.JSONDecodeError as e:
             raise AiError(e) from e

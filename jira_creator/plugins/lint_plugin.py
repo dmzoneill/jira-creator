@@ -13,8 +13,8 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List, Tuple
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import LintError
-from jira_creator.plugins.base import JiraPlugin
 from jira_creator.providers import get_ai_provider
 
 
@@ -30,6 +30,16 @@ class LintPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Lint a single Jira issue for quality and completeness"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Quality & Validation"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["lint AAP-12345", "lint AAP-12345 --fix"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

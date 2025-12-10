@@ -9,7 +9,7 @@ executing commands, and performing REST operations.
 
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 
 class JiraPlugin(ABC):
@@ -49,6 +49,30 @@ class JiraPlugin(ABC):
         Returns:
             str: Brief description of what the command does
         """
+
+    @property
+    def example_commands(self) -> List[str]:
+        """
+        Return example command invocations.
+
+        Plugins can override this to provide helpful usage examples.
+
+        Returns:
+            List[str]: Example command strings (without program name prefix)
+        """
+        return []
+
+    @property
+    def category(self) -> str:
+        """
+        Return the category this command belongs to for help organization.
+
+        Plugins can override this to specify their category. Default is "Other".
+
+        Returns:
+            str: Category name (e.g., "Issue Creation & Management")
+        """
+        return "Other"
 
     @abstractmethod
     def register_arguments(self, parser: ArgumentParser) -> None:
@@ -97,6 +121,19 @@ class JiraPlugin(ABC):
             Various exceptions based on the specific operation
         """
 
+    def set_dependency(self, dep_name: str, value: Any) -> None:
+        """
+        Set an injected dependency.
+
+        This method allows runtime dependency injection, useful for
+        providing services like plugin_registry to plugins that need it.
+
+        Arguments:
+            dep_name: Name of the dependency
+            value: The dependency value to inject
+        """
+        self._injected_deps[dep_name] = value
+
     def get_dependency(self, dep_name: str, default: Optional[Any] = None) -> Any:
         """
         Get an injected dependency or its default value.
@@ -119,3 +156,55 @@ class JiraPlugin(ABC):
             return default()
 
         return default
+
+    def get_fix_capabilities(self) -> List[Dict[str, Any]]:
+        """
+        Register fix capabilities that this plugin can perform.
+
+        Plugins can override this method to register automated fix methods
+        that can be invoked by AI-powered tools (e.g., lint-all --ai-fix).
+
+        Returns:
+            List of fix capability dicts, each containing:
+            - method_name: str - unique identifier for this fix method
+            - description: str - what this fix does
+            - params: Dict[str, str] - parameter names and types
+            - conditions: Optional[Dict] - when this fix applies
+
+        Example:
+            [
+                {
+                    "method_name": "set_priority",
+                    "description": "Set the priority of an issue",
+                    "params": {
+                        "issue_key": "str",
+                        "priority": "str (Critical/High/Medium/Low/Normal)"
+                    },
+                    "conditions": {
+                        "problem_patterns": ["Priority not set", "priority"],
+                        "required_status": ["In Progress", "New"]
+                    }
+                }
+            ]
+        """
+        return []  # Default: no fix capabilities
+
+    def execute_fix(self, client: Any, method_name: str, args: Dict[str, Any]) -> bool:
+        """
+        Execute a specific fix method.
+
+        Plugins that register fix capabilities must override this method
+        to handle execution of their registered fix methods.
+
+        Arguments:
+            client: JiraClient instance
+            method_name: The fix method to execute
+            args: Arguments for the fix method
+
+        Returns:
+            bool: True if fix succeeded, False otherwise
+
+        Raises:
+            NotImplementedError: If plugin doesn't implement fix execution
+        """
+        raise NotImplementedError(f"Plugin {self.command_name} does not implement execute_fix for {method_name}")

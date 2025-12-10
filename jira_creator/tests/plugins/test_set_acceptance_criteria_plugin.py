@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetAcceptanceCriteriaError
+from jira_creator.exceptions.exceptions import AiError, SetAcceptanceCriteriaError
 from jira_creator.plugins.set_acceptance_criteria_plugin import SetAcceptanceCriteriaPlugin
 
 
@@ -27,7 +27,7 @@ class TestSetAcceptanceCriteriaPlugin:
         plugin.register_arguments(mock_parser)
 
         # Verify add_argument was called with correct parameters
-        assert mock_parser.add_argument.call_count == 2
+        assert mock_parser.add_argument.call_count == 3
         calls = mock_parser.add_argument.call_args_list
 
         # First argument: issue_key
@@ -38,6 +38,10 @@ class TestSetAcceptanceCriteriaPlugin:
         assert calls[1][0] == ("acceptance_criteria",)
         assert calls[1][1]["nargs"] == "*"
         assert calls[1][1]["help"] == "The acceptance criteria (can be multiple words)"
+
+        # Third argument: --ai-from-description
+        assert calls[2][0] == ("--ai-from-description",)
+        assert calls[2][1]["action"] == "store_true"
 
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
     def test_rest_operation(self, mock_env_fetcher):
@@ -76,6 +80,7 @@ class TestSetAcceptanceCriteriaPlugin:
         mock_env_fetcher.get.return_value = "customfield_10050"
 
         args = Namespace(
+            ai_from_description=False,
             issue_key="TEST-123",
             acceptance_criteria=["User", "can", "login", "successfully"],
         )
@@ -103,7 +108,7 @@ class TestSetAcceptanceCriteriaPlugin:
 
         mock_env_fetcher.get.return_value = "customfield_10050"
 
-        args = Namespace(issue_key="TEST-123", acceptance_criteria=[])
+        args = Namespace(ai_from_description=False, issue_key="TEST-123", acceptance_criteria=[])
 
         result = plugin.execute(mock_client, args)
 
@@ -129,7 +134,7 @@ class TestSetAcceptanceCriteriaPlugin:
 
         mock_env_fetcher.get.return_value = "customfield_10050"
 
-        args = Namespace(issue_key="TEST-123", acceptance_criteria=["   ", "\t", "\n"])
+        args = Namespace(ai_from_description=False, issue_key="TEST-123", acceptance_criteria=["   ", "\t", "\n"])
 
         result = plugin.execute(mock_client, args)
 
@@ -156,6 +161,7 @@ class TestSetAcceptanceCriteriaPlugin:
         mock_env_fetcher.get.return_value = "customfield_10050"
 
         args = Namespace(
+            ai_from_description=False,
             issue_key="TEST-123",
             acceptance_criteria=["Must", "handle", "errors"],
         )
@@ -181,6 +187,7 @@ class TestSetAcceptanceCriteriaPlugin:
 
         # Test with words that will form multiline criteria
         args = Namespace(
+            ai_from_description=False,
             issue_key="TEST-123",
             acceptance_criteria=[
                 "Given",
@@ -239,7 +246,7 @@ class TestSetAcceptanceCriteriaPlugin:
 
         for criteria_list, expected in test_cases:
             mock_client.reset_mock()
-            args = Namespace(issue_key="TEST-123", acceptance_criteria=criteria_list)
+            args = Namespace(ai_from_description=False, issue_key="TEST-123", acceptance_criteria=criteria_list)
 
             result = plugin.execute(mock_client, args)
 
@@ -271,7 +278,7 @@ class TestSetAcceptanceCriteriaPlugin:
 
         # Create a very long criteria
         long_words = ["word"] * 100  # 100 words
-        args = Namespace(issue_key="TEST-123", acceptance_criteria=long_words)
+        args = Namespace(ai_from_description=False, issue_key="TEST-123", acceptance_criteria=long_words)
 
         result = plugin.execute(mock_client, args)
 
@@ -319,6 +326,7 @@ class TestSetAcceptanceCriteriaPlugin:
         mock_env_fetcher.get.return_value = "customfield_10050"
 
         args = Namespace(
+            ai_from_description=False,
             issue_key="TEST-123",
             acceptance_criteria=["User", "sees", "émojis", "🚀", "correctly"],
         )
@@ -333,3 +341,188 @@ class TestSetAcceptanceCriteriaPlugin:
         # Verify print output
         captured = capsys.readouterr()
         assert "✅ Acceptance criteria set for TEST-123" in captured.out
+
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
+    def test_execute_with_ai_from_description_success(self, mock_env, mock_get_ai, capsys):
+        """Test execute with AI generation from description."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        mock_env.get.side_effect = lambda key, default="": {
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_10050",
+            "JIRA_AI_PROVIDER": "openai",
+        }.get(key, default)
+
+        mock_ai = Mock()
+        mock_ai.complete.return_value = "* [ ] User can login\n* [ ] Password is validated"
+        mock_get_ai.return_value = mock_ai
+
+        # Mock API responses
+        mock_client.request.side_effect = [
+            # Fetch issue
+            {"fields": {"description": "User login feature", "summary": "Login"}},
+            # Update AC
+            {"key": "TEST-123"},
+        ]
+
+        args = Namespace(ai_from_description=True, issue_key="TEST-123", acceptance_criteria=[])
+
+        result = plugin.execute(mock_client, args)
+
+        assert result is True
+        mock_ai.complete.assert_called_once()
+
+        captured = capsys.readouterr()
+        assert "Generating acceptance criteria from description" in captured.out
+        assert "Acceptance criteria set for TEST-123" in captured.out
+        assert "Generated Acceptance Criteria" in captured.out
+
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
+    def test_generate_from_description_no_description(self, mock_env, mock_get_ai):
+        """Test AI generation when issue has no description."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        mock_env.get.return_value = "openai"
+
+        mock_client.request.return_value = {"fields": {"description": "", "summary": "Test"}}
+
+        with pytest.raises(SetAcceptanceCriteriaError, match="has no description to generate from"):
+            plugin._generate_from_description(mock_client, "TEST-123")
+
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
+    def test_generate_from_description_ai_empty(self, mock_env, mock_get_ai):
+        """Test AI generation when AI returns empty criteria."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        mock_env.get.return_value = "openai"
+
+        mock_ai = Mock()
+        mock_ai.complete.return_value = "   "
+        mock_get_ai.return_value = mock_ai
+
+        mock_client.request.return_value = {"fields": {"description": "Test desc", "summary": "Test"}}
+
+        with pytest.raises(SetAcceptanceCriteriaError, match="AI generated empty acceptance criteria"):
+            plugin._generate_from_description(mock_client, "TEST-123")
+
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
+    def test_generate_from_description_ai_error(self, mock_env, mock_get_ai):
+        """Test AI generation when AI provider fails."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        mock_env.get.return_value = "openai"
+
+        mock_get_ai.side_effect = AiError("AI service unavailable")
+
+        mock_client.request.return_value = {"fields": {"description": "Test", "summary": "Test"}}
+
+        with pytest.raises(SetAcceptanceCriteriaError, match="AI generation failed"):
+            plugin._generate_from_description(mock_client, "TEST-123")
+
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
+    def test_generate_from_description_fetch_error(self, mock_env, mock_get_ai):
+        """Test AI generation when fetching issue fails."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        mock_env.get.return_value = "openai"
+
+        mock_client.request.side_effect = Exception("Network error")
+
+        with pytest.raises(SetAcceptanceCriteriaError, match="Failed to generate acceptance criteria"):
+            plugin._generate_from_description(mock_client, "TEST-123")
+
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
+    def test_execute_with_ai_from_description_error(self, mock_env, mock_get_ai):
+        """Test execute with AI generation error."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        mock_env.get.side_effect = lambda key, default="": {
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_10050",
+            "JIRA_AI_PROVIDER": "openai",
+        }.get(key, default)
+
+        mock_client.request.side_effect = Exception("API Error")
+
+        args = Namespace(ai_from_description=True, issue_key="TEST-123", acceptance_criteria=[])
+
+        # Exception is raised from _generate_from_description before try block
+        with pytest.raises(SetAcceptanceCriteriaError):
+            plugin.execute(mock_client, args)
+
+    def test_get_fix_capabilities(self):
+        """Test get_fix_capabilities returns expected capabilities - covers line 169."""
+        plugin = SetAcceptanceCriteriaPlugin()
+
+        capabilities = plugin.get_fix_capabilities()
+
+        assert isinstance(capabilities, list)
+        assert len(capabilities) == 1
+        assert capabilities[0]["method_name"] == "set_acceptance_criteria_from_description"
+        assert "description" in capabilities[0]
+        assert "params" in capabilities[0]
+        assert "conditions" in capabilities[0]
+
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher.get")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    def test_execute_fix_success(self, mock_get_ai_provider, mock_env):
+        """Test execute_fix with successful execution - covers lines 194-200."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        # Mock AI provider
+        mock_ai = Mock()
+        mock_ai.improve_text.return_value = "Generated criteria"
+        mock_get_ai_provider.return_value = mock_ai
+
+        # Mock environment
+        mock_env.side_effect = lambda key, default="": {
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_10050",
+            "JIRA_AI_PROVIDER": "openai",
+        }.get(key, default)
+
+        # Mock client responses
+        mock_client.request.side_effect = [
+            {
+                "key": "TEST-123",
+                "fields": {"description": "Test description", "customfield_10050": ""},
+            },
+            {"key": "TEST-123"},
+        ]
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "set_acceptance_criteria_from_description", args)
+
+        assert result is True
+
+    def test_execute_fix_with_exception(self):
+        """Test execute_fix with exception - covers lines 199-200."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        # Patch execute method to raise an exception
+        with patch.object(plugin, "execute", side_effect=Exception("Test error")):
+            args = {"issue_key": "TEST-123"}
+            result = plugin.execute_fix(mock_client, "set_acceptance_criteria_from_description", args)
+
+            assert result is False
+
+    def test_execute_fix_unknown_method(self):
+        """Test execute_fix with unknown method - covers line 202."""
+        plugin = SetAcceptanceCriteriaPlugin()
+        mock_client = Mock()
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "unknown_method", args)
+
+        assert result is False

@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 from typing import Any, Dict
 
 from jira_creator.core.env_fetcher import EnvFetcher
-from jira_creator.plugins.setter_base import SetterPlugin
+from jira_creator.core.plugin_setter_base import SetterPlugin
 
 
 class SetStoryPointsPlugin(SetterPlugin):

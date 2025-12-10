@@ -7,10 +7,10 @@ information about the current active sprint.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
-from jira_creator.plugins.base import JiraPlugin
+from jira_creator.core.plugin_base import JiraPlugin
 
 
 class GetSprintPlugin(JiraPlugin):
@@ -25,6 +25,16 @@ class GetSprintPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Get the current active sprint"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Sprint Management"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["get-sprint 123"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

@@ -4,7 +4,6 @@ python_version = "3.11"
 [packages]
 requests = "*"
 gpt4all = "*"
-argcomplete = "*"
 trove-classifiers = "*"
 ptyprocess = "*"
 msgpack = "*"
@@ -45,7 +44,10 @@ gTTS = "*"
 number_parser = "*"
 fontTools = "*"
 Requests = "*"
-
+pyyaml = "*"
+anthropic = {extras = ["vertex"], version = "*"}
+google-cloud-aiplatform = "*"
+argcomplete = "*"
 
 [dev-packages]
 coverage = "*"

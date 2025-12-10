@@ -81,3 +81,59 @@ def test_improve_text_failure(mock_post):
     provider = BARTProvider()
     with pytest.raises(AiError, match="BART request failed: 500 - Internal Server Error"):
         provider.improve_text("Prompt", "Text")
+
+
+@patch("jira_creator.providers.bart_provider.requests.post")
+def test_analyze_error_success(mock_post):
+    """Test analyze_error with successful response."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"output": "Error analysis from BART"}
+    mock_post.return_value = mock_response
+
+    provider = BARTProvider()
+    result = provider.analyze_error("test prompt", '{"error": "test"}')
+
+    assert result == "Error analysis from BART"
+    mock_post.assert_called_once()
+
+
+@patch("jira_creator.providers.bart_provider.requests.post")
+def test_analyze_error_failure(mock_post):
+    """Test analyze_error with API failure."""
+    mock_response = MagicMock()
+    mock_response.status_code = 503
+    mock_response.text = "Service Unavailable"
+    mock_post.return_value = mock_response
+
+    provider = BARTProvider()
+    with pytest.raises(AiError, match="BART request failed: 503 - Service Unavailable"):
+        provider.analyze_error("test prompt", '{"error": "test"}')
+
+
+@patch("jira_creator.providers.bart_provider.requests.post")
+def test_analyze_and_fix_error_success(mock_post):
+    """Test analyze_and_fix_error with successful response."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"output": "Fix proposal from BART"}
+    mock_post.return_value = mock_response
+
+    provider = BARTProvider()
+    result = provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
+
+    assert result == "Fix proposal from BART"
+    mock_post.assert_called_once()
+
+
+@patch("jira_creator.providers.bart_provider.requests.post")
+def test_analyze_and_fix_error_failure(mock_post):
+    """Test analyze_and_fix_error with API failure."""
+    mock_response = MagicMock()
+    mock_response.status_code = 400
+    mock_response.text = "Bad Request"
+    mock_post.return_value = mock_response
+
+    provider = BARTProvider()
+    with pytest.raises(AiError, match="BART request failed: 400 - Bad Request"):
+        provider.analyze_and_fix_error("test prompt", '{"error": "test"}')

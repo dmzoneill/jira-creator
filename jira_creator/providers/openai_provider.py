@@ -91,6 +91,82 @@ class OpenAIProvider(AIProvider):
 
         response: requests.Response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
         if response.status_code == 200:
+            raw_content = response.json()["choices"][0]["message"]["content"]
+            return self.extract_content(raw_content)
+
+        raise AiError(f"OpenAI API call failed: {response.status_code} - {response.text}")
+
+    def analyze_error(self, prompt: str, error_context: str) -> str:
+        """
+        Analyze a JIRA API error and suggest code-level fixes.
+
+        Arguments:
+        - prompt (str): The system prompt for error analysis.
+        - error_context (str): JSON-formatted error context.
+
+        Return:
+        - str: Markdown-formatted analysis with root cause, proposed fix, and workarounds.
+
+        Side Effects:
+        - Makes a request to the OpenAI API for error analysis.
+
+        Exceptions:
+        - AiError: Raised when the OpenAI API call fails.
+        """
+        headers: dict[str, str] = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        body: dict = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": f"Analyze this error:\n\n{error_context}"},
+            ],
+            "temperature": 0.3,  # Lower temperature for more deterministic analysis
+        }
+
+        response: requests.Response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"].strip()
+
+        raise AiError(f"OpenAI API call failed: {response.status_code} - {response.text}")
+
+    def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
+        """
+        Analyze an error and return a structured fix proposal in JSON format.
+
+        Arguments:
+        - prompt (str): The system prompt for error analysis and fix generation.
+        - error_context (str): JSON-formatted error context.
+
+        Return:
+        - str: JSON-formatted fix proposal.
+
+        Side Effects:
+        - Makes a request to the OpenAI API for error analysis and fix generation.
+
+        Exceptions:
+        - AiError: Raised when the OpenAI API call fails.
+        """
+        headers: dict[str, str] = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        body: dict = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": f"Analyze this error and propose a fix:\n\n{error_context}"},
+            ],
+            "temperature": 0.3,  # Lower temperature for more deterministic analysis
+            "response_format": {"type": "json_object"},  # Request JSON response
+        }
+
+        response: requests.Response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
+        if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"].strip()
 
         raise AiError(f"OpenAI API call failed: {response.status_code} - {response.text}")

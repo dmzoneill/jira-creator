@@ -31,7 +31,7 @@ def test_main_guard_execution():
 
     # Should exit with code 0 for --help
     assert result.returncode == 0
-    assert "usage:" in result.stdout.lower()
+    assert "usage" in result.stdout.lower()
 
 
 def test_main_function_direct_import():

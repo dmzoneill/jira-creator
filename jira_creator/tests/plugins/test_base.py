@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 import pytest
 
-from jira_creator.plugins.base import JiraPlugin
+from jira_creator.core.plugin_base import JiraPlugin
 
 
 class MockPlugin(JiraPlugin):
@@ -79,3 +79,33 @@ class TestJiraPlugin:
         # Test rest_operation
         result = plugin.rest_operation(None)
         assert result == {"status": "success"}
+
+    def test_set_dependency_method(self):
+        """Test set_dependency method - covers line 111."""
+        plugin = MockPlugin()
+
+        # Set a dependency after initialization
+        plugin.set_dependency("new_dep", "new_value")
+
+        # Verify it was set
+        assert plugin.get_dependency("new_dep") == "new_value"
+
+    def test_get_fix_capabilities_default(self):
+        """Test get_fix_capabilities returns empty list by default - covers line 166."""
+        plugin = MockPlugin()
+
+        # Default implementation should return empty list
+        capabilities = plugin.get_fix_capabilities()
+        assert capabilities == []
+        assert isinstance(capabilities, list)
+
+    def test_execute_fix_not_implemented(self):
+        """Test execute_fix raises NotImplementedError by default - covers line 186."""
+        plugin = MockPlugin()
+
+        # Should raise NotImplementedError since MockPlugin doesn't implement it
+        with pytest.raises(NotImplementedError) as exc_info:
+            plugin.execute_fix(None, "some_method", {})
+
+        assert "test-command" in str(exc_info.value)
+        assert "some_method" in str(exc_info.value)

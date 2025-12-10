@@ -7,10 +7,10 @@ Jira issues to specific users.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import AssignIssueError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class AssignPlugin(JiraPlugin):
@@ -25,6 +25,16 @@ class AssignPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Assign a Jira issue to a user"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Issue Modification"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["assign AAP-12345 jsmith"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
@@ -70,3 +80,45 @@ class AssignPlugin(JiraPlugin):
         payload = {"fields": {"assignee": {"name": assignee}}}
 
         return client.request("PUT", path, json_data=payload)
+
+    def get_fix_capabilities(self) -> List[Dict[str, Any]]:
+        """Register fix capabilities for automated issue fixing."""
+        return [
+            {
+                "method_name": "assign_to_current_user",
+                "description": "Assign an unassigned issue to the current user",
+                "params": {"issue_key": "str - The JIRA issue key"},
+                "conditions": {
+                    "problem_patterns": ["not assigned", "Unassigned", "❌ In Progress but not assigned"],
+                    "required_status": ["In Progress"],
+                },
+            }
+        ]
+
+    def execute_fix(self, client: Any, method_name: str, args: Dict[str, Any]) -> bool:
+        """
+        Execute a fix method for automated issue fixing.
+
+        Arguments:
+            client: JiraClient instance
+            method_name: The fix method to execute
+            args: Arguments for the fix
+
+        Returns:
+            bool: True if fix succeeded, False otherwise
+        """
+        if method_name == "assign_to_current_user":
+            issue_key = args["issue_key"]
+
+            try:
+                # Get current user
+                user = client.request("GET", "/rest/api/2/myself")
+                assignee = user.get("name")
+
+                # Assign the issue
+                ns = Namespace(issue_key=issue_key, assignee=assignee)
+                return self.execute(client, ns)
+            except Exception:  # pylint: disable=broad-exception-caught
+                return False
+
+        return False

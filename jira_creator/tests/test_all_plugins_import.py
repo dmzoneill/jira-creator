@@ -25,10 +25,10 @@ def test_all_plugins_can_be_imported():
         module_name = f"jira_creator.plugins.{plugin_file[:-3]}"  # Remove .py
         importlib.import_module(module_name)
 
-    # Also import the non-plugin modules
-    importlib.import_module("jira_creator.plugins.base")
-    importlib.import_module("jira_creator.plugins.registry")
-    importlib.import_module("jira_creator.plugins.setter_base")
+    # Also import the core modules
+    importlib.import_module("jira_creator.core.plugin_base")
+    importlib.import_module("jira_creator.core.plugin_registry")
+    importlib.import_module("jira_creator.core.plugin_setter_base")
 
     assert len(plugin_files) > 0, "No plugin files found"
 

@@ -2,7 +2,7 @@
 """Tests for the set component plugin."""
 
 from argparse import Namespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -137,3 +137,78 @@ class TestSetComponentPlugin:
             # Verify special characters are preserved
             call_args = mock_client.request.call_args[1]["json_data"]
             assert call_args["components"][0]["name"] == component
+
+    def test_get_fix_capabilities(self):
+        """Test get_fix_capabilities returns expected capabilities - covers line 55."""
+        plugin = SetComponentPlugin()
+
+        capabilities = plugin.get_fix_capabilities()
+
+        assert isinstance(capabilities, list)
+        assert len(capabilities) == 1
+        assert capabilities[0]["method_name"] == "set_default_component"
+        assert "description" in capabilities[0]
+        assert "params" in capabilities[0]
+        assert "conditions" in capabilities[0]
+
+    @patch("jira_creator.plugins.set_component_plugin.EnvFetcher.get")
+    def test_execute_fix_success(self, mock_env_get):
+        """Test execute_fix with successful execution - covers lines 78-91."""
+        plugin = SetComponentPlugin()
+        mock_client = Mock()
+
+        # Mock default component from environment
+        mock_env_get.return_value = "DefaultComponent"
+
+        # Mock successful execute
+        mock_client.request.return_value = {"key": "TEST-123"}
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "set_default_component", args)
+
+        assert result is True
+        mock_env_get.assert_called_once_with("JIRA_DEFAULT_COMPONENT", default=None)
+        mock_client.request.assert_called_once()
+
+    @patch("jira_creator.plugins.set_component_plugin.EnvFetcher.get")
+    def test_execute_fix_no_default_component(self, mock_env_get):
+        """Test execute_fix when no default component configured - covers lines 85-87."""
+        plugin = SetComponentPlugin()
+        mock_client = Mock()
+
+        # Mock no default component
+        mock_env_get.return_value = None
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "set_default_component", args)
+
+        assert result is False
+        mock_env_get.assert_called_once_with("JIRA_DEFAULT_COMPONENT", default=None)
+        # Should not call client since no default
+        mock_client.request.assert_not_called()
+
+    @patch("jira_creator.plugins.set_component_plugin.EnvFetcher.get")
+    def test_execute_fix_with_exception(self, mock_env_get):
+        """Test execute_fix with exception - covers lines 92-93."""
+        plugin = SetComponentPlugin()
+        mock_client = Mock()
+
+        # Mock default component
+        mock_env_get.return_value = "DefaultComponent"
+
+        # Mock execute to raise exception
+        with patch.object(plugin, "execute", side_effect=Exception("Test error")):
+            args = {"issue_key": "TEST-123"}
+            result = plugin.execute_fix(mock_client, "set_default_component", args)
+
+            assert result is False
+
+    def test_execute_fix_unknown_method(self):
+        """Test execute_fix with unknown method - covers line 95."""
+        plugin = SetComponentPlugin()
+        mock_client = Mock()
+
+        args = {"issue_key": "TEST-123"}
+        result = plugin.execute_fix(mock_client, "unknown_method", args)
+
+        assert result is False

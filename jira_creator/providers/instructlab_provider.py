@@ -84,5 +84,64 @@ class InstructLabProvider(AIProvider):
             timeout=60,
         )
         if response.status_code == 200:
+            raw_content = response.json().get("response", "")
+            return self.extract_content(raw_content)
+        raise AiError(f"InstructLab request failed: {response.status_code} - {response.text}")
+
+    def analyze_error(self, prompt: str, error_context: str) -> str:
+        """
+        Analyze a JIRA API error and suggest code-level fixes.
+
+        Arguments:
+        - prompt (str): The system prompt for error analysis.
+        - error_context (str): JSON-formatted error context.
+
+        Return:
+        - str: Markdown-formatted analysis with root cause, proposed fix, and workarounds.
+
+        Exceptions:
+        - AiError: Raised when the POST request to the URL fails.
+        """
+        full_prompt = f"{prompt}\n\nAnalyze this error:\n\n{error_context}"
+        response: requests.Response = requests.post(
+            self.url,
+            json={
+                "model": self.model,
+                "prompt": full_prompt,
+                "stream": False,
+                "options": {"temperature": 0.3},
+            },
+            timeout=120,
+        )
+        if response.status_code == 200:
+            return response.json().get("response", "").strip()
+        raise AiError(f"InstructLab request failed: {response.status_code} - {response.text}")
+
+    def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
+        """
+        Analyze an error and return a structured fix proposal in JSON format.
+
+        Arguments:
+        - prompt (str): The system prompt for error analysis and fix generation.
+        - error_context (str): JSON-formatted error context.
+
+        Return:
+        - str: JSON-formatted fix proposal.
+
+        Exceptions:
+        - AiError: Raised when the POST request to the URL fails.
+        """
+        full_prompt = f"{prompt}\n\nAnalyze this error and propose a fix:\n\n{error_context}"
+        response: requests.Response = requests.post(
+            self.url,
+            json={
+                "model": self.model,
+                "prompt": full_prompt,
+                "stream": False,
+                "options": {"temperature": 0.3},
+            },
+            timeout=120,
+        )
+        if response.status_code == 200:
             return response.json().get("response", "").strip()
         raise AiError(f"InstructLab request failed: {response.status_code} - {response.text}")

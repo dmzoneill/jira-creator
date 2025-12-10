@@ -89,3 +89,96 @@ def test_improve_text_raises_on_api_failure():
             provider.improve_text("test prompt", "test input")
 
     assert "OpenAI API call failed: 500 - Internal Server Error" in str(exc_info.value)
+
+
+def test_analyze_and_fix_error_raises_on_api_failure():
+    """
+    Test analyze_and_fix_error raises AiError when API call fails.
+
+    This test covers the error path in analyze_and_fix_error method (line 172).
+    """
+    provider = OpenAIProvider()
+    provider.api_key = "fake-key"
+    provider.model = "gpt-3.5-turbo"
+    provider.endpoint = "https://api.openai.com/v1/chat/completions"
+
+    mock_response = MagicMock()
+    mock_response.status_code = 400
+    mock_response.text = "Bad Request"
+
+    with patch(
+        "jira_creator.providers.openai_provider.requests.post",
+        return_value=mock_response,
+    ):
+        with pytest.raises(AiError) as exc_info:
+            provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
+
+    assert "OpenAI API call failed: 400 - Bad Request" in str(exc_info.value)
+
+
+def test_analyze_error_success():
+    """Test analyze_error with successful API call."""
+    provider = OpenAIProvider()
+    provider.api_key = "fake-key"
+    provider.model = "gpt-3.5-turbo"
+    provider.endpoint = "https://api.openai.com/v1/chat/completions"
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"choices": [{"message": {"content": "## Root Cause\nThe error is due to..."}}]}
+
+    with patch(
+        "jira_creator.providers.openai_provider.requests.post",
+        return_value=mock_response,
+    ):
+        result = provider.analyze_error("test prompt", '{"error": "test"}')
+        assert result == "## Root Cause\nThe error is due to..."
+
+
+def test_analyze_error_raises_on_api_failure():
+    """Test analyze_error raises AiError when API call fails."""
+    provider = OpenAIProvider()
+    provider.api_key = "fake-key"
+    provider.model = "gpt-3.5-turbo"
+    provider.endpoint = "https://api.openai.com/v1/chat/completions"
+
+    mock_response = MagicMock()
+    mock_response.status_code = 503
+    mock_response.text = "Service Unavailable"
+
+    with patch(
+        "jira_creator.providers.openai_provider.requests.post",
+        return_value=mock_response,
+    ):
+        with pytest.raises(AiError) as exc_info:
+            provider.analyze_error("test prompt", '{"error": "test"}')
+
+    assert "OpenAI API call failed: 503 - Service Unavailable" in str(exc_info.value)
+
+
+def test_analyze_and_fix_error_success():
+    """Test analyze_and_fix_error with successful API call."""
+    provider = OpenAIProvider()
+    provider.api_key = "fake-key"
+    provider.model = "gpt-3.5-turbo"
+    provider.endpoint = "https://api.openai.com/v1/chat/completions"
+
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "choices": [
+            {
+                "message": {
+                    "content": '{"fix_type": "codebase", "confidence": 0.9, "file_changes": [], "reasoning": "Fix it"}'
+                }
+            }
+        ]
+    }
+
+    with patch(
+        "jira_creator.providers.openai_provider.requests.post",
+        return_value=mock_response,
+    ):
+        result = provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
+        assert "fix_type" in result
+        assert "codebase" in result

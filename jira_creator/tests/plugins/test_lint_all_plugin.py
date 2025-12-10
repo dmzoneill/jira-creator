@@ -164,7 +164,16 @@ class TestLintAllPlugin:
     def test_execute_no_issues(self, mock_get_ai_provider):
         """Test execute when no issues are found."""
         # Mock arguments
-        args = Namespace(project="TEST", component=None, reporter=None, assignee=None, no_ai=False, no_cache=False)
+        args = Namespace(
+            project="TEST",
+            component=None,
+            reporter=None,
+            assignee=None,
+            no_ai=False,
+            no_cache=False,
+            ai_fix=False,
+            interactive=False,
+        )
 
         # Mock rest_operation to return empty list
         with patch.object(self.plugin, "rest_operation") as mock_rest_op:
@@ -332,7 +341,16 @@ class TestLintAllPlugin:
             patch.object(plugin, "_lint_all_issues", return_value=({}, [])) as mock_lint,
             patch.object(plugin, "_display_results", return_value=True) as mock_display,
         ):
-            args = Namespace(no_ai=True, no_cache=False, project="TEST", component=None, reporter=None, assignee=None)
+            args = Namespace(
+                no_ai=True,
+                no_cache=False,
+                project="TEST",
+                component=None,
+                reporter=None,
+                assignee=None,
+                ai_fix=False,
+                interactive=False,
+            )
             result = plugin.execute(mock_client, args)
 
             assert result is True
@@ -394,7 +412,16 @@ class TestLintAllPlugin:
 
         # Mock rest_operation to raise exception
         with patch.object(plugin, "rest_operation", side_effect=LintAllError("API failed")):
-            args = Namespace(no_ai=True, project=None, component=None, reporter=None, assignee=None)
+            args = Namespace(
+                no_ai=True,
+                project=None,
+                component=None,
+                reporter=None,
+                assignee=None,
+                ai_fix=False,
+                interactive=False,
+                no_cache=False,
+            )
 
             with pytest.raises(LintAllError, match="❌ Failed to lint issues: API failed"):
                 plugin.execute(mock_client, args)
@@ -484,3 +511,344 @@ class TestLintAllPlugin:
         plugin._validate_blocked_with_status("False", None, problems, status_dict)
         assert len(problems) == 0
         assert status_dict["Blocked"] is True
+
+    @patch("builtins.print")
+    def test_execute_interactive_without_ai_fix(self, mock_print):
+        """Test that interactive mode requires ai_fix - covers lines 75-76."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        args = Namespace(
+            project=None, component=None, reporter=None, assignee=None, ai_fix=False, interactive=True, no_cache=False
+        )
+
+        result = plugin.execute(mock_client, args)
+
+        assert result is False
+        assert any("--interactive requires --ai-fix" in str(call) for call in mock_print.call_args_list)
+
+    @patch("builtins.print")
+    @patch("jira_creator.plugins.lint_all_plugin.EnvFetcher.get")
+    def test_execute_ai_fix_without_plugin_registry(self, mock_env, mock_print):
+        """Test AI fix mode without plugin registry - covers lines 89-94."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        mock_env.return_value = None
+
+        # Set AI provider dependency but not plugin registry
+        mock_ai_provider = Mock()
+        plugin.set_dependency("ai_provider", mock_ai_provider)
+
+        args = Namespace(
+            project=None,
+            component=None,
+            reporter=None,
+            assignee=None,
+            ai_fix=True,
+            interactive=False,
+            no_cache=False,
+            no_ai=False,
+        )
+
+        result = plugin.execute(mock_client, args)
+
+        assert result is False
+        assert any("AI fix requires plugin registry" in str(call) for call in mock_print.call_args_list)
+
+    @patch("builtins.print")
+    @patch("jira_creator.plugins.lint_all_plugin.EnvFetcher.get")
+    @patch("jira_creator.plugins.lint_all_plugin.AIExecutor")
+    def test_execute_with_ai_fix_and_relint(self, mock_executor_class, mock_env, mock_print):
+        """Test AI fix mode with re-linting - covers lines 110-115."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        mock_env.side_effect = lambda key, default=None: {
+            "JIRA_EPIC_FIELD": "customfield_10001",
+            "JIRA_SPRINT_FIELD": "customfield_10002",
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_10003",
+            "JIRA_STORY_POINTS_FIELD": "customfield_10004",
+        }.get(key, default)
+
+        # Mock dependencies
+        mock_ai_provider = Mock()
+        mock_plugin_registry = Mock()
+        plugin.set_dependency("ai_provider", mock_ai_provider)
+        plugin.set_dependency("plugin_registry", mock_plugin_registry)
+
+        # Mock AI executor
+        mock_executor = Mock()
+        mock_executor_class.return_value = mock_executor
+
+        # Mock issues with failures
+        mock_client.request.return_value = {
+            "issues": [
+                {
+                    "key": "TEST-1",
+                    "fields": {
+                        "summary": "Test issue",
+                        "status": {"name": "Open"},
+                        "issuetype": {"name": "Story"},
+                        "priority": None,  # Will fail lint
+                        "customfield_10001": None,
+                        "customfield_10002": None,
+                        "customfield_10003": None,
+                        "customfield_10004": None,
+                    },
+                }
+            ]
+        }
+
+        args = Namespace(
+            project=None,
+            component=None,
+            reporter=None,
+            assignee=None,
+            ai_fix=True,
+            interactive=False,
+            no_cache=True,
+            no_ai=False,
+        )
+
+        # First call returns failures, second call (after fixes) returns no failures
+        with patch.object(plugin, "_lint_all_issues") as mock_lint:
+            mock_lint.side_effect = [
+                ({"TEST-1": ("Test issue", ["Missing priority"])}, {"TEST-1": {}}),  # First lint: failure
+                ({}, {}),  # Second lint: success
+            ]
+
+            with patch.object(plugin, "_apply_ai_fixes") as mock_apply_fixes:
+                plugin.execute(mock_client, args)
+
+                # Should have called _apply_ai_fixes
+                mock_apply_fixes.assert_called_once()
+
+        # Should have re-linted
+        assert mock_lint.call_count == 2
+
+    @patch("builtins.print")
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_apply_ai_fixes(self, mock_logger, mock_print):
+        """Test _apply_ai_fixes method - covers lines 451-485."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+        mock_executor = Mock()
+
+        # Mock issue context
+        mock_client.request.return_value = {
+            "fields": {
+                "status": {"name": "Open"},
+                "issuetype": {"name": "Bug"},
+                "assignee": {"name": "testuser"},
+            }
+        }
+
+        # Mock AI executor
+        mock_executor.generate_fixes.return_value = [
+            {"function": "set_priority", "args": {"issue_key": "TEST-1", "priority": "High"}, "action": "Set priority"}
+        ]
+        mock_executor.execute_fixes.return_value = (1, 0)  # 1 success, 0 failures
+
+        failures = {"TEST-1": ("Test issue", ["Missing priority"])}
+
+        with patch.object(plugin, "_get_active_sprint", return_value={"id": "123", "name": "Sprint 1"}):
+            plugin._apply_ai_fixes(mock_client, failures, mock_executor, interactive=False)
+
+        # Verify AI executor was called
+        mock_executor.generate_fixes.assert_called_once()
+        mock_executor.execute_fixes.assert_called_once()
+
+    @patch("builtins.print")
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_apply_ai_fixes_no_fixes_generated(self, mock_logger, mock_print):
+        """Test _apply_ai_fixes when no fixes are generated - covers line 470."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+        mock_executor = Mock()
+
+        # Mock issue context
+        mock_client.request.return_value = {
+            "fields": {
+                "status": {"name": "Open"},
+                "issuetype": {"name": "Bug"},
+                "assignee": {"name": "testuser"},
+            }
+        }
+
+        # AI returns no fixes
+        mock_executor.generate_fixes.return_value = []
+
+        failures = {"TEST-1": ("Test issue", ["Complex problem"])}
+
+        with patch.object(plugin, "_get_active_sprint", return_value=None):
+            plugin._apply_ai_fixes(mock_client, failures, mock_executor, interactive=False)
+
+        # Should print "No applicable fixes"
+        assert any("No applicable fixes" in str(call) for call in mock_print.call_args_list)
+
+    @patch("builtins.print")
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_apply_ai_fixes_exception(self, mock_logger, mock_print):
+        """Test _apply_ai_fixes with exception - covers lines 480-483."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+        mock_executor = Mock()
+
+        # Mock exception in generate_fixes
+        mock_executor.generate_fixes.side_effect = Exception("AI error")
+
+        # Mock context building
+        mock_client.request.return_value = {
+            "fields": {
+                "status": {"name": "Open"},
+                "issuetype": {"name": "Bug"},
+                "assignee": {"name": "testuser"},
+            }
+        }
+
+        failures = {"TEST-1": ("Test issue", ["Problem"])}
+
+        with patch.object(plugin, "_get_active_sprint", return_value=None):
+            plugin._apply_ai_fixes(mock_client, failures, mock_executor, interactive=False)
+
+        # Should log error
+        assert mock_logger.error.called
+
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_build_issue_context_success(self, mock_logger):
+        """Test _build_issue_context with successful fetch - covers lines 498-522."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        # Mock issue response
+        mock_client.request.return_value = {
+            "fields": {
+                "status": {"name": "In Progress"},
+                "issuetype": {"name": "Story"},
+                "assignee": {"name": "john.doe"},
+            }
+        }
+
+        # Mock active sprint
+        with patch.object(plugin, "_get_active_sprint", return_value={"id": "456", "name": "Sprint 2"}):
+            context = plugin._build_issue_context(mock_client, "TEST-1")
+
+        assert context is not None
+        assert context["issue_status"] == "In Progress"
+        assert context["issue_type"] == "Story"
+        assert context["current_assignee"] == "john.doe"
+        assert context["active_sprint_id"] == "456"
+        assert context["active_sprint_name"] == "Sprint 2"
+
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_build_issue_context_no_active_sprint(self, mock_logger):
+        """Test _build_issue_context without active sprint - covers lines 518-520."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        mock_client.request.return_value = {
+            "fields": {"status": {"name": "Open"}, "issuetype": {"name": "Bug"}, "assignee": None}
+        }
+
+        # No active sprint
+        with patch.object(plugin, "_get_active_sprint", return_value=None):
+            context = plugin._build_issue_context(mock_client, "TEST-1")
+
+        assert context is not None
+        assert context["active_sprint_id"] is None
+        assert context["active_sprint_name"] is None
+        assert context["current_assignee"] == "Unassigned"
+
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_build_issue_context_exception(self, mock_logger):
+        """Test _build_issue_context with exception - covers lines 524-526."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        # Request raises exception
+        mock_client.request.side_effect = Exception("API error")
+
+        context = plugin._build_issue_context(mock_client, "TEST-1")
+
+        assert context is None
+        assert mock_logger.error.called
+
+    @patch("jira_creator.plugins.lint_all_plugin.EnvFetcher.get")
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_get_active_sprint_success(self, mock_logger, mock_env):
+        """Test _get_active_sprint with successful fetch - covers lines 538-551."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        mock_env.return_value = "123"  # JIRA_BOARD_ID
+
+        mock_client.request.return_value = {"values": [{"id": "789", "name": "Active Sprint", "state": "active"}]}
+
+        sprint = plugin._get_active_sprint(mock_client)
+
+        assert sprint is not None
+        assert sprint["id"] == "789"
+        assert sprint["name"] == "Active Sprint"
+
+    @patch("jira_creator.plugins.lint_all_plugin.EnvFetcher.get")
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_get_active_sprint_no_board_id(self, mock_logger, mock_env):
+        """Test _get_active_sprint without board ID - covers lines 540-542."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        mock_env.return_value = None  # No JIRA_BOARD_ID
+
+        sprint = plugin._get_active_sprint(mock_client)
+
+        assert sprint is None
+        assert mock_logger.warning.called
+
+    @patch("jira_creator.plugins.lint_all_plugin.EnvFetcher.get")
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_get_active_sprint_no_sprints(self, mock_logger, mock_env):
+        """Test _get_active_sprint with no active sprints - covers line 553."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        mock_env.return_value = "123"
+        mock_client.request.return_value = {"values": []}  # No sprints
+
+        sprint = plugin._get_active_sprint(mock_client)
+
+        assert sprint is None
+
+    @patch("jira_creator.plugins.lint_all_plugin.EnvFetcher.get")
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_get_active_sprint_exception(self, mock_logger, mock_env):
+        """Test _get_active_sprint with exception - covers lines 555-557."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+
+        mock_env.return_value = "123"
+        mock_client.request.side_effect = Exception("API error")
+
+        sprint = plugin._get_active_sprint(mock_client)
+
+        assert sprint is None
+        assert mock_logger.error.called
+
+    @patch("builtins.print")
+    @patch("jira_creator.plugins.lint_all_plugin.logger")
+    def test_apply_ai_fixes_no_context(self, mock_logger, mock_print):
+        """Test _apply_ai_fixes when context fetch fails - covers lines 461-463."""
+        plugin = LintAllPlugin()
+        mock_client = Mock()
+        mock_executor = Mock()
+
+        failures = {"TEST-1": ("Test issue", ["Problem"])}
+
+        # Context building returns None
+        with patch.object(plugin, "_build_issue_context", return_value=None):
+            plugin._apply_ai_fixes(mock_client, failures, mock_executor, interactive=False)
+
+        # Should print "Failed to fetch issue context"
+        assert any("Failed to fetch issue context" in str(call) for call in mock_print.call_args_list)
+        # Should not call AI executor
+        mock_executor.generate_fixes.assert_not_called()

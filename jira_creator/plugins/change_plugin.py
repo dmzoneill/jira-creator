@@ -7,10 +7,10 @@ for backward compatibility with the original CLI.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import ChangeTypeError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class ChangePlugin(JiraPlugin):
@@ -25,6 +25,16 @@ class ChangePlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return the command help text."""
         return "Change issue type"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Issue Modification"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["change AAP-12345"]
 
     # jscpd:ignore-start
     def register_arguments(self, parser: ArgumentParser) -> None:

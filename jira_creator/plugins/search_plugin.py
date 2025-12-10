@@ -9,9 +9,9 @@ for Jira issues using JQL (Jira Query Language).
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list
 from jira_creator.exceptions.exceptions import SearchError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class SearchPlugin(JiraPlugin):
@@ -26,6 +26,16 @@ class SearchPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Search for issues using JQL (Jira Query Language)"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Search & View"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ['search "project = AAP AND status = Open"', 'search "assignee = currentUser()"']
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

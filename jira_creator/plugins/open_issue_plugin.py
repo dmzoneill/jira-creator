@@ -9,11 +9,11 @@ Jira issues in their default web browser.
 import subprocess
 import sys
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import OpenIssueError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class OpenIssuePlugin(JiraPlugin):
@@ -28,6 +28,16 @@ class OpenIssuePlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Open a Jira issue in your web browser"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Utilities"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["open-issue AAP-12345"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

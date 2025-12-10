@@ -91,7 +91,7 @@ class EnvFetcher:
         - default (Optional[str]): Default value to return if environment variable is not set.
         """
 
-        value: Optional[str] = os.getenv(var_name) if "pytest" not in sys.modules else EnvFetcher.vars[var_name]
+        value: Optional[str] = os.getenv(var_name) if "pytest" not in sys.modules else EnvFetcher.vars.get(var_name)
 
         # Handle special default for TEMPLATE_DIR
         template_default: str = os.path.join(os.path.dirname(__file__), "../templates")
@@ -132,6 +132,6 @@ class EnvFetcher:
         - dict: A dictionary containing the fetched environment variables as key-value pairs.
         """
 
-        vars = env_vars if len(env_vars) > 0 else EnvFetcher.vars
+        variables = env_vars if len(env_vars) > 0 else EnvFetcher.vars
 
-        return {var: EnvFetcher.get(var) for var in vars}
+        return {var: EnvFetcher.get(var) for var in variables}

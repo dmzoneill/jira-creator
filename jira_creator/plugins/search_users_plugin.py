@@ -9,8 +9,8 @@ for Jira users by name or email.
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import SearchUsersError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class SearchUsersPlugin(JiraPlugin):
@@ -25,6 +25,16 @@ class SearchUsersPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Search for Jira users by name or email"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Search & View"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ['search-users "John Smith"', "search-users jsmith@example.com"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

@@ -488,3 +488,162 @@ class TestLintPlugin:
             assert extracted["blocked_value"] == "True"
             assert extracted["blocked_reason"] == "Waiting for external dependency"
             assert extracted["issue_type"] == "Story"
+
+    def test_validate_blocked_without_reason(self):
+        """Test _validate_blocked when blocked but no reason - covers line 213."""
+        plugin = LintPlugin()
+        problems = []
+
+        # Test blocked=True without reason
+        plugin._validate_blocked("True", "", problems)
+
+        assert len(problems) == 1
+        assert "Issue is blocked but has no blocked reason" in problems[0]
+
+    def test_validate_blocked_with_reason(self):
+        """Test _validate_blocked when blocked with reason."""
+        plugin = LintPlugin()
+        problems = []
+
+        # Test blocked=True with reason
+        plugin._validate_blocked("True", "Waiting for external team", problems)
+
+        assert len(problems) == 0
+
+    def test_validate_blocked_not_blocked(self):
+        """Test _validate_blocked when not blocked."""
+        plugin = LintPlugin()
+        problems = []
+
+        # Test blocked=False (no validation needed)
+        plugin._validate_blocked("False", "", problems)
+
+        assert len(problems) == 0
+
+    @patch("jira_creator.plugins.lint_plugin.EnvFetcher.get")
+    def test_validate_with_ai_acceptance_criteria_no_cache(self, mock_env_get):
+        """Test _validate_with_ai for acceptance criteria without cache - covers lines 242-246."""
+        plugin = LintPlugin()
+        mock_ai_provider = Mock()
+        mock_ai_provider.improve_text.return_value = "OK"
+
+        mock_env_get.return_value = "customfield_10050"
+
+        fields = {
+            "key": "TEST-1",
+            "customfield_10050": "User can login successfully",
+        }
+        cached = {}
+        problems = []
+
+        plugin._validate_with_ai(fields, mock_ai_provider, cached, problems, False)
+
+        # Should have called AI validation for acceptance criteria
+        assert mock_ai_provider.improve_text.called
+        assert len(problems) == 0
+        assert "acceptance_criteria_hash" in cached
+
+    @patch("jira_creator.plugins.lint_plugin.EnvFetcher.get")
+    def test_validate_with_ai_acceptance_criteria_cached(self, mock_env_get):
+        """Test _validate_with_ai for acceptance criteria with cache hit - covers lines 242-246."""
+        plugin = LintPlugin()
+        mock_ai_provider = Mock()
+
+        mock_env_get.return_value = "customfield_10050"
+
+        acceptance_criteria = "User can login successfully"
+        fields = {
+            "key": "TEST-1",
+            "customfield_10050": acceptance_criteria,
+        }
+
+        # Pre-populate cache with matching hash
+        cached = {"acceptance_criteria_hash": plugin._sha256(acceptance_criteria)}
+        problems = []
+
+        plugin._validate_with_ai(fields, mock_ai_provider, cached, problems, False)
+
+        # Should NOT call AI validation due to cache hit
+        mock_ai_provider.improve_text.assert_not_called()
+        assert len(problems) == 0
+
+    def test_validate_field_with_ai_not_ok(self):
+        """Test _validate_field_with_ai when AI returns not OK - covers lines 267-268."""
+        plugin = LintPlugin()
+        mock_ai_provider = Mock()
+        mock_ai_provider.improve_text.return_value = "Summary is too vague and needs more details"
+
+        cached = {}
+        problems = []
+
+        plugin._validate_field_with_ai("Summary", "Bad summary", "hash123", mock_ai_provider, cached, problems)
+
+        # Should add problem
+        assert len(problems) == 1
+        assert "Summary: Summary is too vague" in problems[0]
+
+    def test_validate_field_with_ai_ok(self):
+        """Test _validate_field_with_ai when AI returns OK - covers lines 270-272."""
+        plugin = LintPlugin()
+        mock_ai_provider = Mock()
+        mock_ai_provider.improve_text.return_value = "OK - this is fine"
+
+        cached = {}
+        problems = []
+
+        plugin._validate_field_with_ai("Summary", "Good summary", "hash123", mock_ai_provider, cached, problems)
+
+        # Should NOT add problem and should update cache
+        assert len(problems) == 0
+        assert cached["summary_hash"] == "hash123"
+
+    def test_validate_field_with_ai_exception(self):
+        """Test _validate_field_with_ai with exception - covers lines 274-275."""
+        plugin = LintPlugin()
+        mock_ai_provider = Mock()
+        mock_ai_provider.improve_text.side_effect = Exception("AI service unavailable")
+
+        cached = {}
+        problems = []
+
+        plugin._validate_field_with_ai("Description", "Test content", "hash456", mock_ai_provider, cached, problems)
+
+        # Should add problem about AI failure
+        assert len(problems) == 1
+        assert "Failed to validate Description with AI" in problems[0]
+        assert "AI service unavailable" in problems[0]
+
+    @patch("os.makedirs")
+    @patch("os.path.exists")
+    def test_save_cache_creates_directory(self, mock_exists, mock_makedirs):
+        """Test save_cache creates cache directory - covers line 302."""
+        plugin = LintPlugin()
+        mock_exists.return_value = False
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cache_file = os.path.join(temp_dir, "subdir", "cache.json")
+
+            with patch.object(plugin, "_get_cache_path", return_value=cache_file):
+                plugin.save_cache({"TEST-1": {"ai_quality": True}})
+
+                # Should have checked if directory exists
+                assert mock_exists.called
+                # Should have created directory
+                mock_makedirs.assert_called_once()
+
+    @patch("builtins.open")
+    @patch("os.path.exists")
+    @patch("os.makedirs")
+    def test_save_cache_ioerror(self, mock_makedirs, mock_exists, mock_open):
+        """Test save_cache handles IOError - covers lines 307-309."""
+        plugin = LintPlugin()
+        mock_exists.return_value = True
+        mock_open.side_effect = IOError("Permission denied")
+
+        cache_data = {"TEST-1": {"ai_quality": True}}
+
+        # Should not raise exception, just silently fail
+        plugin.save_cache(cache_data)
+
+        # Verify open was attempted
+        assert mock_open.called

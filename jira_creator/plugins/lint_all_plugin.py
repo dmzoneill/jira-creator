@@ -9,13 +9,17 @@ multiple Jira issues against quality standards and display a summary table.
 import textwrap
 from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
+from jira_creator.core.ai_executor import AIExecutor
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.logger import get_logger
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import LintAllError
-from jira_creator.plugins.base import JiraPlugin
 from jira_creator.plugins.lint_plugin import LintPlugin
 from jira_creator.providers import get_ai_provider
+
+logger = get_logger("lint_all_plugin")
 
 
 class LintAllPlugin(JiraPlugin):
@@ -31,6 +35,16 @@ class LintAllPlugin(JiraPlugin):
         """Return help text for the command."""
         return "Lint multiple Jira issues for quality and completeness"
 
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Quality & Validation"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["lint-all --project AAP", "lint-all --project AAP --ai-fix"]
+
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
         parser.add_argument("--project", help="Filter by project key")
@@ -42,6 +56,16 @@ class LintAllPlugin(JiraPlugin):
             "--no-cache",
             action="store_true",
             help="Skip cache and force fresh validation",
+        )
+        parser.add_argument(
+            "--ai-fix",
+            action="store_true",
+            help="Attempt to automatically fix lint issues using AI",
+        )
+        parser.add_argument(
+            "--interactive",
+            action="store_true",
+            help="Ask for confirmation before applying each fix (requires --ai-fix)",
         )
 
     def execute(self, client: Any, args: Namespace) -> bool:
@@ -56,12 +80,28 @@ class LintAllPlugin(JiraPlugin):
             bool: True if all issues pass or no issues found, False if any failures
         """
         try:
+            # Validate arguments
+            if args.interactive and not args.ai_fix:
+                print("⚠️  --interactive requires --ai-fix")
+                return False
+
             # Get AI provider if needed
             ai_provider = None
-            if not args.no_ai:
+            if not args.no_ai or args.ai_fix:
                 ai_provider = self.get_dependency(
                     "ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
                 )
+
+            # Get plugin registry for AI fix
+            plugin_registry = None
+            ai_executor = None
+            if args.ai_fix:
+                plugin_registry = self.get_dependency("plugin_registry")
+                if plugin_registry and ai_provider:
+                    ai_executor = AIExecutor(client, plugin_registry, ai_provider)
+                else:
+                    print("⚠️  AI fix requires plugin registry and AI provider")
+                    return False
 
             # Get issues to lint
             issues = self.rest_operation(
@@ -74,6 +114,15 @@ class LintAllPlugin(JiraPlugin):
 
             # Lint all issues
             failures, failure_statuses = self._lint_all_issues(client, issues, ai_provider, args.no_cache)
+
+            # Apply AI fixes if requested
+            if args.ai_fix and failures and ai_executor:
+                print(f"\n🤖 Attempting to fix {len(failures)} issues with lint problems...")
+                self._apply_ai_fixes(client, failures, ai_executor, args.interactive)
+
+                # Re-lint to show updated status
+                print("\n🔄 Re-linting issues after fixes...")
+                failures, failure_statuses = self._lint_all_issues(client, issues, ai_provider, args.no_cache)
 
             # Display results
             return self._display_results(failures, failure_statuses)
@@ -396,3 +445,123 @@ class LintAllPlugin(JiraPlugin):
 
         # Print the bottom separator line
         print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
+
+    def _apply_ai_fixes(
+        self, client: Any, failures: Dict[str, Tuple[str, List[str]]], ai_executor: AIExecutor, interactive: bool
+    ) -> None:
+        """
+        Apply AI fixes to failed issues.
+
+        Arguments:
+            client: JiraClient instance
+            failures: Dict of issue_key -> (summary, problems)
+            ai_executor: AIExecutor instance
+            interactive: Whether to ask for confirmation
+        """
+        total_success = 0
+        total_failure = 0
+
+        for issue_key, (summary, problems) in failures.items():
+            print(f"\n📋 {issue_key} - {summary}")
+            print(f"   Problems: {len(problems)}")
+
+            # Build context for this issue
+            context = self._build_issue_context(client, issue_key)
+
+            if not context:
+                print("   ⚠️  Failed to fetch issue context, skipping")
+                continue
+
+            # Generate fixes using AI
+            try:
+                fix_commands = ai_executor.generate_fixes(issue_key, problems, context)
+
+                if not fix_commands:
+                    print("   ℹ️  No applicable fixes found")
+                    continue
+
+                print(f"   🔧 Generated {len(fix_commands)} fix command(s)")
+
+                # Execute fixes
+                success, failure = ai_executor.execute_fixes(fix_commands, interactive)
+                total_success += success
+                total_failure += failure
+
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.error("Failed to fix %s: %s", issue_key, e)
+                print(f"   ❌ Error: {e}")
+                total_failure += 1
+
+        print(f"\n📊 Fix Summary: {total_success} succeeded, {total_failure} failed")
+
+    def _build_issue_context(self, client: Any, issue_key: str) -> Optional[Dict[str, Any]]:
+        """
+        Build context for an issue to help AI generate appropriate fixes.
+
+        Arguments:
+            client: JiraClient instance
+            issue_key: Issue key
+
+        Returns:
+            Dict with context info or None if fetch fails
+        """
+        try:
+            # Fetch full issue details
+            issue = client.request("GET", f"/rest/api/2/issue/{issue_key}")
+            fields = issue["fields"]
+
+            # Extract basic info
+            assignee_name = (
+                fields.get("assignee", {}).get("name", "Unassigned") if fields.get("assignee") else "Unassigned"
+            )
+            context = {
+                "issue_status": fields.get("status", {}).get("name", "Unknown"),
+                "issue_type": fields.get("issuetype", {}).get("name", "Unknown"),
+                "current_assignee": assignee_name,
+            }
+
+            # Get active sprint info
+            active_sprint = self._get_active_sprint(client)
+            if active_sprint:
+                context["active_sprint_id"] = active_sprint["id"]
+                context["active_sprint_name"] = active_sprint["name"]
+            else:
+                context["active_sprint_id"] = None
+                context["active_sprint_name"] = None
+
+            return context
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Failed to build context for %s: %s", issue_key, e)
+            return None
+
+    def _get_active_sprint(self, client: Any) -> Optional[Dict[str, Any]]:
+        """
+        Get the active sprint for the configured board.
+
+        Arguments:
+            client: JiraClient instance
+
+        Returns:
+            Active sprint dict or None if not found
+        """
+        try:
+            board_id = EnvFetcher.get("JIRA_BOARD_ID")
+            if not board_id:
+                logger.warning("JIRA_BOARD_ID not configured, cannot get active sprint")
+                return None
+
+            # Get all sprints for the board
+            path = f"/rest/agile/1.0/board/{board_id}/sprint?state=active"
+            response = client.request("GET", path)
+            sprints = response.get("values", [])
+
+            # Return the first active sprint
+            if sprints:
+                return sprints[0]
+
+            return None
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Failed to get active sprint: %s", e)
+            return None

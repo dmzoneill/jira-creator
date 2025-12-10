@@ -7,10 +7,10 @@ a copy of an existing Jira issue.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any, Dict, List
 
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import CloneIssueError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class CloneIssuePlugin(JiraPlugin):
@@ -25,6 +25,16 @@ class CloneIssuePlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Create a copy of an existing Jira issue"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Issue Creation & Management"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["clone-issue AAP-12345", 'clone-issue AAP-12345 --new-summary "Cloned issue"']
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

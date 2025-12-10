@@ -26,37 +26,9 @@ class TestCreateIssuePlugin:
 
         plugin.register_arguments(mock_parser)
 
-        # Check all arguments are registered
-        expected_calls = [
-            (
-                ("type",),
-                {
-                    "choices": ["bug", "story", "epic", "task"],
-                    "help": "Type of issue to create",
-                },
-            ),
-            (("summary",), {"help": "Issue summary/title"}),
-            (
-                ("-e", "--edit"),
-                {
-                    "action": "store_true",
-                    "help": "Open editor to modify the description before submission",
-                },
-            ),
-            (
-                ("--dry-run",),
-                {
-                    "action": "store_true",
-                    "help": "Preview the issue without creating it",
-                },
-            ),
-            (
-                ("--no-ai",),
-                {"action": "store_true", "help": "Skip AI text improvement"},
-            ),
-        ]
-
-        assert mock_parser.add_argument.call_count == len(expected_calls)
+        # Check that arguments are registered (now includes additional ones)
+        # We have: type, summary, -e/--edit, --dry-run, --no-ai, --input-file, --story-points, --output, --quiet
+        assert mock_parser.add_argument.call_count == 9
 
     def test_rest_operation(self):
         """Test the REST operation directly."""
@@ -101,7 +73,17 @@ class TestCreateIssuePlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-123"}
 
-        args = Namespace(type="story", summary="Test Summary", edit=False, dry_run=False, no_ai=False)
+        args = Namespace(
+            type="story",
+            summary="Test Summary",
+            edit=False,
+            dry_run=False,
+            no_ai=False,
+            input_file=None,
+            story_points=None,
+            output="text",
+            quiet=False,
+        )
 
         # Mock interactive input
         with patch("builtins.input", side_effect=["value1", "value2"]):
@@ -133,7 +115,17 @@ class TestCreateIssuePlugin:
         plugin = CreateIssuePlugin()
         mock_client = Mock()
 
-        args = Namespace(type="bug", summary="Bug Summary", edit=False, dry_run=True, no_ai=True)
+        args = Namespace(
+            type="bug",
+            summary="Bug Summary",
+            edit=False,
+            dry_run=True,
+            no_ai=True,
+            input_file=None,
+            story_points=None,
+            output="text",
+            quiet=False,
+        )
 
         with patch("builtins.input", return_value="value1"):
             with patch("builtins.print") as mock_print:
@@ -167,7 +159,17 @@ class TestCreateIssuePlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-456"}
 
-        args = Namespace(type="task", summary="Task Summary", edit=True, dry_run=False, no_ai=True)
+        args = Namespace(
+            type="task",
+            summary="Task Summary",
+            edit=True,
+            dry_run=False,
+            no_ai=True,
+            input_file=None,
+            story_points=None,
+            output="text",
+            quiet=False,
+        )
 
         with patch("builtins.print"):
             result = plugin.execute(mock_client, args)
@@ -181,7 +183,7 @@ class TestCreateIssuePlugin:
 
     @patch("jira_creator.plugins.create_issue_plugin.TemplateLoader")
     def test_execute_with_ai_error(self, mock_template_loader):
-        """Test execution when AI enhancement fails."""
+        """Test execution when AI enhancement fails - should abort issue creation."""
         # Mock template loader
         mock_loader = Mock()
         mock_loader.get_fields.return_value = ["field1"]
@@ -197,21 +199,32 @@ class TestCreateIssuePlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-789"}
 
-        args = Namespace(type="task", summary="Task Summary", edit=False, dry_run=False, no_ai=False)
+        args = Namespace(
+            type="task",
+            summary="Task Summary",
+            edit=False,
+            dry_run=False,
+            no_ai=False,
+            input_file=None,
+            story_points=None,
+            output="text",
+            quiet=False,
+        )
 
         with patch("builtins.input", return_value="value1"):
             with patch("builtins.print") as mock_print:
                 result = plugin.execute(mock_client, args)
 
-        assert result is True
+        # Should return False to indicate failure
+        assert result is False
 
         # Check AI error message
         print_calls = [call[0][0] for call in mock_print.call_args_list]
-        assert any("⚠️  AI enhancement failed, using original text" in str(call) for call in print_calls)
+        assert any("❌ AI enhancement failed" in str(call) for call in print_calls)
+        assert any("⚠️  Issue creation aborted" in str(call) for call in print_calls)
 
-        # Verify original description was used
-        call_args = mock_client.request.call_args
-        assert call_args[1]["json_data"]["fields"]["description"] == "Original description"
+        # Verify issue was NOT created
+        mock_client.request.assert_not_called()
 
     @patch("jira_creator.plugins.create_issue_plugin.TemplateLoader")
     def test_execute_with_create_error(self, mock_template_loader):
@@ -227,7 +240,17 @@ class TestCreateIssuePlugin:
         mock_client = Mock()
         mock_client.request.side_effect = CreateIssueError("API error")
 
-        args = Namespace(type="story", summary="Story Summary", edit=False, dry_run=False, no_ai=True)
+        args = Namespace(
+            type="story",
+            summary="Story Summary",
+            edit=False,
+            dry_run=False,
+            no_ai=True,
+            input_file=None,
+            story_points=None,
+            output="text",
+            quiet=False,
+        )
 
         with patch("builtins.print") as mock_print:
             with pytest.raises(CreateIssueError):
@@ -416,7 +439,17 @@ class TestCreateIssuePlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"key": "TEST-999"}
 
-        args = Namespace(type="epic", summary="Epic Summary", edit=False, dry_run=False, no_ai=True)
+        args = Namespace(
+            type="epic",
+            summary="Epic Summary",
+            edit=False,
+            dry_run=False,
+            no_ai=True,
+            input_file=None,
+            story_points=None,
+            output="text",
+            quiet=False,
+        )
 
         result = plugin.execute(mock_client, args)
 
@@ -466,6 +499,10 @@ class TestCreateIssuePlugin:
                 edit=False,
                 dry_run=False,
                 no_ai=True,
+                input_file=None,
+                story_points=None,
+                output="text",
+                quiet=False,
             )
 
             result = plugin.execute(mock_client, args)
@@ -484,7 +521,17 @@ class TestCreateIssuePlugin:
         plugin = CreateIssuePlugin()
         mock_client = Mock()
 
-        args = Namespace(type="story", summary="Test Summary", edit=False, dry_run=False, no_ai=True)
+        args = Namespace(
+            type="story",
+            summary="Test Summary",
+            edit=False,
+            dry_run=False,
+            no_ai=True,
+            input_file=None,
+            story_points=None,
+            output="text",
+            quiet=False,
+        )
 
         with pytest.raises(FileNotFoundError):
             plugin.execute(mock_client, args)
@@ -520,3 +567,225 @@ class TestCreateIssuePlugin:
         assert result == "Edited content"
         mock_subprocess.assert_called_once()
         mock_unlink.assert_called_once_with("/tmp/test.md")
+
+    def test_load_field_values_from_yaml(self):
+        """Test loading field values from YAML file."""
+        plugin = CreateIssuePlugin()
+        yaml_content = """
+User Story: "As a user, I want feature X"
+Acceptance Criteria: "* [ ] Item 1"
+Supporting Documentation: "See docs"
+Definition of Done: "Tests pass"
+"""
+        expected_fields = ["User Story", "Acceptance Criteria", "Supporting Documentation", "Definition of Done"]
+
+        with patch("builtins.open", mock_open(read_data=yaml_content)):
+            with patch("pathlib.Path.exists", return_value=True):
+                result = plugin._load_field_values_from_file("test.yaml", expected_fields)
+
+        assert result["User Story"] == "As a user, I want feature X"
+        assert result["Acceptance Criteria"] == "* [ ] Item 1"
+
+    def test_load_field_values_yaml_parse_error(self):
+        """Test YAML parsing error handling."""
+        plugin = CreateIssuePlugin()
+        invalid_yaml = "invalid: yaml: content: [unclosed"
+        expected_fields = ["field1"]
+
+        with patch("builtins.open", mock_open(read_data=invalid_yaml)):
+            with patch("pathlib.Path.exists", return_value=True):
+                with pytest.raises(CreateIssueError, match="Failed to parse input file"):
+                    plugin._load_field_values_from_file("test.yaml", expected_fields)
+
+    def test_load_field_values_missing_fields(self):
+        """Test missing required fields error."""
+        plugin = CreateIssuePlugin()
+        json_content = '{"field1": "value1"}'
+        expected_fields = ["field1", "field2", "field3"]
+
+        with patch("builtins.open", mock_open(read_data=json_content)):
+            with patch("pathlib.Path.exists", return_value=True):
+                with pytest.raises(CreateIssueError, match="Missing required fields"):
+                    plugin._load_field_values_from_file("test.json", expected_fields)
+
+    def test_load_field_values_file_read_error(self):
+        """Test file I/O error handling."""
+        plugin = CreateIssuePlugin()
+        expected_fields = ["field1"]
+
+        with patch("builtins.open", side_effect=OSError("Permission denied")):
+            with patch("pathlib.Path.exists", return_value=True):
+                with pytest.raises(CreateIssueError, match="Failed to read input file"):
+                    plugin._load_field_values_from_file("test.json", expected_fields)
+
+    @patch("builtins.print")
+    def test_validate_length_failure(self, mock_print):
+        """Test validation length failure."""
+        plugin = CreateIssuePlugin()
+
+        result = plugin._validate_length("Summary", 300, 255, "✓ Summary length: 300/255 characters")
+
+        assert result is False
+        assert any("❌ Summary exceeds 255 character limit" in str(call) for call in mock_print.call_args_list)
+
+    @patch("builtins.print")
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
+    def test_check_epic_link_with_epic(self, mock_env_fetcher, mock_print):
+        """Test epic link check when epic is present."""
+        plugin = CreateIssuePlugin()
+        mock_env_fetcher.get.return_value = "customfield_12311140"
+
+        fields = {"issuetype": {"name": "Story"}, "customfield_12311140": "AAP-123"}
+
+        plugin._check_epic_link(fields)
+
+        assert any("✓ Epic link: AAP-123" in str(call) for call in mock_print.call_args_list)
+
+    @patch("builtins.print")
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
+    def test_check_epic_link_without_epic(self, mock_env_fetcher, mock_print):
+        """Test epic link check when epic is missing."""
+        plugin = CreateIssuePlugin()
+        mock_env_fetcher.get.return_value = "customfield_12311140"
+
+        fields = {"issuetype": {"name": "Story"}}
+
+        plugin._check_epic_link(fields)
+
+        assert any("⚠️  No epic link specified for story" in str(call) for call in mock_print.call_args_list)
+
+    @patch("builtins.print")
+    def test_output_result_quiet_mode(self, mock_print):
+        """Test output in quiet mode."""
+        plugin = CreateIssuePlugin()
+        args = Mock(quiet=True, output=None)
+
+        plugin._output_result(args, "TEST-123", "10001", "https://jira.example.com", None)
+
+        # Should only print the issue key
+        mock_print.assert_called_once_with("TEST-123")
+
+    @patch("builtins.print")
+    def test_output_result_json_mode(self, mock_print):
+        """Test output in JSON mode."""
+        plugin = CreateIssuePlugin()
+        args = Mock(quiet=False, output="json")
+
+        plugin._output_result(args, "TEST-123", "10001", "https://jira.example.com", None)
+
+        # Should print JSON
+        call_args = str(mock_print.call_args_list[0])
+        assert "TEST-123" in call_args
+        assert "10001" in call_args
+
+    @patch("builtins.print")
+    def test_output_result_json_mode_with_story_points(self, mock_print):
+        """Test output in JSON mode with story points."""
+        plugin = CreateIssuePlugin()
+        args = Mock(quiet=False, output="json")
+
+        plugin._output_result(args, "TEST-123", "10001", "https://jira.example.com", 5)
+
+        # Should print JSON with story points
+        call_args = str(mock_print.call_args_list[0])
+        assert "story_points" in call_args
+        assert "5" in call_args
+
+    @patch("builtins.print")
+    def test_output_result_default_with_story_points(self, mock_print):
+        """Test default output with story points."""
+        plugin = CreateIssuePlugin()
+        args = Mock(quiet=False, output=None)
+
+        plugin._output_result(args, "TEST-123", "10001", "https://jira.example.com", 3)
+
+        # Should print story points
+        assert any("📊 Story points: 3" in str(call) for call in mock_print.call_args_list)
+
+    def test_load_field_values_file_not_found(self):
+        """Test _load_field_values_from_file when file doesn't exist - covers line 187."""
+        plugin = CreateIssuePlugin()
+        expected_fields = ["field1"]
+
+        with patch("pathlib.Path.exists", return_value=False):
+            with pytest.raises(CreateIssueError, match="Input file not found"):
+                plugin._load_field_values_from_file("nonexistent.json", expected_fields)
+
+    @patch("jira_creator.plugins.create_issue_plugin.TemplateLoader")
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
+    def test_execute_with_input_file(self, mock_env_fetcher, mock_template_loader):
+        """Test execute with input file - covers line 107."""
+        mock_env_fetcher.get.return_value = "https://jira.example.com"
+
+        # Mock template loader
+        mock_loader = Mock()
+        mock_loader.get_fields.return_value = ["field1", "field2"]
+        mock_loader.render_description.return_value = "Rendered description"
+        mock_template_loader.return_value = mock_loader
+
+        plugin = CreateIssuePlugin()
+        mock_client = Mock()
+        mock_client.request.return_value = {"key": "TEST-123", "id": "10001"}
+
+        args = Namespace(
+            type="story",
+            summary="Test Summary",
+            edit=False,
+            dry_run=False,
+            no_ai=True,
+            input_file="test.json",
+            story_points=None,
+            output="text",
+            quiet=False,
+        )
+
+        # Mock file loading
+        json_content = '{"field1": "value1", "field2": "value2"}'
+        with patch("builtins.open", mock_open(read_data=json_content)):
+            with patch("pathlib.Path.exists", return_value=True):
+                with patch("builtins.print"):
+                    result = plugin.execute(mock_client, args)
+
+        assert result is True
+        mock_client.request.assert_called_once()
+
+    @patch("jira_creator.plugins.create_issue_plugin.TemplateLoader")
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
+    def test_execute_with_story_points(self, mock_env_fetcher, mock_template_loader):
+        """Test execute with story points - covers lines 132-133."""
+        mock_env_fetcher.get.side_effect = lambda key, default=None: {
+            "JIRA_URL": "https://jira.example.com",
+            "JIRA_STORY_POINTS_FIELD": "customfield_12310243",
+        }.get(key, default)
+
+        # Mock template loader
+        mock_loader = Mock()
+        mock_loader.get_fields.return_value = []
+        mock_loader.render_description.return_value = "Description"
+        mock_template_loader.return_value = mock_loader
+
+        plugin = CreateIssuePlugin()
+        mock_client = Mock()
+        mock_client.request.return_value = {"key": "TEST-123", "id": "10001"}
+
+        args = Namespace(
+            type="story",
+            summary="Story with points",
+            edit=False,
+            dry_run=False,
+            no_ai=True,
+            input_file=None,
+            story_points=5,
+            output="text",
+            quiet=False,
+        )
+
+        with patch("builtins.print"):
+            result = plugin.execute(mock_client, args)
+
+        assert result is True
+
+        # Verify story points field was added to payload
+        call_args = mock_client.request.call_args
+        payload = call_args[1]["json_data"]
+        assert payload["fields"]["customfield_12310243"] == 5

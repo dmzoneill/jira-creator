@@ -26,6 +26,7 @@ from .bart_provider import BARTProvider
 from .deepseek_provider import DeepSeekProvider
 from .instructlab_provider import InstructLabProvider
 from .openai_provider import OpenAIProvider
+from .vertex_provider import VertexAIProvider
 
 
 def get_ai_provider(name: str):
@@ -53,6 +54,7 @@ def get_ai_provider(name: str):
         "instructlab": InstructLabProvider,
         "bart": BARTProvider,
         "deepseek": DeepSeekProvider,
+        "vertex": VertexAIProvider,
     }
 
     try:

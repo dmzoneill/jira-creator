@@ -10,8 +10,8 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List, Optional
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import AddSprintError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class AddToSprintPlugin(JiraPlugin):
@@ -26,6 +26,16 @@ class AddToSprintPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return help text for the command."""
         return "Add an issue to a sprint and optionally assign it"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Sprint Management"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["add-to-sprint AAP-12345 123"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
@@ -144,3 +154,46 @@ class AddToSprintPlugin(JiraPlugin):
             start_at += max_results
 
         return None
+
+    def get_fix_capabilities(self) -> List[Dict[str, Any]]:
+        """Register fix capabilities for automated issue fixing."""
+        return [
+            {
+                "method_name": "add_to_active_sprint",
+                "description": "Add an issue to the active sprint",
+                "params": {"issue_key": "str - The JIRA issue key", "sprint_id": "int - The sprint ID to add to"},
+                "conditions": {
+                    "problem_patterns": ["not assigned to a Sprint", "In Progress but not assigned"],
+                    "required_status": ["In Progress"],
+                },
+            }
+        ]
+
+    def execute_fix(self, client: Any, method_name: str, args: Dict[str, Any]) -> bool:
+        """
+        Execute a fix method for automated issue fixing.
+
+        Arguments:
+            client: JiraClient instance
+            method_name: The fix method to execute
+            args: Arguments for the fix
+
+        Returns:
+            bool: True if fix succeeded, False otherwise
+        """
+        if method_name == "add_to_active_sprint":
+            issue_key = args["issue_key"]
+            sprint_id = args["sprint_id"]
+
+            try:
+                # Add to sprint directly using sprint ID
+                client.request(
+                    "POST",
+                    f"/rest/agile/1.0/sprint/{sprint_id}/issue",
+                    json_data={"issues": [issue_key]},
+                )
+                return True
+            except Exception:  # pylint: disable=broad-exception-caught
+                return False
+
+        return False

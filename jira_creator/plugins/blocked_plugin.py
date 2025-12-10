@@ -10,8 +10,8 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List, Union
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import ListBlockedError
-from jira_creator.plugins.base import JiraPlugin
 
 
 class BlockedPlugin(JiraPlugin):
@@ -26,6 +26,16 @@ class BlockedPlugin(JiraPlugin):
     def help_text(self) -> str:
         """Return the command help text."""
         return "List blocked issues"
+
+    @property
+    def category(self) -> str:
+        """Return the category for help organization."""
+        return "Blocking & Issues"
+
+    @property
+    def example_commands(self) -> List[str]:
+        """Return example commands."""
+        return ["blocked"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments with the argument parser."""

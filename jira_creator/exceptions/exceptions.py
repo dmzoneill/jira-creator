@@ -209,3 +209,7 @@ class BatchCreateError(BaseException):
 
 class ConfigError(BaseException):
     """This class represents a custom exception for configuration operation errors."""
+
+
+class TalkError(BaseException):
+    """This class represents a custom exception for voice/talk operation errors."""

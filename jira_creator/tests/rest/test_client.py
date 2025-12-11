@@ -191,11 +191,15 @@ def test_request_404_error(mock_request, mock_sleep):
     mock_response.status_code = 404
     mock_response.text = "Not Found"
     mock_response.json.return_value = {}
+    mock_response.headers = {}
 
     mock_request.return_value = mock_response
 
-    with pytest.raises(JiraClientRequestError):
-        client.request("GET", "/rest/api/2/issue/ISSUE-404")
+    # Mock AI analysis to prevent actual API calls
+    with patch.object(client, "_analyze_and_fix_error", return_value=None):
+        with patch.object(client, "_analyze_error_with_ai", return_value=None):
+            with pytest.raises(JiraClientRequestError):
+                client.request("GET", "/rest/api/2/issue/ISSUE-404")
     mock_request.call_count == 3
 
 
@@ -222,11 +226,15 @@ def test_request_401_error(mock_request, mock_sleep):
     mock_response.status_code = 401
     mock_response.text = "Unauthorized"
     mock_response.json.return_value = {}
+    mock_response.headers = {}
 
     mock_request.return_value = mock_response
 
-    with pytest.raises(JiraClientRequestError):
-        client.request("GET", "/rest/api/2/issue/ISSUE-401")
+    # Mock AI analysis to prevent actual API calls
+    with patch.object(client, "_analyze_and_fix_error", return_value=None):
+        with patch.object(client, "_analyze_error_with_ai", return_value=None):
+            with pytest.raises(JiraClientRequestError):
+                client.request("GET", "/rest/api/2/issue/ISSUE-401")
     mock_request.call_count == 3
 
 
@@ -252,11 +260,15 @@ def test_request_500_error(mock_request, mock_sleep):
     mock_response.status_code = 500
     mock_response.text = "Internal Server Error"
     mock_response.json.return_value = {}
+    mock_response.headers = {}
 
     mock_request.return_value = mock_response
 
-    with pytest.raises(JiraClientRequestError):
-        client.request("GET", "/rest/api/2/issue/ISSUE-500")
+    # Mock AI analysis to prevent actual API calls
+    with patch.object(client, "_analyze_and_fix_error", return_value=None):
+        with patch.object(client, "_analyze_error_with_ai", return_value=None):
+            with pytest.raises(JiraClientRequestError):
+                client.request("GET", "/rest/api/2/issue/ISSUE-500")
     mock_request.call_count == 3
 
 
@@ -432,23 +444,29 @@ def test_request_final_return(mock_sleep, mock_request):
     mock_response_1 = MagicMock()
     mock_response_1.status_code = 500
     mock_response_1.text = "Server error"
+    mock_response_1.headers = {}
 
     mock_response_2 = MagicMock()
     mock_response_2.status_code = 500
     mock_response_2.text = "Server error"
+    mock_response_2.headers = {}
 
     mock_response_3 = MagicMock()
     mock_response_3.status_code = 500
     mock_response_3.text = "Server error"
+    mock_response_3.headers = {}
 
     # Define the side effects to simulate retries
     mock_request.side_effect = [mock_response_1, mock_response_2, mock_response_3]
 
     result = {}
 
-    with pytest.raises(JiraClientRequestError):
-        # Call the function
-        result = client.request("GET", "/rest/api/2/issue/ISSUE-RETRY")
+    # Mock AI analysis to prevent actual API calls
+    with patch.object(client, "_analyze_and_fix_error", return_value=None):
+        with patch.object(client, "_analyze_error_with_ai", return_value=None):
+            with pytest.raises(JiraClientRequestError):
+                # Call the function
+                result = client.request("GET", "/rest/api/2/issue/ISSUE-RETRY")
 
     # Ensure the final result is an empty dictionary
     assert result == {}
@@ -517,3 +535,250 @@ def test_get_field_name_exception():
     with patch.object(client, "request", side_effect=Exception("Request failed")):
         result = client.get_field_name("customfield_12310243")
         assert result is None
+
+
+def test_extract_error_detail_with_error_messages():
+    """Test _extract_error_detail with errorMessages field."""
+    client = JiraClient()
+
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"errorMessages": ["Error 1", "Error 2"]}
+
+    result = client._extract_error_detail(mock_response)
+    assert result == "Error 1; Error 2"
+
+
+def test_extract_error_detail_with_errors_field():
+    """Test _extract_error_detail with errors field."""
+    client = JiraClient()
+
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"errors": {"field1": "Error 1", "field2": "Error 2"}}
+
+    result = client._extract_error_detail(mock_response)
+    assert "field1: Error 1" in result
+    assert "field2: Error 2" in result
+
+
+def test_extract_error_detail_with_message_field():
+    """Test _extract_error_detail with message field."""
+    client = JiraClient()
+
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"message": "Error message"}
+
+    result = client._extract_error_detail(mock_response)
+    assert result == "Error message"
+
+
+def test_extract_error_detail_with_exception():
+    """Test _extract_error_detail when JSON parsing fails."""
+    client = JiraClient()
+
+    mock_response = MagicMock()
+    mock_response.json.side_effect = Exception("Invalid JSON")
+    mock_response.text = "Plain text error message"
+
+    result = client._extract_error_detail(mock_response)
+    assert result == "Plain text error message"
+
+
+@patch("builtins.print")
+def test_print_error_message_with_error_detail(mock_print):
+    """Test _print_error_message with error detail."""
+    client = JiraClient()
+
+    mock_response = MagicMock()
+    mock_response.status_code = 400
+    mock_response.json.return_value = {"errorMessages": ["Bad request"]}
+
+    client._print_error_message(mock_response)
+    mock_print.assert_called_once_with("❌ Client/Server error (400): Bad request")
+
+
+@patch("jira_creator.rest.client.requests.get")
+def test_fetch_jira_context_success(mock_get):
+    """Test _fetch_jira_context_for_error with successful fetches."""
+    client = JiraClient()
+
+    # Mock successful responses for all three fetches
+    mock_types_response = MagicMock()
+    mock_types_response.status_code = 200
+    mock_types_response.json.return_value = [{"name": "Story"}, {"name": "Bug"}]
+
+    mock_fields_response = MagicMock()
+    mock_fields_response.status_code = 200
+    mock_fields_response.json.return_value = [
+        {"id": "customfield_123", "name": "Story Points", "custom": True},
+        {"id": "summary", "name": "Summary", "custom": False},
+    ]
+
+    mock_project_response = MagicMock()
+    mock_project_response.status_code = 200
+    mock_project_response.json.return_value = {"key": "XYZ", "name": "Test Project"}
+
+    mock_get.side_effect = [mock_types_response, mock_fields_response, mock_project_response]
+
+    issue_types, custom_fields, project_config = client._fetch_jira_context_for_error()
+
+    assert issue_types == ["Story", "Bug"]
+    assert custom_fields == {"customfield_123": "Story Points"}
+    assert project_config == {"key": "XYZ", "name": "Test Project"}
+
+
+@patch("jira_creator.rest.client.requests.get")
+def test_fetch_jira_context_exception(mock_get):
+    """Test _fetch_jira_context_for_error with exception."""
+    client = JiraClient()
+
+    # Mock exception during fetch
+    mock_get.side_effect = Exception("Network error")
+
+    issue_types, custom_fields, project_config = client._fetch_jira_context_for_error()
+
+    # Should return None for all when exception occurs
+    assert issue_types is None
+    assert custom_fields is None
+    assert project_config is None
+
+
+@patch("builtins.print")
+@patch("builtins.input")
+def test_prompt_for_fix_consent_with_payload_fix(mock_input, mock_print):
+    """Test _prompt_user_for_fix with payload fix type."""
+    from jira_creator.rest.client import FixProposal
+
+    client = JiraClient()
+    mock_input.return_value = "y"
+
+    fix_proposal = FixProposal(
+        analysis="Test analysis",
+        fix_type="payload",
+        confidence=0.9,
+        payload_fix={"summary": "Fixed summary", "description": "Fixed description"},
+        file_changes=[],
+        reasoning="Need to fix payload fields",
+    )
+
+    result = client._prompt_user_for_fix(fix_proposal)
+
+    assert result is True
+    # Verify payload fix was printed
+    calls = [str(call) for call in mock_print.call_args_list]
+    assert any("Payload changes" in str(call) for call in calls)
+
+
+@patch("builtins.print")
+@patch("builtins.input")
+def test_prompt_for_fix_consent_keyboard_interrupt(mock_input, mock_print):
+    """Test _prompt_user_for_fix with KeyboardInterrupt."""
+    from jira_creator.rest.client import FileChange, FixProposal
+
+    client = JiraClient()
+    mock_input.side_effect = KeyboardInterrupt()
+
+    fix_proposal = FixProposal(
+        analysis="Test analysis",
+        fix_type="codebase",
+        confidence=0.8,
+        payload_fix=None,
+        file_changes=[FileChange(file_path="/tmp/test.py", old_content="old", new_content="new")],
+        reasoning="Fix code issue",
+    )
+
+    result = client._prompt_user_for_fix(fix_proposal)
+
+    assert result is False
+    # Verify cancellation message
+    calls = [str(call) for call in mock_print.call_args_list]
+    assert any("cancelled" in str(call).lower() for call in calls)
+
+
+@patch("builtins.print")
+@patch("builtins.input")
+def test_prompt_for_fix_consent_eof_error(mock_input, mock_print):
+    """Test _prompt_user_for_fix with EOFError."""
+    from jira_creator.rest.client import FileChange, FixProposal
+
+    client = JiraClient()
+    mock_input.side_effect = EOFError()
+
+    fix_proposal = FixProposal(
+        analysis="Test analysis",
+        fix_type="codebase",
+        confidence=0.7,
+        payload_fix=None,
+        file_changes=[FileChange(file_path="/tmp/test.py", old_content="old", new_content="new")],
+        reasoning="Fix code issue",
+    )
+
+    result = client._prompt_user_for_fix(fix_proposal)
+
+    assert result is False
+
+
+@patch("builtins.print")
+def test_apply_fix_with_none_type(mock_print):
+    """Test _apply_fix with fix_type='none'."""
+    from jira_creator.rest.client import FixProposal
+
+    client = JiraClient()
+
+    fix_proposal = FixProposal(
+        analysis="Test analysis",
+        fix_type="none",
+        confidence=0.5,
+        payload_fix=None,
+        file_changes=[],
+        reasoning="Cannot fix",
+    )
+
+    result = client._apply_fix(fix_proposal)
+
+    assert result is False
+    # The function just returns False and logs (doesn't print)
+
+
+@patch("builtins.print")
+@patch("os.path.exists")
+def test_apply_codebase_fix_old_content_not_found(mock_exists, mock_print):
+    """Test _apply_codebase_fix when old content doesn't match."""
+    from unittest.mock import mock_open
+
+    from jira_creator.rest.client import FileChange
+
+    client = JiraClient()
+    mock_exists.return_value = True
+
+    # File contains different content than expected
+    file_content = "This is different content"
+    m = mock_open(read_data=file_content)
+
+    fix_changes = [FileChange(file_path="/tmp/test.py", old_content="expected old content", new_content="new content")]
+
+    with patch("builtins.open", m):
+        result = client._apply_codebase_fix(fix_changes)
+
+    assert result is False
+    # Verify error message
+    calls = [str(call) for call in mock_print.call_args_list]
+    assert any("Old content not found" in str(call) for call in calls)
+
+
+@patch("builtins.print")
+@patch("os.path.exists")
+def test_apply_codebase_fix_with_exception(mock_exists, mock_print):
+    """Test _apply_codebase_fix when exception occurs."""
+    from jira_creator.rest.client import FileChange
+
+    client = JiraClient()
+    mock_exists.side_effect = Exception("Disk error")
+
+    fix_changes = [FileChange(file_path="/tmp/test.py", old_content="old", new_content="new")]
+
+    result = client._apply_codebase_fix(fix_changes)
+
+    assert result is False
+    # Verify error message
+    calls = [str(call) for call in mock_print.call_args_list]
+    assert any("Failed to apply fix" in str(call) for call in calls)

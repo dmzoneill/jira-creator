@@ -237,6 +237,11 @@ COMMANDS
     add-comment                    Add a comment to a Jira issue
       $ rh-issue add-comment AAP-12345 "Adding a status update"
 
+    ai-helper                      Use natural language to interact with Jira
+      $ rh-issue ai-helper "Add issue AAP-12345 to the current sprint"
+      $ rh-issue ai-helper "Set AAP-12345 to in progress and assign it to me"
+      $ rh-issue ai-helper "Create a bug for login page crash" --voice
+
     config                         Manage configuration profiles for common settings
       $ rh-issue config
       $ rh-issue config --show-all
@@ -246,6 +251,10 @@ COMMANDS
 
     open-issue                     Open a Jira issue in your web browser
       $ rh-issue open-issue AAP-12345
+
+    talk                           Use voice commands to interact with Jira (requires microp...
+      $ rh-issue talk
+      $ rh-issue talk --voice
 
 OPTIONS
   -h, --help              Show this help message and exit

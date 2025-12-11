@@ -7,7 +7,7 @@ from various AI response formats.
 """
 
 import json
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from jira_creator.core.ai_executor import AIExecutor
 
@@ -373,7 +373,6 @@ class TestAIExecutorGenerateFixes:
 
     def test_generate_fixes_success(self):
         """Test successful fix generation - covers lines 189-229."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -431,7 +430,6 @@ class TestAIExecutorGenerateFixes:
 
     def test_generate_fixes_empty_ai_response(self):
         """Test generate_fixes with empty AI response - covers lines 211-214."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -462,7 +460,6 @@ class TestAIExecutorGenerateFixes:
 
     def test_generate_fixes_no_json_extracted(self):
         """Test generate_fixes when JSON extraction returns empty - covers lines 220-223."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -493,7 +490,6 @@ class TestAIExecutorGenerateFixes:
 
     def test_generate_fixes_json_decode_error(self):
         """Test generate_fixes with invalid JSON - covers lines 231-236."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -524,7 +520,6 @@ class TestAIExecutorGenerateFixes:
 
     def test_generate_fixes_general_exception(self):
         """Test generate_fixes with general exception - covers lines 238-241."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -555,7 +550,6 @@ class TestAIExecutorGenerateFixes:
 
     def test_build_fix_prompt(self):
         """Test _build_fix_prompt builds correct prompt - covers lines 259-297."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -595,7 +589,6 @@ class TestAIExecutorValidateFixes:
 
     def test_validate_fix_commands_unknown_method(self):
         """Test validation skips unknown methods - covers lines 317-320."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -615,7 +608,6 @@ class TestAIExecutorValidateFixes:
 
     def test_validate_fix_commands_status_not_met(self):
         """Test validation skips when status condition not met - covers lines 329-339."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -646,7 +638,6 @@ class TestAIExecutorValidateFixes:
 
     def test_validate_fix_commands_type_not_met(self):
         """Test validation skips when type condition not met - covers lines 342-352."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -709,7 +700,6 @@ class TestAIExecutorExecuteFixes:
 
     def test_execute_fixes_success(self):
         """Test successful fix execution - covers lines 369-409."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -742,7 +732,6 @@ class TestAIExecutorExecuteFixes:
 
     def test_execute_fixes_unknown_method(self):
         """Test execution with unknown method - covers lines 378-382."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -762,7 +751,6 @@ class TestAIExecutorExecuteFixes:
 
     def test_execute_fixes_plugin_returns_false(self):
         """Test execution when plugin returns False - covers lines 410-413."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -789,7 +777,6 @@ class TestAIExecutorExecuteFixes:
 
     def test_execute_fixes_plugin_raises_exception(self):
         """Test execution when plugin raises exception - covers lines 415-419."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -816,7 +803,6 @@ class TestAIExecutorExecuteFixes:
 
     def test_execute_fixes_interactive_mode_accept(self):
         """Test interactive mode when user accepts - covers lines 388-396."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -844,7 +830,6 @@ class TestAIExecutorExecuteFixes:
 
     def test_execute_fixes_interactive_mode_reject(self):
         """Test interactive mode when user rejects - covers lines 394-396."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()
@@ -872,7 +857,6 @@ class TestAIExecutorExecuteFixes:
 
     def test_execute_fixes_interactive_mode_keyboard_interrupt(self):
         """Test interactive mode with KeyboardInterrupt - covers lines 397-399."""
-        from unittest.mock import patch
 
         client = MagicMock()
         plugin_registry = MagicMock()

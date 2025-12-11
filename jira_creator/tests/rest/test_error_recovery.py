@@ -391,6 +391,18 @@ class TestShowDiff:
         # Verify print was called (diff should be displayed)
         assert mock_print.called
 
+    @patch("builtins.print")
+    def test_show_diff_no_differences(self, mock_print):
+        """Test diff display when content is identical."""
+        client = JiraClient()
+
+        content = "line 1\nline 2\nline 3"
+        client._show_diff(content, content, "test.py")
+
+        # Should print "No differences to show"
+        calls = [str(call) for call in mock_print.call_args_list]
+        assert any("No differences" in str(call) for call in calls)
+
 
 class TestFullErrorRecoveryFlow:
     """Test complete error recovery flow with request() method."""

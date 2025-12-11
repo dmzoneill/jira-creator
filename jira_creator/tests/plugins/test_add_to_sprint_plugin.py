@@ -250,3 +250,53 @@ class TestAddToSprintPlugin:
 
         captured = capsys.readouterr()
         assert "✅ Added TEST-123 to sprint 'Sprint 1' on board 123" in captured.out
+
+    def test_get_fix_capabilities(self):
+        """Test get_fix_capabilities returns proper structure."""
+        plugin = AddToSprintPlugin()
+        capabilities = plugin.get_fix_capabilities()
+
+        assert len(capabilities) == 1
+        assert capabilities[0]["method_name"] == "add_to_active_sprint"
+        assert "params" in capabilities[0]
+        assert "conditions" in capabilities[0]
+        assert "description" in capabilities[0]
+
+    def test_execute_fix_add_to_active_sprint_success(self):
+        """Test execute_fix with add_to_active_sprint method."""
+        plugin = AddToSprintPlugin()
+        mock_client = Mock()
+        mock_client.request.return_value = None
+
+        args = {"issue_key": "TEST-123", "sprint_id": 456}
+
+        result = plugin.execute_fix(mock_client, "add_to_active_sprint", args)
+
+        assert result is True
+        mock_client.request.assert_called_once_with(
+            "POST",
+            "/rest/agile/1.0/sprint/456/issue",
+            json_data={"issues": ["TEST-123"]},
+        )
+
+    def test_execute_fix_add_to_active_sprint_failure(self):
+        """Test execute_fix with add_to_active_sprint when request fails."""
+        plugin = AddToSprintPlugin()
+        mock_client = Mock()
+        mock_client.request.side_effect = Exception("API error")
+
+        args = {"issue_key": "TEST-123", "sprint_id": 456}
+
+        result = plugin.execute_fix(mock_client, "add_to_active_sprint", args)
+
+        assert result is False
+
+    def test_execute_fix_unknown_method(self):
+        """Test execute_fix with unknown method."""
+        plugin = AddToSprintPlugin()
+        mock_client = Mock()
+
+        result = plugin.execute_fix(mock_client, "unknown_method", {})
+
+        assert result is False
+        mock_client.request.assert_not_called()

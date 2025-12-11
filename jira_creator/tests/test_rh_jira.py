@@ -258,3 +258,24 @@ class TestPluginBasedJiraCLI:
         jira_creator.rh_jira.main()
 
         mock_cli.run.assert_called_once()
+
+    def test_category_sort_with_undefined_category(self):
+        """Test category sorting with a category not in CATEGORY_ORDER."""
+        # Create CLI
+        cli = PluginBasedJiraCLI()
+
+        # Create a mock plugin with an undefined category
+        mock_plugin = Mock()
+        mock_plugin.command_name = "undefined-test"
+        mock_plugin.help_text = "Test command"
+        mock_plugin.category = "ZZZ_Undefined"  # Not in CATEGORY_ORDER, will be sorted last
+        mock_plugin.register_arguments = Mock()
+        mock_plugin.rest_operation = Mock(return_value={})
+
+        # Add the mock plugin directly to the registry
+        cli.registry._plugins = {"undefined-test": mock_plugin}
+
+        # Run with the undefined category command
+        with patch("sys.argv", ["rh-issue", "undefined-test"]):
+            with patch.object(cli, "_dispatch_command"):
+                cli.run()  # This will sort categories including the undefined one

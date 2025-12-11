@@ -107,7 +107,7 @@ coverage-unit: print-header
 	$(PIPENV) run coverage erase
 	$(PIPENV) run coverage run -m pytest -vv -k "not test_jira_project_creation" --durations=10 jira_creator/tests
 	- $(PIPENV) run coverage combine
-	$(PIPENV) run coverage report -m --fail-under=98
+	$(PIPENV) run coverage report -m --fail-under=99
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"
 

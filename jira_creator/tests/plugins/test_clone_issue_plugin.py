@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import CloneIssueError
-from jira_creator.plugins.clone_issue_plugin import CloneIssuePlugin
+from jira_creator.plugins.clone_issue_plugin import CloneIssueError, CloneIssuePlugin
 
 
 class TestCloneIssuePlugin:

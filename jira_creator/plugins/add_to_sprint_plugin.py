@@ -10,8 +10,14 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List, Optional
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import AddSprintError
+
+logger = get_logger("add_to_sprint")
+
+
+class AddSprintError(Exception):
+    """Exception raised when adding to sprint fails."""
 
 
 class AddToSprintPlugin(JiraPlugin):
@@ -31,6 +37,12 @@ class AddToSprintPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Sprint Management"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "AddSprintError": AddSprintError,
+        }
 
     @property
     def example_commands(self) -> List[str]:
@@ -193,7 +205,8 @@ class AddToSprintPlugin(JiraPlugin):
                     json_data={"issues": [issue_key]},
                 )
                 return True
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Auto-fix failed for %s (sprint %s): %s", issue_key, sprint_id, e)
                 return False
 
         return False

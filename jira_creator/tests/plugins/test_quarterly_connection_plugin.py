@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import QuarterlyConnectionError
-from jira_creator.plugins.quarterly_connection_plugin import QuarterlyConnectionPlugin
+from jira_creator.plugins.quarterly_connection_plugin import QuarterlyConnectionError, QuarterlyConnectionPlugin
 
 
 class TestQuarterlyConnectionPlugin:

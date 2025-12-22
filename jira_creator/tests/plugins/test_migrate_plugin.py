@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import MigrateError
-from jira_creator.plugins.migrate_plugin import MigratePlugin
+from jira_creator.plugins.migrate_plugin import MigrateError, MigratePlugin
 
 
 class TestMigratePlugin:

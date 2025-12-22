@@ -10,7 +10,11 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import MigrateError
+from jira_creator.exceptions.exceptions import JiraClientRequestError
+
+
+class MigrateError(Exception):
+    """Exception raised when migration fails."""
 
 
 class MigratePlugin(JiraPlugin):
@@ -30,6 +34,12 @@ class MigratePlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Utilities"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "MigrateError": MigrateError,
+        }
 
     @property
     def example_commands(self) -> List[str]:
@@ -121,5 +131,9 @@ class MigratePlugin(JiraPlugin):
 
             return {"new_key": new_key}
 
+        except KeyError as e:
+            raise MigrateError(f"Missing required field in API response: {e}") from e
+        except JiraClientRequestError as e:
+            raise MigrateError(f"API request failed during migration: {e}") from e
         except Exception as e:
             raise MigrateError(f"Migration failed: {e}") from e

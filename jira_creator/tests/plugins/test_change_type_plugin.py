@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import ChangeTypeError
-from jira_creator.plugins.change_type_plugin import ChangeTypePlugin
+from jira_creator.plugins.change_type_plugin import ChangeTypeError, ChangeTypePlugin
 
 
 class TestChangeTypePlugin:

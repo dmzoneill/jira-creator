@@ -7,8 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from jira_creator.core.env_fetcher import EnvFetcher
-from jira_creator.exceptions.exceptions import ListBlockedError
-from jira_creator.plugins.list_blocked_plugin import ListBlockedPlugin
+from jira_creator.plugins.list_blocked_plugin import ListBlockedError, ListBlockedPlugin
 
 # Add JIRA_PROJECT_KEY to EnvFetcher vars for testing
 if not hasattr(EnvFetcher, "vars") or "JIRA_PROJECT_KEY" not in EnvFetcher.vars:
@@ -61,7 +60,7 @@ class TestListBlockedPlugin:
 
         assert 'project = "TEST"' in jql
         assert "status NOT IN" in jql
-        assert "linkedIssuesOf" in jql
+        assert 'issuelinktype = "Blocks"' in jql.lower() or 'issuelinktype = "blocks"' in jql.lower()
 
     @patch("jira_creator.plugins.list_blocked_plugin.EnvFetcher.get")
     def test_build_jql_with_filters(self, mock_env):

@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetWorkstreamError
-from jira_creator.plugins.set_workstream_plugin import SetWorkstreamPlugin
+from jira_creator.plugins.set_workstream_plugin import SetWorkstreamError, SetWorkstreamPlugin
 
 
 class TestSetWorkstreamPlugin:

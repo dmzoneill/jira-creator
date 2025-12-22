@@ -1,16 +1,16 @@
 """
 Custom exceptions for the JIRA Creator application.
 
-This module defines all custom exception classes used throughout the jira-creator
-application. These exceptions provide specific error handling for different
-failure scenarios in JIRA operations and AI provider interactions.
+This module defines core exception classes used throughout the jira-creator
+application. Plugin-specific exceptions are now defined within their respective
+plugin modules and registered via the plugin exception registry.
 
-Exception Classes:
+Core Exception Classes:
+    - AiError: Raised for AI-related errors
     - AiProviderError: Raised when AI provider operations fail
-    - JiraRestError: Raised for JIRA REST API operation failures
-    - TemplateError: Raised for template loading and processing errors
-    - ConfigurationError: Raised for environment and configuration issues
+    - JiraClientRequestError: Raised for JIRA REST API request failures
+    - MissingConfigVariable: Raised when required configuration is missing
 
-These exceptions enable proper error handling and user feedback throughout
-the application, allowing for graceful degradation and clear error reporting.
+Plugin-specific exceptions are registered in their respective plugins via
+the get_plugin_exceptions() method and accessed through the PluginRegistry.
 """

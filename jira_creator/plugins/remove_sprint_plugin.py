@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import RemoveFromSprintError
+
+
+class RemoveFromSprintError(Exception):
+    """Exception raised when removing from a sprint fails."""
 
 
 class RemoveSprintPlugin(JiraPlugin):
@@ -30,6 +33,12 @@ class RemoveSprintPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Sprint Management"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "RemoveFromSprintError": RemoveFromSprintError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

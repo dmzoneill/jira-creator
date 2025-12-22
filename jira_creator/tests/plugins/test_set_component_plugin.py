@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetComponentError
-from jira_creator.plugins.set_component_plugin import SetComponentPlugin
+from jira_creator.plugins.set_component_plugin import SetComponentError, SetComponentPlugin
 
 
 class TestSetComponentPlugin:

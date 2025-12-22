@@ -10,7 +10,12 @@ from argparse import ArgumentParser
 from typing import Any, Dict
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.plugin_config import FieldMapping
 from jira_creator.core.plugin_setter_base import SetterPlugin
+
+
+class SetStoryPointsError(Exception):
+    """Exception raised when setting story points fails."""
 
 
 class SetStoryPointsPlugin(SetterPlugin):
@@ -30,6 +35,23 @@ class SetStoryPointsPlugin(SetterPlugin):
     def argument_help(self) -> str:
         """Return help text for the points argument."""
         return "The story points value (integer)"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SetStoryPointsError": SetStoryPointsError,
+        }
+
+    def get_field_mappings(self) -> Dict[str, FieldMapping]:
+        """Register JIRA field mappings for story points."""
+        return {
+            "story_points": FieldMapping(
+                env_var="JIRA_STORY_POINTS_FIELD",
+                default="customfield_12310243",
+                required=True,
+                description="Story points estimation field",
+            ),
+        }
 
     def register_additional_arguments(self, parser: ArgumentParser) -> None:
         """Override to add type validation for points."""
@@ -60,7 +82,10 @@ class SetStoryPointsPlugin(SetterPlugin):
         # Get story points field from environment
         story_points_field = EnvFetcher.get("JIRA_STORY_POINTS_FIELD")
 
+        # Ensure points is a number (JIRA API requires numeric type, not string)
+        points_value = float(points) if isinstance(points, str) else points
+
         path = f"/rest/api/2/issue/{issue_key}"
-        payload = {"fields": {story_points_field: points}}
+        payload = {"fields": {story_points_field: points_value}}
 
         return client.request("PUT", path, json_data=payload)

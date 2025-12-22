@@ -6,8 +6,7 @@ from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import UpdateDescriptionError
-from jira_creator.plugins.update_description_plugin import UpdateDescriptionPlugin
+from jira_creator.plugins.update_description_plugin import UpdateDescriptionError, UpdateDescriptionPlugin
 
 
 class TestUpdateDescriptionPlugin:

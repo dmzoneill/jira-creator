@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import SetPriorityError
+
+
+class SetPriorityError(Exception):
+    """Exception raised when setting priority fails."""
 
 
 class SetPriorityPlugin(JiraPlugin):
@@ -38,6 +41,12 @@ class SetPriorityPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Modification"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SetPriorityError": SetPriorityError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

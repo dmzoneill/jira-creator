@@ -11,7 +11,10 @@ from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import ListBlockedError
+
+
+class ListBlockedError(Exception):
+    """Exception raised for errors when listing blocked issues."""
 
 
 class ListBlockedPlugin(JiraPlugin):
@@ -36,6 +39,12 @@ class ListBlockedPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ["list-blocked", "list-blocked --project AAP"]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "ListBlockedError": ListBlockedError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
@@ -62,6 +71,9 @@ class ListBlockedPlugin(JiraPlugin):
 
             # Search for issues
             result = self.rest_operation(client, jql=jql)
+            if result is None:
+                print("No blocked issues found.")
+                return True
             issues = result.get("issues", [])
 
             if not issues:
@@ -118,8 +130,9 @@ class ListBlockedPlugin(JiraPlugin):
         if args.assignee:
             jql_parts.append(f'assignee = "{args.assignee}"')
 
-        # Issues with blockers (has inward "Blocks" links)
-        jql_parts.append('issueFunction in linkedIssuesOf("project = *", "is blocked by")')
+        # Issues with blockers - use issuelinktype to find issues with "is blocked by" links
+        # This is more reliable than linkedIssuesOf which has wildcard limitations
+        jql_parts.append('issuelinktype = "Blocks"')
 
         jql = " AND ".join(jql_parts)
         jql += " ORDER BY priority DESC, created ASC"
@@ -148,9 +161,9 @@ class ListBlockedPlugin(JiraPlugin):
             issue_data = {
                 "key": issue_key,
                 "summary": fields.get("summary", ""),
-                "status": fields.get("status", {}).get("name", ""),
-                "priority": fields.get("priority", {}).get("name", ""),
-                "assignee": fields.get("assignee", {}).get("displayName", "Unassigned"),
+                "status": (fields.get("status") or {}).get("name", ""),
+                "priority": (fields.get("priority") or {}).get("name", ""),
+                "assignee": (fields.get("assignee") or {}).get("displayName", "Unassigned"),
             }
 
             # Get blocker information from issue links
@@ -177,13 +190,15 @@ class ListBlockedPlugin(JiraPlugin):
 
         for link in issue_links:
             # Inward links are issues that block this one
-            if link.get("type", {}).get("inward") == "is blocked by":
-                inward_issue = link.get("inwardIssue", {})
+            link_type = link.get("type") or {}
+            if link_type.get("inward") == "is blocked by":
+                inward_issue = link.get("inwardIssue") or {}
                 if inward_issue:
+                    inward_fields = inward_issue.get("fields") or {}
                     blocker = {
                         "key": inward_issue.get("key"),
-                        "summary": inward_issue.get("fields", {}).get("summary", ""),
-                        "status": inward_issue.get("fields", {}).get("status", {}).get("name", ""),
+                        "summary": inward_fields.get("summary", ""),
+                        "status": (inward_fields.get("status") or {}).get("name", ""),
                     }
                     blockers.append(blocker)
 

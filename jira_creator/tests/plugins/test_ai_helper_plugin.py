@@ -8,8 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import AIHelperError
-from jira_creator.plugins.ai_helper_plugin import AIHelperPlugin
+from jira_creator.plugins.ai_helper_plugin import AIHelperError, AIHelperPlugin
 
 
 class TestAIHelperPlugin:

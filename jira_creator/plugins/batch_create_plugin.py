@@ -16,10 +16,14 @@ import yaml
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import BatchCreateError, CreateIssueError
+from jira_creator.plugins.create_issue_plugin import CreateIssueError
 from jira_creator.templates.template_loader import TemplateLoader
 
 logger = get_logger("batch_create")
+
+
+class BatchCreateError(Exception):
+    """Exception raised when batch create operation fails."""
 
 
 class BatchCreatePlugin(JiraPlugin):
@@ -39,6 +43,12 @@ class BatchCreatePlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Creation & Management"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "BatchCreateError": BatchCreateError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

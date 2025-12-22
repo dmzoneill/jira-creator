@@ -9,9 +9,13 @@ for Jira issues using JQL (Jira Query Language).
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list
-from jira_creator.exceptions.exceptions import SearchError
+
+
+class SearchError(Exception):
+    """Exception raised for search-related errors."""
 
 
 class SearchPlugin(JiraPlugin):
@@ -36,6 +40,12 @@ class SearchPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ['search "project = AAP AND status = Open"', 'search "assignee = currentUser()"']
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SearchError": SearchError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
@@ -68,8 +78,8 @@ class SearchPlugin(JiraPlugin):
                 return True
 
             # Process and display results
-            massaged_issues = massage_issue_list(results, client)
-            format_and_print_rows(massaged_issues, [], client)
+            headers, rows = massage_issue_list(args, results)
+            format_and_print_rows(rows, headers, client)
 
             print(f"\n📊 Found {len(results)} issue(s)")
             return True
@@ -93,11 +103,38 @@ class SearchPlugin(JiraPlugin):
         jql = kwargs["jql"]
         max_results = kwargs.get("max_results", 50)
 
+        # Get all fields that should be included
+        fields_to_include = [
+            "key",
+            "summary",
+            "status",
+            "assignee",
+            "reporter",
+            "priority",
+            "issuetype",
+            "created",
+            "updated",
+            "components",
+        ]
+
+        # Add custom fields from environment variables
+        sprint_field = EnvFetcher.get("JIRA_SPRINT_FIELD", "")
+        if sprint_field:
+            fields_to_include.append(sprint_field)
+
+        story_points_field = EnvFetcher.get("JIRA_STORY_POINTS_FIELD", "")
+        if story_points_field:
+            fields_to_include.append(story_points_field)
+
+        blocked_field = EnvFetcher.get("JIRA_BLOCKED_FIELD", "")
+        if blocked_field:
+            fields_to_include.append(blocked_field)
+
         # Build the search parameters
         params = {
             "jql": jql,
             "maxResults": max_results,
-            "fields": "key,summary,status,assignee,priority,issuetype,created,updated",
+            "fields": ",".join(fields_to_include),
         }
 
         # Perform the search

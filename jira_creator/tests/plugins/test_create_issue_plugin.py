@@ -6,8 +6,8 @@ from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import AiError, CreateIssueError
-from jira_creator.plugins.create_issue_plugin import CreateIssuePlugin
+from jira_creator.exceptions.exceptions import AiError
+from jira_creator.plugins.create_issue_plugin import CreateIssueError, CreateIssuePlugin
 
 
 class TestCreateIssuePlugin:
@@ -260,9 +260,13 @@ class TestCreateIssuePlugin:
         print_calls = [call[0][0] for call in mock_print.call_args_list]
         assert any("❌ Failed to create issue" in str(call) for call in print_calls)
 
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
     @patch("jira_creator.plugins.create_issue_plugin.TemplateLoader")
-    def test_gather_field_values_interactive(self, mock_template_loader):
+    def test_gather_field_values_interactive(self, mock_template_loader, mock_env_fetcher):
         """Test gathering field values in interactive mode."""
+        # Mock EnvFetcher to return empty string for acceptance criteria field
+        mock_env_fetcher.get.return_value = ""
+
         plugin = CreateIssuePlugin()
         fields = ["field1", "field2", "field3"]
 
@@ -280,6 +284,35 @@ class TestCreateIssuePlugin:
         values = plugin._gather_field_values(fields, edit_mode=True)
 
         assert values == {"field1": "{{field1}}", "field2": "{{field2}}"}
+
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
+    def test_gather_field_values_validates_acceptance_criteria(self, mock_env_fetcher):
+        """Test that validation fails when acceptance criteria is required but empty."""
+        # Mock EnvFetcher to return a field ID for acceptance criteria
+        mock_env_fetcher.get.return_value = "customfield_12315940"
+
+        plugin = CreateIssuePlugin()
+        fields = ["User Story", "Acceptance Criteria"]
+
+        with patch("builtins.input", side_effect=["Test story", ""]):
+            with patch("builtins.print"):
+                with pytest.raises(CreateIssueError, match="Acceptance Criteria is required"):
+                    plugin._gather_field_values(fields, edit_mode=False)
+
+    @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
+    def test_gather_field_values_with_valid_acceptance_criteria(self, mock_env_fetcher):
+        """Test that validation passes when acceptance criteria is provided."""
+        # Mock EnvFetcher to return a field ID for acceptance criteria
+        mock_env_fetcher.get.return_value = "customfield_12315940"
+
+        plugin = CreateIssuePlugin()
+        fields = ["User Story", "Acceptance Criteria"]
+
+        with patch("builtins.input", side_effect=["Test story", "Test criteria"]):
+            with patch("builtins.print"):
+                values = plugin._gather_field_values(fields, edit_mode=False)
+
+        assert values == {"User Story": "Test story", "Acceptance Criteria": "Test criteria"}
 
     @patch("jira_creator.plugins.create_issue_plugin.get_ai_provider")
     @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
@@ -300,13 +333,16 @@ class TestCreateIssuePlugin:
     @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
     def test_build_payload_basic(self, mock_env_fetcher):
         """Test building basic payload."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = lambda key, default="": {
             "JIRA_PROJECT_KEY": "TEST",
             "JIRA_AFFECTS_VERSION": "",
             "JIRA_COMPONENT_NAME": "",
             "JIRA_PRIORITY": "Normal",
             "JIRA_EPIC_FIELD": "",
-        }.get(key, "")
+            "JIRA_WORKSTREAM_FIELD": "",
+            "JIRA_WORKSTREAM": "",
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "",
+        }.get(key, default)
 
         plugin = CreateIssuePlugin()
         payload = plugin._build_payload("Test Summary", "Test Description", "bug")
@@ -332,10 +368,14 @@ class TestCreateIssuePlugin:
             "JIRA_PRIORITY": "High",
             "JIRA_EPIC_FIELD": "customfield_10001",
             "JIRA_EPIC_KEY": "TEST-100",
+            "JIRA_WORKSTREAM_FIELD": "customfield_12319275",
+            "JIRA_WORKSTREAM": "44650",
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_12315940",
         }.get(key, default if default is not None else "")
 
         plugin = CreateIssuePlugin()
-        payload = plugin._build_payload("Story Summary", "Story Description", "story")
+        field_values = {"Acceptance Criteria": "User can login successfully"}
+        payload = plugin._build_payload("Story Summary", "Story Description", "story", field_values)
 
         assert payload == {
             "fields": {
@@ -347,19 +387,24 @@ class TestCreateIssuePlugin:
                 "versions": [{"name": "1.0"}],
                 "components": [{"name": "Backend"}],
                 "customfield_10001": "TEST-100",
+                "customfield_12319275": [{"id": "44650"}],
+                "customfield_12315940": "User can login successfully",
             }
         }
 
     @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
     def test_build_payload_bug_with_template_version(self, mock_env_fetcher):
         """Test building payload for bug with affected version from template field."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = lambda key, default="": {
             "JIRA_PROJECT_KEY": "TEST",
             "JIRA_AFFECTS_VERSION": "",
             "JIRA_COMPONENT_NAME": "",
             "JIRA_PRIORITY": "Normal",
             "JIRA_EPIC_FIELD": "",
-        }.get(key, "")
+            "JIRA_WORKSTREAM_FIELD": "",
+            "JIRA_WORKSTREAM": "",
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "",
+        }.get(key, default)
 
         plugin = CreateIssuePlugin()
         field_values = {"Affected Version": "2.1.3"}
@@ -379,13 +424,16 @@ class TestCreateIssuePlugin:
     @patch("jira_creator.plugins.create_issue_plugin.EnvFetcher")
     def test_build_payload_bug_env_version_fallback(self, mock_env_fetcher):
         """Test building payload for bug with affected version from environment."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = lambda key, default="": {
             "JIRA_PROJECT_KEY": "TEST",
             "JIRA_AFFECTS_VERSION": "1.0.0",
             "JIRA_COMPONENT_NAME": "",
             "JIRA_PRIORITY": "Normal",
             "JIRA_EPIC_FIELD": "",
-        }.get(key, "")
+            "JIRA_WORKSTREAM_FIELD": "",
+            "JIRA_WORKSTREAM": "",
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "",
+        }.get(key, default)
 
         plugin = CreateIssuePlugin()
         field_values = {"Affected Version": ""}  # Empty template field

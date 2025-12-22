@@ -1,0 +1,9 @@
+{
+  "name": "Run Tests",
+  "description": "Run all unit tests with coverage (requires 99% coverage)",
+  "command": "cd ${workspaceFolder} && make test",
+  "icon": "beaker",
+  "category": "Testing"
+}
+
+

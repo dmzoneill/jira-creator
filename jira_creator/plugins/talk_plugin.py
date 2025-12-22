@@ -16,7 +16,6 @@ from typing import Any, Dict, List
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import TalkError
 
 logger = get_logger("talk")
 
@@ -56,6 +55,10 @@ FUZZY_DIGIT_MAP = {
 }
 
 
+class TalkError(Exception):
+    """Exception raised when voice/talk operation fails."""
+
+
 class TalkPlugin(JiraPlugin):
     """Plugin for voice interaction with Jira using microphone."""
 
@@ -73,6 +76,12 @@ class TalkPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Utilities"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "TalkError": TalkError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

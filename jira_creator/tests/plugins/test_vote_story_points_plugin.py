@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import FetchIssueIDError, VoteStoryPointsError
-from jira_creator.plugins.vote_story_points_plugin import VoteStoryPointsPlugin
+from jira_creator.plugins.vote_story_points_plugin import FetchIssueIDError, VoteStoryPointsError, VoteStoryPointsPlugin
 
 
 class TestVoteStoryPointsPlugin:

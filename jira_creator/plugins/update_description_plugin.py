@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import UpdateDescriptionError
+
+
+class UpdateDescriptionError(Exception):
+    """Exception raised when updating a description fails."""
 
 
 class UpdateDescriptionPlugin(JiraPlugin):
@@ -32,6 +35,12 @@ class UpdateDescriptionPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Creation & Management"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "UpdateDescriptionError": UpdateDescriptionError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

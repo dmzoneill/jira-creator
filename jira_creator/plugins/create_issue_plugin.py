@@ -19,12 +19,17 @@ import yaml
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import AiError, CreateIssueError
+from jira_creator.core.plugin_config import FieldMapping
+from jira_creator.exceptions.exceptions import AiError
 from jira_creator.providers import get_ai_provider
 from jira_creator.rest.prompts import IssueType, PromptLibrary
 from jira_creator.templates.template_loader import TemplateLoader
 
 logger = get_logger("create_issue")
+
+
+class CreateIssueError(Exception):
+    """Exception raised when an error occurs during issue creation."""
 
 
 class CreateIssuePlugin(JiraPlugin):
@@ -53,6 +58,82 @@ class CreateIssuePlugin(JiraPlugin):
             "create-issue story 'Add password reset feature' --story-points 5",
             "create-issue task 'Update documentation' --edit",
         ]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "CreateIssueError": CreateIssueError,
+        }
+
+    def get_ai_prompts(self) -> Dict[str, str]:
+        """Register AI prompts for issue type generation."""
+        return {
+            "task": """As a professional Principal Software Engineer, you write acute and clear task descriptions "
+                         "with proper JIRA formatting.
+
+CRITICAL FORMATTING REQUIREMENTS:
+- Use proper JIRA wiki markup syntax
+- Structure sections with h2. headings
+- Use bullet points (*) for lists, NOT numbered lists (1., 2., 3.)
+- Ensure proper spacing between sections
+
+Focus on actionable items and clear acceptance criteria.""",
+            "story": """As a professional Principal Software Engineer, you write acute, well-defined Jira "
+                          "user stories with strong focus on clarity, structure, and detail.
+
+CRITICAL FORMATTING REQUIREMENTS:
+- Use proper JIRA wiki markup syntax
+- Structure sections with h2. headings (e.g., "h2. User Story", "h2. Acceptance Criteria")
+- Use bullet points (*) for lists, NOT numbered lists (1., 2., 3.)
+- Write clear, concise sentences
+- Ensure proper spacing between sections
+- Follow the exact template structure provided
+
+Focus on:
+- Clear user value proposition in the User Story section
+- Specific, testable Acceptance Criteria as bullet points
+- Relevant Supporting Documentation links/references
+- Concrete, measurable Definition of Done items
+
+IMPORTANT: Maintain professional formatting and avoid repetitive numbering patterns.""",
+            "bug": """As a professional Principal Software Engineer, you write acute and clear bug reports "
+                        "with proper JIRA formatting.
+
+CRITICAL FORMATTING REQUIREMENTS:
+- Use proper JIRA wiki markup syntax
+- Structure sections with h2. headings
+- Use bullet points (*) for lists, NOT numbered lists (1., 2., 3.)
+- Ensure proper spacing between sections
+
+Focus on reproducibility and impact with clear steps to reproduce.""",
+            "epic": """As a professional Principal Software Engineer, you write acute and clear epic descriptions "
+                         "with proper JIRA formatting.
+
+CRITICAL FORMATTING REQUIREMENTS:
+- Use proper JIRA wiki markup syntax
+- Structure sections with h2. headings
+- Use bullet points (*) for lists, NOT numbered lists (1., 2., 3.)
+- Ensure proper spacing between sections
+
+Focus on high-level goals and value with clear success criteria.""",
+        }
+
+    def get_field_mappings(self) -> Dict[str, FieldMapping]:
+        """Register JIRA field mappings for issue creation."""
+        return {
+            "epic": FieldMapping(
+                env_var="JIRA_EPIC_FIELD",
+                default="customfield_12311140",
+                required=False,
+                description="Epic link field for linking stories to epics",
+            ),
+            "story_points": FieldMapping(
+                env_var="JIRA_STORY_POINTS_FIELD",
+                default="customfield_12310243",
+                required=False,
+                description="Story points estimation field",
+            ),
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
@@ -240,7 +321,19 @@ class CreateIssuePlugin(JiraPlugin):
                 value = input(f"{field}: ").strip()
                 field_values[field] = value
 
+            # Validate required fields
+            self._validate_required_fields(field_values)
+
         return field_values
+
+    def _validate_required_fields(self, field_values: Dict[str, str]) -> None:
+        """Validate that required fields have values."""
+        # Check if Acceptance Criteria field is in the template and configured
+        acceptance_criteria_field = EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD", default="")
+        if acceptance_criteria_field and "Acceptance Criteria" in field_values:
+            acceptance_criteria = field_values.get("Acceptance Criteria", "").strip()
+            if not acceptance_criteria:
+                raise CreateIssueError("Acceptance Criteria is required. Please provide a value for this field.")
 
     # jscpd:ignore-start
     def _edit_description(self, description: str) -> str:
@@ -269,9 +362,14 @@ class CreateIssuePlugin(JiraPlugin):
         """Enhance description using AI provider."""
         ai_provider = self.get_dependency("ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")))
 
-        # Get appropriate prompt for issue type
-        issue_type_enum = IssueType[issue_type.upper()]
-        prompt = PromptLibrary.get_prompt(issue_type_enum)
+        # Get appropriate prompt for issue type from plugin's own prompts
+        prompts = self.get_ai_prompts()
+        prompt = prompts.get(issue_type.lower())
+
+        # Fallback to PromptLibrary if not found (for compatibility)
+        if not prompt:
+            issue_type_enum = IssueType[issue_type.upper()]
+            prompt = PromptLibrary.get_prompt(issue_type_enum)
 
         return ai_provider.improve_text(prompt, description)
 
@@ -316,7 +414,26 @@ class CreateIssuePlugin(JiraPlugin):
             if epic_key:
                 payload["fields"][epic_field] = epic_key
 
+        # Add custom fields
+        self._add_custom_fields(payload, field_values)
+
         return payload
+
+    def _add_custom_fields(self, payload: Dict[str, Any], field_values: Dict[str, str] = None) -> None:
+        """Add workstream and acceptance criteria custom fields to payload."""
+        # Add workstream field
+        workstream_field = EnvFetcher.get("JIRA_WORKSTREAM_FIELD", default="")
+        if workstream_field:
+            workstream_id = EnvFetcher.get("JIRA_WORKSTREAM", default="")
+            if workstream_id:
+                payload["fields"][workstream_field] = [{"id": workstream_id}]
+
+        # Add acceptance criteria field
+        acceptance_criteria_field = EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD", default="")
+        if acceptance_criteria_field and field_values:
+            acceptance_criteria = field_values.get("Acceptance Criteria", "").strip()
+            if acceptance_criteria:
+                payload["fields"][acceptance_criteria_field] = acceptance_criteria
 
     def _show_dry_run(self, summary: str, description: str, payload: Dict[str, Any]) -> None:
         """Display dry run information with validation checks."""

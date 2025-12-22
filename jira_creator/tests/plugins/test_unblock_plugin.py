@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import UnBlockError
-from jira_creator.plugins.unblock_plugin import UnblockPlugin
+from jira_creator.plugins.unblock_plugin import UnBlockError, UnblockPlugin
 
 
 class TestUnblockPlugin:

@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import AiError, SetAcceptanceCriteriaError
-from jira_creator.plugins.set_acceptance_criteria_plugin import SetAcceptanceCriteriaPlugin
+from jira_creator.exceptions.exceptions import AiError
+from jira_creator.plugins.set_acceptance_criteria_plugin import SetAcceptanceCriteriaError, SetAcceptanceCriteriaPlugin
 
 
 class TestSetAcceptanceCriteriaPlugin:

@@ -14,8 +14,12 @@ from typing import Any, Dict, List, Tuple
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import LintError
+from jira_creator.exceptions.exceptions import JiraClientRequestError
 from jira_creator.providers import get_ai_provider
+
+
+class LintError(Exception):
+    """Exception raised for linting errors."""
 
 
 class LintPlugin(JiraPlugin):
@@ -40,6 +44,12 @@ class LintPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ["lint AAP-12345", "lint AAP-12345 --fix"]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "LintError": LintError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
@@ -114,6 +124,8 @@ class LintPlugin(JiraPlugin):
         try:
             path = f"/rest/api/2/issue/{issue_key}"
             return client.request("GET", path)
+        except JiraClientRequestError as e:
+            raise LintError(f"API request failed for {issue_key}: {e}") from e
         except Exception as e:  # pylint: disable=broad-exception-caught
             raise LintError(f"Failed to fetch issue {issue_key}: {e}") from e
 

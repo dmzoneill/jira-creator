@@ -10,7 +10,7 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import ChangeTypeError
+from jira_creator.plugins.change_type_plugin import ChangeTypeError
 
 
 class ChangePlugin(JiraPlugin):

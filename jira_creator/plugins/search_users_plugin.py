@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import SearchUsersError
+
+
+class SearchUsersError(Exception):
+    """Exception raised when searching users fails."""
 
 
 class SearchUsersPlugin(JiraPlugin):
@@ -30,6 +33,12 @@ class SearchUsersPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Search & View"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SearchUsersError": SearchUsersError,
+        }
 
     @property
     def example_commands(self) -> List[str]:
@@ -95,8 +104,9 @@ class SearchUsersPlugin(JiraPlugin):
         max_results = kwargs.get("max_results", 50)
 
         # Search for users
+        # JIRA Server/Data Center uses 'username' parameter, not 'query'
         path = "/rest/api/2/user/search"
-        params = {"query": query, "maxResults": max_results}
+        params = {"username": query, "maxResults": max_results}
 
         return client.request("GET", path, params=params)
 

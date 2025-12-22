@@ -1,0 +1,9 @@
+{
+  "name": "Super Linter (Docker)",
+  "description": "Run GitHub Super Linter in Docker for comprehensive linting",
+  "command": "cd ${workspaceFolder} && make super-lint",
+  "icon": "shield",
+  "category": "Quality"
+}
+
+

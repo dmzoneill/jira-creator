@@ -13,7 +13,10 @@ from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import OpenIssueError
+
+
+class OpenIssueError(Exception):
+    """Exception raised when opening an issue fails."""
 
 
 class OpenIssuePlugin(JiraPlugin):
@@ -33,6 +36,12 @@ class OpenIssuePlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Utilities"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "OpenIssueError": OpenIssueError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SearchUsersError
-from jira_creator.plugins.search_users_plugin import SearchUsersPlugin
+from jira_creator.plugins.search_users_plugin import SearchUsersError, SearchUsersPlugin
 
 
 class TestSearchUsersPlugin:
@@ -63,11 +62,11 @@ class TestSearchUsersPlugin:
         # Call REST operation
         result = plugin.rest_operation(mock_client, query="john", max_results=10)
 
-        # Verify the request
+        # Verify the request (uses 'username' param for Jira Server)
         mock_client.request.assert_called_once_with(
             "GET",
             "/rest/api/2/user/search",
-            params={"query": "john", "maxResults": 10},
+            params={"username": "john", "maxResults": 10},
         )
         assert result == mock_response
 
@@ -256,9 +255,9 @@ class TestSearchUsersPlugin:
             result = plugin.execute(mock_client, args)
             assert result is True
 
-            # Verify the query was passed correctly
+            # Verify the query was passed correctly (uses 'username' param)
             call_args = mock_client.request.call_args
-            assert call_args[1]["params"]["query"] == query
+            assert call_args[1]["params"]["username"] == query
 
     @patch("builtins.print")
     def test_execute_print_formatting(self, mock_print):

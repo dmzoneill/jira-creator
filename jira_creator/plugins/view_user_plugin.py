@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import GetUserError
+
+
+class GetUserError(Exception):
+    """Exception raised when getting user details fails."""
 
 
 class ViewUserPlugin(JiraPlugin):
@@ -35,6 +38,12 @@ class ViewUserPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ["view-user jsmith"]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "GetUserError": GetUserError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
@@ -78,14 +87,10 @@ class ViewUserPlugin(JiraPlugin):
         """
         account_id = kwargs["account_id"]
 
-        # Try to get user by account ID first
-        try:
-            path = f"/rest/api/2/user?accountId={account_id}"
-            return client.request("GET", path)
-        except Exception:  # pylint: disable=broad-exception-caught
-            # Fallback to username
-            path = f"/rest/api/2/user?username={account_id}"
-            return client.request("GET", path)
+        # JIRA Server/Data Center uses 'username' or 'key' parameter
+        # Try username first (works for Red Hat JIRA and most JIRA Server instances)
+        path = "/rest/api/2/user"
+        return client.request("GET", path, params={"username": account_id})
 
     def _display_user_details(self, user: Dict[str, Any]) -> None:
         """Display detailed user information."""

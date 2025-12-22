@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import AddLinkError
-from jira_creator.plugins.add_link_plugin import AddLinkPlugin
+from jira_creator.plugins.add_link_plugin import AddLinkError, AddLinkPlugin
 
 
 class TestAddLinkPlugin:

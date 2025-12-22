@@ -11,7 +11,10 @@ from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import UnBlockError
+
+
+class UnBlockError(Exception):
+    """Exception raised for errors related to unblocking issues."""
 
 
 class UnblockPlugin(JiraPlugin):
@@ -36,6 +39,12 @@ class UnblockPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ["unblock AAP-12345 AAP-12346"]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "UnBlockError": UnBlockError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

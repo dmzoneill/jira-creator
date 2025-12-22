@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import RemoveFlagError
-from jira_creator.plugins.remove_flag_plugin import RemoveFlagPlugin
+from jira_creator.plugins.remove_flag_plugin import RemoveFlagError, RemoveFlagPlugin
 
 
 class TestRemoveFlagPlugin:

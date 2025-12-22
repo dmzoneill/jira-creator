@@ -17,10 +17,13 @@ from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.core.plugin_registry import PluginRegistry
-from jira_creator.exceptions.exceptions import AIHelperError
 from jira_creator.providers import get_ai_provider
 
 logger = get_logger("ai_helper")
+
+
+class AIHelperError(Exception):
+    """Exception raised for errors in AI helper operations."""
 
 
 class AIHelperPlugin(JiraPlugin):
@@ -49,6 +52,12 @@ class AIHelperPlugin(JiraPlugin):
             'ai-helper "Set AAP-12345 to in progress and assign it to me"',
             'ai-helper "Create a bug for login page crash" --voice',
         ]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "AIHelperError": AIHelperError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import RemoveFromSprintError
-from jira_creator.plugins.remove_sprint_plugin import RemoveSprintPlugin
+from jira_creator.plugins.remove_sprint_plugin import RemoveFromSprintError, RemoveSprintPlugin
 
 
 class TestRemoveSprintPlugin:

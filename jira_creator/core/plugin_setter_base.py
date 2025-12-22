@@ -68,14 +68,13 @@ class SetterPlugin(JiraPlugin):
     def get_exception_class(self):
         """Get the appropriate exception class for this setter."""
         # Import here to avoid circular imports
-        from jira_creator.exceptions.exceptions import (
-            SetComponentError,
-            SetPriorityError,
-            SetProjectError,
-            SetStatusError,
-            SetSummaryError,
-            SetWorkstreamError,
-        )
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from jira_creator.plugins.set_component_plugin import SetComponentError
+        from jira_creator.plugins.set_priority_plugin import SetPriorityError
+        from jira_creator.plugins.set_project_plugin import SetProjectError
+        from jira_creator.plugins.set_status_plugin import SetStatusError
+        from jira_creator.plugins.set_summary_plugin import SetSummaryError
+        from jira_creator.plugins.set_workstream_plugin import SetWorkstreamError
 
         exception_map = {
             "priority": SetPriorityError,

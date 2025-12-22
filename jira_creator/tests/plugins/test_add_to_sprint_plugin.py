@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import AddSprintError
-from jira_creator.plugins.add_to_sprint_plugin import AddToSprintPlugin
+from jira_creator.plugins.add_to_sprint_plugin import AddSprintError, AddToSprintPlugin
 
 
 class TestAddToSprintPlugin:

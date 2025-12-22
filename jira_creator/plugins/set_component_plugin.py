@@ -10,7 +10,14 @@ from argparse import Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_setter_base import SetterPlugin
+
+logger = get_logger("set_component")
+
+
+class SetComponentError(Exception):
+    """Exception raised when setting component fails."""
 
 
 class SetComponentPlugin(SetterPlugin):
@@ -30,6 +37,12 @@ class SetComponentPlugin(SetterPlugin):
     def argument_help(self) -> str:
         """Return help text for the component argument."""
         return "The component name to set for the issue"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SetComponentError": SetComponentError,
+        }
 
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
         """
@@ -89,7 +102,8 @@ class SetComponentPlugin(SetterPlugin):
                 # Create namespace for execute method
                 ns = Namespace(issue_key=issue_key, component=default_component)
                 return self.execute(client, ns)
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Auto-fix failed for %s: %s", issue_key, e)
                 return False
 
         return False

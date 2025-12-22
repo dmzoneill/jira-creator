@@ -8,8 +8,7 @@ from unittest.mock import Mock, mock_open, patch
 import pytest
 
 from jira_creator.core.env_fetcher import EnvFetcher
-from jira_creator.exceptions.exceptions import BatchCreateError
-from jira_creator.plugins.batch_create_plugin import BatchCreatePlugin
+from jira_creator.plugins.batch_create_plugin import BatchCreateError, BatchCreatePlugin
 
 # Add logging environment variables to EnvFetcher vars for testing
 if not hasattr(EnvFetcher, "vars"):

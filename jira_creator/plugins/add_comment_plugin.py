@@ -14,9 +14,13 @@ from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import AddCommentError, AiError
+from jira_creator.exceptions.exceptions import AiError
 from jira_creator.providers import get_ai_provider
 from jira_creator.rest.prompts import IssueType, PromptLibrary
+
+
+class AddCommentError(Exception):
+    """Exception raised when adding a comment fails."""
 
 
 class AddCommentPlugin(JiraPlugin):
@@ -41,6 +45,21 @@ class AddCommentPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ['add-comment AAP-12345 "Adding a status update"']
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "AddCommentError": AddCommentError,
+        }
+
+    def get_ai_prompts(self) -> Dict[str, str]:
+        """Register AI prompts for comment enhancement."""
+        return {
+            "comment": (
+                "As a professional Principal Software Engineer, you write great comments that are "
+                "clear and helpful. You focus on providing context and clarity."
+            ),
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
@@ -145,5 +164,12 @@ class AddCommentPlugin(JiraPlugin):
         # Get AI provider (for testing injection)
         ai_provider = self.get_dependency("ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")))
 
-        prompt = PromptLibrary.get_prompt(IssueType["COMMENT"])
+        # Get prompt from plugin's registered prompts
+        prompts = self.get_ai_prompts()
+        prompt = prompts.get("comment")
+
+        # Fallback to PromptLibrary if not found (for compatibility)
+        if not prompt:
+            prompt = PromptLibrary.get_prompt(IssueType["COMMENT"])
+
         return ai_provider.improve_text(prompt, comment)

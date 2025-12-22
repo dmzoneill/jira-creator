@@ -11,8 +11,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import LintError
-from jira_creator.plugins.lint_plugin import LintPlugin
+from jira_creator.plugins.lint_plugin import LintError, LintPlugin
 
 
 class TestLintPlugin:

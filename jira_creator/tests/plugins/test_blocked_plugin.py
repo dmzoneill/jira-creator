@@ -4,8 +4,8 @@
 from argparse import Namespace
 from unittest.mock import Mock, patch
 
-from jira_creator.exceptions.exceptions import ListBlockedError
 from jira_creator.plugins.blocked_plugin import BlockedPlugin
+from jira_creator.plugins.list_blocked_plugin import ListBlockedError
 
 import pytest  # isort: skip
 

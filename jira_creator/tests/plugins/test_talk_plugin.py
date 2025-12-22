@@ -7,8 +7,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import TalkError
-from jira_creator.plugins.talk_plugin import TalkPlugin, suppress_stderr
+from jira_creator.plugins.talk_plugin import TalkError, TalkPlugin, suppress_stderr
 
 
 class TestSuppressStderr:

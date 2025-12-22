@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetPriorityError
-from jira_creator.plugins.set_priority_plugin import SetPriorityPlugin
+from jira_creator.plugins.set_priority_plugin import SetPriorityError, SetPriorityPlugin
 
 
 class TestSetPriorityPlugin:

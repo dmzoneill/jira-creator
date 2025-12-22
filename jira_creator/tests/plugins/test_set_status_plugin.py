@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetStatusError
-from jira_creator.plugins.set_status_plugin import SetStatusPlugin
+from jira_creator.plugins.set_status_plugin import SetStatusError, SetStatusPlugin
 
 
 class TestSetStatusPlugin:

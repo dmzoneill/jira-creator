@@ -14,9 +14,12 @@ from typing import Any, Dict, List
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import ConfigError
 
 logger = get_logger("config")
+
+
+class ConfigError(Exception):
+    """Exception raised when configuration operation fails."""
 
 
 class ConfigPlugin(JiraPlugin):
@@ -37,10 +40,16 @@ class ConfigPlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Utilities"
 
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "ConfigError": ConfigError,
+        }
+
     @property
     def example_commands(self) -> List[str]:
         """Return example commands."""
-        return ["config", "config --show-all"]
+        return ["config list-profiles", "config set-profile myproject --epic AAP-123 --project AAP"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

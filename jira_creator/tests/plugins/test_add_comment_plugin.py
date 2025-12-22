@@ -6,8 +6,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import AddCommentError, AiError
-from jira_creator.plugins.add_comment_plugin import AddCommentPlugin
+from jira_creator.exceptions.exceptions import AiError
+from jira_creator.plugins.add_comment_plugin import AddCommentError, AddCommentPlugin
 
 
 class TestAddCommentPlugin:

@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SearchError
-from jira_creator.plugins.search_plugin import SearchPlugin
+from jira_creator.plugins.search_plugin import SearchError, SearchPlugin
 
 
 class TestSearchPlugin:
@@ -50,16 +49,18 @@ class TestSearchPlugin:
         # Call REST operation
         result = plugin.rest_operation(mock_client, jql="project = TEST", max_results=10)
 
-        # Verify the request
-        mock_client.request.assert_called_once_with(
-            "GET",
-            "/rest/api/2/search",
-            params={
-                "jql": "project = TEST",
-                "maxResults": 10,
-                "fields": "key,summary,status,assignee,priority,issuetype,created,updated",
-            },
-        )
+        # Verify the request was made
+        mock_client.request.assert_called_once()
+        call_args = mock_client.request.call_args
+        assert call_args[0][0] == "GET"
+        assert call_args[0][1] == "/rest/api/2/search"
+        params = call_args[1]["params"]
+        assert params["jql"] == "project = TEST"
+        assert params["maxResults"] == 10
+        # Verify key fields are included
+        fields = params["fields"]
+        for field in ["key", "summary", "status", "assignee", "priority", "issuetype", "reporter"]:
+            assert field in fields
         assert result == mock_response["issues"]
 
     def test_rest_operation_with_default_max_results(self):
@@ -98,12 +99,13 @@ class TestSearchPlugin:
         ]
         mock_client.request.return_value = {"issues": mock_issues}
 
-        # Mock massage function
-        mock_massaged = [
+        # Mock massage function returns (headers, rows)
+        mock_headers = ["Key", "Summary"]
+        mock_rows = [
             {"Key": "TEST-1", "Summary": "Issue 1"},
             {"Key": "TEST-2", "Summary": "Issue 2"},
         ]
-        mock_massage.return_value = mock_massaged
+        mock_massage.return_value = (mock_headers, mock_rows)
 
         # Create args
         args = Namespace(jql="project = TEST", max_results=50)
@@ -114,8 +116,11 @@ class TestSearchPlugin:
         # Verify
         assert result is True
         mock_client.request.assert_called_once()
-        mock_massage.assert_called_once_with(mock_issues, mock_client)
-        mock_format_print.assert_called_once_with(mock_massaged, [], mock_client)
+        # massage_issue_list is called with (args, issues)
+        mock_massage.assert_called_once()
+        call_args = mock_massage.call_args[0]
+        assert call_args[1] == mock_issues  # Second arg is issues
+        mock_format_print.assert_called_once_with(mock_rows, mock_headers, mock_client)
 
         # Verify print output was called
         # Note: We can't easily capture print statements, but the test ensures
@@ -200,8 +205,8 @@ class TestSearchPlugin:
         plugin = SearchPlugin()
         mock_client = Mock()
 
-        # Mock massage_issue_list to return proper format
-        mock_massage.return_value = [{"Key": "TEST-1"}, {"Key": "TEST-2"}]
+        # Mock massage_issue_list to return proper format (headers, rows)
+        mock_massage.return_value = (["Key"], [{"Key": "TEST-1"}, {"Key": "TEST-2"}])
 
         # Test with results
         mock_client.request.return_value = {"issues": [{"key": "TEST-1"}, {"key": "TEST-2"}]}

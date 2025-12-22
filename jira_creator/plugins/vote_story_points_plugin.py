@@ -10,7 +10,15 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import FetchIssueIDError, VoteStoryPointsError
+from jira_creator.exceptions.exceptions import JiraClientRequestError
+
+
+class VoteStoryPointsError(Exception):
+    """Exception raised when voting story points fails."""
+
+
+class FetchIssueIDError(Exception):
+    """Exception raised when fetching issue ID fails."""
 
 
 class VoteStoryPointsPlugin(JiraPlugin):
@@ -30,6 +38,13 @@ class VoteStoryPointsPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Quality & Validation"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "VoteStoryPointsError": VoteStoryPointsError,
+            "FetchIssueIDError": FetchIssueIDError,
+        }
 
     @property
     def example_commands(self) -> List[str]:
@@ -76,6 +91,10 @@ class VoteStoryPointsPlugin(JiraPlugin):
         try:
             issue = client.request("GET", f"/rest/api/2/issue/{issue_key}")
             issue_id = issue["id"]
+        except KeyError as e:
+            raise FetchIssueIDError(f"Issue {issue_key} response missing 'id' field: {e}") from e
+        except JiraClientRequestError as e:
+            raise FetchIssueIDError(f"API request failed for {issue_key}: {e}") from e
         except Exception as e:
             raise FetchIssueIDError(f"Failed to fetch issue ID for {issue_key}: {e}") from e
 
@@ -89,5 +108,7 @@ class VoteStoryPointsPlugin(JiraPlugin):
                 json_data=payload,
             )
             return {"success": True, "issue_key": issue_key, "points": points}
+        except JiraClientRequestError as e:
+            raise VoteStoryPointsError(f"API request failed for voting: {e}") from e
         except Exception as e:
             raise VoteStoryPointsError(f"Failed to vote on story points: {e}") from e

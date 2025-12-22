@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Union
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import ListBlockedError
+from jira_creator.plugins.list_blocked_plugin import ListBlockedError
 
 
 class BlockedPlugin(JiraPlugin):

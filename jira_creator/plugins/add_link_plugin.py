@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import AddLinkError
+
+
+class AddLinkError(Exception):
+    """Exception raised when adding a link fails."""
 
 
 class AddLinkPlugin(JiraPlugin):
@@ -30,6 +33,12 @@ class AddLinkPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Relationships"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "AddLinkError": AddLinkError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

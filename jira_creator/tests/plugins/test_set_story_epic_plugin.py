@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetStoryEpicError
-from jira_creator.plugins.set_story_epic_plugin import SetStoryEpicPlugin
+from jira_creator.plugins.set_story_epic_plugin import SetStoryEpicError, SetStoryEpicPlugin
 
 
 class TestSetStoryEpicPlugin:

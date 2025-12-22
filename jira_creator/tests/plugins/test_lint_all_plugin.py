@@ -9,8 +9,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import LintAllError
-from jira_creator.plugins.lint_all_plugin import LintAllPlugin
+from jira_creator.plugins.lint_all_plugin import LintAllError, LintAllPlugin
 
 
 class TestLintAllPlugin:

@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import BlockError
-from jira_creator.plugins.block_plugin import BlockPlugin
+from jira_creator.plugins.block_plugin import BlockError, BlockPlugin
 
 
 class TestBlockPlugin:

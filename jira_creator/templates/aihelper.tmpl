@@ -22,20 +22,28 @@ Example Output:
 ```json
 [
     {
-        "function": "add_issue_to_sprint",
+        "function": "add-to-sprint",
         "args": {
-            "issue_id": "issue-123",
-            "sprint_id": "SPRINT-2025-04",
+            "issue_key": "AAP-12345",
+            "sprint_name": "Sprint 2025-04"
         },
-        "action": "I added issue-123 to the sprint SPRINT-2025-04"
+        "action": "I added AAP-12345 to the sprint Sprint 2025-04"
     },
     {
-        "function": "set_issue_status",
+        "function": "set-status",
         "args": {
-            "issue_id": "issue-123",
-            "status": "in progress"
+            "issue_key": "AAP-12345",
+            "status": "In Progress"
         },
-        "action": "I set the status of the issue-123 to in progress"
+        "action": "I set the status of AAP-12345 to In Progress"
     }
 ]
 ```
+
+Important: Use the exact argument names as shown in the Available Commands.
+Common argument names used by plugins:
+- issue_key: The Jira issue key (e.g., AAP-12345)
+- sprint_name: The name of the sprint
+- status: The status to set
+- assignee: Username to assign the issue to
+- points: Story points value (integer)

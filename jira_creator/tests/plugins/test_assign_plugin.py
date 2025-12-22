@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import AssignIssueError
-from jira_creator.plugins.assign_plugin import AssignPlugin
+from jira_creator.plugins.assign_plugin import AssignIssueError, AssignPlugin
 
 
 class TestAssignPlugin:

@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import ViewIssueError
-from jira_creator.plugins.view_issue_plugin import ViewIssuePlugin
+from jira_creator.plugins.view_issue_plugin import ViewIssueError, ViewIssuePlugin
 
 
 class TestViewIssuePlugin:
@@ -32,12 +31,20 @@ class TestViewIssuePlugin:
         """Test the REST operation."""
         plugin = ViewIssuePlugin()
         mock_client = Mock()
-        mock_client.request.return_value = {"fields": {"summary": "Test Issue"}}
+        # First call returns issue data, second returns comments
+        mock_client.request.side_effect = [
+            {"fields": {"summary": "Test Issue"}},
+            {"comments": []},
+        ]
 
         result = plugin.rest_operation(mock_client, issue_key="TEST-123")
 
-        mock_client.request.assert_called_once_with("GET", "/rest/api/2/issue/TEST-123")
-        assert result == {"fields": {"summary": "Test Issue"}}
+        # Now makes 2 calls: one for issue, one for comments
+        assert mock_client.request.call_count == 2
+        mock_client.request.assert_any_call("GET", "/rest/api/2/issue/TEST-123", params={"expand": "renderedFields"})
+        mock_client.request.assert_any_call("GET", "/rest/api/2/issue/TEST-123/comment")
+        assert result["fields"]["summary"] == "Test Issue"
+        assert result["_comments"] == []
 
     @patch("jira_creator.plugins.view_issue_plugin.EnvFetcher")
     def test_execute_successful(self, mock_env_fetcher):
@@ -54,28 +61,32 @@ class TestViewIssuePlugin:
 
         plugin = ViewIssuePlugin()
         mock_client = Mock()
-        mock_client.request.return_value = {
-            "fields": {
-                "summary": "Test Issue Summary",
-                "description": "Test Description",
-                "status": {"name": "In Progress"},
-                "assignee": {"displayName": "John Doe"},
-                "reporter": {"displayName": "Jane Smith"},
-                "priority": {"name": "High"},
-                "issuetype": {"name": "Story"},
-                "project": {"key": "TEST"},
-                "components": [{"name": "Backend"}, {"name": "Frontend"}],
-                "created": "2024-01-01T10:00:00",
-                "updated": "2024-01-02T10:00:00",
-                "labels": ["important", "feature"],
-                "customfield_10001": "Given/When/Then criteria",
-                "customfield_10002": "True",
-                "customfield_10003": "Waiting for approval",
-                "customfield_10004": "5",
-                "customfield_10005": ["Sprint 1"],
-                "customfield_10006": "Platform",
-            }
-        }
+        # First call returns issue data, second returns comments
+        mock_client.request.side_effect = [
+            {
+                "fields": {
+                    "summary": "Test Issue Summary",
+                    "description": "Test Description",
+                    "status": {"name": "In Progress"},
+                    "assignee": {"displayName": "John Doe"},
+                    "reporter": {"displayName": "Jane Smith"},
+                    "priority": {"name": "High"},
+                    "issuetype": {"name": "Story"},
+                    "project": {"key": "TEST"},
+                    "components": [{"name": "Backend"}, {"name": "Frontend"}],
+                    "created": "2024-01-01T10:00:00",
+                    "updated": "2024-01-02T10:00:00",
+                    "labels": ["important", "feature"],
+                    "customfield_10001": "Given/When/Then criteria",
+                    "customfield_10002": "True",
+                    "customfield_10003": "Waiting for approval",
+                    "customfield_10004": "5",
+                    "customfield_10005": ["Sprint 1"],
+                    "customfield_10006": "Platform",
+                }
+            },
+            {"comments": []},
+        ]
 
         args = Namespace(issue_key="TEST-123")
 
@@ -84,7 +95,8 @@ class TestViewIssuePlugin:
             result = plugin.execute(mock_client, args)
 
         assert result is True
-        mock_client.request.assert_called_once()
+        # Now makes 2 calls: one for issue, one for comments
+        assert mock_client.request.call_count == 2
 
         # Verify print was called with expected header
         print_calls = mock_print.call_args_list

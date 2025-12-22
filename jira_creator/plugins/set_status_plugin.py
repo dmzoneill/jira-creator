@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List, Optional
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import SetStatusError
+
+
+class SetStatusError(Exception):
+    """Exception raised when setting status fails."""
 
 
 class SetStatusPlugin(JiraPlugin):
@@ -35,6 +38,12 @@ class SetStatusPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ['set-status AAP-12345 "In Progress"', "set-status AAP-12345 Done"]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SetStatusError": SetStatusError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

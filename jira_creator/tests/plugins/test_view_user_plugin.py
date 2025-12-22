@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import GetUserError
-from jira_creator.plugins.view_user_plugin import ViewUserPlugin
+from jira_creator.plugins.view_user_plugin import GetUserError, ViewUserPlugin
 
 
 class TestViewUserPlugin:
@@ -29,7 +28,7 @@ class TestViewUserPlugin:
         mock_parser.add_argument.assert_called_once_with("account_id", help="The user's account ID or username")
 
     def test_rest_operation_with_account_id(self):
-        """Test REST operation with account ID success."""
+        """Test REST operation with username parameter."""
         plugin = ViewUserPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {
@@ -39,27 +38,24 @@ class TestViewUserPlugin:
 
         result = plugin.rest_operation(mock_client, account_id="12345")
 
-        mock_client.request.assert_called_once_with("GET", "/rest/api/2/user?accountId=12345")
+        # Uses 'username' param for Jira Server compatibility
+        mock_client.request.assert_called_once_with("GET", "/rest/api/2/user", params={"username": "12345"})
         assert result == {"accountId": "12345", "displayName": "John Doe"}
 
-    def test_rest_operation_fallback_to_username(self):
-        """Test REST operation falls back to username when account ID fails."""
+    def test_rest_operation_with_email(self):
+        """Test REST operation with email address (common for Jira Server)."""
         plugin = ViewUserPlugin()
         mock_client = Mock()
+        mock_client.request.return_value = {
+            "name": "jdoe@example.com",
+            "displayName": "John Doe",
+        }
 
-        # First call fails, second succeeds
-        mock_client.request.side_effect = [
-            Exception("Account ID not found"),
-            {"accountId": "12345", "displayName": "John Doe"},
-        ]
+        result = plugin.rest_operation(mock_client, account_id="jdoe@example.com")
 
-        result = plugin.rest_operation(mock_client, account_id="johndoe")
-
-        # Should have been called twice
-        assert mock_client.request.call_count == 2
-        mock_client.request.assert_any_call("GET", "/rest/api/2/user?accountId=johndoe")
-        mock_client.request.assert_any_call("GET", "/rest/api/2/user?username=johndoe")
-        assert result == {"accountId": "12345", "displayName": "John Doe"}
+        # Uses 'username' param for Jira Server compatibility
+        mock_client.request.assert_called_once_with("GET", "/rest/api/2/user", params={"username": "jdoe@example.com"})
+        assert result == {"name": "jdoe@example.com", "displayName": "John Doe"}
 
     def test_execute_successful(self):
         """Test successful execution."""

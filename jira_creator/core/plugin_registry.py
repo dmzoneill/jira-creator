@@ -26,8 +26,11 @@ class PluginRegistry:
         """Initialize an empty plugin registry."""
         self._plugins: Dict[str, JiraPlugin] = {}
         self._plugin_classes: Dict[str, Type[JiraPlugin]] = {}
+        self._exceptions: Dict[str, type[Exception]] = {}
+        self._ai_prompts: Dict[str, Dict[str, str]] = {}  # plugin_name -> {prompt_name -> prompt_text}
+        self._field_mappings: Dict[str, Dict[str, any]] = {}  # plugin_name -> {field_name -> FieldMapping}
 
-    def discover_plugins(self, plugin_dir: Optional[str] = None) -> None:
+    def discover_plugins(self, plugin_dir: Optional[str] = None) -> None:  # pylint: disable=too-many-locals
         """
         Automatically discover and load all plugins from the plugin directory.
 
@@ -63,6 +66,21 @@ class PluginRegistry:
                         command_name = plugin_instance.command_name  # pragma: no cover
                         self._plugins[command_name] = plugin_instance  # pragma: no cover
                         self._plugin_classes[command_name] = cls  # pragma: no cover
+
+                        # Register plugin exceptions  # pragma: no cover
+                        plugin_exceptions = plugin_instance.get_plugin_exceptions()  # pragma: no cover
+                        for exc_name, exc_class in plugin_exceptions.items():  # pragma: no cover
+                            self._exceptions[exc_name] = exc_class  # pragma: no cover
+
+                        # Register plugin AI prompts  # pragma: no cover
+                        plugin_prompts = plugin_instance.get_ai_prompts()  # pragma: no cover
+                        if plugin_prompts:  # pragma: no cover
+                            self._ai_prompts[command_name] = plugin_prompts  # pragma: no cover
+
+                        # Register plugin field mappings  # pragma: no cover
+                        field_mappings = plugin_instance.get_field_mappings()  # pragma: no cover
+                        if field_mappings:  # pragma: no cover
+                            self._field_mappings[command_name] = field_mappings  # pragma: no cover
 
             except Exception as e:  # pylint: disable=broad-exception-caught
                 # Log error but continue loading other plugins
@@ -142,10 +160,87 @@ class PluginRegistry:
             parser = subparsers.add_parser(command_name, help=plugin.help_text)
             plugin.register_arguments(parser)
 
+    def get_exception(self, name: str) -> Optional[type[Exception]]:
+        """
+        Get a registered exception class by name.
+
+        Arguments:
+            name: The exception class name to look up
+
+        Returns:
+            Exception class or None if not found
+        """
+        return self._exceptions.get(name)
+
+    def list_exceptions(self) -> Dict[str, type[Exception]]:
+        """
+        Get all registered plugin exceptions.
+
+        Returns:
+            Dict mapping exception names to exception classes
+        """
+        return self._exceptions.copy()
+
+    def get_all_exceptions(self) -> Dict[str, type[Exception]]:
+        """
+        Get all registered plugin exceptions.
+
+        This is an alias for list_exceptions() for consistency with other API methods.
+
+        Returns:
+            Dict mapping exception names to exception classes
+        """
+        return self.list_exceptions()
+
+    def get_ai_prompts(self, plugin_name: str) -> Dict[str, str]:
+        """
+        Get AI prompts registered by a specific plugin.
+
+        Arguments:
+            plugin_name: The command name of the plugin
+
+        Returns:
+            Dict mapping prompt names to prompt text
+        """
+        return self._ai_prompts.get(plugin_name, {})
+
+    def get_all_ai_prompts(self) -> Dict[str, Dict[str, str]]:
+        """
+        Get all AI prompts from all plugins.
+
+        Returns:
+            Dict mapping plugin names to their prompt dictionaries
+        """
+        return self._ai_prompts.copy()
+
+    def get_field_mappings(self, plugin_name: str) -> Dict[str, any]:
+        """
+        Get field mappings registered by a specific plugin.
+
+        Arguments:
+            plugin_name: The command name of the plugin
+
+        Returns:
+            Dict mapping field names to FieldMapping objects
+        """
+        return self._field_mappings.get(plugin_name, {})
+
+    def get_all_field_mappings(self) -> Dict[str, Dict[str, any]]:
+        """
+        Get all field mappings from all plugins.
+
+        Returns:
+            Dict mapping plugin names to their field mapping dictionaries
+        """
+        return self._field_mappings.copy()
+
     def clear(self) -> None:
-        """Clear all registered plugins."""
+        """Clear all registered plugins, exceptions, prompts, and field mappings."""
         self._plugins.clear()
         self._plugin_classes.clear()
+        self._exceptions.clear()
+        self._ai_prompts.clear()
+        self._field_mappings.clear()
 
     def reload_plugin_from_file(self, file_path: str) -> bool:
         """
@@ -187,6 +282,21 @@ class PluginRegistry:
                     # Update the registry with new instance and class
                     self._plugins[command_name] = plugin_instance
                     self._plugin_classes[command_name] = cls
+
+                    # Re-register plugin exceptions
+                    plugin_exceptions = plugin_instance.get_plugin_exceptions()
+                    for exc_name, exc_class in plugin_exceptions.items():
+                        self._exceptions[exc_name] = exc_class
+
+                    # Re-register plugin AI prompts
+                    plugin_prompts = plugin_instance.get_ai_prompts()
+                    if plugin_prompts:
+                        self._ai_prompts[command_name] = plugin_prompts
+
+                    # Re-register plugin field mappings
+                    field_mappings = plugin_instance.get_field_mappings()
+                    if field_mappings:
+                        self._field_mappings[command_name] = field_mappings
 
             return True
 

@@ -6,12 +6,16 @@ This plugin implements the view-issue command, allowing users to view
 detailed information about a Jira issue.
 """
 
+import re
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import ViewIssueError
+
+
+class ViewIssueError(Exception):
+    """Exception raised when viewing an issue fails."""
 
 
 class ViewIssuePlugin(JiraPlugin):
@@ -55,6 +59,12 @@ class ViewIssuePlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Search & View"
 
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "ViewIssueError": ViewIssueError,
+        }
+
     @property
     def example_commands(self) -> List[str]:
         """Return example commands."""
@@ -77,10 +87,7 @@ class ViewIssuePlugin(JiraPlugin):
         """
         try:
             issue_data = self.rest_operation(client, issue_key=args.issue_key)
-
-            # Process and display the issue
             self._display_issue(issue_data, args.issue_key)
-
             return True
 
         except ViewIssueError as e:
@@ -97,37 +104,94 @@ class ViewIssuePlugin(JiraPlugin):
             **kwargs: Contains 'issue_key'
 
         Returns:
-            Dict[str, Any]: Issue data
+            Dict[str, Any]: Issue data including comments
         """
         issue_key = kwargs["issue_key"]
 
         path = f"/rest/api/2/issue/{issue_key}"
-        return client.request("GET", path)
+        params = {"expand": "renderedFields"}
+        issue_data = client.request("GET", path, params=params)
+
+        comments_path = f"/rest/api/2/issue/{issue_key}/comment"
+        comments_response = client.request("GET", comments_path)
+        if comments_response:
+            issue_data["_comments"] = comments_response.get("comments", [])
+
+        return issue_data
 
     def _display_issue(self, issue_data: Dict[str, Any], issue_key: str) -> None:
         """Display issue data in a formatted way."""
         fields = issue_data.get("fields", {})
+        rendered_fields = issue_data.get("renderedFields", {})
+        comments = issue_data.get("_comments", [])
 
-        # Get custom field mappings
         custom_fields = self._get_custom_field_mappings()
-
-        # Process fields
         processed_fields = self._process_fields(fields, custom_fields)
 
-        # Display header
+        self._print_header(issue_key)
+        self._print_fields(processed_fields)
+        self._print_description(fields, rendered_fields)
+        self._print_comments(comments)
+
+    def _print_header(self, issue_key: str) -> None:
+        """Print the issue header."""
         print(f"\n📋 Issue: {issue_key}")
-        print("=" * 50)
+        print("=" * 70)
 
-        # Display fields
-        max_key_length = max(len(key) for key in processed_fields)
+    def _print_fields(self, processed_fields: Dict[str, Any]) -> None:
+        """Print the issue fields."""
+        display_keys = [k for k in self.ALLOWED_KEYS if k != "description"]
+        max_key_length = max(len(key) for key in display_keys) if display_keys else 20
 
-        for key in self.ALLOWED_KEYS:
+        for key in display_keys:
             if key in processed_fields:
-                value = processed_fields[key]
-                formatted_value = self._format_value(value)
+                formatted_value = self._format_value(processed_fields[key])
                 print(f"{key.ljust(max_key_length)} : {formatted_value}")
 
-        print("=" * 50)
+    def _print_description(self, fields: Dict[str, Any], rendered_fields: Dict[str, Any]) -> None:
+        """Print the issue description."""
+        print("\n" + "=" * 70)
+        print("📝 DESCRIPTION")
+        print("-" * 70)
+
+        rendered_desc = rendered_fields.get("description")
+        if rendered_desc:
+            clean_desc = self._strip_html(rendered_desc)
+            print(clean_desc.strip())
+        else:
+            print(fields.get("description") or "No description provided.")
+
+    def _strip_html(self, html_text: str) -> str:
+        """Strip HTML tags and decode entities."""
+        clean = re.sub(r"<[^>]+>", "", html_text)
+        clean = clean.replace("&nbsp;", " ").replace("&amp;", "&")
+        return clean.replace("&lt;", "<").replace("&gt;", ">")
+
+    def _print_comments(self, comments: List[Dict[str, Any]]) -> None:
+        """Print the issue comments."""
+        print("\n" + "=" * 70)
+        print(f"💬 COMMENTS ({len(comments)})")
+        print("-" * 70)
+
+        if not comments:
+            print("No comments yet.")
+            print("\n" + "=" * 70)
+            return
+
+        for i, comment in enumerate(comments, 1):
+            self._print_single_comment(i, comment)
+
+        print("\n" + "=" * 70)
+
+    def _print_single_comment(self, index: int, comment: Dict[str, Any]) -> None:
+        """Print a single comment."""
+        author = (comment.get("author") or {}).get("displayName", "Unknown")
+        created = comment.get("created", "")[:10]
+        body = comment.get("body", "")
+
+        print(f"\n[{index}] {author} - {created}")
+        print("-" * 40)
+        print(body[:500] + "... (truncated)" if len(body) > 500 else body)
 
     def _get_custom_field_mappings(self) -> Dict[str, str]:
         """Get custom field mappings from environment."""
@@ -145,33 +209,70 @@ class ViewIssuePlugin(JiraPlugin):
         processed = {}
 
         for field_key, field_value in fields.items():
-            # Map custom fields
-            if field_key in custom_fields:
-                field_name = custom_fields[field_key]
-            else:
-                # Normalize standard field names
-                field_name = field_key.replace("_", " ").lower()
-
-            # Handle special fields
-            if field_name == "components":
-                field_name = "component/s"
-                field_value = [c["name"] for c in field_value] if field_value else []
-            elif field_name == "issuetype":
-                field_name = "issue type"
-                field_value = field_value.get("name") if field_value else None
-            elif field_name in ["assignee", "reporter", "creator"]:
-                field_value = field_value.get("displayName") if field_value else "Unassigned"
-            elif field_name == "priority":
-                field_value = field_value.get("name") if field_value else None
-            elif field_name == "status":
-                field_value = field_value.get("name") if field_value else None
-            elif field_name == "project":
-                field_value = field_value.get("key") if field_value else None
+            field_name = custom_fields.get(field_key, field_key.replace("_", " ").lower())
+            field_name, field_value = self._transform_field(field_name, field_value)
 
             if field_value is not None:
                 processed[field_name] = field_value
 
         return processed
+
+    def _transform_field(self, field_name: str, field_value: Any) -> tuple:
+        """Transform a single field based on its name."""
+        # Define field transformations
+        transformers = {
+            "components": lambda v: ("component/s", [c["name"] for c in v] if v else []),
+            "issuetype": lambda v: ("issue type", v.get("name") if v else None),
+            "project": lambda v: (field_name, v.get("key") if v else None),
+            "sprint": lambda v: (field_name, self._extract_sprint_names(v)),
+        }
+
+        # Check for exact match first
+        if field_name in transformers:
+            return transformers[field_name](field_value)
+
+        # Handle grouped field types
+        if field_name in ["assignee", "reporter", "creator"]:
+            return field_name, field_value.get("displayName") if field_value else "Unassigned"
+
+        if field_name in ["priority", "status"]:
+            return field_name, field_value.get("name") if field_value else None
+
+        if field_name in ["blocked", "workstream"]:
+            return field_name, self._extract_option_value(field_value)
+
+        return field_name, field_value
+
+    def _extract_option_value(self, field_value: Any) -> Optional[str]:
+        """Extract value from custom field option objects."""
+        if isinstance(field_value, list) and field_value:
+            values = [item.get("value", str(item)) for item in field_value if isinstance(item, dict)]
+            return ", ".join(values) if values else str(field_value)
+        if isinstance(field_value, dict):
+            return field_value.get("value", str(field_value))
+        return field_value
+
+    def _extract_sprint_names(self, field_value: Any) -> Optional[str]:
+        """Extract sprint names from sprint field value."""
+        if isinstance(field_value, list):
+            sprint_names = []
+            for sprint_str in field_value:
+                name = self._parse_sprint_name(sprint_str)
+                if name:
+                    sprint_names.append(name)
+            return ", ".join(sprint_names) if sprint_names else None
+
+        if isinstance(field_value, str):
+            return self._parse_sprint_name(field_value) or field_value
+
+        return None
+
+    def _parse_sprint_name(self, sprint_str: str) -> Optional[str]:
+        """Parse sprint name from sprint string representation."""
+        if isinstance(sprint_str, str):
+            match = re.search(r"name=([^,\]]+)", sprint_str)
+            return match.group(1) if match else None
+        return None
 
     def _format_value(self, value: Any) -> str:
         """Format a field value for display."""
@@ -180,9 +281,6 @@ class ViewIssuePlugin(JiraPlugin):
         if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "None"
         if isinstance(value, str) and "\n" in value:
-            # Handle multiline strings
             lines = value.split("\n")
-            if len(lines) > 3:
-                return lines[0] + "... (truncated)"
-            return " / ".join(lines)
+            return lines[0] + "... (truncated)" if len(lines) > 3 else " / ".join(lines)
         return str(value) if value else "None"

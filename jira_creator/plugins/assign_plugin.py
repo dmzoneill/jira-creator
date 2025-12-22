@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import AssignIssueError
+
+
+class AssignIssueError(Exception):
+    """Exception raised when trying to assign an issue."""
 
 
 class AssignPlugin(JiraPlugin):
@@ -35,6 +38,12 @@ class AssignPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ["assign AAP-12345 jsmith"]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "AssignIssueError": AssignIssueError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

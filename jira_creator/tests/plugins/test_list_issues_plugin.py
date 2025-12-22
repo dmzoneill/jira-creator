@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import ListIssuesError
-from jira_creator.plugins.list_issues_plugin import ListIssuesPlugin
+from jira_creator.plugins.list_issues_plugin import ListIssuesError, ListIssuesPlugin
 
 
 class TestListIssuesPlugin:

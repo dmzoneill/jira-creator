@@ -10,7 +10,14 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_setter_base import SetterPlugin
+
+logger = get_logger("set_workstream")
+
+
+class SetWorkstreamError(Exception):
+    """Exception raised when setting workstream fails."""
 
 
 class SetWorkstreamPlugin(SetterPlugin):
@@ -119,7 +126,8 @@ class SetWorkstreamPlugin(SetterPlugin):
                 # Create namespace for execute method
                 ns = Namespace(issue_key=issue_key, workstream_id=None)  # Will use default
                 return self.execute(client, ns)
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Auto-fix failed for %s: %s", issue_key, e)
                 return False
 
         return False

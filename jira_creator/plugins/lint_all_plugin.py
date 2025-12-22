@@ -15,11 +15,14 @@ from jira_creator.core.ai_executor import AIExecutor
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import LintAllError
 from jira_creator.plugins.lint_plugin import LintPlugin
 from jira_creator.providers import get_ai_provider
 
 logger = get_logger("lint_all_plugin")
+
+
+class LintAllError(Exception):
+    """Exception raised for lint-all operation errors."""
 
 
 class LintAllPlugin(JiraPlugin):
@@ -44,6 +47,12 @@ class LintAllPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ["lint-all --project AAP", "lint-all --project AAP --ai-fix"]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "LintAllError": LintAllError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

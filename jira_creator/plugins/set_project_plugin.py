@@ -11,6 +11,10 @@ from typing import Any, Dict
 from jira_creator.core.plugin_setter_base import SetterPlugin
 
 
+class SetProjectError(Exception):
+    """Exception raised when setting project fails."""
+
+
 class SetProjectPlugin(SetterPlugin):
     """Plugin for setting the project of Jira issues."""
 
@@ -28,6 +32,12 @@ class SetProjectPlugin(SetterPlugin):
     def argument_help(self) -> str:
         """Return help text for the project argument."""
         return "The project key to move the issue to"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SetProjectError": SetProjectError,
+        }
 
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
         """

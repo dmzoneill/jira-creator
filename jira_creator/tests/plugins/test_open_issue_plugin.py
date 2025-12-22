@@ -6,8 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import OpenIssueError
-from jira_creator.plugins.open_issue_plugin import OpenIssuePlugin
+from jira_creator.plugins.open_issue_plugin import OpenIssueError, OpenIssuePlugin
 
 
 class TestOpenIssuePlugin:

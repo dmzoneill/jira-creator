@@ -8,13 +8,16 @@ a quarterly employee report based on Jira activity.
 
 import time
 from argparse import ArgumentParser, Namespace
-from typing import Any, List
+from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import QuarterlyConnectionError
 from jira_creator.providers import get_ai_provider
 from jira_creator.rest.prompts import IssueType, PromptLibrary
+
+
+class QuarterlyConnectionError(Exception):
+    """Exception raised for quarterly connection errors."""
 
 
 class QuarterlyConnectionPlugin(JiraPlugin):
@@ -39,6 +42,12 @@ class QuarterlyConnectionPlugin(JiraPlugin):
     def example_commands(self) -> List[str]:
         """Return example commands."""
         return ["quarterly-connection --quarter Q1"]
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "QuarterlyConnectionError": QuarterlyConnectionError,
+        }
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments with the argument parser."""

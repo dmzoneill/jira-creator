@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetProjectError
-from jira_creator.plugins.set_project_plugin import SetProjectPlugin
+from jira_creator.plugins.set_project_plugin import SetProjectError, SetProjectPlugin
 
 
 class TestSetProjectPlugin:

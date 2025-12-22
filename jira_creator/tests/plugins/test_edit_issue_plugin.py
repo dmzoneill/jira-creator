@@ -7,8 +7,12 @@ from unittest.mock import Mock, patch
 import pytest
 
 from jira_creator.core.env_fetcher import EnvFetcher
-from jira_creator.exceptions.exceptions import EditDescriptionError, EditIssueError, FetchDescriptionError
-from jira_creator.plugins.edit_issue_plugin import EditIssuePlugin
+from jira_creator.plugins.edit_issue_plugin import (
+    EditDescriptionError,
+    EditIssueError,
+    EditIssuePlugin,
+    FetchDescriptionError,
+)
 
 # Add logging environment variables to EnvFetcher vars for testing BEFORE importing the plugin
 if not hasattr(EnvFetcher, "vars"):

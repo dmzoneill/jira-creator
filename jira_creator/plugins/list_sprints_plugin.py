@@ -34,7 +34,7 @@ class ListSprintsPlugin(JiraPlugin):
     @property
     def example_commands(self) -> List[str]:
         """Return example commands."""
-        return ["list-sprints 123"]
+        return ["list-sprints", "list-sprints -b 123"]
 
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""

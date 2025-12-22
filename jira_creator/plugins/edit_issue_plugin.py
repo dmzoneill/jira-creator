@@ -15,11 +15,22 @@ from typing import Any, Dict, List
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import EditDescriptionError, EditIssueError, FetchDescriptionError
 from jira_creator.providers import get_ai_provider
 from jira_creator.rest.prompts import IssueType, PromptLibrary
 
 logger = get_logger("edit_issue")
+
+
+class EditIssueError(Exception):
+    """Exception raised when editing an issue fails."""
+
+
+class FetchDescriptionError(Exception):
+    """Exception raised when fetching a description fails."""
+
+
+class EditDescriptionError(Exception):
+    """Exception raised when editing a description fails."""
 
 
 class EditIssuePlugin(JiraPlugin):
@@ -39,6 +50,14 @@ class EditIssuePlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Creation & Management"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "EditIssueError": EditIssueError,
+            "FetchDescriptionError": FetchDescriptionError,
+            "EditDescriptionError": EditDescriptionError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import CloneIssueError
+
+
+class CloneIssueError(Exception):
+    """Exception raised when cloning an issue fails."""
 
 
 class CloneIssuePlugin(JiraPlugin):
@@ -30,6 +33,12 @@ class CloneIssuePlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Creation & Management"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "CloneIssueError": CloneIssueError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

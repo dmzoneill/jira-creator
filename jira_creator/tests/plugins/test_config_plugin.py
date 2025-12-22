@@ -9,8 +9,7 @@ from unittest.mock import Mock, mock_open, patch
 import pytest
 
 from jira_creator.core.env_fetcher import EnvFetcher
-from jira_creator.exceptions.exceptions import ConfigError
-from jira_creator.plugins.config_plugin import ConfigPlugin, get_profile_setting
+from jira_creator.plugins.config_plugin import ConfigError, ConfigPlugin, get_profile_setting
 
 # Add JIRA_CONFIG_DIR to EnvFetcher vars for testing
 if not hasattr(EnvFetcher, "vars") or "JIRA_CONFIG_DIR" not in EnvFetcher.vars:

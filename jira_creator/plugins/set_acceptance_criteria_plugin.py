@@ -10,9 +10,17 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import AiError, SetAcceptanceCriteriaError
+from jira_creator.core.plugin_config import FieldMapping
+from jira_creator.exceptions.exceptions import AiError
 from jira_creator.providers import get_ai_provider
+
+logger = get_logger("set_acceptance_criteria")
+
+
+class SetAcceptanceCriteriaError(Exception):
+    """Exception raised when setting acceptance criteria fails."""
 
 
 class SetAcceptanceCriteriaPlugin(JiraPlugin):
@@ -32,6 +40,43 @@ class SetAcceptanceCriteriaPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Modification"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SetAcceptanceCriteriaError": SetAcceptanceCriteriaError,
+        }
+
+    def get_ai_prompts(self) -> Dict[str, str]:
+        """Register AI prompts for generating acceptance criteria."""
+        return {
+            "generate_acceptance_criteria": """Based on the following Jira issue, generate clear and testable \
+acceptance criteria in markdown checklist format.
+
+Issue Summary: {summary}
+
+Issue Description:
+{description}
+
+Generate acceptance criteria as a markdown checklist (using * [ ] format). Focus on:
+- Functional requirements
+- User-facing behavior
+- Edge cases
+- Testing scenarios
+
+Acceptance Criteria:""",
+        }
+
+    def get_field_mappings(self) -> Dict[str, FieldMapping]:
+        """Register JIRA field mappings for acceptance criteria."""
+        return {
+            "acceptance_criteria": FieldMapping(
+                env_var="JIRA_ACCEPTANCE_CRITERIA_FIELD",
+                default="customfield_12316440",
+                required=True,
+                description="Custom field for acceptance criteria",
+            ),
+        }
 
     @property
     def example_commands(self) -> List[str]:
@@ -124,21 +169,10 @@ class SetAcceptanceCriteriaPlugin(JiraPlugin):
             provider_name = EnvFetcher.get("JIRA_AI_PROVIDER", default="openai")
             provider = get_ai_provider(provider_name)
 
-            prompt = f"""Based on the following Jira issue, generate clear and testable acceptance criteria in \
-markdown checklist format.
-
-Issue Summary: {summary}
-
-Issue Description:
-{description}
-
-Generate acceptance criteria as a markdown checklist (using * [ ] format). Focus on:
-- Functional requirements
-- User-facing behavior
-- Edge cases
-- Testing scenarios
-
-Acceptance Criteria:"""
+            # Get prompt from plugin's registered prompts
+            prompts = self.get_ai_prompts()
+            prompt_template = prompts.get("generate_acceptance_criteria", "")
+            prompt = prompt_template.format(summary=summary, description=description)
 
             criteria = provider.complete(prompt)
 
@@ -206,7 +240,8 @@ Acceptance Criteria:"""
             ns = Namespace(issue_key=args["issue_key"], acceptance_criteria=[], ai_from_description=True)
             try:
                 return self.execute(client, ns)
-            except Exception:  # pylint: disable=broad-exception-caught
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Auto-fix failed for %s: %s", args.get("issue_key"), e)
                 return False
 
         return False

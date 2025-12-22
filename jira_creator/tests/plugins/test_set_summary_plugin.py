@@ -6,8 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from jira_creator.exceptions.exceptions import SetSummaryError
-from jira_creator.plugins.set_summary_plugin import SetSummaryPlugin
+from jira_creator.plugins.set_summary_plugin import SetSummaryError, SetSummaryPlugin
 
 
 class TestSetSummaryPlugin:

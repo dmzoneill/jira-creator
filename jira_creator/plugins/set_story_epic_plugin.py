@@ -11,7 +11,10 @@ from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import SetStoryEpicError
+
+
+class SetStoryEpicError(Exception):
+    """Exception raised when setting a story epic fails."""
 
 
 class SetStoryEpicPlugin(JiraPlugin):
@@ -31,6 +34,12 @@ class SetStoryEpicPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Modification"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SetStoryEpicError": SetStoryEpicError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

@@ -11,6 +11,10 @@ from typing import Any, Dict
 from jira_creator.core.plugin_setter_base import SetterPlugin
 
 
+class SetSummaryError(Exception):
+    """Exception raised when setting summary fails."""
+
+
 class SetSummaryPlugin(SetterPlugin):
     """Plugin for setting the summary of Jira issues."""
 
@@ -28,6 +32,12 @@ class SetSummaryPlugin(SetterPlugin):
     def argument_help(self) -> str:
         """Return help text for the summary argument."""
         return "The new summary text for the issue"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "SetSummaryError": SetSummaryError,
+        }
 
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
         """

@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import RemoveFlagError
+
+
+class RemoveFlagError(Exception):
+    """Exception raised when removing flag fails."""
 
 
 class RemoveFlagPlugin(JiraPlugin):
@@ -30,6 +33,12 @@ class RemoveFlagPlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Relationships"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "RemoveFlagError": RemoveFlagError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

@@ -10,7 +10,10 @@ from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import ChangeTypeError
+
+
+class ChangeTypeError(Exception):
+    """Exception raised when changing type fails."""
 
 
 class ChangeTypePlugin(JiraPlugin):
@@ -30,6 +33,12 @@ class ChangeTypePlugin(JiraPlugin):
     def category(self) -> str:
         """Return the category for help organization."""
         return "Issue Modification"
+
+    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+        """Register this plugin's custom exceptions."""
+        return {
+            "ChangeTypeError": ChangeTypeError,
+        }
 
     @property
     def example_commands(self) -> List[str]:

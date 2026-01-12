@@ -31,6 +31,7 @@ class ViewIssuePlugin(JiraPlugin):
         "created",
         "creator",
         "description",
+        "epic",
         "issue type",
         "labels",
         "priority",
@@ -199,6 +200,7 @@ class ViewIssuePlugin(JiraPlugin):
             EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD", ""): "acceptance criteria",
             EnvFetcher.get("JIRA_BLOCKED_FIELD", ""): "blocked",
             EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD", ""): "blocked reason",
+            EnvFetcher.get("JIRA_EPIC_FIELD", ""): "epic",
             EnvFetcher.get("JIRA_STORY_POINTS_FIELD", ""): "story points",
             EnvFetcher.get("JIRA_SPRINT_FIELD", ""): "sprint",
             EnvFetcher.get("JIRA_WORKSTREAM_FIELD", ""): "workstream",
@@ -241,7 +243,20 @@ class ViewIssuePlugin(JiraPlugin):
         if field_name in ["blocked", "workstream"]:
             return field_name, self._extract_option_value(field_value)
 
+        if field_name == "epic":
+            return field_name, self._extract_epic_key(field_value)
+
         return field_name, field_value
+
+    def _extract_epic_key(self, field_value: Any) -> Optional[str]:
+        """Extract epic key from epic field value."""
+        if field_value is None:
+            return None
+        if isinstance(field_value, str):
+            return field_value
+        if isinstance(field_value, dict):
+            return field_value.get("key") or field_value.get("name")
+        return str(field_value)
 
     def _extract_option_value(self, field_value: Any) -> Optional[str]:
         """Extract value from custom field option objects."""

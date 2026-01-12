@@ -130,6 +130,10 @@ class SearchPlugin(JiraPlugin):
         if blocked_field:
             fields_to_include.append(blocked_field)
 
+        epic_field = EnvFetcher.get("JIRA_EPIC_FIELD", "")
+        if epic_field:
+            fields_to_include.append(epic_field)
+
         # Build the search parameters
         params = {
             "jql": jql,

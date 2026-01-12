@@ -282,7 +282,7 @@ def clean_values(rows: List[Tuple], placeholder: str = "—", max_length: int = 
     return cleaned_rows
 
 
-def massage_issue_list(args: Namespace, issues: list[dict]):
+def massage_issue_list(args: Namespace, issues: list[dict]):  # pylint: disable=too-many-branches
     """
     Massage the provided issue list by flattening fields, applying view columns, and sorting rows.
 
@@ -328,6 +328,17 @@ def massage_issue_list(args: Namespace, issues: list[dict]):
                 row_data.append(issue["summary"])
             elif col == "sprint":
                 row_data.append(sprint)
+            elif col == "epic" or col == EnvFetcher.get("JIRA_EPIC_FIELD", ""):
+                epic_value = issue.get(EnvFetcher.get("JIRA_EPIC_FIELD", ""), None) or issue.get("epic", None)
+                if epic_value:
+                    if isinstance(epic_value, str):
+                        row_data.append(epic_value)
+                    elif isinstance(epic_value, dict):
+                        row_data.append(epic_value.get("key", epic_value.get("name", "—")))
+                    else:
+                        row_data.append(str(epic_value))
+                else:
+                    row_data.append("—")
             else:
                 # For any other dynamic fields, append the value directly
                 row_data.append(issue.get(col, "—"))

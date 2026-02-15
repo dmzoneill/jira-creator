@@ -1,9 +1,0 @@
-{
-  "name": "Setup Environment",
-  "description": "Install all dependencies and setup the development environment",
-  "command": "cd ${workspaceFolder} && make setup",
-  "icon": "package",
-  "category": "Setup"
-}
-
-

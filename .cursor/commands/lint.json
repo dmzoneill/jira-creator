@@ -1,9 +1,0 @@
-{
-  "name": "Lint & Quality Checks",
-  "description": "Run all linting and code quality checks (isort, autopep8, pylint, flake8, pyflakes, black, yamllint, hadolint, jscpd)",
-  "command": "cd ${workspaceFolder} && make lint",
-  "icon": "checklist",
-  "category": "Quality"
-}
-
-

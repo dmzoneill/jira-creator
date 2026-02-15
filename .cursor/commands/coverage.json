@@ -1,9 +1,0 @@
-{
-  "name": "Coverage Report",
-  "description": "Run tests with coverage and generate HTML report",
-  "command": "cd ${workspaceFolder} && make coverage-unit && echo '📂 Open htmlcov/index.html to view report'",
-  "icon": "graph",
-  "category": "Testing"
-}
-
-

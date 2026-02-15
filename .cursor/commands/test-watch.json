@@ -1,9 +1,0 @@
-{
-  "name": "Test Watch Mode",
-  "description": "Run tests in watch mode - automatically re-runs on file changes",
-  "command": "cd ${workspaceFolder} && make test-watch",
-  "icon": "eye",
-  "category": "Testing"
-}
-
-

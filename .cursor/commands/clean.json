@@ -1,9 +1,0 @@
-{
-  "name": "Clean Build Artifacts",
-  "description": "Remove __pycache__, .pyc files, coverage artifacts, and build files",
-  "command": "cd ${workspaceFolder} && make clean",
-  "icon": "trash",
-  "category": "Utilities"
-}
-
-

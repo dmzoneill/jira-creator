@@ -101,3 +101,24 @@ output.mp3
 
 # funcitonal tests
 jira_config/
+# AI tool configurations
+.cursor/
+.codex/
+.opencode/
+.gemini/
+.aider*
+.cody/
+.tabnine/
+.windsurf/
+.devai/
+.bolt/
+.v0/
+.lovable/
+.codeium/
+GEMINI.md
+.cursorrules
+.cursorignore
+opencode.json
+copilot-instructions.md
+.github/copilot-instructions.md
+.github/hooks/

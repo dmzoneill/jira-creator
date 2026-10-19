@@ -10,6 +10,7 @@ disable=
     too-few-public-methods,
     duplicate-code,
     import-outside-toplevel,
+    # Super-linter does not install project dependencies.
     import-error
 
 [MASTER]

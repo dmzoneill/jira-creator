@@ -9,7 +9,8 @@ disable=
     too-many-positional-arguments,
     too-few-public-methods,
     duplicate-code,
-    import-outside-toplevel
+    import-outside-toplevel,
+    import-error
 
 [MASTER]
 # Ignore patterns for files or directories (regex patterns)

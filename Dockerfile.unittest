@@ -1,6 +1,6 @@
 # hadolint global ignore=DL3041,DL3013,DL3059,DL3040,DL3042
 # Start with a Python base image
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Set the working directory inside the container
 WORKDIR /app

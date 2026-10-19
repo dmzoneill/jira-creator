@@ -78,31 +78,7 @@ class DeepSeekProvider(AIProvider):
         - Modifies the response by removing specific HTML tags ("<think>") if present.
         """
 
-        full_prompt: str = f"{prompt}\n\n{text}"
-
-        # Send the POST request
-        response: requests.Response = requests.post(
-            self.url,
-            headers=self.headers,
-            json={
-                "model": self.model,
-                "prompt": full_prompt,
-                "stream": False,
-            },
-            timeout=30,
-        )
-
-        if response.status_code != 200:
-            raise AiError(f"DeepSeek request failed: {response.status_code} - {response.text}")
-
-        # Parse the entire response at once
-        try:
-            response_data: Dict[str, str] = response.json()
-            entire_response: str = response_data.get("response", "").strip()
-            entire_response = entire_response.replace("<think>", "").replace("</think>", "")
-            return self.extract_content(entire_response)
-        except json.JSONDecodeError as e:
-            raise AiError(e) from e
+        return self.extract_content(self._complete(f"{prompt}\n\n{text}", timeout=30))
 
     def analyze_error(self, prompt: str, error_context: str) -> str:
         """
@@ -119,31 +95,8 @@ class DeepSeekProvider(AIProvider):
         - AiError: Raised if the POST request fails or if there is an issue parsing the JSON response.
         """
         full_prompt = f"{prompt}\n\nAnalyze this error:\n\n{error_context}"
-
-        # Send the POST request
-        response: requests.Response = requests.post(
-            self.url,
-            headers=self.headers,
-            json={
-                "model": self.model,
-                "prompt": full_prompt,
-                "stream": False,
-                "temperature": 0.3,  # Lower temperature for more deterministic analysis
-            },
-            timeout=120,
-        )
-
-        if response.status_code != 200:
-            raise AiError(f"DeepSeek request failed: {response.status_code} - {response.text}")
-
-        # Parse the response
-        try:
-            response_data: Dict[str, str] = response.json()
-            entire_response: str = response_data.get("response", "").strip()
-            entire_response = entire_response.replace("<think>", "").replace("</think>", "")
-            return entire_response
-        except json.JSONDecodeError as e:
-            raise AiError(e) from e
+        # Lower temperature keeps error analysis deterministic.
+        return self._complete(full_prompt, timeout=120, temperature=0.3)
 
     def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
         """
@@ -160,28 +113,25 @@ class DeepSeekProvider(AIProvider):
         - AiError: Raised if the POST request fails or if there is an issue parsing the JSON response.
         """
         full_prompt = f"{prompt}\n\nAnalyze this error and propose a fix:\n\n{error_context}"
+        return self._complete(full_prompt, timeout=120, temperature=0.3)
 
-        # Send the POST request
-        response: requests.Response = requests.post(
-            self.url,
-            headers=self.headers,
-            json={
-                "model": self.model,
-                "prompt": full_prompt,
-                "stream": False,
-                "temperature": 0.3,  # Lower temperature for more deterministic analysis
-            },
-            timeout=120,
-        )
+    def _complete(self, full_prompt: str, timeout: int, temperature: float | None = None) -> str:
+        """POST a prompt to DeepSeek and return the response text with think-tags removed."""
+        payload: Dict[str, str | float | bool] = {
+            "model": self.model,
+            "prompt": full_prompt,
+            "stream": False,
+        }
+        if temperature is not None:
+            payload["temperature"] = temperature
 
+        response: requests.Response = requests.post(self.url, headers=self.headers, json=payload, timeout=timeout)
         if response.status_code != 200:
             raise AiError(f"DeepSeek request failed: {response.status_code} - {response.text}")
 
-        # Parse the response
         try:
             response_data: Dict[str, str] = response.json()
             entire_response: str = response_data.get("response", "").strip()
-            entire_response = entire_response.replace("<think>", "").replace("</think>", "")
-            return entire_response
+            return entire_response.replace("<think>", "").replace("</think>", "")
         except json.JSONDecodeError as e:
             raise AiError(e) from e

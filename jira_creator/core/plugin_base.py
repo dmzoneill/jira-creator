@@ -105,7 +105,7 @@ class JiraPlugin(ABC):
         """
 
     @abstractmethod
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> Any:
         """
         Perform the REST API operation.
 
@@ -209,7 +209,10 @@ class JiraPlugin(ABC):
         Raises:
             NotImplementedError: If plugin doesn't implement fix execution
         """
-        raise NotImplementedError(f"Plugin {self.command_name} does not implement execute_fix for {method_name}")
+        # client and args are part of the plugin interface; the default has no fix to run.
+        del client, args
+        message = f"Plugin {self.command_name} does not implement execute_fix for {method_name}"
+        raise NotImplementedError(message)
 
     def get_plugin_exceptions(self) -> Dict[str, Type[Exception]]:
         """

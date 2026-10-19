@@ -19,8 +19,10 @@ Exceptions:
 - AiProviderError: Raised for unsupported providers or initialization errors.
 """
 
+from typing import Callable
 
 from jira_creator.exceptions.exceptions import AiProviderError
+from jira_creator.providers.ai_provider import AIProvider
 
 from .bart_provider import BARTProvider
 from .deepseek_provider import DeepSeekProvider
@@ -49,7 +51,7 @@ def get_ai_provider(name: str):
     name = name.lower()
 
     # Map the provider name to the corresponding class
-    provider_map = {
+    provider_map: dict[str, Callable[[], AIProvider]] = {
         "openai": OpenAIProvider,
         "instructlab": InstructLabProvider,
         "bart": BARTProvider,

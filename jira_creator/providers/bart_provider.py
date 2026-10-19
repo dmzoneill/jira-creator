@@ -69,15 +69,8 @@ class BARTProvider(AIProvider):
         - This function may raise exceptions related to the HTTP request or response handling.
         """
 
-        full_prompt: str = f"{prompt}\n\n{text}"
-        response: requests.Response = requests.post(
-            self.url, headers=self.headers, json={"text": full_prompt}, timeout=30
-        )
-        if response.status_code == 200:
-            raw_content = response.json().get("output", "")
-            return self.extract_content(raw_content)
-
-        raise AiError(f"BART request failed: {response.status_code} - {response.text}")
+        raw_content = self._generate(f"{prompt}\n\n{text}", timeout=30)
+        return self.extract_content(raw_content)
 
     def analyze_error(self, prompt: str, error_context: str) -> str:
         """
@@ -94,13 +87,7 @@ class BARTProvider(AIProvider):
         - AiError: Raised when the BART API request fails.
         """
         full_prompt = f"{prompt}\n\nAnalyze this error:\n\n{error_context}"
-        response: requests.Response = requests.post(
-            self.url, headers=self.headers, json={"text": full_prompt}, timeout=120
-        )
-        if response.status_code == 200:
-            return response.json().get("output", "").strip()
-
-        raise AiError(f"BART request failed: {response.status_code} - {response.text}")
+        return self._generate(full_prompt, timeout=120).strip()
 
     def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
         """
@@ -117,10 +104,13 @@ class BARTProvider(AIProvider):
         - AiError: Raised when the BART API request fails.
         """
         full_prompt = f"{prompt}\n\nAnalyze this error and propose a fix:\n\n{error_context}"
+        return self._generate(full_prompt, timeout=120).strip()
+
+    def _generate(self, full_prompt: str, timeout: int) -> str:
+        """POST text to the BART endpoint and return the output field."""
         response: requests.Response = requests.post(
-            self.url, headers=self.headers, json={"text": full_prompt}, timeout=120
+            self.url, headers=self.headers, json={"text": full_prompt}, timeout=timeout
         )
         if response.status_code == 200:
-            return response.json().get("output", "").strip()
-
+            return response.json().get("output", "")
         raise AiError(f"BART request failed: {response.status_code} - {response.text}")

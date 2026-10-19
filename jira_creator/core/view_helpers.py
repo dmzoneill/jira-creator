@@ -23,16 +23,17 @@ Dependencies:
 
 This module is intended for use in a command-line interface or script that processes and displays JIRA issue data.
 """
+
 import re
 import traceback
 from argparse import Namespace
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.rest.client import JiraClient
 
 
-def fetch_view_columns() -> List[str]:
+def fetch_view_columns() -> List[str] | None:
     """
     Fetch the view columns from EnvFetcher or return None.
     If any entry contains 'JIRA.......FIELD', fetch the environment variable.
@@ -130,7 +131,11 @@ def sort_rows(rows: List[Tuple], sort_columns: List[Tuple[str, str]], headers: L
     try:
         for col, order in reversed(sort_columns):
             col_index = headers.index(col)  # Use headers passed as an argument
-            rows.sort(key=lambda x, idx=col_index: x[idx], reverse=order == "desc")
+
+            def row_key(row: Tuple, index: int = col_index):
+                return row[index]
+
+            rows.sort(key=row_key, reverse=order == "desc")
     except (ValueError, IndexError) as e:
         print("Error sorting rows based on the columns.")
         print(f"Error details: {e}")
@@ -219,12 +224,12 @@ def format_and_print_rows(rows: List[Tuple], headers: List[str], jira_client: Ji
 
     # Truncate long summary fields and print each row
     # truncate_length = 97
-    for r in rows:
-        r = list(r)
-        # if summary_index != -1 and len(r[summary_index]) > max_summary_length:
-        #     r[summary_index] = r[summary_index][:truncate_length] + " .."
+    for row in rows:
+        row_values = list(row)
+        # if summary_index != -1 and len(row_values[summary_index]) > max_summary_length:
+        #     row_values[summary_index] = row_values[summary_index][:truncate_length] + " .."
         # Print each row, ensuring the formatting matches the column widths
-        print(" | ".join(str(val).ljust(widths[i]) for i, val in enumerate(r)))
+        print(" | ".join(str(val).ljust(widths[i]) for i, val in enumerate(row_values)))
 
 
 def flatten_fields(issue: dict) -> dict:
@@ -308,10 +313,14 @@ def massage_issue_list(args: Namespace, issues: list[dict]):  # pylint: disable=
         sprints = issue.get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
         sprint = "-"
         if sprints is not None:
-            sprint = next(
-                (re.search(r"name=([^,]+)", s).group(1) for s in sprints if "state=ACTIVE" in s and "name=" in s),
-                "—",
-            )
+            sprint = "—"
+            for sprint_value in sprints:
+                if "state=ACTIVE" not in sprint_value or "name=" not in sprint_value:
+                    continue
+                name_match = re.search(r"name=([^,]+)", sprint_value)
+                if name_match:
+                    sprint = name_match.group(1)
+                    break
 
         # Dynamically create row data based on headers (view_columns or first dict's keys)
         row_data = []
@@ -357,3 +366,61 @@ def massage_issue_list(args: Namespace, issues: list[dict]):  # pylint: disable=
         rows = sort_rows(rows, sort_columns, headers)  # Pass headers here
 
     return headers, rows
+
+
+def search_jira_issues(
+    client: Any,
+    jql: str,
+    max_results: int,
+    order_by: str | None = None,
+    include_epic: bool = False,
+    env_get: Any = None,
+) -> List[dict]:
+    """
+    Search Jira issues with the field set shared by list and search commands.
+
+    Arguments:
+    - client: Jira client that accepts request(method, path, params=...).
+    - jql: JQL query string.
+    - max_results: Maximum number of issues to return.
+    - order_by: Optional orderBy parameter. Omitted from the request when empty.
+    - include_epic: Include the epic custom field when it is configured.
+    - env_get: Callable matching EnvFetcher.get. Defaults to EnvFetcher.get.
+
+    Return:
+    - List of issue dictionaries from the search response.
+    """
+    get_env = env_get or EnvFetcher.get
+    fields_to_include = [
+        "key",
+        "summary",
+        "status",
+        "assignee",
+        "reporter",
+        "priority",
+        "issuetype",
+        "created",
+        "updated",
+        "components",
+    ]
+
+    for env_name in ("JIRA_SPRINT_FIELD", "JIRA_STORY_POINTS_FIELD", "JIRA_BLOCKED_FIELD"):
+        custom_field = get_env(env_name, "")
+        if custom_field:
+            fields_to_include.append(custom_field)
+
+    if include_epic:
+        epic_field = get_env("JIRA_EPIC_FIELD", "")
+        if epic_field:
+            fields_to_include.append(epic_field)
+
+    params = {
+        "jql": jql,
+        "maxResults": max_results,
+        "fields": ",".join(fields_to_include),
+    }
+    if order_by:
+        params["orderBy"] = order_by
+
+    response = client.request("GET", "/rest/api/2/search", params=params)
+    return response.get("issues", [])

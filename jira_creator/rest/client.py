@@ -582,8 +582,8 @@ class JiraClient:
                 module_name = None
                 try:
                     jira_creator_idx = parts.index("jira_creator")
-                    module_parts = parts[jira_creator_idx:-1]  # Exclude .py file
-                    module_parts = list(module_parts) + [file_path_obj.stem]
+                    # Exclude the .py file, then append the module stem.
+                    module_parts = list(parts[jira_creator_idx:-1]) + [file_path_obj.stem]
                     module_name = ".".join(module_parts)
                 except ValueError:
                     # File is not in jira_creator package (e.g., external plugin)

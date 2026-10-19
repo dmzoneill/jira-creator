@@ -75,26 +75,8 @@ class OpenAIProvider(AIProvider):
         Exceptions:
         - AiError: Raised when the OpenAI API call fails, providing the status code and response text.
         """
-        headers: dict[str, str] = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-
-        body: dict = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": text},
-            ],
-            "temperature": 0.8,
-        }
-
-        response: requests.Response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
-        if response.status_code == 200:
-            raw_content = response.json()["choices"][0]["message"]["content"]
-            return self.extract_content(raw_content)
-
-        raise AiError(f"OpenAI API call failed: {response.status_code} - {response.text}")
+        raw_content = self._chat(prompt, text, temperature=0.8)
+        return self.extract_content(raw_content)
 
     def analyze_error(self, prompt: str, error_context: str) -> str:
         """
@@ -113,25 +95,8 @@ class OpenAIProvider(AIProvider):
         Exceptions:
         - AiError: Raised when the OpenAI API call fails.
         """
-        headers: dict[str, str] = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-
-        body: dict = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": f"Analyze this error:\n\n{error_context}"},
-            ],
-            "temperature": 0.3,  # Lower temperature for more deterministic analysis
-        }
-
-        response: requests.Response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
-        if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"].strip()
-
-        raise AiError(f"OpenAI API call failed: {response.status_code} - {response.text}")
+        # Lower temperature keeps error analysis deterministic.
+        return self._chat(prompt, f"Analyze this error:\n\n{error_context}", temperature=0.3).strip()
 
     def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
         """
@@ -150,23 +115,37 @@ class OpenAIProvider(AIProvider):
         Exceptions:
         - AiError: Raised when the OpenAI API call fails.
         """
+        return self._chat(
+            prompt,
+            f"Analyze this error and propose a fix:\n\n{error_context}",
+            temperature=0.3,
+            response_format={"type": "json_object"},
+        ).strip()
+
+    def _chat(
+        self,
+        prompt: str,
+        user_content: str,
+        temperature: float,
+        response_format: dict | None = None,
+    ) -> str:
+        """POST a chat completion and return the assistant message content."""
         headers: dict[str, str] = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-
         body: dict = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": prompt},
-                {"role": "user", "content": f"Analyze this error and propose a fix:\n\n{error_context}"},
+                {"role": "user", "content": user_content},
             ],
-            "temperature": 0.3,  # Lower temperature for more deterministic analysis
-            "response_format": {"type": "json_object"},  # Request JSON response
+            "temperature": temperature,
         }
+        if response_format is not None:
+            body["response_format"] = response_format
 
         response: requests.Response = requests.post(self.endpoint, json=body, headers=headers, timeout=120)
         if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"].strip()
-
+            return response.json()["choices"][0]["message"]["content"]
         raise AiError(f"OpenAI API call failed: {response.status_code} - {response.text}")

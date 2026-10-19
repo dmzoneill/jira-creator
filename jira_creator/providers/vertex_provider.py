@@ -80,13 +80,14 @@ class VertexAIProvider(AIProvider):
 
         # Detect model type based on model name prefix
         model_lower = self.model.lower()
+        self.project_id: str
         if model_lower.startswith("claude"):
             self.model_type = "claude"
             # Use Anthropic project ID if set, fallback to general GCP project
-            self.project_id: str = EnvFetcher.get("ANTHROPIC_VERTEX_PROJECT_ID", EnvFetcher.get("GOOGLE_CLOUD_PROJECT"))
+            self.project_id = EnvFetcher.get("ANTHROPIC_VERTEX_PROJECT_ID", EnvFetcher.get("GOOGLE_CLOUD_PROJECT"))
         elif model_lower.startswith("gemini"):
             self.model_type = "gemini"
-            self.project_id: str = EnvFetcher.get("GOOGLE_CLOUD_PROJECT")
+            self.project_id = EnvFetcher.get("GOOGLE_CLOUD_PROJECT")
         else:
             raise AiError(f"Unsupported Vertex AI model: {self.model}. Model must start with 'claude-' or 'gemini-'")
 
@@ -110,26 +111,19 @@ class VertexAIProvider(AIProvider):
         Exceptions:
         - AiError: Raised when the Vertex AI API call fails or dependencies are missing.
         """
+        combined = f"{prompt}\n\n{text}"
+        return self.extract_content(self._complete(combined, combined, prompt, 0.8))
+
+    def _complete(self, claude_user: str, gemini_prompt: str, system_prompt: str, temperature: float) -> str:
+        """Send one completion to the detected Vertex backend and return the raw text."""
         if self.model_type == "claude":
-            return self._improve_with_claude(prompt, text)
+            return self._complete_with_claude(claude_user, system_prompt, temperature)
         if self.model_type == "gemini":
-            return self._improve_with_gemini(prompt, text)
+            return self._complete_with_gemini(gemini_prompt, temperature)
         raise AiError(f"Unknown model type: {self.model_type}")
 
-    def _improve_with_claude(self, prompt: str, text: str) -> str:
-        """
-        Improve text using Anthropic Claude models on Vertex AI.
-
-        Arguments:
-        - prompt (str): The system prompt.
-        - text (str): The user text to improve.
-
-        Return:
-        - str: The improved text.
-
-        Exceptions:
-        - AiError: If the anthropic package is not installed or API call fails.
-        """
+    def _complete_with_claude(self, user_content: str, system_prompt: str, temperature: float) -> str:
+        """Call Anthropic Claude on Vertex AI and return the first text block."""
         try:
             from anthropic import AnthropicVertex
         except ImportError as e:
@@ -137,39 +131,22 @@ class VertexAIProvider(AIProvider):
 
         try:
             client = AnthropicVertex(region=self.location, project_id=self.project_id)
-
             message = client.messages.create(
                 model=self.model,
                 max_tokens=4096,
-                temperature=0.8,
-                messages=[{"role": "user", "content": f"{prompt}\n\n{text}"}],
-                system=prompt if prompt else None,
+                temperature=temperature,
+                messages=[{"role": "user", "content": user_content}],
+                system=system_prompt if system_prompt else None,
             )
-
-            # Extract text content from response
             content_blocks = message.content
             if content_blocks and len(content_blocks) > 0:
-                raw_content = content_blocks[0].text
-                return self.extract_content(raw_content)
+                return content_blocks[0].text
             raise AiError("Empty response from Claude Vertex AI")
-
         except Exception as e:
             raise AiError(f"Claude Vertex AI call failed: {str(e)}") from e
 
-    def _improve_with_gemini(self, prompt: str, text: str) -> str:
-        """
-        Improve text using Google Gemini models on Vertex AI.
-
-        Arguments:
-        - prompt (str): The system prompt/context.
-        - text (str): The user text to improve.
-
-        Return:
-        - str: The improved text.
-
-        Exceptions:
-        - AiError: If the google-cloud-aiplatform package is not installed or API call fails.
-        """
+    def _complete_with_gemini(self, full_prompt: str, temperature: float) -> str:
+        """Call Google Gemini on Vertex AI and return the response text."""
         try:
             import vertexai
             from vertexai.generative_models import GenerativeModel
@@ -179,28 +156,18 @@ class VertexAIProvider(AIProvider):
             ) from e
 
         try:
-            # Initialize Vertex AI SDK
             vertexai.init(project=self.project_id, location=self.location)
-
-            # Create the model
             model = GenerativeModel(self.model)
-
-            # Combine prompt and text
-            full_prompt = f"{prompt}\n\n{text}"
-
-            # Generate content
             response = model.generate_content(
                 full_prompt,
                 generation_config={
-                    "temperature": 0.8,
+                    "temperature": temperature,
                     "max_output_tokens": 4096,
                 },
             )
-
             if response.text:
-                return self.extract_content(response.text)
+                return response.text
             raise AiError("Empty response from Gemini Vertex AI")
-
         except Exception as e:
             raise AiError(f"Gemini Vertex AI call failed: {str(e)}") from e
 
@@ -221,98 +188,9 @@ class VertexAIProvider(AIProvider):
         Exceptions:
         - AiError: Raised when the Vertex AI API call fails or dependencies are missing.
         """
-        if self.model_type == "claude":
-            return self._analyze_error_with_claude(prompt, error_context)
-        if self.model_type == "gemini":
-            return self._analyze_error_with_gemini(prompt, error_context)
-        raise AiError(f"Unknown model type: {self.model_type}")
-
-    def _analyze_error_with_claude(self, prompt: str, error_context: str) -> str:
-        """
-        Analyze error using Anthropic Claude models on Vertex AI.
-
-        Arguments:
-        - prompt (str): The system prompt for error analysis.
-        - error_context (str): JSON-formatted error context.
-
-        Return:
-        - str: Markdown-formatted analysis.
-
-        Exceptions:
-        - AiError: If the anthropic package is not installed or API call fails.
-        """
-        try:
-            from anthropic import AnthropicVertex
-        except ImportError as e:
-            raise AiError("anthropic[vertex] package not installed. Run: pipenv install 'anthropic[vertex]'") from e
-
-        try:
-            client = AnthropicVertex(region=self.location, project_id=self.project_id)
-
-            message = client.messages.create(
-                model=self.model,
-                max_tokens=4096,
-                temperature=0.3,  # Lower temperature for more deterministic analysis
-                messages=[{"role": "user", "content": f"Analyze this error:\n\n{error_context}"}],
-                system=prompt if prompt else None,
-            )
-
-            # Extract text content from response
-            content_blocks = message.content
-            if content_blocks and len(content_blocks) > 0:
-                return content_blocks[0].text.strip()
-            raise AiError("Empty response from Claude Vertex AI")
-
-        except Exception as e:
-            raise AiError(f"Claude Vertex AI call failed: {str(e)}") from e
-
-    def _analyze_error_with_gemini(self, prompt: str, error_context: str) -> str:
-        """
-        Analyze error using Google Gemini models on Vertex AI.
-
-        Arguments:
-        - prompt (str): The system prompt for error analysis.
-        - error_context (str): JSON-formatted error context.
-
-        Return:
-        - str: Markdown-formatted analysis.
-
-        Exceptions:
-        - AiError: If the google-cloud-aiplatform package is not installed or API call fails.
-        """
-        try:
-            import vertexai
-            from vertexai.generative_models import GenerativeModel
-        except ImportError as e:
-            raise AiError(
-                "google-cloud-aiplatform package not installed. Run: pipenv install google-cloud-aiplatform"
-            ) from e
-
-        try:
-            # Initialize Vertex AI SDK
-            vertexai.init(project=self.project_id, location=self.location)
-
-            # Create the model
-            model = GenerativeModel(self.model)
-
-            # Combine prompt and error context
-            full_prompt = f"{prompt}\n\nAnalyze this error:\n\n{error_context}"
-
-            # Generate content
-            response = model.generate_content(
-                full_prompt,
-                generation_config={
-                    "temperature": 0.3,  # Lower temperature for more deterministic analysis
-                    "max_output_tokens": 4096,
-                },
-            )
-
-            if response.text:
-                return response.text.strip()
-            raise AiError("Empty response from Gemini Vertex AI")
-
-        except Exception as e:
-            raise AiError(f"Gemini Vertex AI call failed: {str(e)}") from e
+        # Lower temperature keeps error analysis deterministic.
+        user_content = f"Analyze this error:\n\n{error_context}"
+        return self._complete(user_content, f"{prompt}\n\n{user_content}", prompt, 0.3).strip()
 
     def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
         """
@@ -331,95 +209,5 @@ class VertexAIProvider(AIProvider):
         Exceptions:
         - AiError: Raised when the Vertex AI API call fails or dependencies are missing.
         """
-        if self.model_type == "claude":
-            return self._analyze_and_fix_with_claude(prompt, error_context)
-        if self.model_type == "gemini":
-            return self._analyze_and_fix_with_gemini(prompt, error_context)
-        raise AiError(f"Unknown model type: {self.model_type}")
-
-    def _analyze_and_fix_with_claude(self, prompt: str, error_context: str) -> str:
-        """
-        Analyze error and propose fix using Anthropic Claude models on Vertex AI.
-
-        Arguments:
-        - prompt (str): The system prompt for error analysis and fix generation.
-        - error_context (str): JSON-formatted error context.
-
-        Return:
-        - str: JSON-formatted fix proposal.
-
-        Exceptions:
-        - AiError: If the anthropic package is not installed or API call fails.
-        """
-        try:
-            from anthropic import AnthropicVertex
-        except ImportError as e:
-            raise AiError("anthropic[vertex] package not installed. Run: pipenv install 'anthropic[vertex]'") from e
-
-        try:
-            client = AnthropicVertex(region=self.location, project_id=self.project_id)
-
-            message = client.messages.create(
-                model=self.model,
-                max_tokens=4096,
-                temperature=0.3,  # Lower temperature for more deterministic analysis
-                messages=[{"role": "user", "content": f"Analyze this error and propose a fix:\n\n{error_context}"}],
-                system=prompt if prompt else None,
-            )
-
-            # Extract text content from response
-            content_blocks = message.content
-            if content_blocks and len(content_blocks) > 0:
-                return content_blocks[0].text.strip()
-            raise AiError("Empty response from Claude Vertex AI")
-
-        except Exception as e:
-            raise AiError(f"Claude Vertex AI call failed: {str(e)}") from e
-
-    def _analyze_and_fix_with_gemini(self, prompt: str, error_context: str) -> str:
-        """
-        Analyze error and propose fix using Google Gemini models on Vertex AI.
-
-        Arguments:
-        - prompt (str): The system prompt for error analysis and fix generation.
-        - error_context (str): JSON-formatted error context.
-
-        Return:
-        - str: JSON-formatted fix proposal.
-
-        Exceptions:
-        - AiError: If the google-cloud-aiplatform package is not installed or API call fails.
-        """
-        try:
-            import vertexai
-            from vertexai.generative_models import GenerativeModel
-        except ImportError as e:
-            raise AiError(
-                "google-cloud-aiplatform package not installed. Run: pipenv install google-cloud-aiplatform"
-            ) from e
-
-        try:
-            # Initialize Vertex AI SDK
-            vertexai.init(project=self.project_id, location=self.location)
-
-            # Create the model
-            model = GenerativeModel(self.model)
-
-            # Combine prompt and error context
-            full_prompt = f"{prompt}\n\nAnalyze this error and propose a fix:\n\n{error_context}"
-
-            # Generate content
-            response = model.generate_content(
-                full_prompt,
-                generation_config={
-                    "temperature": 0.3,  # Lower temperature for more deterministic analysis
-                    "max_output_tokens": 4096,
-                },
-            )
-
-            if response.text:
-                return response.text.strip()
-            raise AiError("Empty response from Gemini Vertex AI")
-
-        except Exception as e:
-            raise AiError(f"Gemini Vertex AI call failed: {str(e)}") from e
+        user_content = f"Analyze this error and propose a fix:\n\n{error_context}"
+        return self._complete(user_content, f"{prompt}\n\n{user_content}", prompt, 0.3).strip()

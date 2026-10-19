@@ -11,7 +11,7 @@ from typing import Any, Dict, List
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list
+from jira_creator.core.view_helpers import format_and_print_rows, massage_issue_list, search_jira_issues
 
 
 class ListIssuesError(Exception):
@@ -120,53 +120,13 @@ class ListIssuesPlugin(JiraPlugin):
         Returns:
             List[Dict[str, Any]]: List of issue data
         """
-        jql = kwargs["jql"]
-        max_results = kwargs.get("max_results", 100)
-        order_by = kwargs.get("order_by", "key")
-
-        # Get all fields that should be included
-        fields_to_include = [
-            "key",
-            "summary",
-            "status",
-            "assignee",
-            "reporter",
-            "priority",
-            "issuetype",
-            "created",
-            "updated",
-            "components",
-        ]
-
-        # Add custom fields from environment variables
-        sprint_field = EnvFetcher.get("JIRA_SPRINT_FIELD", "")
-        if sprint_field:
-            fields_to_include.append(sprint_field)
-
-        story_points_field = EnvFetcher.get("JIRA_STORY_POINTS_FIELD", "")
-        if story_points_field:
-            fields_to_include.append(story_points_field)
-
-        blocked_field = EnvFetcher.get("JIRA_BLOCKED_FIELD", "")
-        if blocked_field:
-            fields_to_include.append(blocked_field)
-
-        # Build search parameters
-        params = {
-            "jql": jql,
-            "maxResults": max_results,
-            "fields": ",".join(fields_to_include),
-        }
-
-        # Add ordering if specified
-        if order_by:
-            params["orderBy"] = order_by
-
-        # Perform the search
-        path = "/rest/api/2/search"
-        response = client.request("GET", path, params=params)
-
-        return response.get("issues", [])
+        return search_jira_issues(
+            client,
+            kwargs["jql"],
+            kwargs.get("max_results", 100),
+            order_by=kwargs.get("order_by", "key"),
+            env_get=EnvFetcher.get,
+        )
 
     def _build_jql_query(self, args: Namespace) -> str:
         """Build JQL query from command arguments."""

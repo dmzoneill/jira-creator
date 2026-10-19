@@ -68,54 +68,8 @@ class CreateIssuePlugin(JiraPlugin):
     def get_ai_prompts(self) -> Dict[str, str]:
         """Register AI prompts for issue type generation."""
         return {
-            "task": """As a professional Principal Software Engineer, you write acute and clear task descriptions "
-                         "with proper JIRA formatting.
-
-CRITICAL FORMATTING REQUIREMENTS:
-- Use proper JIRA wiki markup syntax
-- Structure sections with h2. headings
-- Use bullet points (*) for lists, NOT numbered lists (1., 2., 3.)
-- Ensure proper spacing between sections
-
-Focus on actionable items and clear acceptance criteria.""",
-            "story": """As a professional Principal Software Engineer, you write acute, well-defined Jira "
-                          "user stories with strong focus on clarity, structure, and detail.
-
-CRITICAL FORMATTING REQUIREMENTS:
-- Use proper JIRA wiki markup syntax
-- Structure sections with h2. headings (e.g., "h2. User Story", "h2. Acceptance Criteria")
-- Use bullet points (*) for lists, NOT numbered lists (1., 2., 3.)
-- Write clear, concise sentences
-- Ensure proper spacing between sections
-- Follow the exact template structure provided
-
-Focus on:
-- Clear user value proposition in the User Story section
-- Specific, testable Acceptance Criteria as bullet points
-- Relevant Supporting Documentation links/references
-- Concrete, measurable Definition of Done items
-
-IMPORTANT: Maintain professional formatting and avoid repetitive numbering patterns.""",
-            "bug": """As a professional Principal Software Engineer, you write acute and clear bug reports "
-                        "with proper JIRA formatting.
-
-CRITICAL FORMATTING REQUIREMENTS:
-- Use proper JIRA wiki markup syntax
-- Structure sections with h2. headings
-- Use bullet points (*) for lists, NOT numbered lists (1., 2., 3.)
-- Ensure proper spacing between sections
-
-Focus on reproducibility and impact with clear steps to reproduce.""",
-            "epic": """As a professional Principal Software Engineer, you write acute and clear epic descriptions "
-                         "with proper JIRA formatting.
-
-CRITICAL FORMATTING REQUIREMENTS:
-- Use proper JIRA wiki markup syntax
-- Structure sections with h2. headings
-- Use bullet points (*) for lists, NOT numbered lists (1., 2., 3.)
-- Ensure proper spacing between sections
-
-Focus on high-level goals and value with clear success criteria.""",
+            issue_type: PromptLibrary.get_prompt(IssueType[issue_type.upper()])
+            for issue_type in ("task", "story", "bug", "epic")
         }
 
     def get_field_mappings(self) -> Dict[str, FieldMapping]:
@@ -374,7 +328,7 @@ Focus on high-level goals and value with clear success criteria.""",
         return ai_provider.improve_text(prompt, description)
 
     def _build_payload(
-        self, summary: str, description: str, issue_type: str, field_values: Dict[str, str] = None
+        self, summary: str, description: str, issue_type: str, field_values: Dict[str, str] | None = None
     ) -> Dict[str, Any]:
         """Build the Jira API payload."""
         # Get configuration from environment
@@ -385,7 +339,7 @@ Focus on high-level goals and value with clear success criteria.""",
         epic_field = EnvFetcher.get("JIRA_EPIC_FIELD") or ""
 
         # Build basic payload
-        payload = {
+        payload: Dict[str, Any] = {
             "fields": {
                 "project": {"key": project_key},
                 "summary": summary,
@@ -419,7 +373,7 @@ Focus on high-level goals and value with clear success criteria.""",
 
         return payload
 
-    def _add_custom_fields(self, payload: Dict[str, Any], field_values: Dict[str, str] = None) -> None:
+    def _add_custom_fields(self, payload: Dict[str, Any], field_values: Dict[str, str] | None = None) -> None:
         """Add workstream and acceptance criteria custom fields to payload."""
         # Add workstream field
         workstream_field = EnvFetcher.get("JIRA_WORKSTREAM_FIELD", default="")
@@ -512,7 +466,12 @@ Focus on high-level goals and value with clear success criteria.""",
                 print("⚠️  No epic link specified for story")
 
     def _output_result(
-        self, args: Namespace, issue_key: str, issue_id: str, jira_url: str, story_points: int = None
+        self,
+        args: Namespace,
+        issue_key: str | None,
+        issue_id: str | None,
+        jira_url: str,
+        story_points: int | None = None,
     ) -> None:
         """
         Output the result based on format preference.
@@ -529,7 +488,7 @@ Focus on high-level goals and value with clear success criteria.""",
             print(issue_key)
         elif args.output == "json":
             # JSON output
-            result = {
+            result: Dict[str, Any] = {
                 "key": issue_key,
                 "id": issue_id,
                 "url": f"{jira_url}/browse/{issue_key}",

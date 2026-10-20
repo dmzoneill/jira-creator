@@ -72,21 +72,8 @@ class InstructLabProvider(AIProvider):
         Exceptions:
         - AiError: Raised when the POST request to the URL fails, indicating an issue with the AI service.
         """
-        full_prompt: str = f"{prompt}\n\n{text}"
-        response: requests.Response = requests.post(
-            self.url,
-            json={
-                "model": self.model,
-                "prompt": full_prompt,
-                "stream": False,
-                "options": {"temperature": 0.3},
-            },
-            timeout=60,
-        )
-        if response.status_code == 200:
-            raw_content = response.json().get("response", "")
-            return self.extract_content(raw_content)
-        raise AiError(f"InstructLab request failed: {response.status_code} - {response.text}")
+        raw_content = self._generate(f"{prompt}\n\n{text}", timeout=60)
+        return self.extract_content(raw_content)
 
     def analyze_error(self, prompt: str, error_context: str) -> str:
         """
@@ -103,19 +90,7 @@ class InstructLabProvider(AIProvider):
         - AiError: Raised when the POST request to the URL fails.
         """
         full_prompt = f"{prompt}\n\nAnalyze this error:\n\n{error_context}"
-        response: requests.Response = requests.post(
-            self.url,
-            json={
-                "model": self.model,
-                "prompt": full_prompt,
-                "stream": False,
-                "options": {"temperature": 0.3},
-            },
-            timeout=120,
-        )
-        if response.status_code == 200:
-            return response.json().get("response", "").strip()
-        raise AiError(f"InstructLab request failed: {response.status_code} - {response.text}")
+        return self._generate(full_prompt, timeout=120).strip()
 
     def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
         """
@@ -132,6 +107,10 @@ class InstructLabProvider(AIProvider):
         - AiError: Raised when the POST request to the URL fails.
         """
         full_prompt = f"{prompt}\n\nAnalyze this error and propose a fix:\n\n{error_context}"
+        return self._generate(full_prompt, timeout=120).strip()
+
+    def _generate(self, full_prompt: str, timeout: int) -> str:
+        """POST a prompt to InstructLab and return the response text."""
         response: requests.Response = requests.post(
             self.url,
             json={
@@ -140,8 +119,8 @@ class InstructLabProvider(AIProvider):
                 "stream": False,
                 "options": {"temperature": 0.3},
             },
-            timeout=120,
+            timeout=timeout,
         )
         if response.status_code == 200:
-            return response.json().get("response", "").strip()
+            return response.json().get("response", "")
         raise AiError(f"InstructLab request failed: {response.status_code} - {response.text}")

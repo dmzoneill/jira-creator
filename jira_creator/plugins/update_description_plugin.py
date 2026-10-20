@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from jira_creator.core.plugin_base import JiraPlugin
+from jira_creator.plugins.issue_field_updates import update_issue_description
 
 
 class UpdateDescriptionError(Exception):
@@ -125,20 +126,5 @@ class UpdateDescriptionPlugin(JiraPlugin):
         return sys.stdin.read()
 
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-        """
-        Perform the REST API operation to update description.
-
-        Arguments:
-            client: JiraClient instance
-            **kwargs: Contains 'issue_key' and 'description'
-
-        Returns:
-            Dict[str, Any]: API response
-        """
-        issue_key = kwargs["issue_key"]
-        description = kwargs["description"]
-
-        path = f"/rest/api/2/issue/{issue_key}"
-        payload = {"fields": {"description": description}}
-
-        return client.request("PUT", path, json_data=payload)
+        """Store a replacement description on the issue."""
+        return update_issue_description(client, kwargs["issue_key"], kwargs["description"])

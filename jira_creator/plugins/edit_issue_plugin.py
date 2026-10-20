@@ -15,6 +15,7 @@ from typing import Any, Dict, List
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
+from jira_creator.plugins.issue_field_updates import update_issue_description
 from jira_creator.providers import get_ai_provider
 from jira_creator.rest.prompts import IssueType, PromptLibrary
 
@@ -182,23 +183,8 @@ class EditIssuePlugin(JiraPlugin):
         return True
 
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-        """
-        Perform the REST API operation to update issue description.
-
-        Arguments:
-            client: JiraClient instance
-            **kwargs: Contains 'issue_key' and 'description'
-
-        Returns:
-            Dict[str, Any]: API response
-        """
-        issue_key = kwargs["issue_key"]
-        description = kwargs["description"]
-
-        path = f"/rest/api/2/issue/{issue_key}"
-        payload = {"fields": {"description": description}}
-
-        return client.request("PUT", path, json_data=payload)
+        """Store edited acceptance criteria in the issue description field."""
+        return update_issue_description(client, kwargs["issue_key"], kwargs["description"])
 
     def _fetch_description(self, client: Any, issue_key: str) -> str:
         """Fetch the current description of an issue."""

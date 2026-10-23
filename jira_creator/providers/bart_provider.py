@@ -23,9 +23,10 @@ import requests
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.exceptions.exceptions import AiError
 from jira_creator.providers.ai_provider import AIProvider
+from jira_creator.providers.single_prompt import SinglePromptCompletion
 
 
-class BARTProvider(AIProvider):
+class BARTProvider(SinglePromptCompletion, AIProvider):
     """
     BARTProvider class represents a provider for interacting with the BART (Bidirectional and Auto-Regressive
     Transformers) model.
@@ -71,40 +72,6 @@ class BARTProvider(AIProvider):
 
         raw_content = self._generate(f"{prompt}\n\n{text}", timeout=30)
         return self.extract_content(raw_content)
-
-    def analyze_error(self, prompt: str, error_context: str) -> str:
-        """
-        Analyze a JIRA API error and suggest code-level fixes.
-
-        Arguments:
-        - prompt (str): The system prompt for error analysis.
-        - error_context (str): JSON-formatted error context.
-
-        Return:
-        - str: Markdown-formatted analysis with root cause, proposed fix, and workarounds.
-
-        Exceptions:
-        - AiError: Raised when the BART API request fails.
-        """
-        full_prompt = f"{prompt}\n\nAnalyze this error:\n\n{error_context}"
-        return self._generate(full_prompt, timeout=120).strip()
-
-    def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
-        """
-        Analyze an error and return a structured fix proposal in JSON format.
-
-        Arguments:
-        - prompt (str): The system prompt for error analysis and fix generation.
-        - error_context (str): JSON-formatted error context.
-
-        Return:
-        - str: JSON-formatted fix proposal.
-
-        Exceptions:
-        - AiError: Raised when the BART API request fails.
-        """
-        full_prompt = f"{prompt}\n\nAnalyze this error and propose a fix:\n\n{error_context}"
-        return self._generate(full_prompt, timeout=120).strip()
 
     def _generate(self, full_prompt: str, timeout: int) -> str:
         """POST text to the BART endpoint and return the output field."""

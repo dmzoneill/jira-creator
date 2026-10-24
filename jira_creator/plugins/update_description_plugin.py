@@ -9,7 +9,7 @@ update the description of Jira issues from files or stdin.
 import sys
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.plugins.issue_field_updates import update_issue_description
@@ -37,14 +37,14 @@ class UpdateDescriptionPlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Issue Creation & Management"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "UpdateDescriptionError": UpdateDescriptionError,
         }
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["update-description AAP-12345 description.md", "cat description.txt | update-description AAP-12345 -"]
 
@@ -111,9 +111,9 @@ class UpdateDescriptionPlugin(JiraPlugin):
             raise UpdateDescriptionError(f"File not found: {file_path}")
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 return f.read()
-        except (OSError, IOError) as e:
+        except OSError as e:
             raise UpdateDescriptionError(f"Failed to read file: {e}") from e
 
     def _read_from_stdin(self) -> str:
@@ -125,6 +125,6 @@ class UpdateDescriptionPlugin(JiraPlugin):
         """
         return sys.stdin.read()
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """Store a replacement description on the issue."""
         return update_issue_description(client, kwargs["issue_key"], kwargs["description"])

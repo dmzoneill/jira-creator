@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Shared Jira field updates used by more than one command plugin."""
 
-from typing import Any, Dict
+from typing import Any
 
 
-def update_issue_description(client: Any, issue_key: str, description: str) -> Dict[str, Any]:
+def update_issue_description(client: Any, issue_key: str, description: str) -> dict[str, Any]:
     """Replace the description field of one issue."""
     path = f"/rest/api/2/issue/{issue_key}"
     payload = {"fields": {"description": description}}

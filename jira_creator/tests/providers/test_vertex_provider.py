@@ -4,8 +4,9 @@
 import builtins
 import importlib
 import sys
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from typing import Any, Callable, Iterator
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -127,43 +128,35 @@ def assert_import_error(
     env: dict[str, str], predicate: Callable[[str], bool], method: str, args: tuple, expected: str
 ) -> None:
     """Provider methods report a missing SDK with the install hint."""
-    with built(env) as provider:
-        with block_imports(predicate):
-            with pytest.raises(AiError) as exc_info:
-                getattr(provider, method)(*args)
+    with built(env) as provider, block_imports(predicate), pytest.raises(AiError) as exc_info:
+        getattr(provider, method)(*args)
     assert expected in str(exc_info.value)
 
 
 def claude_failure(method: str, args: tuple, empty: bool = False, error: str | None = None) -> str:
     """Return the AiError message from a failing Claude call."""
-    with built(claude_env()) as provider:
-        with claude_modules(empty=empty, error=error):
-            with pytest.raises(AiError) as exc_info:
-                getattr(provider, method)(*args)
+    with built(claude_env()) as provider, claude_modules(empty=empty, error=error), pytest.raises(AiError) as exc_info:
+        getattr(provider, method)(*args)
     return str(exc_info.value)
 
 
 def gemini_failure(method: str, args: tuple, empty: bool = False, error: str | None = None) -> str:
     """Return the AiError message from a failing Gemini call."""
-    with built(gemini_env()) as provider:
-        with gemini_modules(empty=empty, error=error):
-            with pytest.raises(AiError) as exc_info:
-                getattr(provider, method)(*args)
+    with built(gemini_env()) as provider, gemini_modules(empty=empty, error=error), pytest.raises(AiError) as exc_info:
+        getattr(provider, method)(*args)
     return str(exc_info.value)
 
 
 def claude_text(method: str, args: tuple, text: str) -> str:
     """Return the text from a successful Claude call."""
-    with built(claude_env()) as provider:
-        with claude_modules(text=text):
-            return getattr(provider, method)(*args)
+    with built(claude_env()) as provider, claude_modules(text=text):
+        return getattr(provider, method)(*args)
 
 
 def gemini_text(method: str, args: tuple, text: str) -> str:
     """Return the text from a successful Gemini call."""
-    with built(gemini_env()) as provider:
-        with gemini_modules(text=text):
-            return getattr(provider, method)(*args)
+    with built(gemini_env()) as provider, gemini_modules(text=text):
+        return getattr(provider, method)(*args)
 
 
 def test_vertex_provider_detects_claude_model():
@@ -188,9 +181,8 @@ def test_vertex_provider_detects_gemini_model():
 def test_vertex_provider_rejects_invalid_model():
     """Model names outside claude- and gemini- are rejected at init."""
     env = {"JIRA_AI_MODEL": "gpt-4", "GOOGLE_CLOUD_LOCATION": LOCATION, "GOOGLE_CLOUD_PROJECT": "my-project"}
-    with patched_env(env):
-        with pytest.raises(AiError) as exc_info:
-            VertexAIProvider()
+    with patched_env(env), pytest.raises(AiError) as exc_info:
+        VertexAIProvider()
     message = str(exc_info.value)
     assert "Unsupported Vertex AI model" in message
     assert "gpt-4" in message
@@ -198,9 +190,8 @@ def test_vertex_provider_rejects_invalid_model():
 
 def test_vertex_provider_claude_improve_text():
     """improve_text returns Claude text and passes region plus project."""
-    with built(claude_env()) as provider:
-        with claude_modules(text="Improved text from Claude") as (module, client):
-            result = provider.improve_text("test prompt", "test input")
+    with built(claude_env()) as provider, claude_modules(text="Improved text from Claude") as (module, client):
+        result = provider.improve_text("test prompt", "test input")
     assert result == "Improved text from Claude"
     module.AnthropicVertex.assert_called_once_with(region=LOCATION, project_id="test-project")
     client.messages.create.assert_called_once()
@@ -208,9 +199,8 @@ def test_vertex_provider_claude_improve_text():
 
 def test_vertex_provider_gemini_improve_text():
     """improve_text initializes Gemini and returns the generated text."""
-    with built(gemini_env()) as provider:
-        with gemini_modules(text="Improved text from Gemini") as (vertexai, models, model):
-            result = provider.improve_text("test prompt", "test input")
+    with built(gemini_env()) as provider, gemini_modules(text="Improved text from Gemini") as (vertexai, models, model):
+        result = provider.improve_text("test prompt", "test input")
     assert result == "Improved text from Gemini"
     vertexai.init.assert_called_once_with(project="test-project", location=LOCATION)
     models.GenerativeModel.assert_called_once_with(GEMINI_MODEL)

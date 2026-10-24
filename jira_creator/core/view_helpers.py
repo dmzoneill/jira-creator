@@ -308,7 +308,8 @@ def massage_issue_list(args: Namespace, issues: list[dict]):  # pylint: disable=
 
     rows: List[Tuple] = []
     for issue in issues:
-        sprints = issue.get(EnvFetcher.get("JIRA_SPRINT_FIELD"), [])
+        sprint_field = EnvFetcher.get("JIRA_SPRINT_FIELD", "")
+        sprints = issue.get(sprint_field, []) if sprint_field else []
         sprint = "-"
         if sprints is not None:
             sprint = next(

@@ -130,6 +130,32 @@ class TestViewHelpersBranchCoverage:
         assert len(rows) == 1
 
     @patch.object(EnvFetcher, "get")
+    def test_massage_issue_list_without_sprint_field(self, mock_env_get):
+        """Test fallback view rendering when sprint configuration is absent."""
+        from argparse import Namespace
+        from jira_creator.core.view_helpers import massage_issue_list
+
+        mock_env_get.side_effect = lambda key, default=None: default
+
+        args = Namespace(sort=None)
+        issues = [
+            {
+                "key": "TEST-1",
+                "issuetype": {"name": "Story"},
+                "status": {"name": "Open"},
+                "priority": {"name": "Normal"},
+                "summary": "Test issue",
+                "assignee": None,
+                "reporter": {"displayName": "Reporter"},
+            }
+        ]
+
+        headers, rows = massage_issue_list(args, issues)
+
+        assert "sprint" in headers
+        assert rows[0][headers.index("sprint")] == "—"
+
+    @patch.object(EnvFetcher, "get")
     def test_format_and_print_rows_get_field_name_none(self, mock_env_get, capsys):
         """Test format_and_print_rows when get_field_name returns None - covers 172->175."""
         headers = ["key", "custom_field"]

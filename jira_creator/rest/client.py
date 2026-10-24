@@ -16,7 +16,7 @@ import os
 import time
 import traceback
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import requests
 from requests.exceptions import RequestException
@@ -26,6 +26,13 @@ from jira_creator.core.logger import get_logger
 from jira_creator.exceptions.exceptions import AiError, JiraClientRequestError
 
 logger = get_logger("client")
+
+_PARSE_ERRORS = (ValueError, TypeError, AttributeError, KeyError)
+_REQUEST_ERRORS = (RequestException, ValueError, TypeError, AttributeError, KeyError)
+_AI_ERRORS = (AiError, RequestException, ValueError, TypeError, AttributeError, KeyError, RuntimeError, ImportError)
+_APPLY_ERRORS = (OSError, ValueError, TypeError, KeyError, AttributeError, ImportError, SyntaxError)
+_RELOAD_ERRORS = (ImportError, SyntaxError, AttributeError, OSError, TypeError, ValueError, RuntimeError)
+_LOOKUP_ERRORS = (JiraClientRequestError, RequestException, ValueError, TypeError, AttributeError)
 
 # No imports from rest/ops - plugins should implement their own REST logic
 
@@ -37,20 +44,20 @@ class ErrorContext:
     http_method: str  # POST, GET, etc.
     api_path: str  # /rest/api/2/issue
     full_url: str  # Complete URL
-    json_payload: Optional[Dict[str, Any]]
-    query_params: Optional[Dict[str, str]]
+    json_payload: dict[str, Any] | None
+    query_params: dict[str, str] | None
     status_code: int  # 400, 401, 404, 500, etc.
     response_body: str  # Raw response text
-    response_headers: Dict[str, str]
-    jira_error_messages: List[str]
-    jira_field_errors: Dict[str, str]
+    response_headers: dict[str, str]
+    jira_error_messages: list[str]
+    jira_field_errors: dict[str, str]
     timestamp: str
     jira_url: str
     project_key: str
     # JIRA API context for better AI analysis
-    available_issue_types: Optional[List[str]] = None
-    custom_fields: Optional[Dict[str, str]] = None  # field_id -> field_name
-    project_config: Optional[Dict[str, Any]] = None
+    available_issue_types: list[str] | None = None
+    custom_fields: dict[str, str] | None = None  # field_id -> field_name
+    project_config: dict[str, Any] | None = None
 
     def to_json(self) -> str:
         """Serialize to JSON for AI analysis."""
@@ -64,8 +71,8 @@ class FileChange:
     file_path: str  # Absolute path to file
     old_content: str  # Current content (or section)
     new_content: str  # Proposed content
-    line_start: Optional[int] = None  # For partial file changes
-    line_end: Optional[int] = None
+    line_start: int | None = None  # For partial file changes
+    line_end: int | None = None
 
 
 @dataclass
@@ -75,8 +82,8 @@ class FixProposal:
     analysis: str  # Markdown analysis (Phase 1 output)
     fix_type: str  # "codebase" | "payload" | "none"
     confidence: float  # 0.0-1.0 confidence in fix
-    file_changes: List[FileChange]  # For codebase fixes
-    payload_fix: Optional[Dict[str, Any]]  # For payload fixes
+    file_changes: list[FileChange]  # For codebase fixes
+    payload_fix: dict[str, Any] | None  # For payload fixes
     reasoning: str  # Why this fix type chosen
 
 
@@ -139,7 +146,11 @@ class JiraClient:
         return path.replace("/rest/api/2/", f"/rest/api/{self.api_version}/")
 
     def _migrate_search_to_post(
-        self, method: str, path: str, params: Optional[Dict[str, str]], json_data: Optional[Dict[str, Any]]
+        self,
+        method: str,
+        path: str,
+        params: dict[str, str] | None,
+        json_data: dict[str, Any] | None,
     ) -> tuple:
         """Migrate deprecated GET /search to POST /search/jql.
 
@@ -166,7 +177,7 @@ class JiraClient:
 
         # Convert to POST /search/jql with JSON body, always using API v3
         new_path = search_path.replace("/rest/api/2/search", "/rest/api/3/search") + "/jql"
-        post_body = {}
+        post_body: dict[str, Any] = {}
         if "jql" in merged_params:
             post_body["jql"] = merged_params["jql"]
         if "maxResults" in merged_params:
@@ -189,9 +200,9 @@ class JiraClient:
         self,
         method: str,
         url: str,
-        headers: Dict[str, str],
-        json_data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, str]] = None,
+        headers: dict[str, str],
+        json_data: dict[str, Any] | None = None,
+        params: dict[str, str] | None = None,
     ) -> None:
         # jscpd:ignore-end
         """Generate a curl command for debugging HTTP requests."""
@@ -221,24 +232,31 @@ class JiraClient:
         self,
         method: str,
         url: str,
-        headers: Dict[str, str],
-        json_data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, str]] = None,
+        headers: dict[str, str],
+        json_data: dict[str, Any] | None = None,
+        params: dict[str, str] | None = None,
         timeout: int = 10,
-    ) -> Tuple[int, Dict[str, Any]]:
+    ) -> tuple[int, dict[str, Any]]:
         # jscpd:ignore-end
         """Send a HTTP request and return status code and response data."""
         logger.debug("HTTP %s request to %s", method, url)
         logger.debug("Request params: %s, has_json_data: %s", params, json_data is not None)
 
         try:
-            response = requests.request(method, url, headers=headers, json=json_data, params=params, timeout=timeout)
+            response = requests.request(
+                method,
+                url,
+                headers=headers,
+                json=json_data,
+                params=params,
+                timeout=timeout,
+            )
             logger.debug("Response status code: %s", response.status_code)
 
             # Handle error responses
             if response.status_code >= 400:
                 logger.warning("HTTP error %s for %s %s", response.status_code, method, url)
-                self._print_error_message(response)
+                self.print_error_message(response)
                 # Preserve raw response and headers for AI analysis
                 return response.status_code, {
                     "_raw_response": response.text,
@@ -266,7 +284,7 @@ class JiraClient:
             print(f"⚠️ Request error: {e}")
             raise JiraClientRequestError(e) from e
 
-    def _print_error_message(self, response) -> None:
+    def print_error_message(self, response) -> None:
         """Print formatted error message from HTTP response."""
         status_code = response.status_code
 
@@ -279,31 +297,31 @@ class JiraClient:
             return
 
         # Try to extract detailed error information
-        error_detail = self._extract_error_detail(response)
+        error_detail = self.extract_error_detail(response)
         if error_detail:
             print(f"❌ Client/Server error ({status_code}): {error_detail}")
         else:
             print(f"❌ Client/Server error: {status_code}")
 
-    def _extract_error_detail(self, response) -> str:
+    def extract_error_detail(self, response) -> str:
         """Extract error detail from response JSON."""
         try:
             error_data = response.json()
-            if "errorMessages" in error_data and error_data["errorMessages"]:
+            if error_data.get("errorMessages"):
                 return "; ".join(error_data["errorMessages"])
-            if "errors" in error_data and error_data["errors"]:
+            if error_data.get("errors"):
                 error_msgs = [f"{field}: {msg}" for field, msg in error_data["errors"].items()]
                 return "; ".join(error_msgs)
             if "message" in error_data:
                 return error_data["message"]
-        except Exception:  # pylint: disable=broad-exception-caught
+        except _PARSE_ERRORS:
             # If we can't parse the error, use the raw text
             return response.text[:200] if response.text else ""
         return ""
 
-    def _fetch_jira_context_for_error(
+    def fetch_jira_context_for_error(
         self,
-    ) -> Tuple[Optional[List[str]], Optional[Dict[str, str]], Optional[Dict[str, Any]]]:
+    ) -> tuple[list[str] | None, dict[str, str] | None, dict[str, Any] | None]:
         """
         Fetch JIRA API metadata to provide context for AI error analysis.
 
@@ -334,7 +352,7 @@ class JiraClient:
                     types_data = response.json()
                     issue_types = [t.get("name") for t in types_data if "name" in t]
                     logger.debug("Fetched %d issue types", len(issue_types))
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except _REQUEST_ERRORS as e:
                 logger.debug("Failed to fetch issue types: %s", e)
 
             # Fetch custom fields (crucial for field ID errors)
@@ -352,7 +370,7 @@ class JiraClient:
                         if f.get("custom") and f.get("id") and f.get("name")
                     }
                     logger.debug("Fetched %d custom fields", len(custom_fields))
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except _REQUEST_ERRORS as e:
                 logger.debug("Failed to fetch custom fields: %s", e)
 
             # Fetch project config (if project key available)
@@ -366,16 +384,16 @@ class JiraClient:
                     if response.status_code == 200:
                         project_config = response.json()
                         logger.debug("Fetched project config for: %s", self.project_key)
-                except Exception as e:  # pylint: disable=broad-exception-caught
+                except _REQUEST_ERRORS as e:
                     logger.debug("Failed to fetch project config: %s", e)
 
             return issue_types, custom_fields, project_config
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _REQUEST_ERRORS as e:
             logger.warning("Failed to fetch JIRA context: %s", e)
             return None, None, None
 
-    def _analyze_error_with_ai(self, error_context: ErrorContext) -> Optional[str]:
+    def analyze_error_with_ai(self, error_context: ErrorContext) -> str | None:
         """
         Analyze error using AI provider and return suggestions.
 
@@ -409,12 +427,12 @@ class JiraClient:
             logger.debug("AI analysis completed successfully")
             return analysis
 
-        except (AiError, Exception) as e:  # pylint: disable=broad-exception-caught
+        except _AI_ERRORS as e:
             # AI analysis is optional - don't fail if it errors
             logger.warning("AI error analysis failed: %s", e)
             return None
 
-    def _show_diff(self, old_content: str, new_content: str, file_path: str = "file") -> None:
+    def show_diff(self, old_content: str, new_content: str, file_path: str = "file") -> None:
         """
         Display unified diff between old and new content.
 
@@ -440,7 +458,7 @@ class JiraClient:
         else:
             print("\n📊 No differences to show")
 
-    def _analyze_and_fix_error(self, error_context: ErrorContext) -> Optional[FixProposal]:
+    def analyze_and_fix_error(self, error_context: ErrorContext) -> FixProposal | None:
         """
         Analyze error and return structured fix proposal.
 
@@ -498,12 +516,12 @@ class JiraClient:
             logger.debug("AI fix proposal generated successfully")
             return fix_proposal
 
-        except (AiError, Exception) as e:  # pylint: disable=broad-exception-caught
+        except _AI_ERRORS as e:
             # Auto-fix is optional - don't fail if it errors
             logger.warning("AI auto-fix failed: %s", e)
             return None
 
-    def _prompt_user_for_fix(self, fix_proposal: FixProposal) -> bool:
+    def prompt_user_for_fix(self, fix_proposal: FixProposal) -> bool:
         """
         Display fix proposal and prompt user for consent.
 
@@ -541,7 +559,7 @@ class JiraClient:
             if response == "d" and fix_proposal.file_changes:
                 # Show full diff
                 for fc in fix_proposal.file_changes:
-                    self._show_diff(fc.old_content, fc.new_content, fc.file_path)
+                    self.show_diff(fc.old_content, fc.new_content, fc.file_path)
                 # Ask again
                 response = input("\n🔧 Apply this fix? (y/n): ").strip().lower()
 
@@ -550,7 +568,7 @@ class JiraClient:
             print("\n\nFix cancelled by user")
             return False
 
-    def _apply_fix(self, fix_proposal: FixProposal) -> bool:
+    def apply_fix(self, fix_proposal: FixProposal) -> bool:
         """
         Apply the proposed fix (codebase or payload).
 
@@ -561,7 +579,7 @@ class JiraClient:
             True if successful, False if failed
         """
         if fix_proposal.fix_type == "codebase":
-            return self._apply_codebase_fix(fix_proposal.file_changes)
+            return self.apply_codebase_fix(fix_proposal.file_changes)
         if fix_proposal.fix_type == "payload":
             # Payload fix doesn't need to be "applied" here - it's handled in request() retry
             logger.info("Payload fix will be applied on retry")
@@ -569,7 +587,7 @@ class JiraClient:
         logger.warning("Fix type 'none' - no fix to apply")
         return False
 
-    def _apply_codebase_fix(self, file_changes: List[FileChange]) -> bool:
+    def apply_codebase_fix(self, file_changes: list[FileChange]) -> bool:
         """
         Apply codebase fixes by modifying files.
 
@@ -612,7 +630,7 @@ class JiraClient:
                 print(f"✅ Modified: {fc.file_path}")
 
                 # Show diff
-                self._show_diff(fc.old_content, fc.new_content, fc.file_path)
+                self.show_diff(fc.old_content, fc.new_content, fc.file_path)
 
                 # Track Python files for reloading
                 if fc.file_path.endswith(".py"):
@@ -627,12 +645,12 @@ class JiraClient:
 
             return True
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _APPLY_ERRORS as e:
             logger.error("Failed to apply codebase fix: %s", e)
             print(f"❌ Failed to apply fix: {e}")
             return False
 
-    def _reload_modified_modules(self, modified_files: List[str], env_fetcher_modified: bool) -> None:
+    def _reload_modified_modules(self, modified_files: list[str], env_fetcher_modified: bool) -> None:
         """
         Reload all modified Python modules to apply changes immediately.
 
@@ -696,7 +714,7 @@ class JiraClient:
                         print(f"  ⚠️  Failed to re-register plugin: {os.path.basename(file_path)}")
                         failed_count += 1
 
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except _RELOAD_ERRORS as e:
                 logger.warning("Failed to reload %s: %s", file_path, e)
                 print(f"  ⚠️  Failed to reload: {os.path.basename(file_path)}")
                 failed_count += 1
@@ -712,11 +730,11 @@ class JiraClient:
         self,
         method: str,
         path: str,
-        json_data: Optional[Dict[str, Any]] = None,
-        params: Optional[Dict[str, str]] = None,
+        json_data: dict[str, Any] | None = None,
+        params: dict[str, str] | None = None,
         debug: bool = False,
         timeout: int = 10,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Perform HTTP request to Jira API with retry logic.
 
@@ -737,7 +755,12 @@ class JiraClient:
         for attempt in range(retries):
             logger.debug("Attempt %d of %d", attempt + 1, retries)
             status_code, result = self._request(
-                method, url, headers, json_data=json_data, params=params, timeout=timeout
+                method,
+                url,
+                headers,
+                json_data=json_data,
+                params=params,
+                timeout=timeout,
             )
 
             if debug:
@@ -753,11 +776,17 @@ class JiraClient:
                 time.sleep(delay)
 
         # All retries failed - capture error context and analyze
-        logger.error("Request failed after %d attempts: %s %s (status %s)", retries, method, path, status_code)
+        logger.error(
+            "Request failed after %d attempts: %s %s (status %s)",
+            retries,
+            method,
+            path,
+            status_code,
+        )
 
         # Extract error details from the result
-        jira_error_messages: List[str] = []
-        jira_field_errors: Dict[str, str] = {}
+        jira_error_messages: list[str] = []
+        jira_field_errors: dict[str, str] = {}
         response_body = result.get("_raw_response", "")
         response_headers = result.get("_response_headers", {})
 
@@ -769,12 +798,12 @@ class JiraClient:
                     jira_error_messages = error_data["errorMessages"]
                 if "errors" in error_data:
                     jira_field_errors = error_data["errors"]
-        except Exception:  # pylint: disable=broad-exception-caught
-            pass
+        except (ValueError, TypeError) as e:
+            logger.debug("Could not parse JIRA error body: %s", e)
 
         # Fetch JIRA API context for better AI analysis
         logger.info("Fetching JIRA API metadata to enhance error analysis...")
-        issue_types, custom_fields, project_config = self._fetch_jira_context_for_error()
+        issue_types, custom_fields, project_config = self.fetch_jira_context_for_error()
 
         # Create comprehensive error context
         error_context = ErrorContext(
@@ -788,7 +817,7 @@ class JiraClient:
             response_headers=response_headers,
             jira_error_messages=jira_error_messages,
             jira_field_errors=jira_field_errors,
-            timestamp=datetime.datetime.now().isoformat(),
+            timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
             jira_url=self.jira_url,
             project_key=self.project_key,
             available_issue_types=issue_types,
@@ -797,7 +826,7 @@ class JiraClient:
         )
 
         # Try Phase 2: AI auto-fix with user consent
-        fix_proposal = self._analyze_and_fix_error(error_context)
+        fix_proposal = self.analyze_and_fix_error(error_context)
 
         # pylint: disable=too-many-nested-blocks
         if fix_proposal and fix_proposal.fix_type != "none":
@@ -805,9 +834,9 @@ class JiraClient:
             print(f"\n🤖 AI Analysis:\n{fix_proposal.analysis}")
 
             # Prompt user for consent
-            if self._prompt_user_for_fix(fix_proposal):
+            if self.prompt_user_for_fix(fix_proposal):
                 # User accepted - apply the fix
-                if self._apply_fix(fix_proposal):
+                if self.apply_fix(fix_proposal):
                     print("\n✅ Fix applied!")
 
                     # Prepare for retry
@@ -828,7 +857,12 @@ class JiraClient:
                     # Retry the operation
                     print("\n🔄 Retrying operation with fix applied...")
                     retry_status, retry_result = self._request(
-                        method, url, headers, json_data=retry_json_data, params=params, timeout=timeout
+                        method,
+                        url,
+                        headers,
+                        json_data=retry_json_data,
+                        params=params,
+                        timeout=timeout,
                     )
 
                     if 200 <= retry_status < 300:
@@ -862,7 +896,12 @@ class JiraClient:
                         return retry_result
                     # Retry failed even after fix
                     print(f"⚠️ Fix applied but operation still failing (status {retry_status})")
-                    logger.warning("Request still failed after AI fix: %s %s (status %s)", method, path, retry_status)
+                    logger.warning(
+                        "Request still failed after AI fix: %s %s (status %s)",
+                        method,
+                        path,
+                        retry_status,
+                    )
                     # Fall through to raise original error with suggestion
                 else:
                     # Fix application failed
@@ -877,7 +916,7 @@ class JiraClient:
 
         # Fall back to Phase 1: Analysis only (if Phase 2 didn't work or wasn't available)
         if not fix_proposal or fix_proposal.fix_type == "none":
-            ai_suggestion = self._analyze_error_with_ai(error_context)
+            ai_suggestion = self.analyze_error_with_ai(error_context)
         else:
             # We already have analysis from the fix proposal
             ai_suggestion = fix_proposal.analysis
@@ -904,7 +943,7 @@ class JiraClient:
 
         raise JiraClientRequestError(error_msg)
 
-    def get_field_name(self, field_id: str) -> Optional[str]:
+    def get_field_name(self, field_id: str) -> str | None:
         """
         Get the human-readable name for a Jira field ID.
 
@@ -926,7 +965,7 @@ class JiraClient:
                         logger.debug("Field %s maps to: %s", field_id, field_name)
                         return field_name
             logger.debug("Field %s not found", field_id)
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _LOOKUP_ERRORS as e:
             # If field lookup fails, return None (will use original field_id)
             logger.warning("Failed to lookup field %s: %s", field_id, e)
         return None

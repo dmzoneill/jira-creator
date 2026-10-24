@@ -4,6 +4,8 @@ ADF is the structured document format used by Jira Cloud API v3
 for rich text fields like description, acceptance criteria, and comments.
 """
 
+from typing import Any
+
 _STATIC_LEAF_NODES = {
     "hardBreak": "\n",
     "mediaGroup": "",
@@ -96,7 +98,7 @@ def _parse_inline_markup(text: str) -> list:
     """
     import re
 
-    nodes = []
+    nodes: list[dict[str, Any]] = []
     # Pattern matches: [text|url], *bold*, _italic_, {{monospace}}, or plain text
     pattern = re.compile(
         r"\[([^|]+)\|([^\]]+)\]"  # [text|url] link
@@ -172,7 +174,7 @@ def _parse_table_row(line: str, is_header: bool = False) -> dict:
     else:
         cells = [c.strip() for c in line.split("|") if c.strip()]
 
-    row_content = []
+    row_content: list[dict[str, Any]] = []
     cell_type = "tableHeader" if is_header else "tableCell"
     for cell in cells:
         row_content.append(
@@ -211,7 +213,7 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
         }
 
     lines = text.split("\n")
-    content = []
+    content: list[dict[str, Any]] = []
     i = 0
 
     while i < len(lines):
@@ -246,7 +248,7 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
 
         # Table: lines starting with || (header) or | (data)
         if stripped.startswith("||") or (stripped.startswith("|") and not stripped.startswith("|+")):
-            table_rows = []
+            table_rows: list[dict[str, Any]] = []
             while i < len(lines):
                 row_stripped = lines[i].strip()
                 if row_stripped.startswith("||"):
@@ -262,7 +264,7 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
 
         # Bullet list: lines starting with * or -
         if re.match(r"^[*\-]\s+", stripped):
-            list_items = []
+            list_items: list[dict[str, Any]] = []
             while i < len(lines):
                 item_match = re.match(r"^[*\-]\s+(.+)$", lines[i].strip())
                 if not item_match:
@@ -270,7 +272,12 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
                 list_items.append(
                     {
                         "type": "listItem",
-                        "content": [{"type": "paragraph", "content": _parse_inline_markup(item_match.group(1))}],
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "content": _parse_inline_markup(item_match.group(1)),
+                            }
+                        ],
                     }
                 )
                 i += 1
@@ -287,7 +294,12 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
                 list_items.append(
                     {
                         "type": "listItem",
-                        "content": [{"type": "paragraph", "content": _parse_inline_markup(item_match.group(1))}],
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "content": _parse_inline_markup(item_match.group(1)),
+                            }
+                        ],
                     }
                 )
                 i += 1
@@ -301,18 +313,16 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
             if (
                 not ls
                 or re.match(r"^h[1-6]\.\s+", ls)
-                or ls.startswith("||")
-                or ls.startswith("|")
+                or ls.startswith(("||", "|", "----"))
                 or re.match(r"^[*\-]\s+", ls)
                 or re.match(r"^#\s+", ls)
-                or ls.startswith("----")
             ):
                 break
             para_lines.append(ls)
             i += 1
 
         if para_lines:
-            inline_content = []
+            inline_content: list[dict[str, Any]] = []
             for j, pl in enumerate(para_lines):
                 if j > 0:
                     inline_content.append({"type": "hardBreak"})

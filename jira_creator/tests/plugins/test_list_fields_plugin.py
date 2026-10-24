@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from jira_creator.exceptions.exceptions import MissingConfigVariable
 from jira_creator.plugins.list_fields_plugin import (
     FIELD_ENV_VARS,
     ListFieldsError,
@@ -259,7 +260,7 @@ class TestListFieldsPlugin:
         mock_client.is_cloud = True
         mock_client.request.return_value = SAMPLE_FIELDS
 
-        mock_env_fetcher.get.side_effect = Exception("Missing env var")
+        mock_env_fetcher.get.side_effect = MissingConfigVariable("Missing env var")
 
         args = Namespace(filter="", custom_only=False, check_config=True)
         result = plugin.execute(mock_client, args)
@@ -279,6 +280,10 @@ class TestListFieldsPlugin:
         with pytest.raises(ListFieldsError):
             plugin.execute(mock_client, args)
 
+
+class TestListFieldsPluginHelpers:
+    """Tests for ListFieldsPlugin helper methods and constants."""
+
     def test_display_fields_sorted(self, capsys):
         """Test fields are displayed sorted by ID."""
         plugin = ListFieldsPlugin()
@@ -287,7 +292,7 @@ class TestListFieldsPlugin:
             {"id": "customfield_10001", "name": "Epic Link", "custom": True},
         ]
 
-        plugin._display_fields(unsorted_fields)
+        plugin.display_fields(unsorted_fields)
 
         captured = capsys.readouterr()
         lines = captured.out.strip().split("\n")
@@ -301,7 +306,7 @@ class TestListFieldsPlugin:
         plugin = ListFieldsPlugin()
         fields = [{"id": "test_field"}, {"name": "No ID Field"}]
 
-        plugin._display_fields(fields)
+        plugin.display_fields(fields)
 
         captured = capsys.readouterr()
         assert "Total: 2 fields" in captured.out
@@ -333,10 +338,9 @@ class TestListFieldsPlugin:
         assert "JIRA_EPIC_NAME_FIELD" in FIELD_ENV_VARS
         assert len(FIELD_ENV_VARS) == 8
 
-    @patch("jira_creator.plugins.list_fields_plugin.EnvFetcher")
-    def test_check_single_field_ok(self, mock_env_fetcher, capsys):
-        """Test _check_single_field with a valid field."""
-        ListFieldsPlugin._check_single_field(
+    def test_check_single_field_ok(self, capsys):
+        """Test check_single_field with a valid field."""
+        ListFieldsPlugin.check_single_field(
             "JIRA_EPIC_FIELD",
             "Epic Link",
             "customfield_10001",
@@ -348,10 +352,9 @@ class TestListFieldsPlugin:
         assert "OK" in captured.out
         assert "customfield_10001" in captured.out
 
-    @patch("jira_creator.plugins.list_fields_plugin.EnvFetcher")
-    def test_check_single_field_not_found_with_suggestion(self, mock_env_fetcher, capsys):
-        """Test _check_single_field with a missing field that has suggestions."""
-        ListFieldsPlugin._check_single_field(
+    def test_check_single_field_not_found_with_suggestion(self, capsys):
+        """Test check_single_field with a missing field that has suggestions."""
+        ListFieldsPlugin.check_single_field(
             "JIRA_EPIC_FIELD",
             "Epic Link",
             "customfield_99999",
@@ -364,10 +367,9 @@ class TestListFieldsPlugin:
         assert "Suggestion" in captured.out
         assert "customfield_10001" in captured.out
 
-    @patch("jira_creator.plugins.list_fields_plugin.EnvFetcher")
-    def test_check_single_field_not_configured_with_suggestion(self, mock_env_fetcher, capsys):
-        """Test _check_single_field when not configured but suggestions exist."""
-        ListFieldsPlugin._check_single_field(
+    def test_check_single_field_not_configured_with_suggestion(self, capsys):
+        """Test check_single_field when not configured but suggestions exist."""
+        ListFieldsPlugin.check_single_field(
             "JIRA_SPRINT_FIELD",
             "Sprint",
             None,
@@ -380,10 +382,9 @@ class TestListFieldsPlugin:
         assert "Suggestion" in captured.out
         assert "customfield_10003" in captured.out
 
-    @patch("jira_creator.plugins.list_fields_plugin.EnvFetcher")
-    def test_check_single_field_not_configured_no_suggestion(self, mock_env_fetcher, capsys):
-        """Test _check_single_field when not configured and no suggestions."""
-        ListFieldsPlugin._check_single_field(
+    def test_check_single_field_not_configured_no_suggestion(self, capsys):
+        """Test check_single_field when not configured and no suggestions."""
+        ListFieldsPlugin.check_single_field(
             "JIRA_WORKSTREAM_FIELD",
             "Workstream",
             None,

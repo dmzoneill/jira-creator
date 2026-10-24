@@ -37,7 +37,10 @@ from jira_creator.providers.ai_provider import AIProvider
 
 # Suppress Google Auth quota project warning for ADC credentials
 warnings.filterwarnings(
-    "ignore", message=".*end user credentials.*quota project.*", category=UserWarning, module="google.auth._default"
+    "ignore",
+    message=".*end user credentials.*quota project.*",
+    category=UserWarning,
+    module="google.auth._default",
 )
 
 
@@ -114,7 +117,13 @@ class VertexAIProvider(AIProvider):
         combined = f"{prompt}\n\n{text}"
         return self.extract_content(self._complete(combined, combined, prompt, 0.8))
 
-    def _complete(self, claude_user: str, gemini_prompt: str, system_prompt: str, temperature: float) -> str:
+    def _complete(
+        self,
+        claude_user: str,
+        gemini_prompt: str,
+        system_prompt: str,
+        temperature: float,
+    ) -> str:
         """Send one completion to the detected Vertex backend and return the raw text."""
         if self.model_type == "claude":
             return self._complete_with_claude(claude_user, system_prompt)
@@ -142,7 +151,7 @@ class VertexAIProvider(AIProvider):
                 return content_blocks[0].text
             raise AiError("Empty response from Claude Vertex AI")
         except Exception as e:
-            raise AiError(f"Claude Vertex AI call failed: {str(e)}") from e
+            raise AiError(f"Claude Vertex AI call failed: {e!s}") from e
 
     def _complete_with_gemini(self, full_prompt: str, temperature: float) -> str:
         """Call Google Gemini on Vertex AI and return the response text."""
@@ -168,7 +177,7 @@ class VertexAIProvider(AIProvider):
                 return response.text
             raise AiError("Empty response from Gemini Vertex AI")
         except Exception as e:
-            raise AiError(f"Gemini Vertex AI call failed: {str(e)}") from e
+            raise AiError(f"Gemini Vertex AI call failed: {e!s}") from e
 
     def analyze_error(self, prompt: str, error_context: str) -> str:
         """

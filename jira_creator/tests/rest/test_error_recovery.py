@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import JiraClientRequestError
+from jira_creator.exceptions.exceptions import AiError, JiraClientRequestError
 from jira_creator.rest.client import ErrorContext, FileChange, FixProposal, JiraClient
 
 
@@ -52,7 +52,7 @@ class TestErrorContext:
 
 
 class TestAnalyzeErrorWithAI:
-    """Test _analyze_error_with_ai() method."""
+    """Test analyze_error_with_ai() method."""
 
     @patch("jira_creator.providers.get_ai_provider")
     @patch("jira_creator.core.env_fetcher.EnvFetcher.get")
@@ -82,7 +82,7 @@ class TestAnalyzeErrorWithAI:
             project_key="PROJ",
         )
 
-        result = client._analyze_error_with_ai(error_context)
+        result = client.analyze_error_with_ai(error_context)
         assert result == "## Root Cause\nField is invalid"
         mock_provider.analyze_error.assert_called_once()
 
@@ -110,7 +110,7 @@ class TestAnalyzeErrorWithAI:
             project_key="PROJ",
         )
 
-        result = client._analyze_error_with_ai(error_context)
+        result = client.analyze_error_with_ai(error_context)
         assert result is None
 
     @patch("jira_creator.providers.get_ai_provider")
@@ -122,7 +122,7 @@ class TestAnalyzeErrorWithAI:
         # Mock environment and provider that fails
         mock_env_get.side_effect = lambda key, default="": "openai" if key == "JIRA_AI_PROVIDER" else default
         mock_provider = MagicMock()
-        mock_provider.analyze_error.side_effect = Exception("API error")
+        mock_provider.analyze_error.side_effect = AiError("API error")
         mock_get_provider.return_value = mock_provider
 
         error_context = ErrorContext(
@@ -142,12 +142,12 @@ class TestAnalyzeErrorWithAI:
         )
 
         # Should return None on failure, not raise exception
-        result = client._analyze_error_with_ai(error_context)
+        result = client.analyze_error_with_ai(error_context)
         assert result is None
 
 
 class TestAnalyzeAndFixError:
-    """Test _analyze_and_fix_error() method."""
+    """Test analyze_and_fix_error() method."""
 
     @patch("jira_creator.providers.get_ai_provider")
     @patch("jira_creator.core.env_fetcher.EnvFetcher.get")
@@ -195,7 +195,7 @@ class TestAnalyzeAndFixError:
             project_key="PROJ",
         )
 
-        result = client._analyze_and_fix_error(error_context)
+        result = client.analyze_and_fix_error(error_context)
         assert result is not None
         assert result.fix_type == "codebase"
         assert result.confidence == 0.95
@@ -231,15 +231,15 @@ class TestAnalyzeAndFixError:
         )
 
         # Should return None on invalid JSON
-        result = client._analyze_and_fix_error(error_context)
+        result = client.analyze_and_fix_error(error_context)
         assert result is None
 
 
 class TestPromptUserForFix:
-    """Test _prompt_user_for_fix() method."""
+    """Test prompt_user_for_fix() method."""
 
     @patch("builtins.input", return_value="y")
-    def test_prompt_user_accepts_fix(self, mock_input):
+    def test_prompt_user_accepts_fix(self, _mock_input):
         """Test user accepting the proposed fix."""
         client = JiraClient()
 
@@ -252,11 +252,11 @@ class TestPromptUserForFix:
             reasoning="Test",
         )
 
-        result = client._prompt_user_for_fix(fix_proposal)
+        result = client.prompt_user_for_fix(fix_proposal)
         assert result is True
 
     @patch("builtins.input", return_value="n")
-    def test_prompt_user_rejects_fix(self, mock_input):
+    def test_prompt_user_rejects_fix(self, _mock_input):
         """Test user rejecting the proposed fix."""
         client = JiraClient()
 
@@ -269,10 +269,10 @@ class TestPromptUserForFix:
             reasoning="Test",
         )
 
-        result = client._prompt_user_for_fix(fix_proposal)
+        result = client.prompt_user_for_fix(fix_proposal)
         assert result is False
 
-    @patch("jira_creator.rest.client.JiraClient._show_diff")
+    @patch("jira_creator.rest.client.JiraClient.show_diff")
     @patch("builtins.input")
     def test_prompt_user_shows_diff_then_accepts(self, mock_input, mock_show_diff):
         """Test user requesting diff then accepting."""
@@ -290,17 +290,17 @@ class TestPromptUserForFix:
             reasoning="Test",
         )
 
-        result = client._prompt_user_for_fix(fix_proposal)
+        result = client.prompt_user_for_fix(fix_proposal)
         assert result is True
         mock_show_diff.assert_called_once()
 
 
 class TestApplyFix:
-    """Test _apply_fix() method."""
+    """Test apply_fix() method."""
 
     @patch("builtins.open", new_callable=mock_open, read_data="old code\n")
     @patch("os.path.exists", return_value=True)
-    def test_apply_codebase_fix_success(self, mock_exists, mock_file):
+    def test_apply_codebase_fix_success(self, _mock_exists, mock_file):
         """Test successful application of codebase fix."""
         client = JiraClient()
 
@@ -313,13 +313,13 @@ class TestApplyFix:
             reasoning="Test",
         )
 
-        result = client._apply_fix(fix_proposal)
+        result = client.apply_fix(fix_proposal)
         assert result is True
         mock_file.assert_called()
 
     @patch("builtins.open", new_callable=mock_open, read_data="old plugin code\n")
     @patch("os.path.exists", return_value=True)
-    def test_apply_plugin_fix_with_reload(self, mock_exists, mock_file):
+    def test_apply_plugin_fix_with_reload(self, _mock_exists, _mock_file):
         """Test that plugins are automatically reloaded after fixing them."""
         # Create mock registry
         mock_registry = MagicMock()
@@ -336,7 +336,7 @@ class TestApplyFix:
             reasoning="Test",
         )
 
-        result = client._apply_fix(fix_proposal)
+        result = client.apply_fix(fix_proposal)
         assert result is True
 
         # Verify plugin was reloaded
@@ -355,11 +355,11 @@ class TestApplyFix:
             reasoning="Test",
         )
 
-        result = client._apply_fix(fix_proposal)
+        result = client.apply_fix(fix_proposal)
         assert result is True
 
     @patch("os.path.exists", return_value=False)
-    def test_apply_fix_file_not_found(self, mock_exists):
+    def test_apply_fix_file_not_found(self, _mock_exists):
         """Test handling when file to fix doesn't exist."""
         client = JiraClient()
 
@@ -372,12 +372,12 @@ class TestApplyFix:
             reasoning="Test",
         )
 
-        result = client._apply_fix(fix_proposal)
+        result = client.apply_fix(fix_proposal)
         assert result is False
 
 
 class TestShowDiff:
-    """Test _show_diff() method."""
+    """Test show_diff() method."""
 
     @patch("builtins.print")
     def test_show_diff(self, mock_print):
@@ -387,7 +387,7 @@ class TestShowDiff:
         old_content = "line 1\nline 2\nline 3"
         new_content = "line 1\nline 2 modified\nline 3"
 
-        client._show_diff(old_content, new_content, "test.py")
+        client.show_diff(old_content, new_content, "test.py")
         # Verify print was called (diff should be displayed)
         assert mock_print.called
 
@@ -397,7 +397,7 @@ class TestShowDiff:
         client = JiraClient()
 
         content = "line 1\nline 2\nline 3"
-        client._show_diff(content, content, "test.py")
+        client.show_diff(content, content, "test.py")
 
         # Should print "No differences to show"
         calls = [str(call) for call in mock_print.call_args_list]
@@ -411,7 +411,7 @@ class TestFullErrorRecoveryFlow:
     @patch("jira_creator.rest.client.requests.request")
     @patch("jira_creator.providers.get_ai_provider")
     @patch("jira_creator.core.env_fetcher.EnvFetcher.get")
-    def test_request_with_ai_analysis_on_failure(self, mock_env_get, mock_get_provider, mock_request, mock_sleep):
+    def test_request_with_ai_analysis_on_failure(self, mock_env_get, mock_get_provider, mock_request, _mock_sleep):
         """Test that AI analysis is triggered after request failures."""
 
         # Mock environment - provide defaults for all JiraClient __init__ needs
@@ -473,7 +473,7 @@ class TestFullErrorRecoveryFlow:
     @patch("jira_creator.providers.get_ai_provider")
     @patch("jira_creator.core.env_fetcher.EnvFetcher.get")
     def test_request_with_successful_auto_fix_and_retry(
-        self, mock_env_get, mock_get_provider, mock_exists, mock_file, mock_input, mock_request, mock_sleep
+        self, mock_env_get, mock_get_provider, _mock_exists, _mock_file, _mock_input, mock_request, _mock_sleep
     ):
         """Test successful auto-fix and retry."""
 
@@ -538,7 +538,7 @@ class TestFullErrorRecoveryFlow:
     @patch("jira_creator.rest.client.time.sleep")
     @patch("jira_creator.rest.client.requests.request")
     @patch("jira_creator.core.env_fetcher.EnvFetcher.get")
-    def test_request_without_ai_provider(self, mock_env_get, mock_request, mock_sleep):
+    def test_request_without_ai_provider(self, mock_env_get, mock_request, _mock_sleep):
         """Test request failure when no AI provider configured."""
 
         # Mock environment - NO AI provider configured

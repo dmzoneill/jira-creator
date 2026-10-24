@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from jira_creator.exceptions.exceptions import JiraClientRequestError
 from jira_creator.plugins.set_status_plugin import SetStatusError, SetStatusPlugin
 
 
@@ -38,7 +39,7 @@ class TestSetStatusPlugin:
         assert calls[1][1]["help"] == "The status to transition to"
 
     def test_get_transitions(self):
-        """Test _get_transitions method."""
+        """Test get_transitions method."""
         plugin = SetStatusPlugin()
         mock_client = Mock()
 
@@ -52,7 +53,7 @@ class TestSetStatusPlugin:
         }
         mock_client.request.return_value = mock_transitions
 
-        transitions = plugin._get_transitions(mock_client, "TEST-123")
+        transitions = plugin.get_transitions(mock_client, "TEST-123")
 
         # Verify request
         mock_client.request.assert_called_once_with("GET", "/rest/api/2/issue/TEST-123/transitions")
@@ -61,7 +62,7 @@ class TestSetStatusPlugin:
         assert transitions == mock_transitions["transitions"]
 
     def test_find_transition_id_exact_match(self):
-        """Test _find_transition_id with exact match."""
+        """Test find_transition_id with exact match."""
         plugin = SetStatusPlugin()
 
         transitions = [
@@ -71,12 +72,12 @@ class TestSetStatusPlugin:
         ]
 
         # Test exact match (case insensitive)
-        assert plugin._find_transition_id(transitions, "In Progress") == "21"
-        assert plugin._find_transition_id(transitions, "in progress") == "21"
-        assert plugin._find_transition_id(transitions, "IN PROGRESS") == "21"
+        assert plugin.find_transition_id(transitions, "In Progress") == "21"
+        assert plugin.find_transition_id(transitions, "in progress") == "21"
+        assert plugin.find_transition_id(transitions, "IN PROGRESS") == "21"
 
     def test_find_transition_id_no_match(self):
-        """Test _find_transition_id with no match."""
+        """Test find_transition_id with no match."""
         plugin = SetStatusPlugin()
 
         transitions = [
@@ -86,8 +87,8 @@ class TestSetStatusPlugin:
         ]
 
         # Test no match
-        assert plugin._find_transition_id(transitions, "Invalid Status") is None
-        assert plugin._find_transition_id(transitions, "Closed") is None
+        assert plugin.find_transition_id(transitions, "Invalid Status") is None
+        assert plugin.find_transition_id(transitions, "Closed") is None
 
     def test_rest_operation_success(self):
         """Test the REST operation with successful transition."""
@@ -249,7 +250,7 @@ class TestSetStatusPlugin:
         mock_client.request.side_effect = [
             {"transitions": [{"id": "41", "name": "Refinement"}]},  # GET transitions response
             {},  # POST transition response
-            Exception("Ranking not allowed"),  # PUT rank fails
+            JiraClientRequestError("Ranking not allowed"),  # PUT rank fails
         ]
 
         args = Namespace(issue_key="TEST-123", status="Refinement")
@@ -286,7 +287,7 @@ class TestSetStatusPlugin:
         assert "❌ Failed to set status:" in captured.out
 
     def test_handle_refinement_status_with_complex_epic_structure(self):
-        """Test _handle_refinement_status with complex epic structure."""
+        """Test handle_refinement_status with complex epic structure."""
         plugin = SetStatusPlugin()
         mock_client = Mock()
 
@@ -299,7 +300,7 @@ class TestSetStatusPlugin:
             {},  # PUT rank in epic response
         ]
 
-        plugin._handle_refinement_status(mock_client, "TEST-456")
+        plugin.handle_refinement_status(mock_client, "TEST-456")
 
         # Verify correct epic key was used
         epic_rank_call = mock_client.request.call_args_list[2]

@@ -40,7 +40,8 @@ class TestEditIssuePlugin:
 
         plugin.register_arguments(mock_parser)
 
-        # Check all arguments are registered (5 total: issue_key, --no-ai, --lint, --acceptance-criteria, --ai-from-description)
+        # Check all arguments are registered (5 total):
+        # issue_key, --no-ai, --lint, --acceptance-criteria, --ai-from-description
         assert mock_parser.add_argument.call_count == 5
 
     def test_rest_operation(self):
@@ -62,7 +63,7 @@ class TestEditIssuePlugin:
         # Mock editor function
         def mock_editor(cmd_list):
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("Edited description")
 
         plugin = EditIssuePlugin(editor_func=mock_editor)
@@ -100,9 +101,9 @@ class TestEditIssuePlugin:
         def mock_editor(cmd_list):
             filename = cmd_list[1]
             # Read the content and write it back unchanged
-            with open(filename) as f:
+            with open(filename, encoding="utf-8") as f:
                 content = f.read()
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write(content)
 
         plugin = EditIssuePlugin(editor_func=mock_editor)
@@ -136,7 +137,7 @@ class TestEditIssuePlugin:
         # Mock editor
         def mock_editor(cmd_list):
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("Edited description")
 
         plugin = EditIssuePlugin(ai_provider=mock_ai, editor_func=mock_editor)
@@ -179,7 +180,7 @@ class TestEditIssuePlugin:
         # Mock editor
         def mock_editor(cmd_list):
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("Edited description")
 
         plugin = EditIssuePlugin(ai_provider=mock_ai, editor_func=mock_editor)
@@ -215,7 +216,7 @@ class TestEditIssuePlugin:
         # Mock editor
         def mock_editor(cmd_list):
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("Description to lint")
 
         plugin = EditIssuePlugin(editor_func=mock_editor)
@@ -243,7 +244,7 @@ class TestEditIssuePlugin:
         # Mock editor function
         def mock_editor(cmd_list):
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("Edited description")
 
         plugin = EditIssuePlugin(editor_func=mock_editor)
@@ -272,7 +273,7 @@ class TestEditIssuePlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"fields": {"description": "Test description"}}
 
-        result = plugin._fetch_description(mock_client, "TEST-123")
+        result = plugin.fetch_description(mock_client, "TEST-123")
 
         assert result == "Test description"
         mock_client.request.assert_called_once_with("GET", "/rest/api/2/issue/TEST-123?fields=description")
@@ -284,7 +285,7 @@ class TestEditIssuePlugin:
         mock_client.request.return_value = {"fields": {"description": ""}}
 
         with pytest.raises(FetchDescriptionError, match="Issue has no description"):
-            plugin._fetch_description(mock_client, "TEST-123")
+            plugin.fetch_description(mock_client, "TEST-123")
 
     def test_fetch_description_error(self):
         """Test fetching description when API call fails."""
@@ -293,7 +294,7 @@ class TestEditIssuePlugin:
         mock_client.request.side_effect = Exception("API error")
 
         with pytest.raises(FetchDescriptionError, match="Failed to fetch description"):
-            plugin._fetch_description(mock_client, "TEST-123")
+            plugin.fetch_description(mock_client, "TEST-123")
 
     def test_get_issue_type_success(self):
         """Test getting issue type successfully."""
@@ -301,7 +302,7 @@ class TestEditIssuePlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"fields": {"issuetype": {"name": "Bug"}}}
 
-        result = plugin._get_issue_type(mock_client, "TEST-123")
+        result = plugin.get_issue_type(mock_client, "TEST-123")
 
         assert result == "BUG"
         mock_client.request.assert_called_once_with("GET", "/rest/api/2/issue/TEST-123?fields=issuetype")
@@ -312,7 +313,7 @@ class TestEditIssuePlugin:
         mock_client = Mock()
         mock_client.request.side_effect = JiraClientRequestError("API error")
 
-        result = plugin._get_issue_type(mock_client, "TEST-123")
+        result = plugin.get_issue_type(mock_client, "TEST-123")
 
         assert result == "STORY"  # Default value
 
@@ -322,13 +323,13 @@ class TestEditIssuePlugin:
         # Mock editor that clears content
         def mock_editor(cmd_list):
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("   ")  # Only whitespace
 
         plugin = EditIssuePlugin(editor_func=mock_editor)
 
         with pytest.raises(EditDescriptionError, match="Edited text cannot be empty"):
-            plugin._edit_text("Original content")
+            plugin.edit_text("Original content")
 
     @patch("os.environ.get")
     def test_edit_text_custom_editor(self, mock_env_get):
@@ -344,7 +345,7 @@ class TestEditIssuePlugin:
             mock_file.read.return_value = "Edited content"
             mock_temp.return_value.__enter__.return_value = mock_file
 
-            plugin._edit_text("Original")
+            plugin.edit_text("Original")
 
         # Verify custom editor was used
         mock_editor.assert_called_once()
@@ -365,19 +366,23 @@ class TestEditIssuePlugin:
 
         # Test valid issue types
         for issue_type in ["STORY", "BUG", "EPIC", "TASK", "SPIKE"]:
-            result = plugin._enhance_with_ai("Original", issue_type)
+            result = plugin.enhance_with_ai("Original", issue_type)
             assert result == "Enhanced text"
 
         # Test invalid issue type (should default to STORY)
-        result = plugin._enhance_with_ai("Original", "INVALID")
+        result = plugin.enhance_with_ai("Original", "INVALID")
         assert result == "Enhanced text"
+
+
+class TestEditIssuePluginHelpers:
+    """Test cases for EditIssuePlugin helper methods and acceptance criteria handling."""
 
     def test_lint_description(self):
         """Test linting description (simplified version)."""
         plugin = EditIssuePlugin()
 
         with patch("builtins.print") as mock_print:
-            result = plugin._lint_description("Test description")
+            result = plugin.lint_description("Test description")
 
         assert result == "Test description"  # Returns unchanged
 
@@ -409,7 +414,7 @@ class TestEditIssuePlugin:
             mock_file.read.return_value = "Edited content"
             mock_temp.return_value.__enter__.return_value = mock_file
 
-            result = plugin._edit_text("Original content")
+            result = plugin.edit_text("Original content")
 
         assert result == "Edited content"
         mock_subprocess.assert_called_once()
@@ -422,14 +427,13 @@ class TestEditIssuePlugin:
         # Track API call sequence
         api_calls = []
 
-        def track_calls(method, path, **kwargs):
+        def track_calls(method, path, **_kwargs):
             api_calls.append((method, path))
             if "fields=description" in path:
                 return {"fields": {"description": "Original"}}
-            elif "fields=issuetype" in path:
+            if "fields=issuetype" in path:
                 return {"fields": {"issuetype": {"name": "Epic"}}}
-            else:
-                return {}
+            return {}
 
         mock_client.request.side_effect = track_calls
 
@@ -438,7 +442,7 @@ class TestEditIssuePlugin:
         )
 
         # Mock editor to make a change
-        with patch("builtins.print"), patch.object(plugin, "_edit_text", return_value="Changed"):
+        with patch("builtins.print"), patch.object(plugin, "edit_text", return_value="Changed"):
             plugin.execute(mock_client, args)
 
         # Verify API call sequence (only 2 calls when no_ai=True)
@@ -487,7 +491,7 @@ class TestEditIssuePlugin:
         # Mock editor function
         def mock_editor(cmd_list):
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("* [ ] New criteria")
 
         plugin = EditIssuePlugin(editor_func=mock_editor)
@@ -521,9 +525,9 @@ class TestEditIssuePlugin:
         def mock_editor(cmd_list):
             filename = cmd_list[1]
             # Read and write back unchanged
-            with open(filename) as f:
+            with open(filename, encoding="utf-8") as f:
                 content = f.read()
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write(content)
 
         plugin = EditIssuePlugin(editor_func=mock_editor)
@@ -588,7 +592,7 @@ class TestEditIssuePlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"fields": {"customfield_10050": ""}}
 
-        result = plugin._fetch_acceptance_criteria(mock_client, "TEST-123")
+        result = plugin.fetch_acceptance_criteria(mock_client, "TEST-123")
 
         assert result == ""
 
@@ -601,7 +605,7 @@ class TestEditIssuePlugin:
         mock_client = Mock()
         mock_client.request.return_value = {"fields": {"customfield_10050": None}}
 
-        result = plugin._fetch_acceptance_criteria(mock_client, "TEST-123")
+        result = plugin.fetch_acceptance_criteria(mock_client, "TEST-123")
 
         assert result == ""
 
@@ -614,13 +618,13 @@ class TestEditIssuePlugin:
         mock_client = Mock()
         mock_client.request.side_effect = JiraClientRequestError("API Error")
 
-        result = plugin._fetch_acceptance_criteria(mock_client, "TEST-123")
+        result = plugin.fetch_acceptance_criteria(mock_client, "TEST-123")
 
         assert result == ""
 
     @patch("jira_creator.plugins.edit_issue_plugin.get_ai_provider")
     @patch("jira_creator.plugins.edit_issue_plugin.EnvFetcher")
-    def test_generate_ac_from_description_no_description(self, mock_env, mock_get_ai):
+    def test_generate_ac_from_description_no_description(self, mock_env, _mock_get_ai):
         """Test generating AC when issue has no description."""
         mock_env.get.return_value = "openai"
 
@@ -629,7 +633,7 @@ class TestEditIssuePlugin:
         mock_client.request.return_value = {"fields": {"description": "", "summary": "Test"}}
 
         with pytest.raises(EditIssueError, match="has no description to generate from"):
-            plugin._generate_ac_from_description(mock_client, "TEST-123")
+            plugin.generate_ac_from_description(mock_client, "TEST-123")
 
     @patch("jira_creator.plugins.edit_issue_plugin.get_ai_provider")
     @patch("jira_creator.plugins.edit_issue_plugin.EnvFetcher")
@@ -646,7 +650,7 @@ class TestEditIssuePlugin:
         mock_client.request.return_value = {"fields": {"description": "Test", "summary": "Test"}}
 
         with pytest.raises(EditIssueError, match="AI generated empty acceptance criteria"):
-            plugin._generate_ac_from_description(mock_client, "TEST-123")
+            plugin.generate_ac_from_description(mock_client, "TEST-123")
 
     @patch("jira_creator.plugins.edit_issue_plugin.get_ai_provider")
     @patch("jira_creator.plugins.edit_issue_plugin.EnvFetcher")
@@ -661,7 +665,7 @@ class TestEditIssuePlugin:
         mock_client.request.return_value = {"fields": {"description": "Test", "summary": "Test"}}
 
         with pytest.raises(EditIssueError, match="Failed to generate acceptance criteria"):
-            plugin._generate_ac_from_description(mock_client, "TEST-123")
+            plugin.generate_ac_from_description(mock_client, "TEST-123")
 
     @patch("jira_creator.plugins.edit_issue_plugin.EnvFetcher")
     def test_update_acceptance_criteria_error(self, mock_env):
@@ -673,4 +677,4 @@ class TestEditIssuePlugin:
         mock_client.request.side_effect = Exception("Update failed")
 
         with pytest.raises(EditIssueError, match="Failed to update acceptance criteria"):
-            plugin._update_acceptance_criteria(mock_client, "TEST-123", "New criteria")
+            plugin.update_acceptance_criteria(mock_client, "TEST-123", "New criteria")

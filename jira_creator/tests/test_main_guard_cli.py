@@ -5,7 +5,10 @@ This script tests the main guard in rh_jira.py.
 
 import subprocess
 import sys
+from pathlib import Path
 from unittest.mock import patch
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_main_guard():
@@ -26,7 +29,7 @@ def test_main_guard_execution():
         [sys.executable, "-m", "jira_creator.rh_jira", "--help"],
         capture_output=True,
         text=True,
-        cwd="/home/daoneill/src/jira-creator",
+        cwd=REPOSITORY_ROOT,
     )
 
     # Should exit with code 0 for --help
@@ -56,10 +59,10 @@ def test_main_guard_coverage():
     import tempfile
 
     # Create a temporary script that imports and executes rh_jira
-    test_script = """
+    test_script = f"""
 import sys
 import os
-sys.path.insert(0, '/home/daoneill/src/jira-creator')
+sys.path.insert(0, {str(REPOSITORY_ROOT)!r})
 
 # Set up sys.argv before importing to avoid actual execution
 sys.argv = ['rh-issue', '--help']

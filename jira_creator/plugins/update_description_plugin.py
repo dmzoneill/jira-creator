@@ -11,7 +11,6 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Any
 
-from jira_creator.core.adf import ensure_adf
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.plugins.issue_field_updates import update_issue_description
 

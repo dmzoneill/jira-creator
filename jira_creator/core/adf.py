@@ -117,36 +117,44 @@ def _parse_inline_markup(text: str) -> list:
 
         # Add any text before the match
         if m.start() > pos:
-            nodes.append({"type": "text", "text": text[pos:m.start()]})
+            nodes.append({"type": "text", "text": text[pos : m.start()]})
 
         if m.group(1) is not None:
             # [text|url] link
-            nodes.append({
-                "type": "text",
-                "text": m.group(1),
-                "marks": [{"type": "link", "attrs": {"href": m.group(2)}}],
-            })
+            nodes.append(
+                {
+                    "type": "text",
+                    "text": m.group(1),
+                    "marks": [{"type": "link", "attrs": {"href": m.group(2)}}],
+                }
+            )
         elif m.group(3) is not None:
             # {{monospace}}
-            nodes.append({
-                "type": "text",
-                "text": m.group(3),
-                "marks": [{"type": "code"}],
-            })
+            nodes.append(
+                {
+                    "type": "text",
+                    "text": m.group(3),
+                    "marks": [{"type": "code"}],
+                }
+            )
         elif m.group(4) is not None:
             # *bold*
-            nodes.append({
-                "type": "text",
-                "text": m.group(4),
-                "marks": [{"type": "strong"}],
-            })
+            nodes.append(
+                {
+                    "type": "text",
+                    "text": m.group(4),
+                    "marks": [{"type": "strong"}],
+                }
+            )
         elif m.group(5) is not None:
             # _italic_
-            nodes.append({
-                "type": "text",
-                "text": m.group(5),
-                "marks": [{"type": "em"}],
-            })
+            nodes.append(
+                {
+                    "type": "text",
+                    "text": m.group(5),
+                    "marks": [{"type": "em"}],
+                }
+            )
         else:
             # Plain text
             nodes.append({"type": "text", "text": m.group(6)})
@@ -167,15 +175,19 @@ def _parse_table_row(line: str, is_header: bool = False) -> dict:
     row_content = []
     cell_type = "tableHeader" if is_header else "tableCell"
     for cell in cells:
-        row_content.append({
-            "type": cell_type,
-            "content": [{"type": "paragraph", "content": _parse_inline_markup(cell)}],
-        })
+        row_content.append(
+            {
+                "type": cell_type,
+                "content": [{"type": "paragraph", "content": _parse_inline_markup(cell)}],
+            }
+        )
 
     return {"type": "tableRow", "content": row_content}
 
 
-def text_to_adf(text: str) -> dict:
+def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements,too-many-boolean-expressions
+    text: str,
+) -> dict:
     """Convert Jira wiki markup text to Atlassian Document Format (ADF).
 
     Supports headings (h1.-h6.), bullet lists (* ), numbered lists (# ),
@@ -216,11 +228,13 @@ def text_to_adf(text: str) -> dict:
         if heading_match:
             level = int(heading_match.group(1))
             text_content = heading_match.group(2)
-            content.append({
-                "type": "heading",
-                "attrs": {"level": level},
-                "content": _parse_inline_markup(text_content),
-            })
+            content.append(
+                {
+                    "type": "heading",
+                    "attrs": {"level": level},
+                    "content": _parse_inline_markup(text_content),
+                }
+            )
             i += 1
             continue
 
@@ -253,10 +267,12 @@ def text_to_adf(text: str) -> dict:
                 item_match = re.match(r"^[*\-]\s+(.+)$", lines[i].strip())
                 if not item_match:
                     break
-                list_items.append({
-                    "type": "listItem",
-                    "content": [{"type": "paragraph", "content": _parse_inline_markup(item_match.group(1))}],
-                })
+                list_items.append(
+                    {
+                        "type": "listItem",
+                        "content": [{"type": "paragraph", "content": _parse_inline_markup(item_match.group(1))}],
+                    }
+                )
                 i += 1
             content.append({"type": "bulletList", "content": list_items})
             continue
@@ -268,10 +284,12 @@ def text_to_adf(text: str) -> dict:
                 item_match = re.match(r"^#\s+(.+)$", lines[i].strip())
                 if not item_match:
                     break
-                list_items.append({
-                    "type": "listItem",
-                    "content": [{"type": "paragraph", "content": _parse_inline_markup(item_match.group(1))}],
-                })
+                list_items.append(
+                    {
+                        "type": "listItem",
+                        "content": [{"type": "paragraph", "content": _parse_inline_markup(item_match.group(1))}],
+                    }
+                )
                 i += 1
             content.append({"type": "orderedList", "content": list_items})
             continue
@@ -280,8 +298,15 @@ def text_to_adf(text: str) -> dict:
         para_lines = []
         while i < len(lines):
             ls = lines[i].strip()
-            if not ls or re.match(r"^h[1-6]\.\s+", ls) or ls.startswith("||") or ls.startswith("|") \
-                    or re.match(r"^[*\-]\s+", ls) or re.match(r"^#\s+", ls) or ls.startswith("----"):
+            if (
+                not ls
+                or re.match(r"^h[1-6]\.\s+", ls)
+                or ls.startswith("||")
+                or ls.startswith("|")
+                or re.match(r"^[*\-]\s+", ls)
+                or re.match(r"^#\s+", ls)
+                or ls.startswith("----")
+            ):
                 break
             para_lines.append(ls)
             i += 1

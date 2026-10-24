@@ -428,12 +428,8 @@ class TestSetStatusPlugin:
         mock_env_fetcher.get.return_value = ""
 
         mock_client.request.side_effect = [
-            {  # GET transitions with fields
-                "transitions": [{"id": "61", "name": "Closed"}]
-            },
-            {  # GET issue details
-                "fields": {"assignee": {"accountId": "abc123"}}
-            },
+            {"transitions": [{"id": "61", "name": "Closed"}]},  # GET transitions with fields
+            {"fields": {"assignee": {"accountId": "abc123"}}},  # GET issue details
             {},  # POST transition response
         ]
 
@@ -456,12 +452,8 @@ class TestSetStatusPlugin:
         mock_env_fetcher.get.return_value = "customfield_10681"
 
         mock_client.request.side_effect = [
-            {  # GET transitions
-                "transitions": [{"id": "61", "name": "Closed"}]
-            },
-            {  # GET issue details - no assignee
-                "fields": {"assignee": None}
-            },
+            {"transitions": [{"id": "61", "name": "Closed"}]},  # GET transitions
+            {"fields": {"assignee": None}},  # GET issue details - no assignee
             {"accountId": "user123", "displayName": "Test User"},  # GET myself
             {},  # PUT assignee
             {},  # POST transition
@@ -484,12 +476,8 @@ class TestSetStatusPlugin:
         mock_env_fetcher.get.return_value = "customfield_12319275"
 
         mock_client.request.side_effect = [
-            {  # GET transitions
-                "transitions": [{"id": "61", "name": "Closed"}]
-            },
-            {  # GET issue details - no assignee
-                "fields": {"assignee": None}
-            },
+            {"transitions": [{"id": "61", "name": "Closed"}]},  # GET transitions
+            {"fields": {"assignee": None}},  # GET issue details - no assignee
             {"name": "jsmith", "displayName": "John Smith"},  # GET myself
             {},  # PUT assignee
             {},  # POST transition

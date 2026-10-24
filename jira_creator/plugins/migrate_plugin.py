@@ -66,7 +66,7 @@ class MigratePlugin(JiraPlugin):
             print(msg)
             raise MigrateError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:  # pylint: disable=too-many-locals
         """
         Perform the REST API operation to migrate an issue.
 

@@ -292,7 +292,7 @@ class TestListFieldsPlugin:
         captured = capsys.readouterr()
         lines = captured.out.strip().split("\n")
         # Find the data lines (after header and separator)
-        data_lines = [l for l in lines if l.startswith("customfield_")]
+        data_lines = [line for line in lines if line.startswith("customfield_")]
         assert "customfield_10001" in data_lines[0]
         assert "customfield_10003" in data_lines[1]
 

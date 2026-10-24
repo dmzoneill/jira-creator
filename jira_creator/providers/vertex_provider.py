@@ -117,12 +117,12 @@ class VertexAIProvider(AIProvider):
     def _complete(self, claude_user: str, gemini_prompt: str, system_prompt: str, temperature: float) -> str:
         """Send one completion to the detected Vertex backend and return the raw text."""
         if self.model_type == "claude":
-            return self._complete_with_claude(claude_user, system_prompt, temperature)
+            return self._complete_with_claude(claude_user, system_prompt)
         if self.model_type == "gemini":
             return self._complete_with_gemini(gemini_prompt, temperature)
         raise AiError(f"Unknown model type: {self.model_type}")
 
-    def _complete_with_claude(self, user_content: str, system_prompt: str, temperature: float) -> str:
+    def _complete_with_claude(self, user_content: str, system_prompt: str) -> str:
         """Call Anthropic Claude on Vertex AI and return the first text block."""
         try:
             from anthropic import AnthropicVertex
@@ -134,7 +134,6 @@ class VertexAIProvider(AIProvider):
             message = client.messages.create(
                 model=self.model,
                 max_tokens=4096,
-                temperature=temperature,
                 messages=[{"role": "user", "content": user_content}],
                 system=system_prompt if system_prompt else None,
             )

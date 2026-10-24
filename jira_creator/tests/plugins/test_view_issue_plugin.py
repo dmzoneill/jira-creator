@@ -306,6 +306,7 @@ class TestViewIssuePlugin:
             "created",
             "creator",
             "description",
+            "epic",
             "issue type",
             "labels",
             "priority",

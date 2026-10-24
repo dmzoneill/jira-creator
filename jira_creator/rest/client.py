@@ -409,7 +409,7 @@ class JiraClient:
             logger.debug("AI analysis completed successfully")
             return analysis
 
-        except (AiError, Exception) as e:  # AiError extends BaseException, not Exception
+        except (AiError, Exception) as e:  # pylint: disable=broad-exception-caught
             # AI analysis is optional - don't fail if it errors
             logger.warning("AI error analysis failed: %s", e)
             return None
@@ -498,7 +498,7 @@ class JiraClient:
             logger.debug("AI fix proposal generated successfully")
             return fix_proposal
 
-        except (AiError, Exception) as e:  # AiError extends BaseException, not Exception
+        except (AiError, Exception) as e:  # pylint: disable=broad-exception-caught
             # Auto-fix is optional - don't fail if it errors
             logger.warning("AI auto-fix failed: %s", e)
             return None
@@ -887,9 +887,7 @@ class JiraClient:
         if error_context.jira_error_messages:
             error_msg += "\n\nJira messages:\n" + "\n".join(error_context.jira_error_messages)
         if error_context.jira_field_errors:
-            error_msg += "\n\nField errors:\n" + json.dumps(
-                error_context.jira_field_errors, indent=2
-            )
+            error_msg += "\n\nField errors:\n" + json.dumps(error_context.jira_field_errors, indent=2)
         if (
             not error_context.jira_error_messages
             and not error_context.jira_field_errors

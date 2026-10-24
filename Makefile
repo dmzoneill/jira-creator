@@ -12,7 +12,7 @@ SUPER_LINTER_CONFIGS = \
   .stylelintrc.json
 
 PYTHON ?= python
-PIPENV ?= PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator COVERAGE_PROCESS_START=.coveragerc pipenv
+PIPENV ?= PIPENV_VERBOSITY=-1 PYTHONPATH=.:jira_creator pipenv
 SCRIPT := jira_creator/rh_jira.py
 
 # --- Helper Target for Printing Headers ---
@@ -93,11 +93,11 @@ lint: print-header
 	@echo "\n========== markdownlint Finished =========="
 	#$(PIPENV) run shellcheck $$PWD/README.md
 	@echo "\n========== shellcheck Finished =========="
-	jscpd -c .jscpd.json $$PWD
+	npx --no-install jscpd -c .jscpd.json $$PWD
 	@echo "\n========== jscpd Finished =========="
 	- @{ \
 		export PYTHONPATH=$$PWD/jira_creator; \
-		pylint jira_creator/; \
+		$(PIPENV) run pylint jira_creator/; \
 	}
 	@echo "\n========== pylint Finished =========="
 
@@ -106,7 +106,9 @@ lint: print-header
 coverage-unit: print-header
 	$(PIPENV) run coverage erase
 	$(PIPENV) run coverage run -m pytest -vv -k "not test_jira_project_creation" --durations=10 jira_creator/tests
-	- $(PIPENV) run coverage combine
+	if find . -maxdepth 1 -name '.coverage.*' -print -quit | grep -q .; then \
+		$(PIPENV) run coverage combine; \
+	fi
 	$(PIPENV) run coverage report -m --fail-under=99
 	$(PIPENV) run coverage html
 	@echo "📂 Coverage report: open htmlcov/index.html"

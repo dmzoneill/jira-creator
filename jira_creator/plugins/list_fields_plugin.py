@@ -101,9 +101,9 @@ class ListFieldsPlugin(JiraPlugin):
             if args.filter:
                 filter_lower = args.filter.lower()
                 fields = [
-                    f for f in fields
-                    if filter_lower in f.get("name", "").lower()
-                    or filter_lower in f.get("id", "").lower()
+                    f
+                    for f in fields
+                    if filter_lower in f.get("name", "").lower() or filter_lower in f.get("id", "").lower()
                 ]
 
             if not fields:
@@ -177,7 +177,7 @@ class ListFieldsPlugin(JiraPlugin):
         """Check a single field configuration and print the result."""
         if not configured_id:
             print(f"\n  {env_var} ({description})")
-            print(f"    Status: NOT CONFIGURED")
+            print("    Status: NOT CONFIGURED")
             # Suggest matching fields by description
             suggestions = name_to_ids.get(description.lower(), [])
             if suggestions:
@@ -190,9 +190,9 @@ class ListFieldsPlugin(JiraPlugin):
         if configured_id in field_map:
             actual_name = field_map[configured_id]
             print(f"    Instance:   {actual_name}")
-            print(f"    Status: OK")
+            print("    Status: OK")
         else:
-            print(f"    Status: FIELD NOT FOUND on this instance")
+            print("    Status: FIELD NOT FOUND on this instance")
             # Try to find by description name
             suggestions = name_to_ids.get(description.lower(), [])
             if suggestions:

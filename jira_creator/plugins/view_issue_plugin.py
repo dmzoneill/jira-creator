@@ -198,7 +198,7 @@ class ViewIssuePlugin(JiraPlugin):
 
     def _get_custom_field_mappings(self) -> Dict[str, str]:
         """Get custom field mappings from environment."""
-        return {
+        configured_fields = {
             EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD", ""): "acceptance criteria",
             EnvFetcher.get("JIRA_BLOCKED_FIELD", ""): "blocked",
             EnvFetcher.get("JIRA_BLOCKED_REASON_FIELD", ""): "blocked reason",
@@ -207,6 +207,7 @@ class ViewIssuePlugin(JiraPlugin):
             EnvFetcher.get("JIRA_SPRINT_FIELD", ""): "sprint",
             EnvFetcher.get("JIRA_WORKSTREAM_FIELD", ""): "workstream",
         }
+        return {field_id: display_name for field_id, display_name in configured_fields.items() if field_id}
 
     def _process_fields(self, fields: Dict[str, Any], custom_fields: Dict[str, str]) -> Dict[str, Any]:
         """Process and normalize field names."""

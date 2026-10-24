@@ -106,18 +106,22 @@ class SetStatusPlugin(JiraPlugin):
         payload = {"transition": {"id": transition_id}}
 
         transition_fields = self._get_required_fields_for_transition(transitions, transition_id)
-        # Always load issue fields: workflow validators may require transition screen fields even when
-        # REST metadata marks every field as required=false (e.g. Review with unassigned assignee).
-        issue_fields = client.request("GET", f"/rest/api/2/issue/{issue_key}").get("fields", {})
+        transition = next((t for t in transitions if str(t.get("id")) == str(transition_id)), None)
+        has_transition_screen = bool(transition and transition.get("fields"))
+        needs_issue_fields = bool(transition_fields or has_transition_screen or str(transition_id) == "61")
+        issue_fields = {}
+        if needs_issue_fields:
+            # Workflow validators may require transition screen fields even when REST metadata marks
+            # every field as required=false. Fetch issue data only for transitions that need it.
+            issue_fields = client.request("GET", f"/rest/api/2/issue/{issue_key}").get("fields", {})
 
         if transition_fields:
             payload["fields"] = self._build_transition_fields(transition_fields, issue_fields)
         elif str(transition_id) == "61":
             payload["fields"] = {}
         else:
-            trans = next((t for t in transitions if str(t.get("id")) == str(transition_id)), None)
-            if trans and trans.get("fields"):
-                screen_fields = self._build_fields_from_transition_screen(trans, issue_fields, client)
+            if transition and transition.get("fields"):
+                screen_fields = self._build_fields_from_transition_screen(transition, issue_fields, client)
                 if screen_fields:
                     payload["fields"] = screen_fields
 
@@ -131,11 +135,17 @@ class SetStatusPlugin(JiraPlugin):
             if not issue_fields.get("assignee"):
                 myself = client.request("GET", "/rest/api/2/myself")
                 if client.is_cloud:
-                    client.request("PUT", f"/rest/api/2/issue/{issue_key}",
-                                   json_data={"fields": {"assignee": {"accountId": myself["accountId"]}}})
+                    client.request(
+                        "PUT",
+                        f"/rest/api/2/issue/{issue_key}",
+                        json_data={"fields": {"assignee": {"accountId": myself["accountId"]}}},
+                    )
                 else:
-                    client.request("PUT", f"/rest/api/2/issue/{issue_key}",
-                                   json_data={"fields": {"assignee": {"name": myself["name"]}}})
+                    client.request(
+                        "PUT",
+                        f"/rest/api/2/issue/{issue_key}",
+                        json_data={"fields": {"assignee": {"name": myself["name"]}}},
+                    )
 
         return client.request("POST", path, json_data=payload)
 
@@ -227,7 +237,7 @@ class SetStatusPlugin(JiraPlugin):
             # else: leave unset and let API return error with required field name
         return out
 
-    def _build_fields_from_transition_screen(
+    def _build_fields_from_transition_screen(  # pylint: disable=too-many-branches
         self,
         transition: Dict[str, Any],
         issue_fields: Dict[str, Any],
@@ -252,9 +262,7 @@ class SetStatusPlugin(JiraPlugin):
                 continue
             current = issue_fields.get(field_id)
             if field_id == "assignee":
-                if current and isinstance(current, dict) and (
-                    current.get("accountId") or current.get("name")
-                ):
+                if current and isinstance(current, dict) and (current.get("accountId") or current.get("name")):
                     if client.is_cloud and current.get("accountId"):
                         out[field_id] = {"accountId": current["accountId"]}
                     elif not client.is_cloud and current.get("name"):

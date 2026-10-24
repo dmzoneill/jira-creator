@@ -3,11 +3,11 @@ name: CICD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   repository_dispatch:
-    types: [ refresh ]
+    types: [refresh]
 
 permissions: write-all
 

@@ -11,6 +11,7 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Any, Dict, List
 
+from jira_creator.core.adf import ensure_adf
 from jira_creator.core.plugin_base import JiraPlugin
 
 
@@ -139,6 +140,7 @@ class UpdateDescriptionPlugin(JiraPlugin):
         description = kwargs["description"]
 
         path = f"/rest/api/2/issue/{issue_key}"
-        payload = {"fields": {"description": description}}
+        body = ensure_adf(description) if getattr(client, "api_version", "2") == "3" else description
+        payload = {"fields": {"description": body}}
 
         return client.request("PUT", path, json_data=payload)

@@ -87,9 +87,10 @@ class ViewUserPlugin(JiraPlugin):
         """
         account_id = kwargs["account_id"]
 
-        # JIRA Server/Data Center uses 'username' or 'key' parameter
-        # Try username first (works for Red Hat JIRA and most JIRA Server instances)
         path = "/rest/api/2/user"
+        # Cloud uses 'accountId', Data Center uses 'username'
+        if getattr(client, "is_cloud", False):
+            return client.request("GET", path, params={"accountId": account_id})
         return client.request("GET", path, params={"username": account_id})
 
     def _display_user_details(self, user: Dict[str, Any]) -> None:

@@ -12,6 +12,7 @@ import os
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List, Tuple
 
+from jira_creator.core.adf import ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import JiraClientRequestError
@@ -248,7 +249,7 @@ class LintPlugin(JiraPlugin):
                 self._validate_field_with_ai("Summary", summary, summary_hash, ai_provider, cached, problems)
 
         # Validate description
-        description = fields.get("description", "")
+        description = ensure_text(fields.get("description", ""))
         if description:
             description_hash = self._sha256(description)
             cached_hash = cached.get("description_hash")
@@ -259,7 +260,7 @@ class LintPlugin(JiraPlugin):
                 )
 
         # Validate acceptance criteria
-        acceptance_criteria = fields.get(EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD"), "")
+        acceptance_criteria = ensure_text(fields.get(EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD"), ""))
         if acceptance_criteria:
             ac_hash = self._sha256(acceptance_criteria)
             cached_hash = cached.get("acceptance_criteria_hash")

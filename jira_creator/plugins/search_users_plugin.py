@@ -103,10 +103,12 @@ class SearchUsersPlugin(JiraPlugin):
         query = kwargs["query"]
         max_results = kwargs.get("max_results", 50)
 
-        # Search for users
-        # JIRA Server/Data Center uses 'username' parameter, not 'query'
         path = "/rest/api/2/user/search"
-        params = {"username": query, "maxResults": max_results}
+        # Cloud uses 'query' parameter, Data Center uses 'username'
+        if getattr(client, "is_cloud", False):
+            params = {"query": query, "maxResults": max_results}
+        else:
+            params = {"username": query, "maxResults": max_results}
 
         return client.request("GET", path, params=params)
 

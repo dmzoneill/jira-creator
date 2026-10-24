@@ -16,6 +16,7 @@ from typing import Any, Dict, List
 
 import yaml
 
+from jira_creator.core.adf import ensure_adf
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
@@ -126,6 +127,12 @@ Focus on high-level goals and value with clear success criteria.""",
                 default="customfield_12311140",
                 required=False,
                 description="Epic link field for linking stories to epics",
+            ),
+            "epic_name": FieldMapping(
+                env_var="JIRA_EPIC_NAME_FIELD",
+                default="customfield_12311141",
+                required=False,
+                description="Epic Name field (required when creating epics)",
             ),
             "story_points": FieldMapping(
                 env_var="JIRA_STORY_POINTS_FIELD",
@@ -259,6 +266,14 @@ Focus on high-level goals and value with clear success criteria.""",
             Dict[str, Any]: API response with created issue details
         """
         payload = kwargs["payload"]
+
+        if getattr(client, "api_version", "2") == "3":
+            fields = payload.get("fields", {})
+            if "description" in fields and isinstance(fields["description"], str):
+                fields["description"] = ensure_adf(fields["description"])
+            ac_field = EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD", default="")
+            if ac_field and ac_field in fields and isinstance(fields[ac_field], str):
+                fields[ac_field] = ensure_adf(fields[ac_field])
 
         path = "/rest/api/2/issue/"
         return client.request("POST", path, json_data=payload)
@@ -407,6 +422,11 @@ Focus on high-level goals and value with clear success criteria.""",
 
         if component_name:
             payload["fields"]["components"] = [{"name": component_name}]
+
+        # Add Epic Name for epics (required by Jira)
+        if issue_type.lower() == "epic":
+            epic_name_field = EnvFetcher.get("JIRA_EPIC_NAME_FIELD", default="customfield_12311141")
+            payload["fields"][epic_name_field] = summary
 
         # Add epic link for stories
         if issue_type.lower() == "story" and epic_field:

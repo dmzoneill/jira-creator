@@ -133,6 +133,7 @@ class TestViewHelpersBranchCoverage:
     def test_massage_issue_list_without_sprint_field(self, mock_env_get):
         """Test fallback view rendering when sprint configuration is absent."""
         from argparse import Namespace
+
         from jira_creator.core.view_helpers import massage_issue_list
 
         mock_env_get.side_effect = lambda key, default=None: default

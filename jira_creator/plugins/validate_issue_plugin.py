@@ -9,6 +9,7 @@ Jira issues against various criteria and quality standards.
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.adf import ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
 
@@ -163,8 +164,10 @@ class ValidateIssuePlugin(JiraPlugin):
         # ai_provider = self.get_dependency("ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")))
 
         # Fields to validate with AI
-        description = fields.get("description", "")
-        acceptance_criteria = fields.get(acceptance_criteria_field, "") if acceptance_criteria_field else ""
+        description = ensure_text(fields.get("description", ""))
+        acceptance_criteria = (
+            ensure_text(fields.get(acceptance_criteria_field, "")) if acceptance_criteria_field else ""
+        )
 
         # Check description quality
         if description and len(description) < 50:

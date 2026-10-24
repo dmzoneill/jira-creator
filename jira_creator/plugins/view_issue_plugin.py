@@ -10,6 +10,7 @@ import re
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List, Optional
 
+from jira_creator.core.adf import ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
 
@@ -156,11 +157,12 @@ class ViewIssuePlugin(JiraPlugin):
         print("-" * 70)
 
         rendered_desc = rendered_fields.get("description")
-        if rendered_desc:
+        if rendered_desc and isinstance(rendered_desc, str):
             clean_desc = self._strip_html(rendered_desc)
             print(clean_desc.strip())
         else:
-            print(fields.get("description") or "No description provided.")
+            desc = fields.get("description")
+            print(ensure_text(desc) if desc else "No description provided.")
 
     def _strip_html(self, html_text: str) -> str:
         """Strip HTML tags and decode entities."""
@@ -289,9 +291,17 @@ class ViewIssuePlugin(JiraPlugin):
             return match.group(1) if match else None
         return None
 
-    def _format_value(self, value: Any) -> str:
+    def _format_value(self, value: Any) -> str:  # pylint: disable=too-many-return-statements
         """Format a field value for display."""
         if isinstance(value, dict):
+            if value.get("type") == "doc":
+                return ensure_text(value)
+            if "displayName" in value:
+                return value["displayName"]
+            if "name" in value:
+                return value["name"]
+            if "value" in value:
+                return str(value["value"])
             return str(value)
         if isinstance(value, list):
             return ", ".join(str(v) for v in value) if value else "None"

@@ -28,9 +28,10 @@ class TestViewUserPlugin:
         mock_parser.add_argument.assert_called_once_with("account_id", help="The user's account ID or username")
 
     def test_rest_operation_with_account_id(self):
-        """Test REST operation with username parameter."""
+        """Test REST operation with username parameter (Data Center)."""
         plugin = ViewUserPlugin()
         mock_client = Mock()
+        mock_client.is_cloud = False
         mock_client.request.return_value = {
             "accountId": "12345",
             "displayName": "John Doe",
@@ -43,9 +44,10 @@ class TestViewUserPlugin:
         assert result == {"accountId": "12345", "displayName": "John Doe"}
 
     def test_rest_operation_with_email(self):
-        """Test REST operation with email address (common for Jira Server)."""
+        """Test REST operation with email address (Data Center)."""
         plugin = ViewUserPlugin()
         mock_client = Mock()
+        mock_client.is_cloud = False
         mock_client.request.return_value = {
             "name": "jdoe@example.com",
             "displayName": "John Doe",
@@ -56,6 +58,21 @@ class TestViewUserPlugin:
         # Uses 'username' param for Jira Server compatibility
         mock_client.request.assert_called_once_with("GET", "/rest/api/2/user", params={"username": "jdoe@example.com"})
         assert result == {"name": "jdoe@example.com", "displayName": "John Doe"}
+
+    def test_rest_operation_cloud(self):
+        """Test REST operation with Cloud instance uses accountId."""
+        plugin = ViewUserPlugin()
+        mock_client = Mock()
+        mock_client.is_cloud = True
+        mock_client.request.return_value = {
+            "accountId": "12345",
+            "displayName": "John Doe",
+        }
+
+        result = plugin.rest_operation(mock_client, account_id="12345")
+
+        mock_client.request.assert_called_once_with("GET", "/rest/api/2/user", params={"accountId": "12345"})
+        assert result == {"accountId": "12345", "displayName": "John Doe"}
 
     def test_execute_successful(self):
         """Test successful execution."""

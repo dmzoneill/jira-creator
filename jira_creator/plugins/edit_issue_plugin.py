@@ -12,6 +12,7 @@ import tempfile
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.adf import ensure_adf, ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
@@ -196,7 +197,8 @@ class EditIssuePlugin(JiraPlugin):
         description = kwargs["description"]
 
         path = f"/rest/api/2/issue/{issue_key}"
-        payload = {"fields": {"description": description}}
+        body = ensure_adf(description) if getattr(client, "api_version", "2") == "3" else description
+        payload = {"fields": {"description": body}}
 
         return client.request("PUT", path, json_data=payload)
 
@@ -206,7 +208,7 @@ class EditIssuePlugin(JiraPlugin):
             path = f"/rest/api/2/issue/{issue_key}?fields=description"
             response = client.request("GET", path)
 
-            description = response.get("fields", {}).get("description", "")
+            description = ensure_text(response.get("fields", {}).get("description", ""))
             if not description:
                 raise FetchDescriptionError("Issue has no description")
 
@@ -256,7 +258,7 @@ class EditIssuePlugin(JiraPlugin):
             path = f"/rest/api/2/issue/{issue_key}?fields={criteria_field}"
             response = client.request("GET", path)
 
-            criteria = response.get("fields", {}).get(criteria_field, "")
+            criteria = ensure_text(response.get("fields", {}).get(criteria_field, ""))
             return criteria or ""
 
         except Exception as e:  # pylint: disable=broad-exception-caught
@@ -270,7 +272,7 @@ class EditIssuePlugin(JiraPlugin):
             path = f"/rest/api/2/issue/{issue_key}"
             issue_data = client.request("GET", path)
 
-            description = issue_data.get("fields", {}).get("description", "")
+            description = ensure_text(issue_data.get("fields", {}).get("description", ""))
             if not description:
                 raise EditIssueError(f"Issue {issue_key} has no description to generate from")
 
@@ -311,7 +313,8 @@ Acceptance Criteria:"""
         try:
             criteria_field = EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD")
             path = f"/rest/api/2/issue/{issue_key}"
-            payload = {"fields": {criteria_field: criteria}}
+            body = ensure_adf(criteria) if getattr(client, "api_version", "2") == "3" else criteria
+            payload = {"fields": {criteria_field: body}}
 
             client.request("PUT", path, json_data=payload)
 

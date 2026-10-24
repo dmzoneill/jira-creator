@@ -2,7 +2,7 @@
 """Tests for the set status plugin."""
 
 from argparse import ArgumentParser, Namespace
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -374,3 +374,129 @@ class TestSetStatusPlugin:
         # Verify correct transition ID was used
         post_call = mock_client.request.call_args_list[1]
         assert post_call[1]["json_data"]["transition"]["id"] == "21"
+
+    @patch("jira_creator.plugins.set_status_plugin.EnvFetcher")
+    def test_rest_operation_closed_transition_uses_env_workstream(self, mock_env_fetcher):
+        """Test that Closed transition (61) reads workstream field from EnvFetcher."""
+        plugin = SetStatusPlugin()
+        mock_client = Mock()
+        mock_client.is_cloud = True
+
+        mock_env_fetcher.get.return_value = "customfield_10681"
+
+        mock_client.request.side_effect = [
+            {  # GET transitions with fields
+                "transitions": [
+                    {
+                        "id": "61",
+                        "name": "Closed",
+                        "fields": {
+                            "customfield_10681": {
+                                "required": False,
+                                "allowedValues": [{"id": "100", "value": "Platform"}],
+                            }
+                        },
+                    }
+                ]
+            },
+            {  # GET issue details
+                "fields": {
+                    "customfield_10681": [{"id": "100", "value": "Platform"}],
+                    "assignee": {"accountId": "abc123"},
+                }
+            },
+            {},  # POST transition response
+        ]
+
+        plugin.rest_operation(mock_client, issue_key="TEST-123", status="Closed")
+
+        # Verify EnvFetcher was called for the workstream field
+        mock_env_fetcher.get.assert_called_with("JIRA_WORKSTREAM_FIELD", default="")
+
+        # Verify the workstream field was included in the transition payload
+        post_call = mock_client.request.call_args_list[2]
+        payload = post_call[1]["json_data"]
+        assert "customfield_10681" in payload.get("fields", {})
+
+    @patch("jira_creator.plugins.set_status_plugin.EnvFetcher")
+    def test_rest_operation_closed_transition_no_workstream_configured(self, mock_env_fetcher):
+        """Test Closed transition skips workstream when JIRA_WORKSTREAM_FIELD is empty."""
+        plugin = SetStatusPlugin()
+        mock_client = Mock()
+        mock_client.is_cloud = True
+
+        mock_env_fetcher.get.return_value = ""
+
+        mock_client.request.side_effect = [
+            {  # GET transitions with fields
+                "transitions": [{"id": "61", "name": "Closed"}]
+            },
+            {  # GET issue details
+                "fields": {"assignee": {"accountId": "abc123"}}
+            },
+            {},  # POST transition response
+        ]
+
+        plugin.rest_operation(mock_client, issue_key="TEST-123", status="Closed")
+
+        # Verify workstream was NOT added to fields
+        post_call = mock_client.request.call_args_list[2]
+        payload = post_call[1]["json_data"]
+        fields = payload.get("fields", {})
+        # No customfield_ keys should be present for workstream
+        assert not any(k.startswith("customfield_") for k in fields)
+
+    @patch("jira_creator.plugins.set_status_plugin.EnvFetcher")
+    def test_rest_operation_closed_transition_assigns_unassigned_cloud(self, mock_env_fetcher):
+        """Test Closed transition assigns current user on Cloud when unassigned."""
+        plugin = SetStatusPlugin()
+        mock_client = Mock()
+        mock_client.is_cloud = True
+
+        mock_env_fetcher.get.return_value = "customfield_10681"
+
+        mock_client.request.side_effect = [
+            {  # GET transitions
+                "transitions": [{"id": "61", "name": "Closed"}]
+            },
+            {  # GET issue details - no assignee
+                "fields": {"assignee": None}
+            },
+            {"accountId": "user123", "displayName": "Test User"},  # GET myself
+            {},  # PUT assignee
+            {},  # POST transition
+        ]
+
+        plugin.rest_operation(mock_client, issue_key="TEST-123", status="Closed")
+
+        # Verify assignee was set using accountId (Cloud)
+        put_call = mock_client.request.call_args_list[3]
+        assert put_call[0] == ("PUT", "/rest/api/2/issue/TEST-123")
+        assert put_call[1]["json_data"]["fields"]["assignee"]["accountId"] == "user123"
+
+    @patch("jira_creator.plugins.set_status_plugin.EnvFetcher")
+    def test_rest_operation_closed_transition_assigns_unassigned_dc(self, mock_env_fetcher):
+        """Test Closed transition assigns current user on DC when unassigned."""
+        plugin = SetStatusPlugin()
+        mock_client = Mock()
+        mock_client.is_cloud = False
+
+        mock_env_fetcher.get.return_value = "customfield_12319275"
+
+        mock_client.request.side_effect = [
+            {  # GET transitions
+                "transitions": [{"id": "61", "name": "Closed"}]
+            },
+            {  # GET issue details - no assignee
+                "fields": {"assignee": None}
+            },
+            {"name": "jsmith", "displayName": "John Smith"},  # GET myself
+            {},  # PUT assignee
+            {},  # POST transition
+        ]
+
+        plugin.rest_operation(mock_client, issue_key="TEST-123", status="Closed")
+
+        # Verify assignee was set using name (DC)
+        put_call = mock_client.request.call_args_list[3]
+        assert put_call[1]["json_data"]["fields"]["assignee"]["name"] == "jsmith"

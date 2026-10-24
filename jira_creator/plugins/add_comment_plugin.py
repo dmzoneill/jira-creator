@@ -12,6 +12,7 @@ import tempfile
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.adf import ensure_adf
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import AiError
@@ -118,7 +119,8 @@ class AddCommentPlugin(JiraPlugin):
         comment = kwargs["comment"]
 
         path = f"/rest/api/2/issue/{issue_key}/comment"
-        payload = {"body": comment}
+        body = ensure_adf(comment) if getattr(client, "api_version", "2") == "3" else comment
+        payload = {"body": body}
 
         return client.request("POST", path, json_data=payload)
 

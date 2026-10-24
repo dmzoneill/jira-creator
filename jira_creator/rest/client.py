@@ -8,6 +8,7 @@ This client provides only the core methods needed by plugins:
 - Core properties like jira_url, build_payload
 """
 
+import base64
 import datetime
 import difflib
 import json
@@ -22,7 +23,7 @@ from requests.exceptions import RequestException
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
-from jira_creator.exceptions.exceptions import JiraClientRequestError
+from jira_creator.exceptions.exceptions import AiError, JiraClientRequestError
 
 logger = get_logger("client")
 
@@ -101,12 +102,87 @@ class JiraClient:
         self.component_name: str = EnvFetcher.get("JIRA_COMPONENT_NAME")
         self.priority: str = EnvFetcher.get("JIRA_PRIORITY")
         self.jpat: str = EnvFetcher.get("JIRA_JPAT")
+        self.jira_email: str = EnvFetcher.get("JIRA_EMAIL", default="")
         self.epic_field: str = EnvFetcher.get("JIRA_EPIC_FIELD")
         self.board_id: str = EnvFetcher.get("JIRA_BOARD_ID")
         self.fields_cache_path: str = os.path.expanduser("~/.config/rh-issue/fields.json")
         self.is_speaking: bool = False
         self.plugin_registry = plugin_registry  # For reloading plugins after AI fixes
-        logger.debug("JiraClient initialized for URL: %s", self.jira_url)
+        self.is_cloud: bool = ".atlassian.net" in self.jira_url
+        api_version_override = EnvFetcher.get("JIRA_API_VERSION", default="")
+        if api_version_override:
+            self.api_version: str = api_version_override
+        elif self.is_cloud:
+            self.api_version = "3"
+        else:
+            self.api_version = "2"
+        logger.debug(
+            "JiraClient initialized for URL: %s (API v%s, cloud=%s)",
+            self.jira_url,
+            self.api_version,
+            self.is_cloud,
+        )
+
+    def _build_auth_header(self) -> str:
+        """Build the Authorization header value based on JIRA instance type.
+
+        Cloud instances use Basic auth: base64(email:token).
+        Data Center/Server instances use Bearer token auth.
+        """
+        if self.is_cloud and self.jira_email:
+            credentials = base64.b64encode(f"{self.jira_email}:{self.jpat}".encode()).decode()
+            return f"Basic {credentials}"
+        return f"Bearer {self.jpat}"
+
+    def _rewrite_api_path(self, path: str) -> str:
+        """Rewrite API path to use the configured API version."""
+        return path.replace("/rest/api/2/", f"/rest/api/{self.api_version}/")
+
+    def _migrate_search_to_post(
+        self, method: str, path: str, params: Optional[Dict[str, str]], json_data: Optional[Dict[str, Any]]
+    ) -> tuple:
+        """Migrate deprecated GET /search to POST /search/jql.
+
+        The /search endpoint is deprecated on both Cloud and Data Center.
+        Returns (method, path, params, json_data) with search calls converted.
+        """
+        if method.upper() != "GET":
+            return method, path, params, json_data
+
+        # Handle query params embedded in path (e.g. /search?jql=...&maxResults=100)
+        # Only match the issue search endpoint, not /user/search etc.
+        search_path = path.split("?")[0].rstrip("/")
+        if not (search_path.endswith("/search") and "/user/" not in search_path):
+            return method, path, params, json_data
+
+        # Parse query string params from path if present
+        merged_params = dict(params) if params else {}
+        if "?" in path:
+            from urllib.parse import parse_qs, urlparse
+
+            parsed = urlparse(path)
+            for key, values in parse_qs(parsed.query).items():
+                merged_params[key] = values[0]
+
+        # Convert to POST /search/jql with JSON body, always using API v3
+        new_path = search_path.replace("/rest/api/2/search", "/rest/api/3/search") + "/jql"
+        post_body = {}
+        if "jql" in merged_params:
+            post_body["jql"] = merged_params["jql"]
+        if "maxResults" in merged_params:
+            post_body["maxResults"] = int(merged_params["maxResults"])
+        if "fields" in merged_params:
+            post_body["fields"] = [f.strip() for f in merged_params["fields"].split(",")]
+        else:
+            # v3 search/jql returns only 'id' by default; include essential fields
+            post_body["fields"] = ["*all"]
+        if "startAt" in merged_params:
+            post_body["startAt"] = int(merged_params["startAt"])
+        if "orderBy" in merged_params and "ORDER BY" not in post_body.get("jql", "").upper():
+            post_body["jql"] = post_body.get("jql", "") + f" ORDER BY {merged_params['orderBy']}"
+
+        logger.debug("Migrated GET %s to POST %s", path, new_path)
+        return "POST", new_path, None, post_body
 
     # jscpd:ignore-start
     def generate_curl_command(
@@ -239,7 +315,7 @@ class JiraClient:
             logger.debug("Fetching JIRA API metadata for error context...")
 
             headers = {
-                "Authorization": f"Bearer {self.jpat}",
+                "Authorization": self._build_auth_header(),
                 "Content-Type": "application/json",
             }
 
@@ -249,7 +325,11 @@ class JiraClient:
 
             # Fetch issue types (quick, helpful for create/update errors)
             try:
-                response = requests.get(f"{self.jira_url}/rest/api/2/issuetype", headers=headers, timeout=5)
+                response = requests.get(
+                    self._rewrite_api_path(f"{self.jira_url}/rest/api/2/issuetype"),
+                    headers=headers,
+                    timeout=5,
+                )
                 if response.status_code == 200:
                     types_data = response.json()
                     issue_types = [t.get("name") for t in types_data if "name" in t]
@@ -259,7 +339,11 @@ class JiraClient:
 
             # Fetch custom fields (crucial for field ID errors)
             try:
-                response = requests.get(f"{self.jira_url}/rest/api/2/field", headers=headers, timeout=5)
+                response = requests.get(
+                    self._rewrite_api_path(f"{self.jira_url}/rest/api/2/field"),
+                    headers=headers,
+                    timeout=5,
+                )
                 if response.status_code == 200:
                     fields_data = response.json()
                     custom_fields = {
@@ -275,7 +359,9 @@ class JiraClient:
             if self.project_key:
                 try:
                     response = requests.get(
-                        f"{self.jira_url}/rest/api/2/project/{self.project_key}", headers=headers, timeout=5
+                        self._rewrite_api_path(f"{self.jira_url}/rest/api/2/project/{self.project_key}"),
+                        headers=headers,
+                        timeout=5,
                     )
                     if response.status_code == 200:
                         project_config = response.json()
@@ -323,7 +409,7 @@ class JiraClient:
             logger.debug("AI analysis completed successfully")
             return analysis
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except (AiError, Exception) as e:  # AiError extends BaseException, not Exception
             # AI analysis is optional - don't fail if it errors
             logger.warning("AI error analysis failed: %s", e)
             return None
@@ -412,7 +498,7 @@ class JiraClient:
             logger.debug("AI fix proposal generated successfully")
             return fix_proposal
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except (AiError, Exception) as e:  # AiError extends BaseException, not Exception
             # Auto-fix is optional - don't fail if it errors
             logger.warning("AI auto-fix failed: %s", e)
             return None
@@ -636,10 +722,12 @@ class JiraClient:
 
         This is the core method that plugins use for all HTTP calls.
         """
+        path = self._rewrite_api_path(path)
+        method, path, params, json_data = self._migrate_search_to_post(method, path, params, json_data)
         logger.info("Jira API request: %s %s", method, path)
         url = f"{self.jira_url}{path}"
         headers = {
-            "Authorization": f"Bearer {self.jpat}",
+            "Authorization": self._build_auth_header(),
             "Content-Type": "application/json",
         }
 
@@ -794,8 +882,21 @@ class JiraClient:
             # We already have analysis from the fix proposal
             ai_suggestion = fix_proposal.analysis
 
-        # Format error message
+        # Format error message (include Jira API details so callers can fix payloads)
         error_msg = f"Failed after {retries} attempts: Status Code {status_code}"
+        if error_context.jira_error_messages:
+            error_msg += "\n\nJira messages:\n" + "\n".join(error_context.jira_error_messages)
+        if error_context.jira_field_errors:
+            error_msg += "\n\nField errors:\n" + json.dumps(
+                error_context.jira_field_errors, indent=2
+            )
+        if (
+            not error_context.jira_error_messages
+            and not error_context.jira_field_errors
+            and error_context.response_body
+        ):
+            body_preview = error_context.response_body[:2000]
+            error_msg += f"\n\nResponse body (preview):\n{body_preview}"
         if ai_suggestion:
             error_msg += f"\n\n🤖 AI Analysis:\n{ai_suggestion}"
 

@@ -13,6 +13,7 @@ from typing import Any, Dict, List
 
 import yaml
 
+from jira_creator.core.adf import ensure_adf
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
@@ -309,5 +310,11 @@ class BatchCreatePlugin(JiraPlugin):
             Dict[str, Any]: API response with created issue details
         """
         payload = kwargs["payload"]
+
+        if getattr(client, "api_version", "2") == "3":
+            fields = payload.get("fields", {})
+            if "description" in fields and isinstance(fields["description"], str):
+                fields["description"] = ensure_adf(fields["description"])
+
         path = "/rest/api/2/issue/"
         return client.request("POST", path, json_data=payload)

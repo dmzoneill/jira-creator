@@ -1,5 +1,5 @@
 [requires]
-python_version = "3.11"
+python_version = "3.14"
 
 [packages]
 requests = "*"
@@ -55,6 +55,8 @@ pytest-timeout = "*"
 pytest-mock = "*"
 autopep8 = "*"
 black = "*"
+isort = "*"
+pylint = "*"
 flake8 = "*"
 twine = "*"
 build = "*"

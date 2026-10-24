@@ -59,7 +59,8 @@ class TestSearchUsersPlugin:
         ]
         mock_client.request.return_value = mock_response
 
-        # Call REST operation
+        # Call REST operation (Data Center)
+        mock_client.is_cloud = False
         result = plugin.rest_operation(mock_client, query="john", max_results=10)
 
         # Verify the request (uses 'username' param for Jira Server)
@@ -70,10 +71,26 @@ class TestSearchUsersPlugin:
         )
         assert result == mock_response
 
+    def test_rest_operation_cloud(self):
+        """Test REST operation with Cloud instance uses query param."""
+        plugin = SearchUsersPlugin()
+        mock_client = Mock()
+        mock_client.is_cloud = True
+        mock_client.request.return_value = [{"displayName": "John", "accountId": "123"}]
+
+        plugin.rest_operation(mock_client, query="john", max_results=10)
+
+        mock_client.request.assert_called_once_with(
+            "GET",
+            "/rest/api/2/user/search",
+            params={"query": "john", "maxResults": 10},
+        )
+
     def test_rest_operation_with_default_max_results(self):
         """Test REST operation with default max_results."""
         plugin = SearchUsersPlugin()
         mock_client = Mock()
+        mock_client.is_cloud = False
         mock_client.request.return_value = []
 
         # Call without max_results
@@ -238,6 +255,7 @@ class TestSearchUsersPlugin:
         """Test with various query types."""
         plugin = SearchUsersPlugin()
         mock_client = Mock()
+        mock_client.is_cloud = False
         mock_client.request.return_value = []
 
         # Test various queries
@@ -255,7 +273,7 @@ class TestSearchUsersPlugin:
             result = plugin.execute(mock_client, args)
             assert result is True
 
-            # Verify the query was passed correctly (uses 'username' param)
+            # Verify the query was passed correctly (uses 'username' param for DC)
             call_args = mock_client.request.call_args
             assert call_args[1]["params"]["username"] == query
 

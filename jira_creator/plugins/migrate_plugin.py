@@ -9,6 +9,7 @@ Jira issues to a new issue type.
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.adf import ensure_adf
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.exceptions.exceptions import JiraClientRequestError
 
@@ -83,7 +84,10 @@ class MigratePlugin(JiraPlugin):
             # Get old issue details
             fields = client.request("GET", f"/rest/api/2/issue/{issue_key}")["fields"]
             summary = fields.get("summary", f"Migrated from {issue_key}")
-            description = fields.get("description", f"Migrated from {issue_key}")
+            description = fields.get("description") or f"Migrated from {issue_key}"
+            is_v3 = getattr(client, "api_version", "2") == "3"
+            if isinstance(description, str) and is_v3:
+                description = ensure_adf(description)
 
             # Create new issue payload directly
             fields = {
@@ -105,12 +109,12 @@ class MigratePlugin(JiraPlugin):
             new_key = client.request("POST", "/rest/api/2/issue/", json_data=payload)["key"]
 
             # Add migration comment to old issue
+            comment_text = f"Migrated to [{new_key}]({client.jira_url}/browse/{new_key}) as a {new_type.upper()}."
+            comment_body = ensure_adf(comment_text) if is_v3 else comment_text
             client.request(
                 "POST",
                 f"/rest/api/2/issue/{issue_key}/comment",
-                json_data={
-                    "body": f"Migrated to [{new_key}]({client.jira_url}/browse/{new_key}) as a {new_type.upper()}."
-                },
+                json_data={"body": comment_body},
             )
 
             # Try to transition old issue to done/closed

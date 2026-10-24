@@ -11,6 +11,7 @@ from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Tuple
 
+from jira_creator.core.adf import ensure_text
 from jira_creator.core.ai_executor import AIExecutor
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
@@ -367,13 +368,13 @@ class LintAllPlugin(JiraPlugin):
         status_dict["Summary"] = bool(summary and len(summary) > 10)
 
         # Validate description
-        description = fields.get("description", "")
+        description = ensure_text(fields.get("description", ""))
         status_dict["Description"] = bool(description and len(description) > 20)
 
         # Validate acceptance criteria for stories
         issue_type = fields.get("issuetype", {}).get("name", "")
         if issue_type == "Story":
-            acceptance_criteria = fields.get(EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD"), "")
+            acceptance_criteria = ensure_text(fields.get(EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD"), ""))
             status_dict["Acceptance Criteria"] = bool(acceptance_criteria and len(acceptance_criteria) > 10)
 
     def _display_results(

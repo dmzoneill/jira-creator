@@ -10,6 +10,7 @@ import time
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.adf import ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.providers import get_ai_provider
@@ -126,7 +127,7 @@ class QuarterlyConnectionPlugin(JiraPlugin):
             {
                 "key": issue["key"],
                 "summary": issue.get("fields", {}).get("summary", ""),
-                "description": issue.get("fields", {}).get("description", ""),
+                "description": ensure_text(issue.get("fields", {}).get("description", "")),
                 "status": issue.get("fields", {}).get("status", {}).get("name", "Unknown"),
                 "type": issue.get("fields", {}).get("issuetype", {}).get("name", "Unknown"),
             }

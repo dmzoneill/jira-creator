@@ -9,6 +9,7 @@ set the acceptance criteria for Jira issues.
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
+from jira_creator.core.adf import ensure_adf, ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
@@ -157,7 +158,7 @@ Acceptance Criteria:""",
             path = f"/rest/api/2/issue/{issue_key}"
             issue_data = client.request("GET", path)
 
-            description = issue_data.get("fields", {}).get("description", "")
+            description = ensure_text(issue_data.get("fields", {}).get("description", ""))
             if not description:
                 raise SetAcceptanceCriteriaError(f"Issue {issue_key} has no description to generate from")
 
@@ -204,7 +205,8 @@ Acceptance Criteria:""",
         criteria_field = EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD")
 
         path = f"/rest/api/2/issue/{issue_key}"
-        payload = {"fields": {criteria_field: criteria}}
+        body = ensure_adf(criteria) if getattr(client, "api_version", "2") == "3" else criteria
+        payload = {"fields": {criteria_field: body}}
 
         return client.request("PUT", path, json_data=payload)
 

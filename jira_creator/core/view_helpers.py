@@ -31,7 +31,6 @@ from typing import List, Tuple
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.rest.client import JiraClient
 
-
 DEFAULT_VIEW_COLUMNS = "key,issuetype,status,priority,summary,assignee,reporter,sprint"
 
 
@@ -267,7 +266,9 @@ def clean_values(rows: List[Tuple], placeholder: str = "—", max_length: int = 
                 cleaned_row.append(placeholder)
             else:
                 if isinstance(val, dict):
-                    if "name" in val:
+                    if "displayName" in val:
+                        val = val["displayName"]
+                    elif "name" in val:
                         val = val["name"]
                     elif "value" in val:
                         val = val["value"]
@@ -283,6 +284,57 @@ def clean_values(rows: List[Tuple], placeholder: str = "—", max_length: int = 
                     cleaned_row.append(val_str)
         cleaned_rows.append(tuple(cleaned_row))
     return cleaned_rows
+
+
+def _extract_active_sprint(sprints) -> str:
+    """Extract the active sprint name from a list of sprint data."""
+    if not sprints:
+        return "—"
+    for s in sprints:
+        if isinstance(s, dict):
+            if s.get("state", "").lower() == "active" and s.get("name"):
+                return s["name"]
+        elif isinstance(s, str) and "state=ACTIVE" in s and "name=" in s:
+            match = re.search(r"name=([^,]+)", s)
+            if match:
+                return match.group(1)
+    return "—"
+
+
+def _format_epic_value(issue) -> str:
+    """Format epic field value for display."""
+    epic_value = issue.get(EnvFetcher.get("JIRA_EPIC_FIELD", ""), None) or issue.get("epic", None)
+    if not epic_value:
+        return "—"
+    if isinstance(epic_value, str):
+        return epic_value
+    if isinstance(epic_value, dict):
+        return epic_value.get("key", epic_value.get("name", "—"))
+    return str(epic_value)
+
+
+def _build_row_value(col, issue, sprint) -> str:  # pylint: disable=too-many-return-statements
+    """Build a single row value for the given column."""
+    if col == "key":
+        return issue["key"]
+    if col == "status":
+        return issue["status"]["name"]
+    if col == "assignee":
+        return issue["assignee"]["displayName"] if issue.get("assignee") else "Unassigned"
+    if col == "reporter":
+        reporter = issue.get("reporter")
+        if reporter and isinstance(reporter, dict):
+            return reporter.get("displayName", reporter.get("name", "—"))
+        return str(reporter) if reporter else "—"
+    if col == "priority":
+        return issue.get("priority", {}).get("name", "—")
+    if col == "summary":
+        return issue["summary"]
+    if col == "sprint":
+        return sprint
+    if col == "epic" or col == EnvFetcher.get("JIRA_EPIC_FIELD", ""):
+        return _format_epic_value(issue)
+    return issue.get(col, "—")
 
 
 def massage_issue_list(args: Namespace, issues: list[dict]):  # pylint: disable=too-many-branches
@@ -301,63 +353,21 @@ def massage_issue_list(args: Namespace, issues: list[dict]):  # pylint: disable=
     """
     issues = [flatten_fields(issue) for issue in issues]
 
-    # Get the view columns from EnvFetcher or use None
     view_columns = fetch_view_columns()
-
     headers = view_columns if view_columns else list(issues[0].keys())
 
     rows: List[Tuple] = []
     for issue in issues:
         sprint_field = EnvFetcher.get("JIRA_SPRINT_FIELD", "")
         sprints = issue.get(sprint_field, []) if sprint_field else []
-        sprint = "-"
-        if sprints is not None:
-            sprint = next(
-                (re.search(r"name=([^,]+)", s).group(1) for s in sprints if "state=ACTIVE" in s and "name=" in s),
-                "—",
-            )
-
-        # Dynamically create row data based on headers (view_columns or first dict's keys)
-        row_data = []
-        for col in headers:
-            if col == "key":
-                row_data.append(issue["key"])
-            elif col == "status":
-                row_data.append(issue["status"]["name"])
-            elif col == "assignee":
-                row_data.append(issue["assignee"]["displayName"] if issue.get("assignee") else "Unassigned")
-            elif col == "priority":
-                row_data.append(issue.get("priority", {}).get("name", "—"))
-            elif col == "summary":
-                row_data.append(issue["summary"])
-            elif col == "sprint":
-                row_data.append(sprint)
-            elif col == "epic" or col == EnvFetcher.get("JIRA_EPIC_FIELD", ""):
-                epic_value = issue.get(EnvFetcher.get("JIRA_EPIC_FIELD", ""), None) or issue.get("epic", None)
-                if epic_value:
-                    if isinstance(epic_value, str):
-                        row_data.append(epic_value)
-                    elif isinstance(epic_value, dict):
-                        row_data.append(epic_value.get("key", epic_value.get("name", "—")))
-                    else:
-                        row_data.append(str(epic_value))
-                else:
-                    row_data.append("—")
-            else:
-                # For any other dynamic fields, append the value directly
-                row_data.append(issue.get(col, "—"))
-
-        # The row_data is already built correctly based on headers
-        # Don't overwrite it with filter_columns which doesn't handle special fields
-
+        sprint = _extract_active_sprint(sprints)
+        row_data = [_build_row_value(col, issue, sprint) for col in headers]
         rows.append(tuple(row_data))
 
-    # Clean rows by replacing None values with a placeholder
     rows = clean_values(rows)
 
-    # Sort rows if sort is available
     if hasattr(args, "sort") and args.sort:
         sort_columns = get_sorted_columns(args.sort)
-        rows = sort_rows(rows, sort_columns, headers)  # Pass headers here
+        rows = sort_rows(rows, sort_columns, headers)
 
     return headers, rows

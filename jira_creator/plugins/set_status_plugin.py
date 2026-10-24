@@ -7,10 +7,15 @@ change the status of Jira issues with support for transitions.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+from requests.exceptions import RequestException
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
+from jira_creator.exceptions.exceptions import JiraClientRequestError
+
+_RANK_ERRORS = (JiraClientRequestError, RequestException, ValueError, TypeError, AttributeError)
 
 
 class SetStatusError(Exception):
@@ -36,11 +41,11 @@ class SetStatusPlugin(JiraPlugin):
         return "Issue Modification"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ['set-status AAP-12345 "In Progress"', "set-status AAP-12345 Done"]
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "SetStatusError": SetStatusError,
@@ -68,7 +73,7 @@ class SetStatusPlugin(JiraPlugin):
 
             # Handle special refinement status actions
             if args.status.lower() == "refinement":
-                self._handle_refinement_status(client, args.issue_key)
+                self.handle_refinement_status(client, args.issue_key)
 
             return True
 
@@ -77,7 +82,7 @@ class SetStatusPlugin(JiraPlugin):
             print(msg)
             raise SetStatusError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:  # pylint: disable=too-many-locals
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:  # pylint: disable=too-many-locals
         """
         Perform the REST API operation to set status.
 
@@ -95,7 +100,7 @@ class SetStatusPlugin(JiraPlugin):
         transitions = self._get_transitions_with_fields(client, issue_key)
 
         # Find matching transition
-        transition_id = self._find_transition_id(transitions, status)
+        transition_id = self.find_transition_id(transitions, status)
 
         if not transition_id:
             available = [t["name"] for t in transitions]
@@ -150,7 +155,7 @@ class SetStatusPlugin(JiraPlugin):
         return client.request("POST", path, json_data=payload)
 
     @staticmethod
-    def _normalize_workstream(val: Any) -> List[Dict[str, Any]]:
+    def _normalize_workstream(val: Any) -> list[dict[str, Any]]:
         """Normalize Workstream to array of {id} as required by Jira."""
         if val is None or val == "":
             return []
@@ -183,21 +188,21 @@ class SetStatusPlugin(JiraPlugin):
                 break
         return []
 
-    def _get_transitions(self, client: Any, issue_key: str) -> List[Dict[str, Any]]:
+    def get_transitions(self, client: Any, issue_key: str) -> list[dict[str, Any]]:
         """Get available transitions for an issue."""
         path = f"/rest/api/2/issue/{issue_key}/transitions"
         response = client.request("GET", path)
         return response.get("transitions", [])
 
-    def _get_transitions_with_fields(self, client: Any, issue_key: str) -> List[Dict[str, Any]]:
+    def _get_transitions_with_fields(self, client: Any, issue_key: str) -> list[dict[str, Any]]:
         """Get available transitions with expand=transitions.fields to see required fields."""
         path = f"/rest/api/2/issue/{issue_key}/transitions"
         response = client.request("GET", path, params={"expand": "transitions.fields"})
         return response.get("transitions", [])
 
     def _get_required_fields_for_transition(
-        self, transitions: List[Dict[str, Any]], transition_id: str
-    ) -> Dict[str, Dict[str, Any]]:
+        self, transitions: list[dict[str, Any]], transition_id: str
+    ) -> dict[str, dict[str, Any]]:
         """Return required field id -> field meta for the given transition."""
         for t in transitions:
             if str(t.get("id")) == str(transition_id):
@@ -206,13 +211,13 @@ class SetStatusPlugin(JiraPlugin):
         return {}
 
     def _build_transition_fields(
-        self, transition_fields: Dict[str, Dict[str, Any]], issue_fields: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, transition_fields: dict[str, dict[str, Any]], issue_fields: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Build fields payload for transition: use issue's current value where present,
         otherwise use first allowedValue for the field if available.
         """
-        out = {}
+        out: dict[str, Any] = {}
         for field_id, meta in transition_fields.items():
             current = issue_fields.get(field_id)
             if current is not None and current != "":
@@ -239,17 +244,17 @@ class SetStatusPlugin(JiraPlugin):
 
     def _build_fields_from_transition_screen(  # pylint: disable=too-many-branches
         self,
-        transition: Dict[str, Any],
-        issue_fields: Dict[str, Any],
+        transition: dict[str, Any],
+        issue_fields: dict[str, Any],
         client: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         When transitions.fields marks nothing as required, Jira workflow may still require
         the transition screen to be submitted (assignee, description, custom fields, etc.).
         Copy current issue values for each field on the transition screen, defaulting
         assignee to the current user when unset.
         """
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         screen = transition.get("fields") or {}
         # These appear on some transition screens but cannot be set via POST /transitions.
         skip_transition_fields = frozenset({"issuelinks", "subtasks", "attachment"})
@@ -299,7 +304,7 @@ class SetStatusPlugin(JiraPlugin):
                 out[field_id] = current
         return out
 
-    def _find_transition_id(self, transitions: List[Dict], status: str) -> Optional[str]:
+    def find_transition_id(self, transitions: list[dict], status: str) -> str | None:
         """Find transition ID for the given status name."""
         status_lower = status.lower()
 
@@ -309,7 +314,7 @@ class SetStatusPlugin(JiraPlugin):
 
         return None
 
-    def _handle_refinement_status(self, client: Any, issue_key: str) -> None:
+    def handle_refinement_status(self, client: Any, issue_key: str) -> None:
         """Handle special actions for refinement status."""
         try:
             # Move to top of backlog
@@ -333,6 +338,6 @@ class SetStatusPlugin(JiraPlugin):
                     json_data={"issueToMove": issue_key, "parentKey": epic_key},
                 )
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _RANK_ERRORS as e:
             # Don't fail the whole operation if ranking fails
             print(f"⚠️  Could not complete ranking operations: {e}")

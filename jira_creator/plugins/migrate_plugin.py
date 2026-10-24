@@ -7,7 +7,7 @@ Jira issues to a new issue type.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.adf import ensure_adf
 from jira_creator.core.plugin_base import JiraPlugin
@@ -36,14 +36,14 @@ class MigratePlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Utilities"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "MigrateError": MigrateError,
         }
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["migrate AAP-12345 NEWPROJ"]
 
@@ -66,7 +66,7 @@ class MigratePlugin(JiraPlugin):
             print(msg)
             raise MigrateError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:  # pylint: disable=too-many-locals
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:  # pylint: disable=too-many-locals
         """
         Perform the REST API operation to migrate an issue.
 

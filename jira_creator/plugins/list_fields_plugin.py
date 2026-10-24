@@ -8,10 +8,11 @@ Jira Data Center and Cloud where custom field IDs change.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
+from jira_creator.exceptions.exceptions import MissingConfigVariable
 
 
 class ListFieldsError(Exception):
@@ -50,7 +51,7 @@ class ListFieldsPlugin(JiraPlugin):
         return "Search & View"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return [
             "list-fields",
@@ -59,7 +60,7 @@ class ListFieldsPlugin(JiraPlugin):
             "list-fields --check-config",
         ]
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "ListFieldsError": ListFieldsError,
@@ -110,7 +111,7 @@ class ListFieldsPlugin(JiraPlugin):
                 print("No fields found matching your criteria.")
                 return True
 
-            self._display_fields(fields)
+            self.display_fields(fields)
             return True
 
         except ListFieldsError as e:
@@ -118,11 +119,11 @@ class ListFieldsPlugin(JiraPlugin):
             print(msg)
             raise ListFieldsError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> List[Dict[str, Any]]:
+    def rest_operation(self, client: Any, **kwargs) -> list[dict[str, Any]]:
         """Fetch all fields from the Jira instance."""
         return client.request("GET", "/rest/api/2/field")
 
-    def _display_fields(self, fields: List[Dict[str, Any]]) -> None:
+    def display_fields(self, fields: list[dict[str, Any]]) -> None:
         """Display fields in a table format."""
         # Sort by ID for consistent output
         fields = sorted(fields, key=lambda f: f.get("id", ""))
@@ -138,12 +139,12 @@ class ListFieldsPlugin(JiraPlugin):
 
         print(f"\nTotal: {len(fields)} fields")
 
-    def _check_config(self, fields: List[Dict[str, Any]], client: Any) -> None:
+    def _check_config(self, fields: list[dict[str, Any]], client: Any) -> None:
         """Compare configured env vars against available fields on the instance."""
         # Build lookup from field ID to field name
-        field_map: Dict[str, str] = {f["id"]: f["name"] for f in fields if f.get("id")}
+        field_map: dict[str, str] = {f["id"]: f["name"] for f in fields if f.get("id")}
         # Build reverse lookup from name (lowered) to field IDs
-        name_to_ids: Dict[str, List[str]] = {}
+        name_to_ids: dict[str, list[str]] = {}
         for f in fields:
             name = f.get("name", "").lower()
             if name and f.get("id"):
@@ -155,24 +156,24 @@ class ListFieldsPlugin(JiraPlugin):
 
         for env_var, description in FIELD_ENV_VARS.items():
             configured_id = self._get_configured_value(env_var)
-            self._check_single_field(env_var, description, configured_id, field_map, name_to_ids)
+            self.check_single_field(env_var, description, configured_id, field_map, name_to_ids)
 
     @staticmethod
-    def _get_configured_value(env_var: str) -> Optional[str]:
+    def _get_configured_value(env_var: str) -> str | None:
         """Get the configured value of an env var, returning None if not set."""
         try:
             val = EnvFetcher.get(env_var, default="")
             return val if val else None
-        except Exception:  # pylint: disable=broad-exception-caught
+        except (MissingConfigVariable, KeyError, ValueError):
             return None
 
     @staticmethod
-    def _check_single_field(
+    def check_single_field(
         env_var: str,
         description: str,
-        configured_id: Optional[str],
-        field_map: Dict[str, str],
-        name_to_ids: Dict[str, List[str]],
+        configured_id: str | None,
+        field_map: dict[str, str],
+        name_to_ids: dict[str, list[str]],
     ) -> None:
         """Check a single field configuration and print the result."""
         if not configured_id:

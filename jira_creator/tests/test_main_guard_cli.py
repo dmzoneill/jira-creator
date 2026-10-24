@@ -27,6 +27,7 @@ def test_main_guard_execution():
     # Test that the script runs without errors when called with --help
     result = subprocess.run(
         [sys.executable, "-m", "jira_creator.rh_jira", "--help"],
+        check=False,
         capture_output=True,
         text=True,
         cwd=REPOSITORY_ROOT,
@@ -81,7 +82,7 @@ except SystemExit:
 
     try:
         # Execute the temporary script
-        result = subprocess.run([sys.executable, temp_script], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, temp_script], check=False, capture_output=True, text=True)
         # Should exit with 0 for --help
         assert result.returncode == 0
     finally:

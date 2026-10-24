@@ -8,7 +8,7 @@ detailed information about a Jira issue.
 
 import re
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List, Optional
+from typing import Any, ClassVar
 
 from jira_creator.core.adf import ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
@@ -23,7 +23,7 @@ class ViewIssuePlugin(JiraPlugin):
     """Plugin for viewing Jira issue details."""
 
     # Allowed fields for display
-    ALLOWED_KEYS = [
+    ALLOWED_KEYS: ClassVar[list[str]] = [
         "acceptance criteria",
         "blocked",
         "blocked reason",
@@ -61,14 +61,14 @@ class ViewIssuePlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Search & View"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "ViewIssueError": ViewIssueError,
         }
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["view-issue AAP-12345", "view-issue AAP-12345 --output json"]
 
@@ -89,7 +89,7 @@ class ViewIssuePlugin(JiraPlugin):
         """
         try:
             issue_data = self.rest_operation(client, issue_key=args.issue_key)
-            self._display_issue(issue_data, args.issue_key)
+            self.display_issue(issue_data, args.issue_key)
             return True
 
         except ViewIssueError as e:
@@ -97,7 +97,7 @@ class ViewIssuePlugin(JiraPlugin):
             print(msg)
             raise ViewIssueError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation to get issue details.
 
@@ -121,14 +121,14 @@ class ViewIssuePlugin(JiraPlugin):
 
         return issue_data
 
-    def _display_issue(self, issue_data: Dict[str, Any], issue_key: str) -> None:
+    def display_issue(self, issue_data: dict[str, Any], issue_key: str) -> None:
         """Display issue data in a formatted way."""
         fields = issue_data.get("fields", {})
         rendered_fields = issue_data.get("renderedFields", {})
         comments = issue_data.get("_comments", [])
 
-        custom_fields = self._get_custom_field_mappings()
-        processed_fields = self._process_fields(fields, custom_fields)
+        custom_fields = self.get_custom_field_mappings()
+        processed_fields = self.process_fields(fields, custom_fields)
 
         self._print_header(issue_key)
         self._print_fields(processed_fields)
@@ -140,17 +140,17 @@ class ViewIssuePlugin(JiraPlugin):
         print(f"\n📋 Issue: {issue_key}")
         print("=" * 70)
 
-    def _print_fields(self, processed_fields: Dict[str, Any]) -> None:
+    def _print_fields(self, processed_fields: dict[str, Any]) -> None:
         """Print the issue fields."""
         display_keys = [k for k in self.ALLOWED_KEYS if k != "description"]
         max_key_length = max(len(key) for key in display_keys) if display_keys else 20
 
         for key in display_keys:
             if key in processed_fields:
-                formatted_value = self._format_value(processed_fields[key])
+                formatted_value = self.format_value(processed_fields[key])
                 print(f"{key.ljust(max_key_length)} : {formatted_value}")
 
-    def _print_description(self, fields: Dict[str, Any], rendered_fields: Dict[str, Any]) -> None:
+    def _print_description(self, fields: dict[str, Any], rendered_fields: dict[str, Any]) -> None:
         """Print the issue description."""
         print("\n" + "=" * 70)
         print("📝 DESCRIPTION")
@@ -170,7 +170,7 @@ class ViewIssuePlugin(JiraPlugin):
         clean = clean.replace("&nbsp;", " ").replace("&amp;", "&")
         return clean.replace("&lt;", "<").replace("&gt;", ">")
 
-    def _print_comments(self, comments: List[Dict[str, Any]]) -> None:
+    def _print_comments(self, comments: list[dict[str, Any]]) -> None:
         """Print the issue comments."""
         print("\n" + "=" * 70)
         print(f"💬 COMMENTS ({len(comments)})")
@@ -186,7 +186,7 @@ class ViewIssuePlugin(JiraPlugin):
 
         print("\n" + "=" * 70)
 
-    def _print_single_comment(self, index: int, comment: Dict[str, Any]) -> None:
+    def _print_single_comment(self, index: int, comment: dict[str, Any]) -> None:
         """Print a single comment."""
         author = (comment.get("author") or {}).get("displayName", "Unknown")
         created = comment.get("created", "")[:10]
@@ -196,7 +196,7 @@ class ViewIssuePlugin(JiraPlugin):
         print("-" * 40)
         print(body[:500] + "... (truncated)" if len(body) > 500 else body)
 
-    def _get_custom_field_mappings(self) -> Dict[str, str]:
+    def get_custom_field_mappings(self) -> dict[str, str]:
         """Get custom field mappings from environment."""
         configured_fields = {
             EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD", ""): "acceptance criteria",
@@ -209,7 +209,7 @@ class ViewIssuePlugin(JiraPlugin):
         }
         return {field_id: display_name for field_id, display_name in configured_fields.items() if field_id}
 
-    def _process_fields(self, fields: Dict[str, Any], custom_fields: Dict[str, str]) -> Dict[str, Any]:
+    def process_fields(self, fields: dict[str, Any], custom_fields: dict[str, str]) -> dict[str, Any]:
         """Process and normalize field names."""
         processed = {}
 
@@ -226,7 +226,10 @@ class ViewIssuePlugin(JiraPlugin):
         """Transform a single field based on its name."""
         # Define field transformations
         transformers = {
-            "components": lambda v: ("component/s", [c["name"] for c in v] if v else []),
+            "components": lambda v: (
+                "component/s",
+                [c["name"] for c in v] if v else [],
+            ),
             "issuetype": lambda v: ("issue type", v.get("name") if v else None),
             "project": lambda v: (field_name, v.get("key") if v else None),
             "sprint": lambda v: (field_name, self._extract_sprint_names(v)),
@@ -251,7 +254,7 @@ class ViewIssuePlugin(JiraPlugin):
 
         return field_name, field_value
 
-    def _extract_epic_key(self, field_value: Any) -> Optional[str]:
+    def _extract_epic_key(self, field_value: Any) -> str | None:
         """Extract epic key from epic field value."""
         if field_value is None:
             return None
@@ -261,7 +264,7 @@ class ViewIssuePlugin(JiraPlugin):
             return field_value.get("key") or field_value.get("name")
         return str(field_value)
 
-    def _extract_option_value(self, field_value: Any) -> Optional[str]:
+    def _extract_option_value(self, field_value: Any) -> str | None:
         """Extract value from custom field option objects."""
         if isinstance(field_value, list) and field_value:
             values = [item.get("value", str(item)) for item in field_value if isinstance(item, dict)]
@@ -270,7 +273,7 @@ class ViewIssuePlugin(JiraPlugin):
             return field_value.get("value", str(field_value))
         return field_value
 
-    def _extract_sprint_names(self, field_value: Any) -> Optional[str]:
+    def _extract_sprint_names(self, field_value: Any) -> str | None:
         """Extract sprint names from sprint field value."""
         if isinstance(field_value, list):
             sprint_names = []
@@ -285,14 +288,14 @@ class ViewIssuePlugin(JiraPlugin):
 
         return None
 
-    def _parse_sprint_name(self, sprint_str: str) -> Optional[str]:
+    def _parse_sprint_name(self, sprint_str: str) -> str | None:
         """Parse sprint name from sprint string representation."""
         if isinstance(sprint_str, str):
             match = re.search(r"name=([^,\]]+)", sprint_str)
             return match.group(1) if match else None
         return None
 
-    def _format_value(self, value: Any) -> str:  # pylint: disable=too-many-return-statements
+    def format_value(self, value: Any) -> str:  # pylint: disable=too-many-return-statements
         """Format a field value for display."""
         if isinstance(value, dict):
             if value.get("type") == "doc":

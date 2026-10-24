@@ -110,10 +110,10 @@ class TestViewHelpersBranchCoverage:
         from jira_creator.core.view_helpers import massage_issue_list
 
         # Mock to return sprint field mapping but issue has None for sprints
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = lambda key, default=None: {
             "JIRA_VIEW_COLUMNS": None,
             "JIRA_SPRINT_FIELD": "customfield_10020",
-        }.get(key)
+        }.get(key, default)
 
         args = Namespace(sort=None)
         issues = [

@@ -32,10 +32,13 @@ from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.rest.client import JiraClient
 
 
+DEFAULT_VIEW_COLUMNS = "key,issuetype,status,priority,summary,assignee,reporter,sprint"
+
+
 def fetch_view_columns() -> List[str]:
     """
-    Fetch the view columns from EnvFetcher or return None.
-    If any entry contains 'JIRA.......FIELD', fetch the environment variable.
+    Fetch view columns from EnvFetcher or use standard Jira columns.
+    If any entry contains 'JIRA.......FIELD', fetch the corresponding environment variable.
 
     Arguments:
     No arguments.
@@ -46,7 +49,7 @@ def fetch_view_columns() -> List[str]:
     Exceptions:
     No exceptions are raised.
     """
-    columns = EnvFetcher.get("JIRA_VIEW_COLUMNS")
+    columns = EnvFetcher.get("JIRA_VIEW_COLUMNS", default=DEFAULT_VIEW_COLUMNS)
     if columns:
         column_list = columns.split(",")
         # Iterate through each column, check if it contains 'JIRA' and fetch the corresponding env variable if necessary

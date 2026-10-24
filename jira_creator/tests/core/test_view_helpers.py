@@ -25,21 +25,19 @@ def mock_env_fetcher():
 
 def test_fetch_view_columns(mock_env_fetcher):
     # Test when JIRA_VIEW_COLUMNS is found and JIRA fields are replaced
-    mock_env_fetcher.side_effect = lambda key: {
+    mock_env_fetcher.side_effect = lambda key, default=None: {
         "JIRA_VIEW_COLUMNS": "summary, JIRA_CUSTOM_FIELD",
         "JIRA_CUSTOM_FIELD": "Custom Field Value",
-    }.get(key)
+    }.get(key, default)
 
     result = fetch_view_columns()
     assert result == ["summary", "Custom Field Value"]
 
     # Test when the environment variable JIRA_VIEW_COLUMNS is not present
-    mock_env_fetcher.side_effect = lambda key: {
-        "JIRA_VIEW_COLUMNS": None,
-    }.get(key)
+    mock_env_fetcher.side_effect = lambda key, default=None: default
 
     result = fetch_view_columns()
-    assert result is None
+    assert result == ["key", "issuetype", "status", "priority", "summary", "assignee", "reporter", "sprint"]
 
 
 # Test for get_sorted_columns
@@ -155,17 +153,15 @@ def test_clean_values():
 
 def test_missing_jira_view_column(mock_env_fetcher):
     # Test the case where the JIRA_VIEW_COLUMNS is missing or invalid
-    mock_env_fetcher.side_effect = lambda key: {
-        "JIRA_VIEW_COLUMNS": None,
-    }.get(key)
+    mock_env_fetcher.side_effect = lambda key, default=None: default
 
     result = fetch_view_columns()
-    assert result is None
+    assert result == ["key", "issuetype", "status", "priority", "summary", "assignee", "reporter", "sprint"]
 
 
 def test_missing_environment_variable(mock_env_fetcher):
     # Test when an environment variable for a column is missing
-    mock_env_fetcher.side_effect = lambda key: {
+    mock_env_fetcher.side_effect = lambda key, default=None: {
         "JIRA_VIEW_COLUMNS": "summary,JIRA_CUSTOM_FIELD",
         "JIRA_CUSTOM_FIELD": None,
     }.get(key)

@@ -1,1003 +1,418 @@
 #!/usr/bin/env python
-"""
-This file contains unit tests for the VertexAIProvider class in the providers.vertex_provider module.
+"""Unit tests for VertexAIProvider Claude and Gemini routing."""
 
-It includes tests for the improve_text method, which interacts with Google Vertex AI to improve text
-inputs using either Anthropic Claude or Google Gemini models. The tests cover scenarios where the API
-calls are successful and when they fail, asserting the expected behavior in each case.
-
-Functions:
-- test_vertex_provider_detects_claude_model: Tests model type detection for Claude models
-- test_vertex_provider_detects_gemini_model: Tests model type detection for Gemini models
-- test_vertex_provider_rejects_invalid_model: Tests rejection of unsupported model types
-- test_vertex_provider_claude_improve_text: Tests Claude text improvement functionality
-- test_vertex_provider_gemini_improve_text: Tests Gemini text improvement functionality
-- test_vertex_provider_claude_api_failure: Tests error handling for Claude API failures
-- test_vertex_provider_gemini_api_failure: Tests error handling for Gemini API failures
-- test_vertex_provider_claude_missing_dependency: Tests error handling when anthropic package missing
-- test_vertex_provider_gemini_missing_dependency: Tests error handling when google-cloud package missing
-- test_vertex_provider_uses_anthropic_project_id: Tests that Claude uses ANTHROPIC_VERTEX_PROJECT_ID
-
-Exceptions:
-- AiError: Raised if there is a failure when calling the Vertex AI API or configuration is invalid.
-
-Side Effects:
-- Mocks external SDK calls to Anthropic and Google Vertex AI
-"""
-
+import builtins
+import importlib
 import sys
-from unittest.mock import MagicMock, Mock, patch
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
+from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from jira_creator.exceptions.exceptions import AiError
 from jira_creator.providers.vertex_provider import VertexAIProvider
 
+CLAUDE_MODEL = "claude-3-5-sonnet@20241022"
+GEMINI_MODEL = "gemini-1.5-pro"
+LOCATION = "us-central1"
+ENV_GET = "jira_creator.providers.vertex_provider.EnvFetcher.get"
+
+
+def claude_env(project: str = "test-project", **extra: str) -> dict[str, str]:
+    """Environment map for a Claude-on-Vertex provider."""
+    values = {
+        "JIRA_AI_MODEL": CLAUDE_MODEL,
+        "GOOGLE_CLOUD_LOCATION": LOCATION,
+        "ANTHROPIC_VERTEX_PROJECT_ID": project,
+    }
+    values.update(extra)
+    return values
+
+
+def gemini_env(project: str = "test-project", **extra: str) -> dict[str, str]:
+    """Environment map for a Gemini-on-Vertex provider."""
+    values = {
+        "JIRA_AI_MODEL": GEMINI_MODEL,
+        "GOOGLE_CLOUD_LOCATION": LOCATION,
+        "GOOGLE_CLOUD_PROJECT": project,
+    }
+    values.update(extra)
+    return values
+
+
+@contextmanager
+def patched_env(env: dict[str, str], missing_key: str | None = None) -> Iterator[None]:
+    """Patch EnvFetcher.get for the duration of a provider call."""
+
+    def env_get(key: str, default: Any = None) -> Any:
+        if missing_key and key == missing_key:
+            return env_get("GOOGLE_CLOUD_PROJECT", default)
+        return env.get(key, default)
+
+    with patch(ENV_GET) as mock_env:
+        mock_env.side_effect = env_get
+        yield
+
+
+@contextmanager
+def built(env: dict[str, str], missing_key: str | None = None) -> Iterator[VertexAIProvider]:
+    """Construct a provider while EnvFetcher is patched."""
+    with patched_env(env, missing_key):
+        yield VertexAIProvider()
+
+
+@contextmanager
+def claude_modules(text: str | None = None, empty: bool = False, error: str | None = None) -> Iterator[tuple]:
+    """Install a fake anthropic module that returns one Claude message."""
+    module = MagicMock()
+    client = MagicMock()
+    if error:
+        client.messages.create.side_effect = Exception(error)
+    else:
+        message = MagicMock()
+        if empty:
+            message.content = []
+        else:
+            block = MagicMock()
+            block.text = text
+            message.content = [block]
+        client.messages.create.return_value = message
+    module.AnthropicVertex.return_value = client
+    with patch.dict(sys.modules, {"anthropic": module}):
+        yield module, client
+
+
+@contextmanager
+def gemini_modules(text: str | None = None, empty: bool = False, error: str | None = None) -> Iterator[tuple]:
+    """Install fake vertexai modules that return one Gemini response."""
+    vertexai = MagicMock()
+    generative_models = MagicMock()
+    model = MagicMock()
+    if error:
+        model.generate_content.side_effect = Exception(error)
+    else:
+        response = MagicMock()
+        response.text = None if empty else text
+        model.generate_content.return_value = response
+    generative_models.GenerativeModel.return_value = model
+    vertexai.generative_models = generative_models
+    modules = {"vertexai": vertexai, "vertexai.generative_models": generative_models}
+    with patch.dict(sys.modules, modules):
+        yield vertexai, generative_models, model
+
+
+@contextmanager
+def block_imports(predicate: Callable[[str], bool]) -> Iterator[None]:
+    """Raise ImportError for module names selected by predicate."""
+    original_import = builtins.__import__
+
+    def mock_import(name: str, *args: Any, **kwargs: Any) -> Any:
+        if predicate(name):
+            raise ImportError(f"No module named '{name}'")
+        return original_import(name, *args, **kwargs)
+
+    with patch("builtins.__import__", side_effect=mock_import):
+        yield
+
+
+def test_block_imports_still_loads_unrelated_modules():
+    """Import blocking leaves modules outside the predicate alone."""
+    with block_imports(lambda name: name == "anthropic"):
+        module = importlib.import_module("pathlib")
+    assert module.Path(".") is not None
+
+
+def assert_import_error(
+    env: dict[str, str], predicate: Callable[[str], bool], method: str, args: tuple, expected: str
+) -> None:
+    """Provider methods report a missing SDK with the install hint."""
+    with built(env) as provider, block_imports(predicate), pytest.raises(AiError) as exc_info:
+        getattr(provider, method)(*args)
+    assert expected in str(exc_info.value)
+
+
+def claude_failure(method: str, args: tuple, empty: bool = False, error: str | None = None) -> str:
+    """Return the AiError message from a failing Claude call."""
+    with built(claude_env()) as provider, claude_modules(empty=empty, error=error), pytest.raises(AiError) as exc_info:
+        getattr(provider, method)(*args)
+    return str(exc_info.value)
+
+
+def gemini_failure(method: str, args: tuple, empty: bool = False, error: str | None = None) -> str:
+    """Return the AiError message from a failing Gemini call."""
+    with built(gemini_env()) as provider, gemini_modules(empty=empty, error=error), pytest.raises(AiError) as exc_info:
+        getattr(provider, method)(*args)
+    return str(exc_info.value)
+
+
+def claude_text(method: str, args: tuple, text: str) -> str:
+    """Return the text from a successful Claude call."""
+    with built(claude_env()) as provider, claude_modules(text=text):
+        return getattr(provider, method)(*args)
+
+
+def gemini_text(method: str, args: tuple, text: str) -> str:
+    """Return the text from a successful Gemini call."""
+    with built(gemini_env()) as provider, gemini_modules(text=text):
+        return getattr(provider, method)(*args)
+
 
 def test_vertex_provider_detects_claude_model():
-    """
-    Tests that the VertexAIProvider correctly detects Claude models based on model name prefix.
-
-    This test verifies that when JIRA_AI_MODEL starts with "claude-", the provider sets
-    model_type to "claude" and uses the appropriate project configuration.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks environment variables via EnvFetcher
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "my-claude-project",
-            "GOOGLE_CLOUD_PROJECT": "my-general-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
+    """Claude model names select the Anthropic project and location."""
+    env = claude_env(project="my-claude-project", GOOGLE_CLOUD_PROJECT="my-general-project")
+    with built(env) as provider:
         assert provider.model_type == "claude"
-        assert provider.model == "claude-3-5-sonnet@20241022"
+        assert provider.model == CLAUDE_MODEL
         assert provider.project_id == "my-claude-project"
-        assert provider.location == "us-central1"
+        assert provider.location == LOCATION
 
 
 def test_vertex_provider_detects_gemini_model():
-    """
-    Tests that the VertexAIProvider correctly detects Gemini models based on model name prefix.
-
-    This test verifies that when JIRA_AI_MODEL starts with "gemini-", the provider sets
-    model_type to "gemini" and uses the appropriate project configuration.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks environment variables via EnvFetcher
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "my-gemini-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
+    """Gemini model names select the Google Cloud project."""
+    with built(gemini_env(project="my-gemini-project")) as provider:
         assert provider.model_type == "gemini"
-        assert provider.model == "gemini-1.5-pro"
+        assert provider.model == GEMINI_MODEL
         assert provider.project_id == "my-gemini-project"
-        assert provider.location == "us-central1"
+        assert provider.location == LOCATION
 
 
 def test_vertex_provider_rejects_invalid_model():
-    """
-    Tests that the VertexAIProvider rejects unsupported model types.
-
-    This test verifies that when JIRA_AI_MODEL doesn't start with "claude-" or "gemini-",
-    the provider raises an AiError during initialization.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks environment variables via EnvFetcher
-
-    Exceptions:
-    - AiError: Raised when model name is invalid
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gpt-4",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "my-project",
-        }.get(key, default)
-
-        with pytest.raises(AiError) as exc_info:
-            VertexAIProvider()
-
-        assert "Unsupported Vertex AI model" in str(exc_info.value)
-        assert "gpt-4" in str(exc_info.value)
+    """Model names outside claude- and gemini- are rejected at init."""
+    env = {"JIRA_AI_MODEL": "gpt-4", "GOOGLE_CLOUD_LOCATION": LOCATION, "GOOGLE_CLOUD_PROJECT": "my-project"}
+    with patched_env(env), pytest.raises(AiError) as exc_info:
+        VertexAIProvider()
+    message = str(exc_info.value)
+    assert "Unsupported Vertex AI model" in message
+    assert "gpt-4" in message
 
 
 def test_vertex_provider_claude_improve_text():
-    """
-    Tests the VertexAIProvider's text improvement functionality with Claude models.
-
-    This test mocks the AnthropicVertex client and verifies that the improve_text method
-    correctly processes the response from Claude on Vertex AI.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks AnthropicVertex SDK
-    - Mocks environment variables
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock the Anthropic Vertex SDK
-        mock_content = Mock()
-        mock_content.text = "Improved text from Claude"
-
-        mock_message = Mock()
-        mock_message.content = [mock_content]
-
-        mock_client = MagicMock()
-        mock_client.messages.create.return_value = mock_message
-
-        # Create a mock anthropic module
-        mock_anthropic_module = MagicMock()
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        # Patch the import to return our mock module
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            result = provider.improve_text("test prompt", "test input")
-
-            assert result == "Improved text from Claude"
-            mock_anthropic_module.AnthropicVertex.assert_called_once_with(
-                region="us-central1", project_id="test-project"
-            )
-            mock_client.messages.create.assert_called_once()
+    """improve_text returns Claude text and passes region plus project."""
+    with built(claude_env()) as provider, claude_modules(text="Improved text from Claude") as (module, client):
+        result = provider.improve_text("test prompt", "test input")
+    assert result == "Improved text from Claude"
+    module.AnthropicVertex.assert_called_once_with(region=LOCATION, project_id="test-project")
+    client.messages.create.assert_called_once()
 
 
 def test_vertex_provider_gemini_improve_text():
-    """
-    Tests the VertexAIProvider's text improvement functionality with Gemini models.
-
-    This test mocks the Vertex AI GenerativeModel and verifies that the improve_text method
-    correctly processes the response from Gemini.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks Google Vertex AI SDK
-    - Mocks environment variables
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock the Vertex AI SDK
-        mock_response = Mock()
-        mock_response.text = "Improved text from Gemini"
-
-        mock_model = MagicMock()
-        mock_model.generate_content.return_value = mock_response
-
-        # Create mock vertexai modules
-        mock_generative_models = MagicMock()
-        mock_generative_models.GenerativeModel.return_value = mock_model
-
-        mock_vertexai = MagicMock()
-        mock_vertexai.generative_models = mock_generative_models
-
-        # Patch the import to return our mock modules
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            result = provider.improve_text("test prompt", "test input")
-
-            assert result == "Improved text from Gemini"
-            mock_vertexai.init.assert_called_once_with(project="test-project", location="us-central1")
-            mock_generative_models.GenerativeModel.assert_called_once_with("gemini-1.5-pro")
-            mock_model.generate_content.assert_called_once()
+    """improve_text initializes Gemini and returns the generated text."""
+    with built(gemini_env()) as provider, gemini_modules(text="Improved text from Gemini") as (vertexai, models, model):
+        result = provider.improve_text("test prompt", "test input")
+    assert result == "Improved text from Gemini"
+    vertexai.init.assert_called_once_with(project="test-project", location=LOCATION)
+    models.GenerativeModel.assert_called_once_with(GEMINI_MODEL)
+    model.generate_content.assert_called_once()
 
 
 def test_vertex_provider_claude_api_failure():
-    """
-    Tests error handling when the Claude Vertex AI API call fails.
-
-    This test verifies that the provider correctly raises an AiError when the
-    Claude API encounters an error.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks AnthropicVertex SDK to raise an exception
-    - Mocks environment variables
-
-    Exceptions:
-    - AiError: Raised when the Claude API call fails
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Create a mock anthropic module
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = Exception("API Error")
-
-        mock_anthropic_module = MagicMock()
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        # Patch the import to return our mock module
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            with pytest.raises(AiError) as exc_info:
-                provider.improve_text("test prompt", "test input")
-
-            assert "Claude Vertex AI call failed" in str(exc_info.value)
+    """Claude SDK exceptions become an AiError."""
+    message = claude_failure("improve_text", ("test prompt", "test input"), error="API Error")
+    assert "Claude Vertex AI call failed" in message
 
 
 def test_vertex_provider_gemini_api_failure():
-    """
-    Tests error handling when the Gemini Vertex AI API call fails.
-
-    This test verifies that the provider correctly raises an AiError when the
-    Gemini API encounters an error.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks Google Vertex AI SDK to raise an exception
-    - Mocks environment variables
-
-    Exceptions:
-    - AiError: Raised when the Gemini API call fails
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Create mock vertexai modules
-        mock_model = MagicMock()
-        mock_model.generate_content.side_effect = Exception("API Error")
-
-        mock_generative_models = MagicMock()
-        mock_generative_models.GenerativeModel.return_value = mock_model
-
-        mock_vertexai = MagicMock()
-        mock_vertexai.generative_models = mock_generative_models
-
-        # Patch the import to return our mock modules
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            with pytest.raises(AiError) as exc_info:
-                provider.improve_text("test prompt", "test input")
-
-            assert "Gemini Vertex AI call failed" in str(exc_info.value)
+    """Gemini SDK exceptions become an AiError."""
+    message = gemini_failure("improve_text", ("test prompt", "test input"), error="API Error")
+    assert "Gemini Vertex AI call failed" in message
 
 
 def test_vertex_provider_claude_missing_dependency():
-    """
-    Tests error handling when the anthropic package is not installed.
-
-    This test verifies that the provider raises an AiError with a helpful message
-    when the anthropic[vertex] package is missing.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks ImportError for anthropic package
-
-    Exceptions:
-    - AiError: Raised when the anthropic package is not installed
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock the import to fail
-        import builtins
-
-        original_import = builtins.__import__
-
-        def mock_import(name, *args, **kwargs):
-            if name == "anthropic":
-                raise ImportError("No module named 'anthropic'")
-            return original_import(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=mock_import):
-            with pytest.raises(AiError) as exc_info:
-                provider.improve_text("test prompt", "test input")
-
-            assert "anthropic[vertex] package not installed" in str(exc_info.value)
+    """A missing anthropic package names the extra to install."""
+    assert_import_error(
+        claude_env(),
+        lambda name: name == "anthropic",
+        "improve_text",
+        ("test prompt", "test input"),
+        "anthropic[vertex] package not installed",
+    )
 
 
 def test_vertex_provider_gemini_missing_dependency():
-    """
-    Tests error handling when the google-cloud-aiplatform package is not installed.
-
-    This test verifies that the provider raises an AiError with a helpful message
-    when the google-cloud-aiplatform package is missing.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks ImportError for google-cloud-aiplatform package
-
-    Exceptions:
-    - AiError: Raised when the google-cloud-aiplatform package is not installed
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock the import to fail
-        import builtins
-
-        original_import = builtins.__import__
-
-        def mock_import(name, *args, **kwargs):
-            if "vertexai" in name:
-                raise ImportError("No module named 'vertexai'")
-            return original_import(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=mock_import):
-            with pytest.raises(AiError) as exc_info:
-                provider.improve_text("test prompt", "test input")
-
-            assert "google-cloud-aiplatform package not installed" in str(exc_info.value)
+    """A missing vertexai package names google-cloud-aiplatform."""
+    assert_import_error(
+        gemini_env(),
+        lambda name: "vertexai" in name,
+        "improve_text",
+        ("test prompt", "test input"),
+        "google-cloud-aiplatform package not installed",
+    )
 
 
 def test_vertex_provider_uses_anthropic_project_id():
-    """
-    Tests that Claude models prioritize ANTHROPIC_VERTEX_PROJECT_ID over GOOGLE_CLOUD_PROJECT.
-
-    This test verifies that when using Claude models, the provider uses the
-    ANTHROPIC_VERTEX_PROJECT_ID environment variable if available.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks environment variables
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "claude-specific-project",
-            "GOOGLE_CLOUD_PROJECT": "general-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
+    """Claude prefers ANTHROPIC_VERTEX_PROJECT_ID over the general project."""
+    env = claude_env(project="claude-specific-project", GOOGLE_CLOUD_PROJECT="general-project")
+    with built(env) as provider:
         assert provider.project_id == "claude-specific-project"
 
 
 def test_vertex_provider_claude_fallback_to_gcp_project():
-    """
-    Tests that Claude models fall back to GOOGLE_CLOUD_PROJECT if ANTHROPIC_VERTEX_PROJECT_ID is not set.
-
-    This test verifies that when ANTHROPIC_VERTEX_PROJECT_ID is not available,
-    the provider falls back to using GOOGLE_CLOUD_PROJECT for Claude models.
-
-    Arguments:
-    - None
-
-    Return:
-    - None (assertion-based test)
-
-    Side Effects:
-    - Mocks environment variables
-    """
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-
-        def env_get(key, default=None):
-            values = {
-                "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-                "GOOGLE_CLOUD_LOCATION": "us-central1",
-                "GOOGLE_CLOUD_PROJECT": "general-project",
-            }
-            # Simulate ANTHROPIC_VERTEX_PROJECT_ID not being set
-            if key == "ANTHROPIC_VERTEX_PROJECT_ID":
-                # Call the nested get for GOOGLE_CLOUD_PROJECT
-                return env_get("GOOGLE_CLOUD_PROJECT", default)
-            return values.get(key, default)
-
-        mock_env.side_effect = env_get
-
-        provider = VertexAIProvider()
+    """Claude falls back to GOOGLE_CLOUD_PROJECT when the Anthropic project is unset."""
+    env = {
+        "JIRA_AI_MODEL": CLAUDE_MODEL,
+        "GOOGLE_CLOUD_LOCATION": LOCATION,
+        "GOOGLE_CLOUD_PROJECT": "general-project",
+    }
+    with built(env, missing_key="ANTHROPIC_VERTEX_PROJECT_ID") as provider:
         assert provider.project_id == "general-project"
 
 
 def test_vertex_provider_claude_analyze_error():
-    """Test Claude analyze_error method."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Anthropic Vertex
-        mock_anthropic_module = MagicMock()
-        mock_client = MagicMock()
-        mock_message = MagicMock()
-        mock_content = MagicMock()
-        mock_content.text = "Error analysis result"
-        mock_message.content = [mock_content]
-        mock_client.messages.create.return_value = mock_message
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            result = provider.analyze_error("test prompt", '{"error": "test"}')
-            assert result == "Error analysis result"
+    """analyze_error returns the Claude analysis text."""
+    assert claude_text("analyze_error", ("test prompt", '{"error": "test"}'), "Error analysis result") == (
+        "Error analysis result"
+    )
 
 
 def test_vertex_provider_gemini_analyze_error():
-    """Test Gemini analyze_error method."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Vertex AI modules
-        mock_vertexai = MagicMock()
-        mock_generative_models = MagicMock()
-        mock_model_class = MagicMock()
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = "Gemini error analysis"
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
-        mock_generative_models.GenerativeModel = mock_model_class
-
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            result = provider.analyze_error("test prompt", '{"error": "test"}')
-            assert result == "Gemini error analysis"
+    """analyze_error returns the Gemini analysis text."""
+    assert gemini_text("analyze_error", ("test prompt", '{"error": "test"}'), "Gemini error analysis") == (
+        "Gemini error analysis"
+    )
 
 
 def test_vertex_provider_claude_analyze_and_fix_error():
-    """Test Claude analyze_and_fix_error method."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Anthropic Vertex
-        mock_anthropic_module = MagicMock()
-        mock_client = MagicMock()
-        mock_message = MagicMock()
-        mock_content = MagicMock()
-        mock_content.text = '{"fix_type": "codebase", "confidence": 0.9}'
-        mock_message.content = [mock_content]
-        mock_client.messages.create.return_value = mock_message
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            result = provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-            assert '{"fix_type": "codebase"' in result
+    """analyze_and_fix_error keeps the Claude JSON payload."""
+    result = claude_text(
+        "analyze_and_fix_error",
+        ("test prompt", '{"error": "test"}'),
+        '{"fix_type": "codebase", "confidence": 0.9}',
+    )
+    assert '{"fix_type": "codebase"' in result
 
 
 def test_vertex_provider_gemini_analyze_and_fix_error():
-    """Test Gemini analyze_and_fix_error method."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Vertex AI modules
-        mock_vertexai = MagicMock()
-        mock_generative_models = MagicMock()
-        mock_model_class = MagicMock()
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = '{"fix_type": "payload", "confidence": 0.8}'
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
-        mock_generative_models.GenerativeModel = mock_model_class
-
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            result = provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-            assert '{"fix_type": "payload"' in result
+    """analyze_and_fix_error keeps the Gemini JSON payload."""
+    result = gemini_text(
+        "analyze_and_fix_error",
+        ("test prompt", '{"error": "test"}'),
+        '{"fix_type": "payload", "confidence": 0.8}',
+    )
+    assert '{"fix_type": "payload"' in result
 
 
 def test_vertex_provider_claude_analyze_error_empty_response():
-    """Test Claude analyze_error with empty response."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Anthropic Vertex with empty content
-        mock_anthropic_module = MagicMock()
-        mock_client = MagicMock()
-        mock_message = MagicMock()
-        mock_message.content = []
-        mock_client.messages.create.return_value = mock_message
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_error("test prompt", '{"error": "test"}')
-            assert "Empty response" in str(exc_info.value)
+    """An empty Claude analysis is reported as an empty response."""
+    assert "Empty response" in claude_failure("analyze_error", ("test prompt", '{"error": "test"}'), empty=True)
 
 
 def test_vertex_provider_claude_analyze_error_api_failure():
-    """Test Claude analyze_error with API failure."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Anthropic Vertex with API failure
-        mock_anthropic_module = MagicMock()
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = Exception("API Error")
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_error("test prompt", '{"error": "test"}')
-            assert "Claude Vertex AI call failed" in str(exc_info.value)
+    """Claude analysis failures name the Claude backend."""
+    message = claude_failure("analyze_error", ("test prompt", '{"error": "test"}'), error="API Error")
+    assert "Claude Vertex AI call failed" in message
 
 
 def test_vertex_provider_gemini_analyze_error_empty_response():
-    """Test Gemini analyze_error with empty response."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Vertex AI modules with empty response
-        mock_vertexai = MagicMock()
-        mock_generative_models = MagicMock()
-        mock_model_class = MagicMock()
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = None
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
-        mock_generative_models.GenerativeModel = mock_model_class
-
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_error("test prompt", '{"error": "test"}')
-            assert "Empty response" in str(exc_info.value)
+    """An empty Gemini analysis is reported as an empty response."""
+    assert "Empty response" in gemini_failure("analyze_error", ("test prompt", '{"error": "test"}'), empty=True)
 
 
 def test_vertex_provider_gemini_analyze_error_api_failure():
-    """Test Gemini analyze_error with API failure."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Vertex AI modules with API failure
-        mock_vertexai = MagicMock()
-        mock_generative_models = MagicMock()
-        mock_model_class = MagicMock()
-        mock_model = MagicMock()
-        mock_model.generate_content.side_effect = Exception("API Error")
-        mock_model_class.return_value = mock_model
-        mock_generative_models.GenerativeModel = mock_model_class
-
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_error("test prompt", '{"error": "test"}')
-            assert "Gemini Vertex AI call failed" in str(exc_info.value)
+    """Gemini analysis failures name the Gemini backend."""
+    message = gemini_failure("analyze_error", ("test prompt", '{"error": "test"}'), error="API Error")
+    assert "Gemini Vertex AI call failed" in message
 
 
 def test_vertex_provider_claude_analyze_and_fix_error_empty_response():
-    """Test Claude analyze_and_fix_error with empty response."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Anthropic Vertex with empty content
-        mock_anthropic_module = MagicMock()
-        mock_client = MagicMock()
-        mock_message = MagicMock()
-        mock_message.content = []
-        mock_client.messages.create.return_value = mock_message
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-            assert "Empty response" in str(exc_info.value)
+    """An empty Claude fix proposal is reported as an empty response."""
+    message = claude_failure("analyze_and_fix_error", ("test prompt", '{"error": "test"}'), empty=True)
+    assert "Empty response" in message
 
 
 def test_vertex_provider_claude_analyze_and_fix_error_api_failure():
-    """Test Claude analyze_and_fix_error with API failure."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Anthropic Vertex with API failure
-        mock_anthropic_module = MagicMock()
-        mock_client = MagicMock()
-        mock_client.messages.create.side_effect = Exception("API Error")
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-            assert "Claude Vertex AI call failed" in str(exc_info.value)
+    """Claude fix-proposal failures name the Claude backend."""
+    message = claude_failure("analyze_and_fix_error", ("test prompt", '{"error": "test"}'), error="API Error")
+    assert "Claude Vertex AI call failed" in message
 
 
 def test_vertex_provider_gemini_analyze_and_fix_error_empty_response():
-    """Test Gemini analyze_and_fix_error with empty response."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Vertex AI modules with empty response
-        mock_vertexai = MagicMock()
-        mock_generative_models = MagicMock()
-        mock_model_class = MagicMock()
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = None
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
-        mock_generative_models.GenerativeModel = mock_model_class
-
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-            assert "Empty response" in str(exc_info.value)
+    """An empty Gemini fix proposal is reported as an empty response."""
+    message = gemini_failure("analyze_and_fix_error", ("test prompt", '{"error": "test"}'), empty=True)
+    assert "Empty response" in message
 
 
 def test_vertex_provider_gemini_analyze_and_fix_error_api_failure():
-    """Test Gemini analyze_and_fix_error with API failure."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Vertex AI modules with API failure
-        mock_vertexai = MagicMock()
-        mock_generative_models = MagicMock()
-        mock_model_class = MagicMock()
-        mock_model = MagicMock()
-        mock_model.generate_content.side_effect = Exception("API Error")
-        mock_model_class.return_value = mock_model
-        mock_generative_models.GenerativeModel = mock_model_class
-
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-            assert "Gemini Vertex AI call failed" in str(exc_info.value)
+    """Gemini fix-proposal failures name the Gemini backend."""
+    message = gemini_failure("analyze_and_fix_error", ("test prompt", '{"error": "test"}'), error="API Error")
+    assert "Gemini Vertex AI call failed" in message
 
 
 def test_vertex_provider_claude_improve_text_empty_response():
-    """Test Claude improve_text with empty response."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock Anthropic Vertex with empty content
-        mock_anthropic_module = MagicMock()
-        mock_client = MagicMock()
-        mock_message = MagicMock()
-        mock_message.content = []
-        mock_client.messages.create.return_value = mock_message
-        mock_anthropic_module.AnthropicVertex.return_value = mock_client
-
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic_module}):
-            with pytest.raises(AiError) as exc_info:
-                provider.improve_text("test prompt", "test input")
-            assert "Empty response" in str(exc_info.value)
+    """An empty Claude improvement is reported as an empty response."""
+    assert "Empty response" in claude_failure("improve_text", ("test prompt", "test input"), empty=True)
 
 
 def test_vertex_provider_gemini_improve_text_empty_response():
-    """Test Gemini improve_text with empty response."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
+    """An empty Gemini improvement is reported as an empty response."""
+    assert "Empty response" in gemini_failure("improve_text", ("test prompt", "test input"), empty=True)
 
-        provider = VertexAIProvider()
 
-        # Mock Vertex AI modules with empty response
-        mock_vertexai = MagicMock()
-        mock_generative_models = MagicMock()
-        mock_model_class = MagicMock()
-        mock_model = MagicMock()
-        mock_response = MagicMock()
-        mock_response.text = None
-        mock_model.generate_content.return_value = mock_response
-        mock_model_class.return_value = mock_model
-        mock_generative_models.GenerativeModel = mock_model_class
-
-        with patch.dict(sys.modules, {"vertexai": mock_vertexai, "vertexai.generative_models": mock_generative_models}):
-            with pytest.raises(AiError) as exc_info:
-                provider.improve_text("test prompt", "test input")
-            assert "Empty response" in str(exc_info.value)
+def _unknown_model_message(method: str, args: tuple) -> str:
+    with built(claude_env()) as provider:
+        provider.model_type = "unknown"
+        with pytest.raises(AiError) as exc_info:
+            getattr(provider, method)(*args)
+    return str(exc_info.value)
 
 
 def test_vertex_provider_unknown_model_type_improve_text():
-    """Test improve_text with unknown model type."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-        # Manually set to unknown type to trigger the error path
-        provider.model_type = "unknown"
-
-        with pytest.raises(AiError) as exc_info:
-            provider.improve_text("test prompt", "test input")
-        assert "Unknown model type: unknown" in str(exc_info.value)
+    """improve_text rejects a model type overwritten after init."""
+    assert "Unknown model type: unknown" in _unknown_model_message("improve_text", ("test prompt", "test input"))
 
 
 def test_vertex_provider_unknown_model_type_analyze_error():
-    """Test analyze_error with unknown model type."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-        # Manually set to unknown type to trigger the error path
-        provider.model_type = "unknown"
-
-        with pytest.raises(AiError) as exc_info:
-            provider.analyze_error("test prompt", '{"error": "test"}')
-        assert "Unknown model type: unknown" in str(exc_info.value)
+    """analyze_error rejects a model type overwritten after init."""
+    message = _unknown_model_message("analyze_error", ("test prompt", '{"error": "test"}'))
+    assert "Unknown model type: unknown" in message
 
 
 def test_vertex_provider_unknown_model_type_analyze_and_fix_error():
-    """Test analyze_and_fix_error with unknown model type."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-        # Manually set to unknown type to trigger the error path
-        provider.model_type = "unknown"
-
-        with pytest.raises(AiError) as exc_info:
-            provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-        assert "Unknown model type: unknown" in str(exc_info.value)
+    """analyze_and_fix_error rejects a model type overwritten after init."""
+    message = _unknown_model_message("analyze_and_fix_error", ("test prompt", '{"error": "test"}'))
+    assert "Unknown model type: unknown" in message
 
 
 def test_vertex_provider_claude_analyze_error_missing_dependency():
-    """Test Claude analyze_error with missing anthropic dependency."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock the import to fail
-        import builtins
-
-        original_import = builtins.__import__
-
-        def mock_import(name, *args, **kwargs):
-            if name == "anthropic":
-                raise ImportError("No module named 'anthropic'")
-            return original_import(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=mock_import):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_error("test prompt", '{"error": "test"}')
-
-            assert "anthropic[vertex] package not installed" in str(exc_info.value)
+    """analyze_error reports a missing anthropic package."""
+    assert_import_error(
+        claude_env(),
+        lambda name: name == "anthropic",
+        "analyze_error",
+        ("test prompt", '{"error": "test"}'),
+        "anthropic[vertex] package not installed",
+    )
 
 
 def test_vertex_provider_gemini_analyze_error_missing_dependency():
-    """Test Gemini analyze_error with missing vertexai dependency."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock the import to fail
-        import builtins
-
-        original_import = builtins.__import__
-
-        def mock_import(name, *args, **kwargs):
-            if "vertexai" in name:
-                raise ImportError("No module named 'vertexai'")
-            return original_import(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=mock_import):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_error("test prompt", '{"error": "test"}')
-
-            assert "google-cloud-aiplatform package not installed" in str(exc_info.value)
+    """analyze_error reports a missing vertexai package."""
+    assert_import_error(
+        gemini_env(),
+        lambda name: "vertexai" in name,
+        "analyze_error",
+        ("test prompt", '{"error": "test"}'),
+        "google-cloud-aiplatform package not installed",
+    )
 
 
 def test_vertex_provider_claude_analyze_and_fix_error_missing_dependency():
-    """Test Claude analyze_and_fix_error with missing anthropic dependency."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "claude-3-5-sonnet@20241022",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "ANTHROPIC_VERTEX_PROJECT_ID": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock the import to fail
-        import builtins
-
-        original_import = builtins.__import__
-
-        def mock_import(name, *args, **kwargs):
-            if name == "anthropic":
-                raise ImportError("No module named 'anthropic'")
-            return original_import(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=mock_import):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-
-            assert "anthropic[vertex] package not installed" in str(exc_info.value)
+    """analyze_and_fix_error reports a missing anthropic package."""
+    assert_import_error(
+        claude_env(),
+        lambda name: name == "anthropic",
+        "analyze_and_fix_error",
+        ("test prompt", '{"error": "test"}'),
+        "anthropic[vertex] package not installed",
+    )
 
 
 def test_vertex_provider_gemini_analyze_and_fix_error_missing_dependency():
-    """Test Gemini analyze_and_fix_error with missing vertexai dependency."""
-    with patch("jira_creator.providers.vertex_provider.EnvFetcher.get") as mock_env:
-        mock_env.side_effect = lambda key, default=None: {
-            "JIRA_AI_MODEL": "gemini-1.5-pro",
-            "GOOGLE_CLOUD_LOCATION": "us-central1",
-            "GOOGLE_CLOUD_PROJECT": "test-project",
-        }.get(key, default)
-
-        provider = VertexAIProvider()
-
-        # Mock the import to fail
-        import builtins
-
-        original_import = builtins.__import__
-
-        def mock_import(name, *args, **kwargs):
-            if "vertexai" in name:
-                raise ImportError("No module named 'vertexai'")
-            return original_import(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=mock_import):
-            with pytest.raises(AiError) as exc_info:
-                provider.analyze_and_fix_error("test prompt", '{"error": "test"}')
-
-            assert "google-cloud-aiplatform package not installed" in str(exc_info.value)
+    """analyze_and_fix_error reports a missing vertexai package."""
+    assert_import_error(
+        gemini_env(),
+        lambda name: "vertexai" in name,
+        "analyze_and_fix_error",
+        ("test prompt", '{"error": "test"}'),
+        "google-cloud-aiplatform package not installed",
+    )

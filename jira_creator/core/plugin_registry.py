@@ -9,7 +9,7 @@ discovery, loading, and registration of command plugins.
 import importlib
 import inspect
 from pathlib import Path
-from typing import Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
 from .plugin_base import JiraPlugin
 
@@ -213,7 +213,7 @@ class PluginRegistry:
         """
         return self._ai_prompts.copy()
 
-    def get_field_mappings(self, plugin_name: str) -> Dict[str, any]:
+    def get_field_mappings(self, plugin_name: str) -> Dict[str, Any]:
         """
         Get field mappings registered by a specific plugin.
 
@@ -225,7 +225,7 @@ class PluginRegistry:
         """
         return self._field_mappings.get(plugin_name, {})
 
-    def get_all_field_mappings(self) -> Dict[str, Dict[str, any]]:
+    def get_all_field_mappings(self) -> Dict[str, Dict[str, Any]]:
         """
         Get all field mappings from all plugins.
 

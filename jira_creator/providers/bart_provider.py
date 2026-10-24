@@ -23,9 +23,10 @@ import requests
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.exceptions.exceptions import AiError
 from jira_creator.providers.ai_provider import AIProvider
+from jira_creator.providers.single_prompt import SinglePromptCompletion
 
 
-class BARTProvider(AIProvider):
+class BARTProvider(SinglePromptCompletion, AIProvider):
     """
     BARTProvider class represents a provider for interacting with the BART (Bidirectional and Auto-Regressive
     Transformers) model.
@@ -69,58 +70,14 @@ class BARTProvider(AIProvider):
         - This function may raise exceptions related to the HTTP request or response handling.
         """
 
-        full_prompt: str = f"{prompt}\n\n{text}"
+        raw_content = self._generate(f"{prompt}\n\n{text}", timeout=30)
+        return self.extract_content(raw_content)
+
+    def _generate(self, full_prompt: str, timeout: int) -> str:
+        """POST text to the BART endpoint and return the output field."""
         response: requests.Response = requests.post(
-            self.url, headers=self.headers, json={"text": full_prompt}, timeout=30
+            self.url, headers=self.headers, json={"text": full_prompt}, timeout=timeout
         )
         if response.status_code == 200:
-            raw_content = response.json().get("output", "")
-            return self.extract_content(raw_content)
-
-        raise AiError(f"BART request failed: {response.status_code} - {response.text}")
-
-    def analyze_error(self, prompt: str, error_context: str) -> str:
-        """
-        Analyze a JIRA API error and suggest code-level fixes.
-
-        Arguments:
-        - prompt (str): The system prompt for error analysis.
-        - error_context (str): JSON-formatted error context.
-
-        Return:
-        - str: Markdown-formatted analysis with root cause, proposed fix, and workarounds.
-
-        Exceptions:
-        - AiError: Raised when the BART API request fails.
-        """
-        full_prompt = f"{prompt}\n\nAnalyze this error:\n\n{error_context}"
-        response: requests.Response = requests.post(
-            self.url, headers=self.headers, json={"text": full_prompt}, timeout=120
-        )
-        if response.status_code == 200:
-            return response.json().get("output", "").strip()
-
-        raise AiError(f"BART request failed: {response.status_code} - {response.text}")
-
-    def analyze_and_fix_error(self, prompt: str, error_context: str) -> str:
-        """
-        Analyze an error and return a structured fix proposal in JSON format.
-
-        Arguments:
-        - prompt (str): The system prompt for error analysis and fix generation.
-        - error_context (str): JSON-formatted error context.
-
-        Return:
-        - str: JSON-formatted fix proposal.
-
-        Exceptions:
-        - AiError: Raised when the BART API request fails.
-        """
-        full_prompt = f"{prompt}\n\nAnalyze this error and propose a fix:\n\n{error_context}"
-        response: requests.Response = requests.post(
-            self.url, headers=self.headers, json={"text": full_prompt}, timeout=120
-        )
-        if response.status_code == 200:
-            return response.json().get("output", "").strip()
-
+            return response.json().get("output", "")
         raise AiError(f"BART request failed: {response.status_code} - {response.text}")

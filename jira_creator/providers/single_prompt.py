@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Shared error-analysis calls for providers that POST one combined prompt."""
 
-from typing import Callable
+from collections.abc import Callable
 
 
 class SinglePromptCompletion:

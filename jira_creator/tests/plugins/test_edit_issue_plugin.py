@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from jira_creator.core.env_fetcher import EnvFetcher
+from jira_creator.exceptions.exceptions import AiError, JiraClientRequestError
 from jira_creator.plugins.edit_issue_plugin import (
     EditDescriptionError,
     EditIssueError,
@@ -99,7 +100,7 @@ class TestEditIssuePlugin:
         def mock_editor(cmd_list):
             filename = cmd_list[1]
             # Read the content and write it back unchanged
-            with open(filename, "r") as f:
+            with open(filename) as f:
                 content = f.read()
             with open(filename, "w") as f:
                 f.write(content)
@@ -173,7 +174,7 @@ class TestEditIssuePlugin:
         """Test execution when AI enhancement fails."""
         # Mock AI provider that fails
         mock_ai = Mock()
-        mock_ai.improve_text.side_effect = Exception("AI service error")
+        mock_ai.improve_text.side_effect = AiError("AI service error")
 
         # Mock editor
         def mock_editor(cmd_list):
@@ -258,9 +259,8 @@ class TestEditIssuePlugin:
             acceptance_criteria=False, ai_from_description=False, issue_key="TEST-999", no_ai=True, lint=False
         )
 
-        with patch("builtins.print") as mock_print:
-            with pytest.raises(EditIssueError):
-                plugin.execute(mock_client, args)
+        with patch("builtins.print") as mock_print, pytest.raises(EditIssueError):
+            plugin.execute(mock_client, args)
 
         # Check error message
         print_calls = [call[0][0] for call in mock_print.call_args_list]
@@ -310,7 +310,7 @@ class TestEditIssuePlugin:
         """Test getting issue type when it fails (returns default)."""
         plugin = EditIssuePlugin()
         mock_client = Mock()
-        mock_client.request.side_effect = Exception("API error")
+        mock_client.request.side_effect = JiraClientRequestError("API error")
 
         result = plugin._get_issue_type(mock_client, "TEST-123")
 
@@ -437,10 +437,9 @@ class TestEditIssuePlugin:
             acceptance_criteria=False, ai_from_description=False, issue_key="TEST-100", no_ai=True, lint=False
         )
 
-        with patch("builtins.print"):
-            # Mock editor to make a change
-            with patch.object(plugin, "_edit_text", return_value="Changed"):
-                plugin.execute(mock_client, args)
+        # Mock editor to make a change
+        with patch("builtins.print"), patch.object(plugin, "_edit_text", return_value="Changed"):
+            plugin.execute(mock_client, args)
 
         # Verify API call sequence (only 2 calls when no_ai=True)
         assert len(api_calls) == 2
@@ -459,9 +458,8 @@ class TestEditIssuePlugin:
             acceptance_criteria=False, ai_from_description=False, issue_key="TEST-NULL", no_ai=True, lint=False
         )
 
-        with patch("builtins.print"):
-            with pytest.raises(FetchDescriptionError, match="Issue has no description"):
-                plugin.execute(mock_client, args)
+        with patch("builtins.print"), pytest.raises(FetchDescriptionError, match="Issue has no description"):
+            plugin.execute(mock_client, args)
 
     @patch("jira_creator.plugins.edit_issue_plugin.EnvFetcher")
     def test_execute_with_acceptance_criteria_flag_requires_no_ai_from_desc(self, mock_env):
@@ -523,7 +521,7 @@ class TestEditIssuePlugin:
         def mock_editor(cmd_list):
             filename = cmd_list[1]
             # Read and write back unchanged
-            with open(filename, "r") as f:
+            with open(filename) as f:
                 content = f.read()
             with open(filename, "w") as f:
                 f.write(content)
@@ -614,7 +612,7 @@ class TestEditIssuePlugin:
 
         plugin = EditIssuePlugin()
         mock_client = Mock()
-        mock_client.request.side_effect = Exception("API Error")
+        mock_client.request.side_effect = JiraClientRequestError("API Error")
 
         result = plugin._fetch_acceptance_criteria(mock_client, "TEST-123")
 

@@ -10,11 +10,12 @@ import os
 import subprocess
 import tempfile
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
+from jira_creator.exceptions.exceptions import AiError, AiProviderError, JiraClientRequestError
 from jira_creator.plugins.issue_field_updates import update_issue_description
 from jira_creator.providers import get_ai_provider
 from jira_creator.rest.prompts import IssueType, PromptLibrary
@@ -52,7 +53,7 @@ class EditIssuePlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Issue Creation & Management"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "EditIssueError": EditIssueError,
@@ -61,7 +62,7 @@ class EditIssuePlugin(JiraPlugin):
         }
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["edit-issue AAP-12345"]
 
@@ -138,7 +139,7 @@ class EditIssuePlugin(JiraPlugin):
             issue_type = self._get_issue_type(client, args.issue_key)
             try:
                 edited_description = self._enhance_with_ai(edited_description, issue_type)
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except (AiError, AiProviderError) as e:
                 logger.warning("AI enhancement failed: %s", e)
                 print(f"⚠️  AI enhancement failed, using edited text: {e}")
 
@@ -182,7 +183,7 @@ class EditIssuePlugin(JiraPlugin):
         logger.info("Successfully updated acceptance criteria for %s", args.issue_key)
         return True
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """Store edited acceptance criteria in the issue description field."""
         return update_issue_description(client, kwargs["issue_key"], kwargs["description"])
 
@@ -210,7 +211,7 @@ class EditIssuePlugin(JiraPlugin):
             issue_type = response.get("fields", {}).get("issuetype", {}).get("name", "")
             return issue_type.upper()
 
-        except Exception:  # pylint: disable=broad-exception-caught
+        except (JiraClientRequestError, AttributeError):
             return "STORY"  # Default to story type
 
     # jscpd:ignore-start
@@ -245,7 +246,7 @@ class EditIssuePlugin(JiraPlugin):
             criteria = response.get("fields", {}).get(criteria_field, "")
             return criteria or ""
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except (JiraClientRequestError, AttributeError) as e:
             logger.warning("Failed to fetch acceptance criteria: %s", e)
             return ""
 

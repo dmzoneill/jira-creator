@@ -817,7 +817,7 @@ class JiraClient:
             response_headers=response_headers,
             jira_error_messages=jira_error_messages,
             jira_field_errors=jira_field_errors,
-            timestamp=datetime.datetime.now().isoformat(),
+            timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
             jira_url=self.jira_url,
             project_key=self.project_key,
             available_issue_types=issue_types,

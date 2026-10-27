@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/logo.png" alt="jira-creator logo" width="128" />
+</p>
+
 # jira-creator
 
 [![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml)

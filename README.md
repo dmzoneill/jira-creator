@@ -1,11 +1,15 @@
 # jira-creator
 
+<p align="center">
+  <img src=".github/logo.png" alt="jira-creator logo" width="128" />
+</p>
+
 [![Build Status](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml/badge.svg)](https://github.com/dmzoneill/jira-creator/actions/workflows/main.yml)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 [![License](https://img.shields.io/github/license/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/blob/main/LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/dmzoneill/jira-creator.svg)](https://github.com/dmzoneill/jira-creator/commits/main)
 
-Create JIRA issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates and optional AI-enhanced descriptions
+Create Jira issues (stories, bugs, epics, spikes, tasks) quickly using standardized templates and optional AI-enhanced descriptions
 
 ---
 
@@ -407,6 +411,7 @@ class AddFlagPlugin(JiraPlugin):
 ### Available Categories
 
 Plugins can specify one of these categories for help organization:
+
 - `Issue Creation & Management` - Creating and cloning issues
 - `Search & View` - Searching and viewing issues/users
 - `Issue Modification` - Updating issue fields
@@ -443,7 +448,7 @@ make super-lint
 - Loads field definitions from `.tmpl` files located in the `templates/` directory
 - Uses `TemplateLoader` to generate Markdown descriptions
 - Optionally applies AI cleanup for improved readability and structure
-- Sends issues to JIRA via REST API (or performs dry runs)
+- Sends issues to Jira via REST API (or performs dry runs)
 
 ---
 

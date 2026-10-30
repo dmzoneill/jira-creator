@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Create issue plugin for jira-creator.
 
@@ -12,7 +11,7 @@ import subprocess
 import tempfile
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -52,7 +51,7 @@ class CreateIssuePlugin(JiraPlugin):
         return "Issue Creation & Management"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return [
             "create-issue bug 'Login page crashes on submit'",
@@ -60,20 +59,20 @@ class CreateIssuePlugin(JiraPlugin):
             "create-issue task 'Update documentation' --edit",
         ]
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "CreateIssueError": CreateIssueError,
         }
 
-    def get_ai_prompts(self) -> Dict[str, str]:
+    def get_ai_prompts(self) -> dict[str, str]:
         """Register AI prompts for issue type generation."""
         return {
             issue_type: PromptLibrary.get_prompt(IssueType[issue_type.upper()])
             for issue_type in ("task", "story", "bug", "epic")
         }
 
-    def get_field_mappings(self) -> Dict[str, FieldMapping]:
+    def get_field_mappings(self) -> dict[str, FieldMapping]:
         """Register JIRA field mappings for issue creation."""
         return {
             "epic": FieldMapping(
@@ -160,28 +159,28 @@ class CreateIssuePlugin(JiraPlugin):
 
             # Gather field values (from file or interactive)
             if args.input_file:
-                field_values = self._load_field_values_from_file(args.input_file, fields)
+                field_values = self.load_field_values_from_file(args.input_file, fields)
             else:
-                field_values = self._gather_field_values(fields, args.edit)
+                field_values = self.gather_field_values(fields, args.edit)
 
             # Render description
             description = template_loader.render_description(field_values)
 
             # Optional editing (skip if input-file provided)
             if args.edit and not args.input_file:
-                description = self._edit_description(description)
+                description = self.edit_description(description)
 
             # AI enhancement (unless disabled)
             if not args.no_ai:
                 try:
-                    description = self._enhance_with_ai(description, args.type)
+                    description = self.enhance_with_ai(description, args.type)
                 except AiError as e:
                     print(f"❌ AI enhancement failed: {e}")
                     print("⚠️  Issue creation aborted. Use --no-ai to skip AI enhancement.")
                     return False
 
             # Build payload
-            payload = self._build_payload(args.summary, description, args.type, field_values)
+            payload = self.build_payload(args.summary, description, args.type, field_values)
 
             # Add story points if provided
             if args.story_points is not None and args.type.lower() == "story":
@@ -190,7 +189,7 @@ class CreateIssuePlugin(JiraPlugin):
 
             # Dry run or create
             if args.dry_run:
-                self._show_dry_run(args.summary, description, payload)
+                self.show_dry_run(args.summary, description, payload)
                 return True
 
             # Create the issue
@@ -200,7 +199,7 @@ class CreateIssuePlugin(JiraPlugin):
             jira_url = EnvFetcher.get("JIRA_URL")
 
             # Output based on format
-            self._output_result(args, issue_key, issue_id, jira_url, args.story_points)
+            self.output_result(args, issue_key, issue_id, jira_url, args.story_points)
             return True
 
         except CreateIssueError as e:
@@ -208,7 +207,7 @@ class CreateIssuePlugin(JiraPlugin):
             print(msg)
             raise CreateIssueError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation to create an issue.
 
@@ -232,7 +231,7 @@ class CreateIssuePlugin(JiraPlugin):
         path = "/rest/api/2/issue/"
         return client.request("POST", path, json_data=payload)
 
-    def _load_field_values_from_file(self, file_path: str, expected_fields: List[str]) -> Dict[str, str]:
+    def load_field_values_from_file(self, file_path: str, expected_fields: list[str]) -> dict[str, str]:
         """
         Load field values from JSON or YAML file.
 
@@ -270,10 +269,10 @@ class CreateIssuePlugin(JiraPlugin):
 
             return data
 
-        except (OSError, IOError) as e:
+        except OSError as e:
             raise CreateIssueError(f"Failed to read input file: {e}") from e
 
-    def _gather_field_values(self, fields: List[str], edit_mode: bool) -> Dict[str, str]:
+    def gather_field_values(self, fields: list[str], edit_mode: bool) -> dict[str, str]:
         """Gather values for template fields."""
         field_values = {}
 
@@ -295,7 +294,7 @@ class CreateIssuePlugin(JiraPlugin):
 
         return field_values
 
-    def _validate_required_fields(self, field_values: Dict[str, str]) -> None:
+    def _validate_required_fields(self, field_values: dict[str, str]) -> None:
         """Validate that required fields have values."""
         # Check if Acceptance Criteria field is in the template and configured
         acceptance_criteria_field = EnvFetcher.get("JIRA_ACCEPTANCE_CRITERIA_FIELD", default="")
@@ -305,7 +304,7 @@ class CreateIssuePlugin(JiraPlugin):
                 raise CreateIssueError("Acceptance Criteria is required. Please provide a value for this field.")
 
     # jscpd:ignore-start
-    def _edit_description(self, description: str) -> str:
+    def edit_description(self, description: str) -> str:
         """Open description in editor for manual editing."""
         editor_func = self.get_dependency("editor_func", lambda: subprocess.call)
 
@@ -327,7 +326,7 @@ class CreateIssuePlugin(JiraPlugin):
 
     # jscpd:ignore-end
 
-    def _enhance_with_ai(self, description: str, issue_type: str) -> str:
+    def enhance_with_ai(self, description: str, issue_type: str) -> str:
         """Enhance description using AI provider."""
         ai_provider = self.get_dependency("ai_provider", lambda: get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER")))
 
@@ -342,9 +341,9 @@ class CreateIssuePlugin(JiraPlugin):
 
         return ai_provider.improve_text(prompt, description)
 
-    def _build_payload(
-        self, summary: str, description: str, issue_type: str, field_values: Dict[str, str] | None = None
-    ) -> Dict[str, Any]:
+    def build_payload(
+        self, summary: str, description: str, issue_type: str, field_values: dict[str, str] | None = None
+    ) -> dict[str, Any]:
         """Build the Jira API payload."""
         # Get configuration from environment
         project_key = EnvFetcher.get("JIRA_PROJECT_KEY")
@@ -354,7 +353,7 @@ class CreateIssuePlugin(JiraPlugin):
         epic_field = EnvFetcher.get("JIRA_EPIC_FIELD") or ""
 
         # Build basic payload
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "fields": {
                 "project": {"key": project_key},
                 "summary": summary,
@@ -393,7 +392,7 @@ class CreateIssuePlugin(JiraPlugin):
 
         return payload
 
-    def _add_custom_fields(self, payload: Dict[str, Any], field_values: Dict[str, str] | None = None) -> None:
+    def _add_custom_fields(self, payload: dict[str, Any], field_values: dict[str, str] | None = None) -> None:
         """Add workstream and acceptance criteria custom fields to payload."""
         # Add workstream field
         workstream_field = EnvFetcher.get("JIRA_WORKSTREAM_FIELD", default="")
@@ -409,7 +408,7 @@ class CreateIssuePlugin(JiraPlugin):
             if acceptance_criteria:
                 payload["fields"][acceptance_criteria_field] = acceptance_criteria
 
-    def _show_dry_run(self, summary: str, description: str, payload: Dict[str, Any]) -> None:
+    def show_dry_run(self, summary: str, description: str, payload: dict[str, Any]) -> None:
         """Display dry run information with validation checks."""
         print("\n" + "=" * 50)
         print("DRY RUN - Issue Preview")
@@ -429,19 +428,19 @@ class CreateIssuePlugin(JiraPlugin):
         print(json.dumps(payload, indent=2))
         print("=" * 50)
 
-    def _validate_issue_data(self, summary: str, description: str, payload: Dict[str, Any]) -> bool:
+    def _validate_issue_data(self, summary: str, description: str, payload: dict[str, Any]) -> bool:
         """Validate issue data and print results."""
         validation_passed = True
         print("\n🔍 Validation Checks:")
         print("-" * 50)
 
         # Check summary length
-        validation_passed &= self._validate_length(
+        validation_passed &= self.validate_length(
             "Summary", len(summary), 255, f"✓ Summary length: {len(summary)}/255 characters"
         )
 
         # Check description length
-        validation_passed &= self._validate_length(
+        validation_passed &= self.validate_length(
             "Description", len(description), 32000, f"✓ Description length: {len(description)}/32000 characters"
         )
 
@@ -451,7 +450,7 @@ class CreateIssuePlugin(JiraPlugin):
         validation_passed &= self._validate_required_field(fields, "issuetype", "name", "Missing issue type")
 
         # Check epic link for stories
-        self._check_epic_link(fields)
+        self.check_epic_link(fields)
 
         print("-" * 50)
         status_msg = "✅ All validation checks passed" if validation_passed else "❌ Validation failed"
@@ -459,7 +458,7 @@ class CreateIssuePlugin(JiraPlugin):
 
         return validation_passed
 
-    def _validate_length(self, field_name: str, current: int, max_len: int, success_msg: str) -> bool:
+    def validate_length(self, field_name: str, current: int, max_len: int, success_msg: str) -> bool:
         """Validate field length."""
         if current > max_len:
             print(f"❌ {field_name} exceeds {max_len} character limit")
@@ -467,7 +466,7 @@ class CreateIssuePlugin(JiraPlugin):
         print(success_msg)
         return True
 
-    def _validate_required_field(self, fields: Dict[str, Any], field: str, key: str, error_msg: str) -> bool:
+    def _validate_required_field(self, fields: dict[str, Any], field: str, key: str, error_msg: str) -> bool:
         """Validate required field exists."""
         value = fields.get(field, {}).get(key)
         if not value:
@@ -476,7 +475,7 @@ class CreateIssuePlugin(JiraPlugin):
         print(f"✓ {field.capitalize()}: {value}")
         return True
 
-    def _check_epic_link(self, fields: Dict[str, Any]) -> None:
+    def check_epic_link(self, fields: dict[str, Any]) -> None:
         """Check epic link for stories (warning only)."""
         if fields.get("issuetype", {}).get("name") == "Story":
             epic_field = EnvFetcher.get("JIRA_EPIC_FIELD", default="")
@@ -485,7 +484,7 @@ class CreateIssuePlugin(JiraPlugin):
             else:
                 print("⚠️  No epic link specified for story")
 
-    def _output_result(
+    def output_result(
         self,
         args: Namespace,
         issue_key: str | None,
@@ -508,7 +507,7 @@ class CreateIssuePlugin(JiraPlugin):
             print(issue_key)
         elif args.output == "json":
             # JSON output
-            result: Dict[str, Any] = {
+            result: dict[str, Any] = {
                 "key": issue_key,
                 "id": issue_id,
                 "url": f"{jira_url}/browse/{issue_key}",

@@ -690,7 +690,7 @@ def test_prompt_for_fix_consent_keyboard_interrupt(mock_input, mock_print):
         fix_type="codebase",
         confidence=0.8,
         payload_fix=None,
-        file_changes=[FileChange(file_path="/tmp/test.py", old_content="old", new_content="new")],
+        file_changes=[FileChange(file_path="/fake/workspace/test.py", old_content="old", new_content="new")],
         reasoning="Fix code issue",
     )
 
@@ -716,7 +716,7 @@ def test_prompt_for_fix_consent_eof_error(mock_input, _mock_print):
         fix_type="codebase",
         confidence=0.7,
         payload_fix=None,
-        file_changes=[FileChange(file_path="/tmp/test.py", old_content="old", new_content="new")],
+        file_changes=[FileChange(file_path="/fake/workspace/test.py", old_content="old", new_content="new")],
         reasoning="Fix code issue",
     )
 
@@ -762,7 +762,9 @@ def test_apply_codebase_fix_old_content_not_found(mock_exists, mock_print):
     file_content = "This is different content"
     m = mock_open(read_data=file_content)
 
-    fix_changes = [FileChange(file_path="/tmp/test.py", old_content="expected old content", new_content="new content")]
+    fix_changes = [
+        FileChange(file_path="/fake/workspace/test.py", old_content="expected old content", new_content="new content")
+    ]
 
     with patch("builtins.open", m):
         result = client.apply_codebase_fix(fix_changes)
@@ -782,7 +784,7 @@ def test_apply_codebase_fix_with_exception(mock_exists, mock_print):
     client = JiraClient()
     mock_exists.side_effect = OSError("Disk error")
 
-    fix_changes = [FileChange(file_path="/tmp/test.py", old_content="old", new_content="new")]
+    fix_changes = [FileChange(file_path="/fake/workspace/test.py", old_content="old", new_content="new")]
 
     result = client.apply_codebase_fix(fix_changes)
 

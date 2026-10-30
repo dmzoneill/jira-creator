@@ -341,7 +341,7 @@ class TestEditIssuePlugin:
 
         with patch("tempfile.NamedTemporaryFile") as mock_temp:
             mock_file = Mock()
-            mock_file.name = "/tmp/test.md"
+            mock_file.name = "/fake/workspace/test.md"
             mock_file.read.return_value = "Edited content"
             mock_temp.return_value.__enter__.return_value = mock_file
 
@@ -410,7 +410,7 @@ class TestEditIssuePluginHelpers:
 
         with patch("tempfile.NamedTemporaryFile") as mock_temp:
             mock_file = Mock()
-            mock_file.name = "/tmp/test.md"
+            mock_file.name = "/fake/workspace/test.md"
             mock_file.read.return_value = "Edited content"
             mock_temp.return_value.__enter__.return_value = mock_file
 

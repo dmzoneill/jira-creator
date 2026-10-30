@@ -125,11 +125,11 @@ class TestJiraLogger:
     @patch("jira_creator.core.logger.EnvFetcher.get")
     @patch("builtins.open", create=True)
     @patch("pathlib.Path.mkdir")
-    def test_configure_logging_with_file(self, mock_mkdir, mock_open_file, mock_env):
+    def test_configure_logging_with_file(self, mock_mkdir, mock_open_file, mock_env, tmp_path):
         """Test logging configuration with file output."""
         mock_env.side_effect = lambda key, default="": {
             "JIRA_LOG_LEVEL": "INFO",
-            "JIRA_LOG_FILE": "/tmp/test.log",
+            "JIRA_LOG_FILE": str(tmp_path / "test.log"),
             "JIRA_LOG_FORMAT": "simple",
         }.get(key, default)
 

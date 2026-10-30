@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 """Tests for the logger module."""
 
 import logging
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import JiraLogger, get_logger
@@ -123,9 +122,9 @@ class TestJiraLogger:
         assert logger.level == logging.DEBUG
 
     @patch("jira_creator.core.logger.EnvFetcher.get")
-    @patch("builtins.open", create=True)
-    @patch("pathlib.Path.mkdir")
-    def test_configure_logging_with_file(self, mock_mkdir, mock_open_file, mock_env, tmp_path):
+    @patch("builtins.open", new=MagicMock())
+    @patch("pathlib.Path.mkdir", new=MagicMock())
+    def test_configure_logging_with_file(self, mock_env, tmp_path):
         """Test logging configuration with file output."""
         mock_env.side_effect = lambda key, default="": {
             "JIRA_LOG_LEVEL": "INFO",
@@ -139,8 +138,8 @@ class TestJiraLogger:
         assert len(logger.handlers) >= 1
 
     @patch("jira_creator.core.logger.EnvFetcher.get")
-    @patch("builtins.open", side_effect=OSError("Permission denied"))
-    def test_configure_logging_file_error(self, mock_open_file, mock_env):
+    @patch("builtins.open", new=MagicMock(side_effect=OSError("Permission denied")))
+    def test_configure_logging_file_error(self, mock_env):
         """Test logging configuration when file creation fails."""
         mock_env.side_effect = lambda key, default="": {
             "JIRA_LOG_LEVEL": "INFO",
@@ -169,16 +168,16 @@ class TestJiraLogger:
         JiraLogger.get_logger()
 
         # Should be configured only once
-        assert JiraLogger._configured is True
+        assert JiraLogger.is_configured() is True
 
     def test_reset(self):
         """Test resetting logger configuration."""
         with patch("jira_creator.core.logger.EnvFetcher.get", return_value=""):
             JiraLogger.get_logger()
-            assert JiraLogger._configured is True
+            assert JiraLogger.is_configured() is True
 
             JiraLogger.reset()
-            assert JiraLogger._configured is False
+            assert JiraLogger.is_configured() is False
 
     @patch("jira_creator.core.logger.EnvFetcher.get")
     def test_get_logger_function(self, mock_env):
@@ -237,10 +236,10 @@ class TestJiraLogger:
 
         # First call - should configure
         JiraLogger.get_logger()
-        assert JiraLogger._configured is True
+        assert JiraLogger.is_configured() is True
 
-        # Second call - should return early on line 43
-        JiraLogger._configure_logging()
+        # Second call - should reuse the existing configuration
+        JiraLogger.get_logger()
 
         # Still configured
-        assert JiraLogger._configured is True
+        assert JiraLogger.is_configured() is True

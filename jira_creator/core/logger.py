@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Logging configuration for jira-creator.
 
@@ -9,7 +8,6 @@ different log levels and output formats.
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 from jira_creator.core.env_fetcher import EnvFetcher
 
@@ -17,7 +15,7 @@ from jira_creator.core.env_fetcher import EnvFetcher
 class JiraLogger:
     """Centralized logger for jira-creator."""
 
-    _instance: Optional[logging.Logger] = None
+    _instance: logging.Logger | None = None
     _configured: bool = False
 
     @classmethod
@@ -89,11 +87,16 @@ class JiraLogger:
                 root_logger.addHandler(file_handler)
 
                 root_logger.debug("Logging to file: %s", log_file)
-            except (OSError, IOError) as e:
+            except OSError as e:
                 root_logger.warning("Failed to create log file %s: %s", log_file, e)
 
         cls._configured = True
         root_logger.debug("Logging configured: level=%s, format=%s", log_level_str, log_format_type)
+
+    @classmethod
+    def is_configured(cls) -> bool:
+        """Return True once logging has been configured."""
+        return cls._configured
 
     @classmethod
     def reset(cls) -> None:
@@ -102,7 +105,7 @@ class JiraLogger:
         logging.getLogger("jira-creator").handlers.clear()
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
+def get_logger(name: str | None = None) -> logging.Logger:
     """
     Get a logger instance.
 

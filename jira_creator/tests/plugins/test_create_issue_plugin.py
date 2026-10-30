@@ -604,7 +604,7 @@ class TestCreateIssuePlugin:
 
         with patch("tempfile.NamedTemporaryFile") as mock_temp:
             mock_file = Mock()
-            mock_file.name = "/tmp/test.md"
+            mock_file.name = "/fake/workspace/test.md"
             mock_file.write.return_value = None
             mock_file.flush.return_value = None
             mock_temp.return_value.__enter__.return_value = mock_file
@@ -614,7 +614,7 @@ class TestCreateIssuePlugin:
 
         assert result == "Edited content"
         mock_subprocess.assert_called_once()
-        mock_unlink.assert_called_once_with("/tmp/test.md")
+        mock_unlink.assert_called_once_with("/fake/workspace/test.md")
 
     def test_load_field_values_from_yaml(self):
         """Test loading field values from YAML file."""

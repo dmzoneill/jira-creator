@@ -247,7 +247,7 @@ class TestPromptUserForFix:
             analysis="Test analysis",
             fix_type="codebase",
             confidence=0.9,
-            file_changes=[FileChange("/tmp/file.py", "old", "new")],
+            file_changes=[FileChange("/fake/workspace/file.py", "old", "new")],
             payload_fix=None,
             reasoning="Test",
         )
@@ -264,7 +264,7 @@ class TestPromptUserForFix:
             analysis="Test analysis",
             fix_type="codebase",
             confidence=0.9,
-            file_changes=[FileChange("/tmp/file.py", "old", "new")],
+            file_changes=[FileChange("/fake/workspace/file.py", "old", "new")],
             payload_fix=None,
             reasoning="Test",
         )
@@ -285,7 +285,7 @@ class TestPromptUserForFix:
             analysis="Test analysis",
             fix_type="codebase",
             confidence=0.9,
-            file_changes=[FileChange("/tmp/file.py", "old", "new")],
+            file_changes=[FileChange("/fake/workspace/file.py", "old", "new")],
             payload_fix=None,
             reasoning="Test",
         )
@@ -308,7 +308,7 @@ class TestApplyFix:
             analysis="Test",
             fix_type="codebase",
             confidence=0.9,
-            file_changes=[FileChange("/tmp/file.py", "old code", "new code")],
+            file_changes=[FileChange("/fake/workspace/file.py", "old code", "new code")],
             payload_fix=None,
             reasoning="Test",
         )
@@ -331,7 +331,7 @@ class TestApplyFix:
             analysis="Test",
             fix_type="codebase",
             confidence=0.9,
-            file_changes=[FileChange("/tmp/test_plugin.py", "old plugin code", "new plugin code")],
+            file_changes=[FileChange("/fake/workspace/test_plugin.py", "old plugin code", "new plugin code")],
             payload_fix=None,
             reasoning="Test",
         )
@@ -340,7 +340,7 @@ class TestApplyFix:
         assert result is True
 
         # Verify plugin was reloaded
-        mock_registry.reload_plugin_from_file.assert_called_once_with("/tmp/test_plugin.py")
+        mock_registry.reload_plugin_from_file.assert_called_once_with("/fake/workspace/test_plugin.py")
 
     def test_apply_payload_fix(self):
         """Test payload fix (doesn't modify files)."""
@@ -505,7 +505,9 @@ class TestFullErrorRecoveryFlow:
                 "analysis": "## Root Cause\nField incorrect",
                 "fix_type": "codebase",
                 "confidence": 0.95,
-                "file_changes": [{"file_path": "/tmp/file.py", "old_content": "old code", "new_content": "new code"}],
+                "file_changes": [
+                    {"file_path": "/fake/workspace/file.py", "old_content": "old code", "new_content": "new code"}
+                ],
                 "payload_fix": None,
                 "reasoning": "Fix field ID",
             }

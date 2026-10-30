@@ -8,6 +8,7 @@ and the AI will translate it into the appropriate Jira commands and execute them
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 from argparse import ArgumentParser, Namespace
@@ -263,7 +264,11 @@ class AIHelperPlugin(JiraPlugin):
             os.close(fd)
             try:
                 tts.save(audio_path)
-                subprocess.run(["mpg123", audio_path], stderr=subprocess.DEVNULL, check=False)
+                player = shutil.which("mpg123")
+                if player:
+                    subprocess.run([player, audio_path], stderr=subprocess.DEVNULL, check=False)
+                else:
+                    logger.warning("mpg123 not found, skipping audio playback")
             finally:
                 if os.path.exists(audio_path):
                     os.unlink(audio_path)

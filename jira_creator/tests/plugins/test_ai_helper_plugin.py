@@ -204,6 +204,7 @@ class TestAIHelperPluginSteps:
         gtts = Mock()
         with (
             patch.dict(sys.modules, {"gtts": gtts}),
+            patch(f"{MODULE}.shutil.which", return_value="/usr/bin/mpg123"),
             patch(f"{MODULE}.subprocess.run") as mock_run,
         ):
             run(steps_json("good", "bad"), {"good": Mock(), "bad": bad}, voice=True)
@@ -211,7 +212,7 @@ class TestAIHelperPluginSteps:
         assert spoken == ["Running good", "Failed: boom"]
         assert mock_run.call_count == 2
         cmd = mock_run.call_args[0][0]
-        assert cmd[0] == "mpg123" and len(cmd) == 2
+        assert cmd[0] == "/usr/bin/mpg123" and len(cmd) == 2
         assert mock_run.call_args.kwargs["check"] is False
 
     def test_voice_without_gtts_is_skipped(self):
@@ -228,6 +229,7 @@ class TestAIHelperPluginSteps:
         """An OSError from playback is logged, not raised."""
         with (
             patch.dict(sys.modules, {"gtts": Mock()}),
+            patch(f"{MODULE}.shutil.which", return_value="/usr/bin/mpg123"),
             patch(f"{MODULE}.subprocess.run", side_effect=OSError("no mpg123")),
         ):
             result, _, _ = run(steps_json("good"), {"good": Mock()}, voice=True)
@@ -239,6 +241,17 @@ class TestAIHelperPluginSteps:
         gtts.gTTS.return_value.save.side_effect = OSError("disk full")
         with (
             patch.dict(sys.modules, {"gtts": gtts}),
+            patch(f"{MODULE}.subprocess.run") as mock_run,
+        ):
+            result, _, _ = run(steps_json("good"), {"good": Mock()}, voice=True)
+        assert result is True
+        mock_run.assert_not_called()
+
+    def test_voice_without_mpg123_skips_playback(self):
+        """If mpg123 isn't installed, playback is skipped."""
+        with (
+            patch.dict(sys.modules, {"gtts": Mock()}),
+            patch(f"{MODULE}.shutil.which", return_value=None),
             patch(f"{MODULE}.subprocess.run") as mock_run,
         ):
             result, _, _ = run(steps_json("good"), {"good": Mock()}, voice=True)

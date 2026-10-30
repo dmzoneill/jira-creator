@@ -9,6 +9,8 @@ and the AI will translate it into the appropriate Jira commands and execute them
 import json
 import os
 import re
+import shlex
+import tempfile
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from typing import Any, Dict, List
@@ -169,7 +171,7 @@ class AIHelperPlugin(JiraPlugin):
             List of step dictionaries
         """
         # Remove markdown code blocks
-        cleaned = re.sub(r"^```(?:json)?|```$", "", ai_response.strip(), flags=re.MULTILINE).strip()
+        cleaned = re.sub(r"(?:^```(?:json)?)|(?:```$)", "", ai_response.strip(), flags=re.MULTILINE).strip()
 
         try:
             result = json.loads(cleaned)
@@ -260,8 +262,14 @@ class AIHelperPlugin(JiraPlugin):
             from gtts import gTTS
 
             tts = gTTS(text=text, lang="en")
-            tts.save("/tmp/jira_tts.mp3")
-            os.system("mpg123 /tmp/jira_tts.mp3 2>/dev/null")
+            fd, audio_path = tempfile.mkstemp(prefix="jira_tts_", suffix=".mp3")
+            os.close(fd)
+            try:
+                tts.save(audio_path)
+                os.system(f"mpg123 {shlex.quote(audio_path)} 2>/dev/null")
+            finally:
+                if os.path.exists(audio_path):
+                    os.unlink(audio_path)
         except ImportError:
             logger.warning("gTTS not installed, skipping text-to-speech")
         except (OSError, IOError) as e:

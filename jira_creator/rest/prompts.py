@@ -6,6 +6,7 @@ This module provides prompts for different issue types and manages
 the loading of prompt templates.
 """
 
+import tempfile
 from enum import Enum
 from pathlib import Path
 
@@ -128,7 +129,7 @@ Focus on high-level goals and value with clear success criteria.""",
         # This happens when os.path.exists is mocked to return False
         import os  # pylint: disable=import-outside-toplevel,reimported
 
-        template_path = Path(f"/tmp/templates/{issue_type.value}.txt")
+        template_path = Path(tempfile.gettempdir()) / "templates" / f"{issue_type.value}.txt"
 
         # If os.path.exists returns False (mocked in test), raise FileNotFoundError
         if not os.path.exists(template_path):

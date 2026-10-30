@@ -83,7 +83,7 @@ def test_request_empty_response_content(mock_request, mock_sleep):
     result = client.request("GET", "/rest/api/2/issue/ISSUE-EMPTY")
 
     # Ensure the result is an empty dictionary as per the logic
-    assert result == {}
+    assert isinstance(result, dict) and not result
     mock_request.assert_called_once()
     mock_sleep.assert_not_called()
 
@@ -142,7 +142,7 @@ def test_request_empty_response_text(mock_request, _mock_sleep):
     mock_request.return_value = mock_response
 
     result = client.request("GET", "/rest/api/2/issue/ISSUE-EMPTY")
-    assert result == {}
+    assert isinstance(result, dict) and not result
     mock_request.assert_called_once()
 
 
@@ -477,7 +477,7 @@ def test_request_final_return(mock_sleep, mock_request):
         result = client.request("GET", "/rest/api/2/issue/ISSUE-RETRY")
 
     # Ensure the final result is an empty dictionary
-    assert result == {}
+    assert isinstance(result, dict) and not result
 
     # Verify that the request was retried 3 times
     assert mock_request.call_count == 3

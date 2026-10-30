@@ -65,8 +65,6 @@ class TestJiraPlugin:
         plugin = MockPlugin()
 
         # Test register_arguments
-        from argparse import ArgumentParser
-
         parser = ArgumentParser()
         plugin.register_arguments(parser)
         # Verify the argument was added
@@ -96,7 +94,7 @@ class TestJiraPlugin:
 
         # Default implementation should return empty list
         capabilities = plugin.get_fix_capabilities()
-        assert capabilities == []
+        assert isinstance(capabilities, list) and not capabilities
         assert isinstance(capabilities, list)
 
     def test_execute_fix_not_implemented(self):

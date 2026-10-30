@@ -70,10 +70,10 @@ class TestBlockedFullCoverage:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_process_blocked_issues(self, mock_env_get, capsys):
         """Test processing of blocked issues."""
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         test_issues = [
             {
@@ -118,10 +118,10 @@ class TestBlockedFullCoverage:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_no_blocked_issues(self, mock_env_get, capsys):
         """Test when no issues are blocked."""
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         test_issues = [
             {
@@ -148,10 +148,10 @@ class TestBlockedFullCoverage:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_blocked_issue_missing_reason_field(self, mock_env_get, capsys):
         """Test blocked issue where reason field doesn't exist."""
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         test_issues = [
             {

@@ -93,7 +93,7 @@ This fix will set the priority correctly."""
         assert result == "[]"
         # Verify it's valid JSON
         parsed = json.loads(result)
-        assert parsed == []
+        assert isinstance(parsed, list) and not parsed
 
     def test_extract_empty_json_object(self):
         """Test extracting empty JSON object."""
@@ -102,7 +102,7 @@ This fix will set the priority correctly."""
         assert result == "{}"
         # Verify it's valid JSON
         parsed = json.loads(result)
-        assert parsed == {}
+        assert isinstance(parsed, dict) and not parsed
 
     def test_extract_nested_json(self):
         """Test extracting nested JSON structures."""
@@ -167,7 +167,7 @@ Based on the available fix methods and the IMPORTANT RULES provided, no automate
         assert result == "[]"
         # Verify it's valid JSON
         parsed = json.loads(result)
-        assert parsed == []
+        assert isinstance(parsed, list) and not parsed
 
     def test_extract_multiple_json_blocks_takes_first(self):
         """Test that only the first JSON block is extracted."""
@@ -426,7 +426,7 @@ class TestAIExecutorGenerateFixes:
 
         fixes = executor.generate_fixes("TEST-123", ["problem"], {})
 
-        assert fixes == []
+        assert isinstance(fixes, list) and not fixes
 
     def test_generate_fixes_empty_ai_response(self):
         """Test generate_fixes with empty AI response - covers lines 211-214."""
@@ -456,7 +456,7 @@ class TestAIExecutorGenerateFixes:
             with patch("builtins.print"):
                 fixes = executor.generate_fixes("TEST-123", ["problem"], {})
 
-        assert fixes == []
+        assert isinstance(fixes, list) and not fixes
 
     def test_generate_fixes_no_json_extracted(self):
         """Test generate_fixes when JSON extraction returns empty - covers lines 220-223."""
@@ -486,7 +486,7 @@ class TestAIExecutorGenerateFixes:
             with patch("builtins.print"):
                 fixes = executor.generate_fixes("TEST-123", ["problem"], {})
 
-        assert fixes == []
+        assert isinstance(fixes, list) and not fixes
 
     def test_generate_fixes_json_decode_error(self):
         """Test generate_fixes with invalid JSON - covers lines 231-236."""
@@ -516,7 +516,7 @@ class TestAIExecutorGenerateFixes:
             with patch("builtins.print"):
                 fixes = executor.generate_fixes("TEST-123", ["problem"], {})
 
-        assert fixes == []
+        assert isinstance(fixes, list) and not fixes
 
     def test_generate_fixes_general_exception(self):
         """Test generate_fixes with general exception - covers lines 238-241."""
@@ -546,7 +546,7 @@ class TestAIExecutorGenerateFixes:
             with patch("builtins.print"):
                 fixes = executor.generate_fixes("TEST-123", ["problem"], {})
 
-        assert fixes == []
+        assert isinstance(fixes, list) and not fixes
 
     def test_build_fix_prompt(self):
         """Test _build_fix_prompt builds correct prompt - covers lines 259-297."""

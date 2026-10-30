@@ -48,7 +48,7 @@ class TestConfigPlugin:
 
         result = plugin.rest_operation(mock_client)
 
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
     def test_get_config_file_default(self):
         """Test getting default config file path."""
@@ -82,7 +82,7 @@ class TestConfigPlugin:
 
             result = plugin._load_profiles()  # pylint: disable=protected-access
 
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
     def test_load_profiles_success(self):
         """Test loading profiles successfully."""

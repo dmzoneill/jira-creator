@@ -44,7 +44,7 @@ class TestViewIssuePlugin:
         mock_client.request.assert_any_call("GET", "/rest/api/2/issue/TEST-123", params={"expand": "renderedFields"})
         mock_client.request.assert_any_call("GET", "/rest/api/2/issue/TEST-123/comment")
         assert result["fields"]["summary"] == "Test Issue"
-        assert result["_comments"] == []
+        assert isinstance(result["_comments"], list) and not result["_comments"]
 
     @patch("jira_creator.plugins.view_issue_plugin.EnvFetcher")
     def test_execute_successful(self, mock_env_fetcher):
@@ -268,7 +268,7 @@ class TestViewIssuePlugin:
 
         result = plugin.process_fields(fields, {})
 
-        assert result["component/s"] == []
+        assert isinstance(result["component/s"], list) and not result["component/s"]
         assert result["assignee"] == "Unassigned"
         assert result["reporter"] == "Unassigned"
         assert "issue type" not in result  # None values are filtered out

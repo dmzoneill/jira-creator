@@ -152,7 +152,7 @@ class TestCreateIssuePlugin:
         # Mock editor function
         def mock_editor(cmd_list):
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("Edited description")
 
         plugin = CreateIssuePlugin(editor_func=mock_editor)

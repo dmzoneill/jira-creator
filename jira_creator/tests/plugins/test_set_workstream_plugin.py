@@ -106,10 +106,10 @@ class TestSetWorkstreamPlugin:
         mock_client.request.return_value = {"key": "TEST-123"}
 
         # Mock EnvFetcher.get to return field and default ID
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_WORKSTREAM_FIELD": "customfield_10020",
             "JIRA_WORKSTREAM_ID": "WS-DEFAULT",
-        }.get(key)
+        }.get
 
         result = plugin.rest_operation(mock_client, issue_key="TEST-123", value=None)
 
@@ -159,10 +159,10 @@ class TestSetWorkstreamPlugin:
         mock_client.request.return_value = {"key": "TEST-123"}
 
         # Mock EnvFetcher.get to return field and default ID
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_WORKSTREAM_FIELD": "customfield_10020",
             "JIRA_WORKSTREAM_ID": "WS-DEFAULT",
-        }.get(key)
+        }.get
 
         args = Namespace(issue_key="TEST-123", workstream_id=None)
 
@@ -274,9 +274,9 @@ class TestSetWorkstreamPlugin:
 
         for field_id in custom_fields:
             mock_client.reset_mock()
-            mock_env_fetcher.get.side_effect = lambda key: {
+            mock_env_fetcher.get.side_effect = {
                 "JIRA_WORKSTREAM_FIELD": field_id,
-            }.get(key)
+            }.get
 
             plugin.rest_operation(mock_client, issue_key="TEST-123", value="WS-999")
 
@@ -293,10 +293,10 @@ class TestSetWorkstreamPlugin:
         mock_client.request.return_value = {"key": "TEST-123"}
 
         # Mock EnvFetcher.get to return field and default ID
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_WORKSTREAM_FIELD": "customfield_10020",
             "JIRA_WORKSTREAM_ID": "WS-DEFAULT",
-        }.get(key)
+        }.get
 
         args = Namespace(issue_key="TEST-123", workstream_id="")
 

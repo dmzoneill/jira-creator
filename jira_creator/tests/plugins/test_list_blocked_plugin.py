@@ -112,7 +112,7 @@ class TestListBlockedPlugin:
         fields = {"issuelinks": []}
         blockers = plugin._get_blockers(fields)  # pylint: disable=protected-access
 
-        assert blockers == []
+        assert isinstance(blockers, list) and not blockers
 
     def test_process_issues_without_blockers(self):
         """Test processing issues without fetching blocker details."""

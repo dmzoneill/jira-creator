@@ -128,7 +128,7 @@ class TestCoverageImprovements:
 
         # Test rest_operation returns empty dict
         result = plugin.rest_operation(None)
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
     def test_plugin_registry_custom_plugin_dir(self):
         """Test registry.py line 43: custom plugin_dir path conversion."""

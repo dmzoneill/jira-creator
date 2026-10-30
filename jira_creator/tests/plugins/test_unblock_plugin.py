@@ -31,10 +31,10 @@ class TestUnblockPlugin:
     def test_rest_operation(self, mock_env_fetcher):
         """Test the REST operation for unblocking an issue."""
         # Mock environment variables
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10000",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10001",
-        }.get(key)
+        }.get
 
         plugin = UnblockPlugin()
         mock_client = Mock()
@@ -62,10 +62,10 @@ class TestUnblockPlugin:
     @patch("jira_creator.plugins.unblock_plugin.EnvFetcher")
     def test_execute_success(self, mock_env_fetcher):
         """Test successful execution of unblock command."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10000",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10001",
-        }.get(key)
+        }.get
 
         plugin = UnblockPlugin()
         mock_client = Mock()
@@ -80,10 +80,10 @@ class TestUnblockPlugin:
     @patch("jira_creator.plugins.unblock_plugin.EnvFetcher")
     def test_execute_success_prints_message(self, mock_env_fetcher, capsys):
         """Test that success message is printed."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10000",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10001",
-        }.get(key)
+        }.get
 
         plugin = UnblockPlugin()
         mock_client = Mock()
@@ -98,10 +98,10 @@ class TestUnblockPlugin:
     @patch("jira_creator.plugins.unblock_plugin.EnvFetcher")
     def test_execute_failure(self, mock_env_fetcher):
         """Test handling of UnBlockError during execution."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10000",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10001",
-        }.get(key)
+        }.get
 
         plugin = UnblockPlugin()
         mock_client = Mock()
@@ -117,10 +117,10 @@ class TestUnblockPlugin:
     @patch("jira_creator.plugins.unblock_plugin.EnvFetcher")
     def test_execute_failure_prints_message(self, mock_env_fetcher, capsys):
         """Test that error message is printed on failure."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10000",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10001",
-        }.get(key)
+        }.get
 
         plugin = UnblockPlugin()
         mock_client = Mock()
@@ -137,10 +137,10 @@ class TestUnblockPlugin:
     @patch("jira_creator.plugins.unblock_plugin.EnvFetcher")
     def test_execute_with_different_issue_keys(self, mock_env_fetcher):
         """Test execution with various issue key formats."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10000",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10001",
-        }.get(key)
+        }.get
 
         plugin = UnblockPlugin()
         mock_client = Mock()
@@ -175,10 +175,10 @@ class TestUnblockPlugin:
     def test_rest_operation_with_different_field_ids(self, mock_env_fetcher):
         """Test REST operation with different custom field IDs."""
         # Test with different field IDs
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_20000",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_20001",
-        }.get(key)
+        }.get
 
         plugin = UnblockPlugin()
         mock_client = Mock()
@@ -199,10 +199,10 @@ class TestUnblockPlugin:
     @patch("jira_creator.plugins.unblock_plugin.EnvFetcher")
     def test_rest_operation_with_api_response(self, mock_env_fetcher):
         """Test REST operation returns the API response."""
-        mock_env_fetcher.get.side_effect = lambda key: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10000",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10001",
-        }.get(key)
+        }.get
 
         plugin = UnblockPlugin()
         mock_client = Mock()

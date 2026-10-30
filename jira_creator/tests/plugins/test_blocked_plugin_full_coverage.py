@@ -11,10 +11,10 @@ class TestBlockedPluginFullCoverage:
     def test_blocked_plugin_with_issues(self, mock_env_get, capsys):
         """Test blocked plugin by patching the implementation to process issues."""
         # Mock environment variables
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         # Import the module
         import jira_creator.plugins.blocked_plugin as blocked_module
@@ -135,10 +135,10 @@ class TestBlockedPluginFullCoverage:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_blocked_plugin_no_blocked_issues(self, mock_env_get, capsys):
         """Test when there are issues but none are blocked."""
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         import jira_creator.plugins.blocked_plugin as blocked_module
 
@@ -250,7 +250,7 @@ def test_no_blocked_issues_path(capsys):
 
         result = plugin.rest_operation(mock_client, _test_issues=unblocked_issues)
 
-        assert result["blocked_issues"] == []
+        assert isinstance(result["blocked_issues"], list) and not result["blocked_issues"]
         assert "No blocked issues found" in result["message"]
 
 

@@ -82,7 +82,7 @@ class AIHelperPlugin(JiraPlugin):
             ai_provider = get_ai_provider(EnvFetcher.get("JIRA_AI_PROVIDER"))
 
             # Load the AI helper prompt template
-            system_prompt = self._load_template("aihelper")
+            system_prompt = self.load_template("aihelper")
 
             # Get all available plugin commands
             registry = PluginRegistry()
@@ -90,7 +90,7 @@ class AIHelperPlugin(JiraPlugin):
             plugin_names = registry.list_plugins()
 
             # Build command metadata for AI
-            commands_metadata = self._build_command_metadata(registry, plugin_names)
+            commands_metadata = self.build_command_metadata(registry, plugin_names)
 
             # Prepare full prompt
             full_prompt = f"{system_prompt}\n\nAvailable Commands:\n{commands_metadata}\n\nUser Request: {args.prompt}"
@@ -100,14 +100,14 @@ class AIHelperPlugin(JiraPlugin):
             ai_response = ai_provider.improve_text(full_prompt, "")
 
             # Parse and execute commands
-            steps = self._parse_ai_response(ai_response)
+            steps = self.parse_ai_response(ai_response)
 
             if not steps:
                 print("⚠️  AI couldn't understand the request. Try being more specific.")
                 return False
 
             # Execute each step
-            success = self._execute_steps(client, registry, steps, args.voice)
+            success = self.execute_steps(client, registry, steps, args.voice)
             return success
 
         except AIHelperError as e:
@@ -115,7 +115,7 @@ class AIHelperPlugin(JiraPlugin):
             print(f"❌ AI helper failed: {e}")
             raise
 
-    def _load_template(self, template_name: str) -> str:
+    def load_template(self, template_name: str) -> str:
         """
         Load a template file.
 
@@ -134,7 +134,7 @@ class AIHelperPlugin(JiraPlugin):
         except FileNotFoundError as e:
             raise AIHelperError(f"Template file not found: {template_file}") from e
 
-    def _build_command_metadata(self, registry: PluginRegistry, plugin_names: list[str]) -> str:
+    def build_command_metadata(self, registry: PluginRegistry, plugin_names: list[str]) -> str:
         """
         Build metadata string describing all available commands.
 
@@ -157,7 +157,7 @@ class AIHelperPlugin(JiraPlugin):
 
         return "\n".join(metadata)
 
-    def _parse_ai_response(self, ai_response: str) -> list[dict[str, Any]]:
+    def parse_ai_response(self, ai_response: str) -> list[dict[str, Any]]:
         """
         Parse AI response into structured steps.
 
@@ -192,7 +192,7 @@ class AIHelperPlugin(JiraPlugin):
             logger.debug("Raw response: %s", cleaned[:500])
             raise AIHelperError(f"Failed to parse AI response: {e}") from e
 
-    def _execute_steps(self, client: Any, registry: PluginRegistry, steps: list[dict[str, Any]], voice: bool) -> bool:
+    def execute_steps(self, client: Any, registry: PluginRegistry, steps: list[dict[str, Any]], voice: bool) -> bool:
         """
         Execute the steps returned by AI.
 
@@ -237,18 +237,18 @@ class AIHelperPlugin(JiraPlugin):
 
                 # Text-to-speech if requested
                 if voice:
-                    self._speak(action)
+                    self.speak(action)
 
             except (ValueError, KeyError, AttributeError, AIHelperError) as e:
                 logger.error("Failed to execute step %s: %s", function_name, e)
                 print(f"   ❌ Failed: {e}")
                 if voice:
-                    self._speak(f"Failed: {e}")
+                    self.speak(f"Failed: {e}")
 
         print(f"\n✅ Executed {success_count} of {len(steps)} steps successfully")
         return success_count > 0
 
-    def _speak(self, text: str) -> None:
+    def speak(self, text: str) -> None:
         """
         Convert text to speech using gTTS.
 

@@ -6,8 +6,7 @@ This plugin implements the open-issue command, allowing users to open
 Jira issues in their default web browser.
 """
 
-import subprocess
-import sys
+import webbrowser
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict, List
 
@@ -72,18 +71,9 @@ class OpenIssuePlugin(JiraPlugin):
             # Build issue URL
             issue_url = f"{jira_url}/browse/{args.issue_key}"
 
-            # Open in browser based on platform
-            if sys.platform == "darwin":  # macOS
-                with subprocess.Popen(["open", issue_url]):
-                    pass
-            elif sys.platform in ("linux", "linux2"):  # Linux
-                with subprocess.Popen(["xdg-open", issue_url]):
-                    pass
-            elif sys.platform == "win32":  # Windows
-                with subprocess.Popen(["start", issue_url], shell=True):
-                    pass
-            else:
-                raise OpenIssueError(f"Unsupported platform: {sys.platform}")
+            # Open in the user's default browser (cross-platform, no shell)
+            if not webbrowser.open(issue_url):
+                raise OpenIssueError("No web browser available to open the issue")
 
             print(f"🌐 Opening {issue_url} in browser...")
             return True

@@ -279,7 +279,7 @@ class TestAIHelperPlugin:
         # Should handle error and continue
         assert result is False
 
-    @patch("jira_creator.plugins.ai_helper_plugin.os.system")
+    @patch("jira_creator.plugins.ai_helper_plugin.subprocess.run")
     def test_execute_steps_with_voice(self, mock_system):
         """Test step execution with voice enabled."""
         plugin = AIHelperPlugin()
@@ -369,12 +369,12 @@ class TestAIHelperPlugin:
         # Should return empty list when result is not a list
         assert steps == []
 
-    @patch("jira_creator.plugins.ai_helper_plugin.os.system")
+    @patch("jira_creator.plugins.ai_helper_plugin.subprocess.run")
     def test_speak_os_error(self, mock_system):
         """Test _speak when OSError occurs."""
         plugin = AIHelperPlugin()
 
-        # Mock gTTS to succeed but os.system to fail
+        # Mock gTTS to succeed but subprocess.run to fail
         mock_system.side_effect = OSError("Command failed")
 
         # Mock the gTTS import

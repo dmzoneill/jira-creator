@@ -8,7 +8,7 @@ and the AI will translate it into the appropriate Jira commands and execute them
 import json
 import os
 import re
-import shlex
+import subprocess
 import tempfile
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
@@ -263,7 +263,7 @@ class AIHelperPlugin(JiraPlugin):
             os.close(fd)
             try:
                 tts.save(audio_path)
-                os.system(f"mpg123 {shlex.quote(audio_path)} 2>/dev/null")
+                subprocess.run(["mpg123", audio_path], stderr=subprocess.DEVNULL, check=False)
             finally:
                 if os.path.exists(audio_path):
                     os.unlink(audio_path)

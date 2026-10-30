@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 AI Helper plugin for jira-creator.
 
@@ -13,7 +12,7 @@ import shlex
 import tempfile
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
@@ -47,7 +46,7 @@ class AIHelperPlugin(JiraPlugin):
         return "Utilities"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return [
             'ai-helper "Add issue AAP-12345 to the current sprint"',
@@ -55,7 +54,7 @@ class AIHelperPlugin(JiraPlugin):
             'ai-helper "Create a bug for login page crash" --voice',
         ]
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "AIHelperError": AIHelperError,
@@ -94,9 +93,7 @@ class AIHelperPlugin(JiraPlugin):
             commands_metadata = self._build_command_metadata(registry, plugin_names)
 
             # Prepare full prompt
-            full_prompt = (
-                f"{system_prompt}\n\n" f"Available Commands:\n{commands_metadata}\n\n" f"User Request: {args.prompt}"
-            )
+            full_prompt = f"{system_prompt}\n\nAvailable Commands:\n{commands_metadata}\n\nUser Request: {args.prompt}"
 
             # Get AI response
             logger.info("Sending request to AI: %s", args.prompt)
@@ -132,12 +129,12 @@ class AIHelperPlugin(JiraPlugin):
         template_file = template_dir / f"{template_name}.tmpl"
 
         try:
-            with open(template_file, "r", encoding="utf-8") as f:
+            with open(template_file, encoding="utf-8") as f:
                 return f.read()
         except FileNotFoundError as e:
             raise AIHelperError(f"Template file not found: {template_file}") from e
 
-    def _build_command_metadata(self, registry: PluginRegistry, plugin_names: List[str]) -> str:
+    def _build_command_metadata(self, registry: PluginRegistry, plugin_names: list[str]) -> str:
         """
         Build metadata string describing all available commands.
 
@@ -160,7 +157,7 @@ class AIHelperPlugin(JiraPlugin):
 
         return "\n".join(metadata)
 
-    def _parse_ai_response(self, ai_response: str) -> List[Dict[str, Any]]:
+    def _parse_ai_response(self, ai_response: str) -> list[dict[str, Any]]:
         """
         Parse AI response into structured steps.
 
@@ -195,7 +192,7 @@ class AIHelperPlugin(JiraPlugin):
             logger.debug("Raw response: %s", cleaned[:500])
             raise AIHelperError(f"Failed to parse AI response: {e}") from e
 
-    def _execute_steps(self, client: Any, registry: PluginRegistry, steps: List[Dict[str, Any]], voice: bool) -> bool:
+    def _execute_steps(self, client: Any, registry: PluginRegistry, steps: list[dict[str, Any]], voice: bool) -> bool:
         """
         Execute the steps returned by AI.
 
@@ -272,10 +269,10 @@ class AIHelperPlugin(JiraPlugin):
                     os.unlink(audio_path)
         except ImportError:
             logger.warning("gTTS not installed, skipping text-to-speech")
-        except (OSError, IOError) as e:
+        except OSError as e:
             logger.error("Text-to-speech failed: %s", e)
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         This plugin doesn't use REST operations directly.
 

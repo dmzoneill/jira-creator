@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Prompt library for AI-assisted text generation.
 
@@ -6,8 +5,15 @@ This module provides prompts for different issue types and manages
 the loading of prompt templates.
 """
 
+import logging
+import tempfile
 from enum import Enum
 from pathlib import Path
+from typing import ClassVar
+
+from jira_creator.exceptions.exceptions import MissingConfigVariable
+
+logger = logging.getLogger(__name__)
 
 
 class IssueType(Enum):
@@ -27,7 +33,7 @@ class PromptLibrary:
     """Library for managing and retrieving prompts for different issue types."""
 
     # Default prompts for each issue type
-    _PROMPTS = {
+    _PROMPTS: ClassVar[dict[IssueType, str]] = {
         IssueType.DEFAULT: (
             "As a professional Principal Software Engineer, you write acute and clear summaries "
             "and descriptions for JIRA issues. You focus on clarity and completeness."
@@ -118,23 +124,22 @@ Focus on high-level goals and value with clear success criteria.""",
                 if template_dir:
                     template_path = Path(template_dir) / "qc.tmpl"
                     if template_path.exists():
-                        with open(template_path, "r", encoding="utf-8") as f:
+                        with open(template_path, encoding="utf-8") as f:
                             return f.read()
-            except Exception:  # pylint: disable=broad-exception-caught
+            except (OSError, UnicodeDecodeError, MissingConfigVariable) as e:
                 # Fall back to hardcoded prompt if template loading fails
-                pass
+                logger.debug("Falling back to built-in QC prompt: %s", e)
 
         # Check if we should simulate file not found (for testing)
         # This happens when os.path.exists is mocked to return False
         import os  # pylint: disable=import-outside-toplevel,reimported
 
-        template_path = Path(f"/tmp/templates/{issue_type.value}.txt")
+        template_path = Path(tempfile.gettempdir()) / "templates" / f"{issue_type.value}.txt"
 
         # If os.path.exists returns False (mocked in test), raise FileNotFoundError
-        if not os.path.exists(template_path):
-            # Only raise if we're in a test environment (os.path.exists is likely mocked)
-            if hasattr(os.path.exists, "_mock_name"):
-                raise FileNotFoundError(f"Template not found: {template_path}")
+        # Only raise if we're in a test environment (os.path.exists is likely mocked)
+        if not os.path.exists(template_path) and hasattr(os.path.exists, "_mock_name"):
+            raise FileNotFoundError(f"Template not found: {template_path}")
 
         return cls._PROMPTS.get(issue_type, cls._PROMPTS[IssueType.DEFAULT])
 

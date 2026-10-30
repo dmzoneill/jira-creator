@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the AI helper plugin."""
 
 import json
@@ -63,7 +62,7 @@ class TestAIHelperPlugin:
         plugin = AIHelperPlugin()
 
         # Mock the template loading
-        with patch.object(plugin, "_load_template", return_value="System prompt"):
+        with patch.object(plugin, "load_template", return_value="System prompt"):
             mock_client = Mock()
             args = Namespace(prompt="Create a test issue", voice=False)
 
@@ -89,7 +88,7 @@ class TestAIHelperPlugin:
         mock_registry_class.return_value = mock_registry
 
         plugin = AIHelperPlugin()
-        with patch.object(plugin, "_load_template", return_value="System prompt"):
+        with patch.object(plugin, "load_template", return_value="System prompt"):
             mock_client = Mock()
             args = Namespace(prompt="invalid", voice=False)
 
@@ -109,6 +108,10 @@ class TestAIHelperPlugin:
         with pytest.raises(AIHelperError):
             plugin.execute(mock_client, args)
 
+
+class TestAIHelperPluginHelpers:
+    """Test cases for AIHelperPlugin helper methods."""
+
     def test_load_template_success(self):
         """Test successful template loading."""
         plugin = AIHelperPlugin()
@@ -119,7 +122,7 @@ class TestAIHelperPlugin:
 
         # The template should exist
         if template_file.exists():
-            content = plugin._load_template("aihelper")
+            content = plugin.load_template("aihelper")
             assert isinstance(content, str)
             assert len(content) > 0
 
@@ -128,7 +131,7 @@ class TestAIHelperPlugin:
         plugin = AIHelperPlugin()
 
         with pytest.raises(AIHelperError, match="Template file not found"):
-            plugin._load_template("nonexistent_template")
+            plugin.load_template("nonexistent_template")
 
     def test_build_command_metadata(self):
         """Test building command metadata."""
@@ -145,7 +148,7 @@ class TestAIHelperPlugin:
             "view-issue": mock_plugin2,
         }.get
 
-        metadata = plugin._build_command_metadata(mock_registry, ["create-issue", "view-issue"])
+        metadata = plugin.build_command_metadata(mock_registry, ["create-issue", "view-issue"])
 
         assert "create-issue: Create an issue" in metadata
         assert "view-issue: View an issue" in metadata
@@ -157,7 +160,7 @@ class TestAIHelperPlugin:
         mock_registry = Mock()
         mock_registry.get_plugin.return_value = None
 
-        metadata = plugin._build_command_metadata(mock_registry, ["nonexistent"])
+        metadata = plugin.build_command_metadata(mock_registry, ["nonexistent"])
 
         assert metadata == ""
 
@@ -169,7 +172,7 @@ class TestAIHelperPlugin:
         mock_plugin = Mock(spec=[])  # No help_text attribute
         mock_registry.get_plugin.return_value = mock_plugin
 
-        metadata = plugin._build_command_metadata(mock_registry, ["test"])
+        metadata = plugin.build_command_metadata(mock_registry, ["test"])
 
         assert "test: " in metadata
 
@@ -179,7 +182,7 @@ class TestAIHelperPlugin:
 
         response = json.dumps([{"function": "test", "args": {}, "action": "Testing"}])
 
-        steps = plugin._parse_ai_response(response)
+        steps = plugin.parse_ai_response(response)
 
         assert len(steps) == 1
         assert steps[0]["function"] == "test"
@@ -190,7 +193,7 @@ class TestAIHelperPlugin:
 
         response = "```json\n" + json.dumps([{"function": "test", "args": {}}]) + "\n```"
 
-        steps = plugin._parse_ai_response(response)
+        steps = plugin.parse_ai_response(response)
 
         assert len(steps) == 1
 
@@ -200,7 +203,7 @@ class TestAIHelperPlugin:
 
         response = json.dumps({"error": "Cannot process"})
 
-        steps = plugin._parse_ai_response(response)
+        steps = plugin.parse_ai_response(response)
 
         assert isinstance(steps, list) and not steps
 
@@ -210,7 +213,7 @@ class TestAIHelperPlugin:
 
         response = json.dumps({"something": "else"})
 
-        steps = plugin._parse_ai_response(response)
+        steps = plugin.parse_ai_response(response)
 
         assert isinstance(steps, list) and not steps
 
@@ -219,7 +222,11 @@ class TestAIHelperPlugin:
         plugin = AIHelperPlugin()
 
         with pytest.raises(AIHelperError, match="Failed to parse AI response"):
-            plugin._parse_ai_response("not valid json")
+            plugin.parse_ai_response("not valid json")
+
+
+class TestAIHelperPluginSteps:
+    """Test cases for AIHelperPlugin step execution and speech."""
 
     def test_execute_steps_no_steps(self):
         """Test executing with no steps."""
@@ -227,7 +234,7 @@ class TestAIHelperPlugin:
         mock_client = Mock()
         mock_registry = Mock()
 
-        result = plugin._execute_steps(mock_client, mock_registry, [], False)
+        result = plugin.execute_steps(mock_client, mock_registry, [], False)
 
         assert result is False
 
@@ -243,7 +250,7 @@ class TestAIHelperPlugin:
 
         steps = [{"function": "test", "args": {"key": "value"}, "action": "Testing"}]
 
-        result = plugin._execute_steps(mock_client, mock_registry, steps, False)
+        result = plugin.execute_steps(mock_client, mock_registry, steps, False)
 
         assert result is True
         mock_plugin.execute.assert_called_once()
@@ -258,7 +265,7 @@ class TestAIHelperPlugin:
 
         steps = [{"function": "nonexistent", "args": {}, "action": "Testing"}]
 
-        result = plugin._execute_steps(mock_client, mock_registry, steps, False)
+        result = plugin.execute_steps(mock_client, mock_registry, steps, False)
 
         assert result is False
 
@@ -274,13 +281,13 @@ class TestAIHelperPlugin:
 
         steps = [{"function": "test", "args": {}, "action": "Testing"}]
 
-        result = plugin._execute_steps(mock_client, mock_registry, steps, False)
+        result = plugin.execute_steps(mock_client, mock_registry, steps, False)
 
         # Should handle error and continue
         assert result is False
 
-    @patch("jira_creator.plugins.ai_helper_plugin.os.system")
-    def test_execute_steps_with_voice(self, mock_system):
+    @patch("jira_creator.plugins.ai_helper_plugin.subprocess.run", new=Mock())
+    def test_execute_steps_with_voice(self):
         """Test step execution with voice enabled."""
         plugin = AIHelperPlugin()
         mock_client = Mock()
@@ -292,8 +299,8 @@ class TestAIHelperPlugin:
 
         steps = [{"function": "test", "args": {}, "action": "Testing"}]
 
-        with patch.object(plugin, "_speak"):
-            result = plugin._execute_steps(mock_client, mock_registry, steps, True)
+        with patch.object(plugin, "speak"):
+            result = plugin.execute_steps(mock_client, mock_registry, steps, True)
 
             assert result is True
 
@@ -304,7 +311,7 @@ class TestAIHelperPlugin:
         # gTTS import will fail naturally if not installed
         # Should not raise, just log warning
         try:
-            plugin._speak("Test message")
+            plugin.speak("Test message")
         except ImportError:
             pytest.skip("gTTS not installed")
 
@@ -325,7 +332,7 @@ class TestAIHelperPlugin:
 
             steps = [{"function": "test", "args": {}, "action": "Testing"}]
 
-            result = plugin._execute_steps(mock_client, mock_registry, steps, False)
+            result = plugin.execute_steps(mock_client, mock_registry, steps, False)
             assert result is False
 
     @patch("jira_creator.plugins.ai_helper_plugin.get_ai_provider")
@@ -347,15 +354,14 @@ class TestAIHelperPlugin:
         mock_registry_class.return_value = mock_registry
 
         plugin = AIHelperPlugin()
-        with patch.object(plugin, "_load_template", return_value="System prompt"):
-            with patch.object(plugin, "_speak"):
-                mock_client = Mock()
-                args = Namespace(prompt="test", voice=True)
+        with patch.object(plugin, "load_template", return_value="System prompt"), patch.object(plugin, "speak"):
+            mock_client = Mock()
+            args = Namespace(prompt="test", voice=True)
 
-                plugin.execute(mock_client, args)
+            plugin.execute(mock_client, args)
 
-                # Voice should be called for error if gTTS is available
-                # but we don't assert since gTTS may not be installed
+            # Voice should be called for error if gTTS is available
+            # but we don't assert since gTTS may not be installed
 
     def test_parse_ai_response_not_list(self):
         """Test parsing AI response when result is not a list."""
@@ -364,17 +370,17 @@ class TestAIHelperPlugin:
         # Response is a dict, not a list
         response = json.dumps({"error": "Invalid format"})
 
-        steps = plugin._parse_ai_response(response)
+        steps = plugin.parse_ai_response(response)
 
         # Should return empty list when result is not a list
         assert isinstance(steps, list) and not steps
 
-    @patch("jira_creator.plugins.ai_helper_plugin.os.system")
+    @patch("jira_creator.plugins.ai_helper_plugin.subprocess.run")
     def test_speak_os_error(self, mock_system):
-        """Test _speak when OSError occurs."""
+        """Test speak when OSError occurs."""
         plugin = AIHelperPlugin()
 
-        # Mock gTTS to succeed but os.system to fail
+        # Mock gTTS to succeed but subprocess.run to fail
         mock_system.side_effect = OSError("Command failed")
 
         # Mock the gTTS import
@@ -386,15 +392,15 @@ class TestAIHelperPlugin:
             ),
         ):
             # Should handle OSError gracefully
-            plugin._speak("test")
+            plugin.speak("test")
 
     def test_speak_io_error(self):
-        """Test _speak when IOError occurs."""
+        """Test speak when IOError occurs."""
         plugin = AIHelperPlugin()
 
         # Mock gTTS to raise IOError when saving
         mock_tts = Mock()
-        mock_tts.save.side_effect = IOError("Cannot save file")
+        mock_tts.save.side_effect = OSError("Cannot save file")
 
         # Mock the gTTS import
         with patch(
@@ -404,4 +410,4 @@ class TestAIHelperPlugin:
             ),
         ):
             # Should handle IOError gracefully
-            plugin._speak("test")
+            plugin.speak("test")

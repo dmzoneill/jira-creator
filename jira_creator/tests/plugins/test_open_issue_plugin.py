@@ -34,7 +34,7 @@ class TestOpenIssuePlugin:
 
         result = plugin.rest_operation(mock_client)
 
-        assert result == {}
+        assert isinstance(result, dict) and not result
         # Verify no client requests were made
         mock_client.request.assert_not_called()
 

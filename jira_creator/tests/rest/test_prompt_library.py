@@ -19,9 +19,9 @@ Dependencies:
 
 from unittest.mock import patch
 
-from jira_creator.rest.prompts import IssueType, PromptLibrary
+import pytest
 
-import pytest  # isort: skip
+from jira_creator.rest.prompts import IssueType, PromptLibrary
 
 
 def test_prompt_exists_for_all_types():
@@ -45,7 +45,7 @@ def test_prompt_exists_for_all_types():
     # Iterate through all issue types in IssueType enum
 
     for issue_type in IssueType:
-        if issue_type == IssueType.COMMENT or issue_type == IssueType.DEFAULT:
+        if issue_type in (IssueType.COMMENT, IssueType.DEFAULT):
             continue
         if issue_type == IssueType.QC:
             prompt = PromptLibrary.get_prompt(IssueType.QC)

@@ -260,7 +260,7 @@ class TestSetterPlugin:
 
         plugin2 = TestPlugin2()
         result = plugin2.rest_operation(None)
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
         # Test the third TestPlugin for line 215
         class TestPlugin3(SetterPlugin):
@@ -280,7 +280,7 @@ class TestSetterPlugin:
 
         plugin3 = TestPlugin3()
         result = plugin3.rest_operation(None)
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
         # Test for line 72 (property return)
         class TestPlugin4(SetterPlugin):
@@ -313,4 +313,4 @@ class TestSetterPlugin:
 
         plugin5 = TestPlugin5()
         result = plugin5.rest_operation(None)
-        assert result == {}
+        assert isinstance(result, dict) and not result

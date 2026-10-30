@@ -83,7 +83,7 @@ class TestSearchPlugin:
         mock_client.request.return_value = {}  # No issues key
 
         result = plugin.rest_operation(mock_client, jql="project = TEST")
-        assert result == []
+        assert isinstance(result, list) and not result
 
     @patch("jira_creator.plugins.search_plugin.massage_issue_list")
     @patch("jira_creator.plugins.search_plugin.format_and_print_rows")

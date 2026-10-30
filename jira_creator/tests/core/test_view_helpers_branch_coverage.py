@@ -16,7 +16,6 @@ class TestViewHelpersBranchCoverage:
         # This test is actually more complex since fetch_view_columns doesn't take jira_client
         # The branch 172->175 is actually in format_and_print_rows
         # Let me focus on the correct function
-        pass
 
     def test_format_and_print_rows_no_summary_column(self, capsys):
         """Test format_and_print_rows when summary_index is -1 - covers 219->223."""
@@ -124,7 +123,7 @@ class TestViewHelpersBranchCoverage:
             }
         ]
 
-        headers, rows = massage_issue_list(args, issues)
+        _headers, rows = massage_issue_list(args, issues)
 
         # Should handle None sprint field gracefully
         assert len(rows) == 1

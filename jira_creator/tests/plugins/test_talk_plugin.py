@@ -45,7 +45,7 @@ class TestTalkPlugin:
         plugin = TalkPlugin()
         mock_client = Mock()
         result = plugin.rest_operation(mock_client)
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
     @patch("jira_creator.plugins.talk_plugin.os.path.exists")
     @patch("jira_creator.plugins.talk_plugin.EnvFetcher")

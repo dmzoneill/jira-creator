@@ -79,7 +79,7 @@ class TestAddCommentPlugin:
         def mock_editor(cmd_list):
             # Extract filename from command
             filename = cmd_list[1]
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write("Editor comment")
 
         plugin = AddCommentPlugin(editor_func=mock_editor)

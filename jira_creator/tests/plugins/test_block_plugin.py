@@ -44,10 +44,10 @@ class TestBlockPlugin:
         mock_client = Mock()
 
         # Mock environment variables
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         result = plugin.rest_operation(
             mock_client,
@@ -76,10 +76,10 @@ class TestBlockPlugin:
         args = Namespace(issue_key="TEST-123", reason=["Waiting", "for", "dependencies"])
 
         with patch("jira_creator.plugins.block_plugin.EnvFetcher.get") as mock_env:
-            mock_env.side_effect = lambda key: {
+            mock_env.side_effect = {
                 "JIRA_BLOCKED_FIELD": "customfield_10001",
                 "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-            }.get(key)
+            }.get
 
             result = plugin.execute(mock_client, args)
 
@@ -94,10 +94,10 @@ class TestBlockPlugin:
         args = Namespace(issue_key="TEST-123", reason=["Waiting", "for", "dependencies"])
 
         with patch("jira_creator.plugins.block_plugin.EnvFetcher.get") as mock_env:
-            mock_env.side_effect = lambda key: {
+            mock_env.side_effect = {
                 "JIRA_BLOCKED_FIELD": "customfield_10001",
                 "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-            }.get(key)
+            }.get
 
             plugin.execute(mock_client, args)
 
@@ -112,10 +112,10 @@ class TestBlockPlugin:
         args = Namespace(issue_key="TEST-123", reason=["This", "is", "a", "multi-word", "reason"])
 
         with patch("jira_creator.plugins.block_plugin.EnvFetcher.get") as mock_env:
-            mock_env.side_effect = lambda key: {
+            mock_env.side_effect = {
                 "JIRA_BLOCKED_FIELD": "customfield_10001",
                 "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-            }.get(key)
+            }.get
 
             plugin.execute(mock_client, args)
 
@@ -132,10 +132,10 @@ class TestBlockPlugin:
         args = Namespace(issue_key="TEST-123", reason=["Test", "reason"])
 
         with patch("jira_creator.plugins.block_plugin.EnvFetcher.get") as mock_env:
-            mock_env.side_effect = lambda key: {
+            mock_env.side_effect = {
                 "JIRA_BLOCKED_FIELD": "customfield_10001",
                 "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-            }.get(key)
+            }.get
 
             with pytest.raises(BlockError) as exc_info:
                 plugin.execute(mock_client, args)
@@ -151,10 +151,10 @@ class TestBlockPlugin:
         args = Namespace(issue_key="TEST-123", reason=["Test"])
 
         with patch("jira_creator.plugins.block_plugin.EnvFetcher.get") as mock_env:
-            mock_env.side_effect = lambda key: {
+            mock_env.side_effect = {
                 "JIRA_BLOCKED_FIELD": "customfield_10001",
                 "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-            }.get(key)
+            }.get
 
             with pytest.raises(BlockError):
                 plugin.execute(mock_client, args)
@@ -169,10 +169,10 @@ class TestBlockPlugin:
         mock_client = Mock()
 
         # Test with different field IDs
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_99999",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_88888",
-        }.get(key)
+        }.get
 
         plugin.rest_operation(mock_client, issue_key="TEST-456", reason="Different reason")
 

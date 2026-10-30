@@ -4,10 +4,10 @@
 from argparse import Namespace
 from unittest.mock import Mock, patch
 
+import pytest
+
 from jira_creator.plugins.blocked_plugin import BlockedPlugin
 from jira_creator.plugins.list_blocked_plugin import ListBlockedError
-
-import pytest  # isort: skip
 
 
 class TestBlockedPlugin:
@@ -142,10 +142,10 @@ class TestBlockedPlugin:
         # mock_client = Mock()  # noqa: F841
 
         # Mock environment variables
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         # Override the empty issues list for testing
         # Since the implementation has issues = [], we need to test the logic
@@ -193,10 +193,10 @@ class TestBlockedPlugin:
         # plugin = BlockedPlugin()  # noqa: F841
         # mock_client = Mock()  # noqa: F841
 
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         # Test the assignee logic for unassigned issues
         fields = {
@@ -249,10 +249,10 @@ class TestBlockedPlugin:
         mock_client = Mock()
 
         # Mock environment variables
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         # Mock the plugin to return issues instead of empty list
         # We'll patch the method to simulate it receiving issues from list_issues
@@ -343,10 +343,10 @@ class TestBlockedPlugin:
         # mock_client = Mock()  # noqa: F841
 
         # Mock environment variables
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         # Mock issues that are not blocked
         mock_issues = [
@@ -396,10 +396,10 @@ class TestBlockedPlugin:
         # plugin = BlockedPlugin()  # noqa: F841
 
         # Mock environment variables
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         # Directly test the blocked issue processing logic that's after line 79
         # This code is currently unreachable in normal execution due to issues = []

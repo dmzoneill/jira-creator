@@ -34,7 +34,7 @@ class TestAIHelperPlugin:
         plugin = AIHelperPlugin()
         mock_client = Mock()
         result = plugin.rest_operation(mock_client)
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
     @patch("jira_creator.plugins.ai_helper_plugin.get_ai_provider")
     @patch("jira_creator.plugins.ai_helper_plugin.PluginRegistry")
@@ -140,10 +140,10 @@ class TestAIHelperPlugin:
         mock_plugin2 = Mock()
         mock_plugin2.help_text = "View an issue"
 
-        mock_registry.get_plugin.side_effect = lambda name: {
+        mock_registry.get_plugin.side_effect = {
             "create-issue": mock_plugin1,
             "view-issue": mock_plugin2,
-        }.get(name)
+        }.get
 
         metadata = plugin._build_command_metadata(mock_registry, ["create-issue", "view-issue"])
 
@@ -202,7 +202,7 @@ class TestAIHelperPlugin:
 
         steps = plugin._parse_ai_response(response)
 
-        assert steps == []
+        assert isinstance(steps, list) and not steps
 
     def test_parse_ai_response_non_list_dict(self):
         """Test parsing AI response that's a dict without error."""
@@ -212,7 +212,7 @@ class TestAIHelperPlugin:
 
         steps = plugin._parse_ai_response(response)
 
-        assert steps == []
+        assert isinstance(steps, list) and not steps
 
     def test_parse_ai_response_invalid_json(self):
         """Test parsing invalid JSON."""
@@ -367,7 +367,7 @@ class TestAIHelperPlugin:
         steps = plugin._parse_ai_response(response)
 
         # Should return empty list when result is not a list
-        assert steps == []
+        assert isinstance(steps, list) and not steps
 
     @patch("jira_creator.plugins.ai_helper_plugin.os.system")
     def test_speak_os_error(self, mock_system):

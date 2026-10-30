@@ -31,8 +31,8 @@ class TestPluginRegistry:
     def test_init(self):
         """Test registry initialization."""
         registry = PluginRegistry()
-        assert registry._plugins == {}
-        assert registry._plugin_classes == {}
+        assert isinstance(registry._plugins, dict) and not registry._plugins
+        assert isinstance(registry._plugin_classes, dict) and not registry._plugin_classes
 
     def test_manual_plugin_registration(self):
         """Test manually adding a plugin to the registry."""
@@ -99,8 +99,8 @@ class TestPluginRegistry:
 
         registry.clear()
 
-        assert registry._plugins == {}
-        assert registry._plugin_classes == {}
+        assert isinstance(registry._plugins, dict) and not registry._plugins
+        assert isinstance(registry._plugin_classes, dict) and not registry._plugin_classes
 
     def test_mock_plugin_methods(self):
         """Test MockPlugin methods for coverage."""
@@ -112,7 +112,7 @@ class TestPluginRegistry:
 
         # Test rest_operation method
         result = plugin.rest_operation(None)
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
     @patch("jira_creator.core.plugin_registry.Path")
     @patch("importlib.import_module")
@@ -132,7 +132,7 @@ class TestPluginRegistry:
         registry.discover_plugins()
 
         # Registry should still be empty but no exception raised
-        assert registry._plugins == {}
+        assert isinstance(registry._plugins, dict) and not registry._plugins
 
     def test_create_plugin_nonexistent(self):
         """Test create_plugin returns None for nonexistent command - covers line 112."""

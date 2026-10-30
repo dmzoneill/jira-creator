@@ -121,7 +121,7 @@ class TestSetStatusPlugin:
         assert calls[1][1]["json_data"] == {"transition": {"id": "31"}}
 
         # Verify return value
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
     def test_rest_operation_status_not_available(self):
         """Test REST operation when status is not available."""

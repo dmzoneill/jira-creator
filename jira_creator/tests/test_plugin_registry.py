@@ -69,7 +69,7 @@ class TestPluginRegistry:
     def test_registry_initializes_with_empty_exceptions(self):
         """Test that registry initializes with empty exception dict."""
         registry = PluginRegistry()
-        assert registry.list_exceptions() == {}
+        assert isinstance(registry.list_exceptions(), dict) and not registry.list_exceptions()
 
     def test_get_exception_returns_none_for_missing(self):
         """Test that get_exception returns None for non-existent exception."""
@@ -120,7 +120,7 @@ class TestPluginRegistry:
         registry.clear()
 
         # Verify exceptions are cleared
-        assert registry.list_exceptions() == {}
+        assert isinstance(registry.list_exceptions(), dict) and not registry.list_exceptions()
 
     def test_list_exceptions_returns_copy(self):
         """Test that list_exceptions returns a copy, not reference."""
@@ -154,7 +154,7 @@ class TestPluginRegistry:
             registry._exceptions[exc_name] = exc_class
 
         # No exceptions should be registered
-        assert registry.list_exceptions() == {}
+        assert isinstance(registry.list_exceptions(), dict) and not registry.list_exceptions()
 
     def test_multiple_plugins_with_exceptions(self):
         """Test registering exceptions from multiple plugins."""
@@ -248,12 +248,12 @@ class TestPluginAIPrompts:
     def test_registry_initializes_with_empty_prompts(self):
         """Test that registry initializes with empty AI prompts dict."""
         registry = PluginRegistry()
-        assert registry.get_all_ai_prompts() == {}
+        assert isinstance(registry.get_all_ai_prompts(), dict) and not registry.get_all_ai_prompts()
 
     def test_get_ai_prompts_returns_empty_for_missing_plugin(self):
         """Test that get_ai_prompts returns empty dict for non-existent plugin."""
         registry = PluginRegistry()
-        assert registry.get_ai_prompts("non-existent") == {}
+        assert isinstance(registry.get_ai_prompts("non-existent"), dict) and not registry.get_ai_prompts("non-existent")
 
     def test_plugin_ai_prompts_registration(self):
         """Test registering AI prompts from a plugin."""
@@ -371,7 +371,7 @@ class TestPluginAIPrompts:
 
         registry.clear()
 
-        assert registry.get_all_ai_prompts() == {}
+        assert isinstance(registry.get_all_ai_prompts(), dict) and not registry.get_all_ai_prompts()
 
     def test_create_issue_plugin_has_ai_prompts(self):
         """Test that CreateIssuePlugin registers AI prompts."""
@@ -391,12 +391,14 @@ class TestPluginFieldMappings:
     def test_registry_initializes_with_empty_field_mappings(self):
         """Test that registry initializes with empty field mappings dict."""
         registry = PluginRegistry()
-        assert registry.get_all_field_mappings() == {}
+        assert isinstance(registry.get_all_field_mappings(), dict) and not registry.get_all_field_mappings()
 
     def test_get_field_mappings_returns_empty_for_missing_plugin(self):
         """Test that get_field_mappings returns empty dict for non-existent plugin."""
         registry = PluginRegistry()
-        assert registry.get_field_mappings("non-existent") == {}
+        assert isinstance(registry.get_field_mappings("non-existent"), dict) and not registry.get_field_mappings(
+            "non-existent"
+        )
 
     def test_plugin_field_mappings_registration(self):
         """Test registering field mappings from a plugin."""
@@ -531,7 +533,7 @@ class TestPluginFieldMappings:
 
         registry.clear()
 
-        assert registry.get_all_field_mappings() == {}
+        assert isinstance(registry.get_all_field_mappings(), dict) and not registry.get_all_field_mappings()
 
     def test_create_issue_plugin_has_field_mappings(self):
         """Test that CreateIssuePlugin registers field mappings."""

@@ -14,10 +14,10 @@ class TestBlockedPluginDeadCode:
     def test_rest_operation_with_blocked_issues(self, mock_env_get, capsys):
         """Test rest_operation with actual blocked issues data."""
         # Mock environment variables
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         plugin = BlockedPlugin()
         mock_client = Mock()
@@ -89,10 +89,10 @@ class TestBlockedPluginDeadCode:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_rest_operation_no_blocked_issues(self, mock_env_get, capsys):
         """Test when there are issues but none are blocked."""
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         plugin = BlockedPlugin()
         mock_client = Mock()
@@ -132,10 +132,10 @@ class TestBlockedPluginDeadCode:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_execute_with_test_issues(self, mock_env_get, capsys):
         """Test execute method passing through test issues."""
-        mock_env_get.side_effect = lambda key: {
+        mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
-        }.get(key)
+        }.get
 
         plugin = BlockedPlugin()
         mock_client = Mock()

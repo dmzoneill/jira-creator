@@ -101,7 +101,7 @@ class TestListSprintsPlugin:
 
         result = plugin.rest_operation(mock_client, board_id="789")
 
-        assert result == []
+        assert isinstance(result, list) and not result
         mock_client.request.assert_called_once()
 
     def test_rest_operation_less_than_max_results(self):
@@ -294,7 +294,7 @@ class TestListSprintsPlugin:
 
         result = plugin.rest_operation(mock_client, board_id="777")
 
-        assert result == []
+        assert isinstance(result, list) and not result
 
     def test_rest_operation_with_missing_isLast(self):
         """Test REST operation when response doesn't have isLast field."""

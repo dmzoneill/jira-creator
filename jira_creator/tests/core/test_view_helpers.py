@@ -235,9 +235,8 @@ def test_format_and_print_rows_missing_summary(mock_print):
         "customfield_12310243",
     ]
 
-    with patch("builtins.print") as mock_print:
-        format_and_print_rows(rows, headers, mock_jira)  # Pass a mock JiraClient
-        mock_print.assert_called()
+    format_and_print_rows(rows, headers, mock_jira)  # Pass a mock JiraClient
+    mock_print.assert_called()
 
 
 # Test for appending placeholders

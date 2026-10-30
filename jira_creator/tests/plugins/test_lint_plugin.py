@@ -179,7 +179,7 @@ class TestLintPlugin:
 
         result = self.plugin._load_cache()
 
-        assert result == {}
+        assert isinstance(result, dict) and not result
 
     def test_load_and_cache_issue(self):
         """Test loading cache for specific issue."""
@@ -200,8 +200,8 @@ class TestLintPlugin:
 
             cache, cached = self.plugin.load_and_cache_issue("NEW-123")
 
-            assert cache == {}
-            assert cached == {}
+            assert isinstance(cache, dict) and not cache
+            assert isinstance(cached, dict) and not cached
 
     @patch("jira_creator.plugins.lint_plugin.get_ai_provider")
     @patch("jira_creator.plugins.lint_plugin.EnvFetcher.get")
@@ -392,8 +392,8 @@ class TestLintPlugin:
             with patch.object(plugin, "_get_cache_path", return_value=cache_file):
                 cache, cached = plugin.load_and_cache_issue("TEST-1")
 
-                assert cache == {}
-                assert cached == {}
+                assert isinstance(cache, dict) and not cache
+                assert isinstance(cached, dict) and not cached
 
         # Test with existing cache file
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -421,8 +421,8 @@ class TestLintPlugin:
             with patch.object(plugin, "_get_cache_path", return_value=cache_file):
                 cache, cached = plugin.load_and_cache_issue("TEST-1")
 
-                assert cache == {}
-                assert cached == {}
+                assert isinstance(cache, dict) and not cache
+                assert isinstance(cached, dict) and not cached
 
     def test_save_cache_file_operations(self):
         """Test save_cache file operations."""

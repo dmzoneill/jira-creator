@@ -314,7 +314,7 @@ class TestLintAllPlugin:
                 "assignee": {"displayName": "User One"},
             }
 
-            problems, status = plugin._validate_issue_with_status(fields, mock_ai_provider, False, mock_lint_plugin)
+            plugin._validate_issue_with_status(fields, mock_ai_provider, False, mock_lint_plugin)
 
             # Verify all validation methods were called
             mock_progress.assert_called_once()

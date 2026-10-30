@@ -287,11 +287,11 @@ class TestListIssuesPlugin:
     @patch("jira_creator.plugins.list_issues_plugin.EnvFetcher")
     def test_build_jql_query_with_all_filters(self, mock_env_fetcher):
         """Test building JQL query with all filters."""
-        mock_env_fetcher.get.side_effect = lambda key, default: {
+        mock_env_fetcher.get.side_effect = {
             "JIRA_PROJECT_KEY": "",
             "JIRA_COMPONENT_NAME": "Backend",
             "JIRA_BLOCKED_FIELD": "customfield_10001",
-        }.get(key, default)
+        }.get
 
         plugin = ListIssuesPlugin()
 
@@ -345,9 +345,7 @@ class TestListIssuesPlugin:
     @patch("jira_creator.plugins.list_issues_plugin.EnvFetcher")
     def test_build_jql_query_unblocked_filter(self, mock_env_fetcher):
         """Test building JQL with unblocked filter."""
-        mock_env_fetcher.get.side_effect = lambda key, default: {"JIRA_BLOCKED_FIELD": "customfield_10001"}.get(
-            key, default
-        )
+        mock_env_fetcher.get.side_effect = {"JIRA_BLOCKED_FIELD": "customfield_10001"}.get
 
         plugin = ListIssuesPlugin()
 

@@ -20,19 +20,26 @@ class MockValidPlugin(JiraPlugin):
 
     @property
     def command_name(self):
+        """Command name."""
         return "test-plugin"
 
     @property
     def help_text(self):
+        """Help text."""
         return "Test plugin"
 
     def register_arguments(self, parser):
-        return None
+        """Register no arguments."""
+        del parser
 
     def execute(self, client, args):
+        """Succeed without doing anything."""
+        del client, args
         return True
 
     def rest_operation(self, client, **kwargs):
+        """Return an empty response."""
+        del client, kwargs
         return {}
 
 

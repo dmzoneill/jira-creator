@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the search plugin."""
 
 from argparse import ArgumentParser, Namespace
@@ -212,6 +211,7 @@ class TestSearchPlugin:
         mock_client.request.return_value = {"issues": [{"key": "TEST-1"}, {"key": "TEST-2"}]}
         args = Namespace(jql="project = TEST", max_results=50)
         plugin.execute(mock_client, args)
+        mock_format_print.assert_called_once()
 
         # Check for the found message
         mock_print.assert_any_call("\n📊 Found 2 issue(s)")

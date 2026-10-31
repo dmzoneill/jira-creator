@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the clone issue plugin."""
 
 from argparse import Namespace
@@ -39,8 +38,8 @@ class TestCloneIssuePlugin:
         assert calls[1][1]["default"] == " (Clone)"
         assert calls[1][1]["help"] == "Suffix to add to the cloned issue summary (default: ' (Clone)')"
 
-    def test_get_issue_details(self):
-        """Test _get_issue_details method."""
+    def test_execute_fetches_original_issue(self):
+        """execute() fetches the original issue and passes it on for cloning."""
         plugin = CloneIssuePlugin()
         mock_client = Mock()
         mock_client.request.return_value = {
@@ -51,7 +50,9 @@ class TestCloneIssuePlugin:
             },
         }
 
-        result = plugin._get_issue_details(mock_client, "TEST-123")
+        plugin.rest_operation = Mock(return_value={"key": "TEST-456"})
+        plugin.execute(mock_client, Namespace(issue_key="TEST-123", summary_suffix=" (Clone)"))
+        result = plugin.rest_operation.call_args.kwargs["original_issue"]
 
         assert result["key"] == "TEST-123"
         assert result["fields"]["summary"] == "Original Issue"
@@ -168,18 +169,16 @@ class TestCloneIssuePlugin:
         plugin = CloneIssuePlugin()
         mock_client = Mock()
 
-        # Mock _get_issue_details
-        plugin._get_issue_details = Mock(
-            return_value={
-                "fields": {
-                    "project": {"key": "TEST"},
-                    "summary": "Original",
-                    "description": "Desc",
-                    "issuetype": {"name": "Story"},
-                    "priority": {"name": "High"},
-                }
+        # Original issue returned by Jira
+        mock_client.request.return_value = {
+            "fields": {
+                "project": {"key": "TEST"},
+                "summary": "Original",
+                "description": "Desc",
+                "issuetype": {"name": "Story"},
+                "priority": {"name": "High"},
             }
-        )
+        }
 
         # Mock rest_operation
         plugin.rest_operation = Mock(return_value={"key": "TEST-456"})
@@ -189,7 +188,7 @@ class TestCloneIssuePlugin:
         result = plugin.execute(mock_client, args)
 
         assert result is True
-        plugin._get_issue_details.assert_called_once_with(mock_client, "TEST-123")
+        mock_client.request.assert_called_once_with("GET", "/rest/api/2/issue/TEST-123")
         plugin.rest_operation.assert_called_once()
 
     def test_execute_prints_success(self, capsys):
@@ -197,7 +196,7 @@ class TestCloneIssuePlugin:
         plugin = CloneIssuePlugin()
         mock_client = Mock()
 
-        plugin._get_issue_details = Mock(return_value={"fields": {}})
+        mock_client.request.return_value = {"fields": {}}
         plugin.rest_operation = Mock(return_value={"key": "TEST-456"})
 
         args = Namespace(issue_key="TEST-123", summary_suffix=" (Clone)")
@@ -212,7 +211,7 @@ class TestCloneIssuePlugin:
         plugin = CloneIssuePlugin()
         mock_client = Mock()
 
-        plugin._get_issue_details = Mock(side_effect=CloneIssueError("Issue not found"))
+        mock_client.request.side_effect = CloneIssueError("Issue not found")
 
         args = Namespace(issue_key="TEST-123", summary_suffix=" (Clone)")
 
@@ -224,7 +223,7 @@ class TestCloneIssuePlugin:
         plugin = CloneIssuePlugin()
         mock_client = Mock()
 
-        plugin._get_issue_details = Mock(return_value={"fields": {}})
+        mock_client.request.return_value = {"fields": {}}
         plugin.rest_operation = Mock(side_effect=CloneIssueError("API error"))
 
         args = Namespace(issue_key="TEST-123", summary_suffix=" (Clone)")
@@ -237,7 +236,7 @@ class TestCloneIssuePlugin:
         plugin = CloneIssuePlugin()
         mock_client = Mock()
 
-        plugin._get_issue_details = Mock(side_effect=CloneIssueError("Network error"))
+        mock_client.request.side_effect = CloneIssueError("Network error")
 
         args = Namespace(issue_key="TEST-123", summary_suffix=" (Clone)")
 
@@ -252,7 +251,7 @@ class TestCloneIssuePlugin:
         plugin = CloneIssuePlugin()
         mock_client = Mock()
 
-        plugin._get_issue_details = Mock(return_value={"fields": {}})
+        mock_client.request.return_value = {"fields": {}}
         # Return response without 'key'
         plugin.rest_operation = Mock(return_value={})
 
@@ -268,7 +267,7 @@ class TestCloneIssuePlugin:
         plugin = CloneIssuePlugin()
         mock_client = Mock()
 
-        plugin._get_issue_details = Mock(return_value={"fields": {"summary": "Original Issue"}})
+        mock_client.request.return_value = {"fields": {"summary": "Original Issue"}}
         plugin.rest_operation = Mock(return_value={"key": "TEST-789"})
 
         args = Namespace(issue_key="TEST-123", summary_suffix=" - BACKUP")

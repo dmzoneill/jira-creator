@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the set acceptance criteria plugin."""
 
 from argparse import Namespace
@@ -8,6 +7,8 @@ import pytest
 
 from jira_creator.exceptions.exceptions import AiError
 from jira_creator.plugins.set_acceptance_criteria_plugin import SetAcceptanceCriteriaError, SetAcceptanceCriteriaPlugin
+
+AI_ARGS = Namespace(ai_from_description=True, issue_key="TEST-123", acceptance_criteria=[])
 
 
 class TestSetAcceptanceCriteriaPlugin:
@@ -342,6 +343,10 @@ class TestSetAcceptanceCriteriaPlugin:
         captured = capsys.readouterr()
         assert "✅ Acceptance criteria set for TEST-123" in captured.out
 
+
+class TestSetAcceptanceCriteriaFromDescription:
+    """Tests for AI generation from the description and the fix hooks."""
+
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
     def test_execute_with_ai_from_description_success(self, mock_env, mock_get_ai, capsys):
@@ -378,9 +383,9 @@ class TestSetAcceptanceCriteriaPlugin:
         assert "Acceptance criteria set for TEST-123" in captured.out
         assert "Generated Acceptance Criteria" in captured.out
 
-    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider", Mock())
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
-    def test_generate_from_description_no_description(self, mock_env, mock_get_ai):
+    def test_generate_from_description_no_description(self, mock_env):
         """Test AI generation when issue has no description."""
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()
@@ -390,7 +395,7 @@ class TestSetAcceptanceCriteriaPlugin:
         mock_client.request.return_value = {"fields": {"description": "", "summary": "Test"}}
 
         with pytest.raises(SetAcceptanceCriteriaError, match="has no description to generate from"):
-            plugin._generate_from_description(mock_client, "TEST-123")
+            plugin.execute(mock_client, AI_ARGS)
 
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
@@ -408,7 +413,7 @@ class TestSetAcceptanceCriteriaPlugin:
         mock_client.request.return_value = {"fields": {"description": "Test desc", "summary": "Test"}}
 
         with pytest.raises(SetAcceptanceCriteriaError, match="AI generated empty acceptance criteria"):
-            plugin._generate_from_description(mock_client, "TEST-123")
+            plugin.execute(mock_client, AI_ARGS)
 
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
@@ -424,11 +429,11 @@ class TestSetAcceptanceCriteriaPlugin:
         mock_client.request.return_value = {"fields": {"description": "Test", "summary": "Test"}}
 
         with pytest.raises(SetAcceptanceCriteriaError, match="AI generation failed"):
-            plugin._generate_from_description(mock_client, "TEST-123")
+            plugin.execute(mock_client, AI_ARGS)
 
-    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider", Mock())
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
-    def test_generate_from_description_fetch_error(self, mock_env, mock_get_ai):
+    def test_generate_from_description_fetch_error(self, mock_env):
         """Test AI generation when fetching issue fails."""
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()
@@ -438,11 +443,11 @@ class TestSetAcceptanceCriteriaPlugin:
         mock_client.request.side_effect = Exception("Network error")
 
         with pytest.raises(SetAcceptanceCriteriaError, match="Failed to generate acceptance criteria"):
-            plugin._generate_from_description(mock_client, "TEST-123")
+            plugin.execute(mock_client, AI_ARGS)
 
-    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider")
+    @patch("jira_creator.plugins.set_acceptance_criteria_plugin.get_ai_provider", Mock())
     @patch("jira_creator.plugins.set_acceptance_criteria_plugin.EnvFetcher")
-    def test_execute_with_ai_from_description_error(self, mock_env, mock_get_ai):
+    def test_execute_with_ai_from_description_error(self, mock_env):
         """Test execute with AI generation error."""
         plugin = SetAcceptanceCriteriaPlugin()
         mock_client = Mock()

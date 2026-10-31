@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Tests specifically designed to improve code coverage to 100%.
 """
@@ -86,34 +85,38 @@ class TestCoverageImprovements:
         ):
             client = JiraClient()
 
-            with patch.object(client, "generate_curl_command") as mock_curl:
-                # Call request with debug=True to trigger curl generation
-                with patch("requests.request") as mock_request:
-                    mock_response = Mock()
-                    mock_response.status_code = 200
-                    mock_response.text = '{"result": "success"}'
-                    mock_response.json.return_value = {"result": "success"}
-                    mock_request.return_value = mock_response
+            # Call request with debug=True to trigger curl generation
+            with (
+                patch.object(client, "generate_curl_command") as mock_curl,
+                patch("requests.request") as mock_request,
+            ):
+                mock_response = Mock()
+                mock_response.status_code = 200
+                mock_response.text = '{"result": "success"}'
+                mock_response.json.return_value = {"result": "success"}
+                mock_request.return_value = mock_response
 
-                    client.request("GET", "/test", debug=True)
+                client.request("GET", "/test", debug=True)
 
-                    # Verify curl command was generated
-                    mock_curl.assert_called_once()
+                # Verify curl command was generated
+                mock_curl.assert_called_once()
 
     def test_template_loader_get_fields_return(self):
         """Test template_loader.py line 100: get_fields return statement."""
         # Mock the template file with correct format
         template_content = "FIELD|test_field\nFIELD|another_field\nTEMPLATE|\nThis is a template"
-        with patch("builtins.open", mock_open(read_data=template_content)):
-            with patch("os.path.exists", return_value=True):
-                loader = TemplateLoader("task")
+        with (
+            patch("builtins.open", mock_open(read_data=template_content)),
+            patch("os.path.exists", return_value=True),
+        ):
+            loader = TemplateLoader("task")
 
-                result = loader.get_fields()
+            result = loader.get_fields()
 
-                # Should return the fields list extracted from template
-                assert isinstance(result, list)
-                assert "test_field" in result
-                assert "another_field" in result
+            # Should return the fields list extracted from template
+            assert isinstance(result, list)
+            assert "test_field" in result
+            assert "another_field" in result
 
     def test_stub_plugin_methods(self):
         """Test the stub plugin methods for coverage."""
@@ -193,13 +196,13 @@ class TestCoverageImprovements:
         assert plugin.command_name == "test-plugin"
         assert plugin.help_text == "Test plugin"
 
-        # Test registry methods
+        # Test that a discovered plugin can be retrieved
         registry = PluginRegistry()
-        registry._plugins["test-plugin"] = plugin
-        registry._plugin_classes["test-plugin"] = MockValidPlugin
-
-        # Test that plugin can be retrieved
-        assert registry.get_plugin("test-plugin") is plugin
+        registry.discover_plugins()
+        found = registry.get_plugin("clone-issue")
+        assert found is not None
+        assert found.command_name == "clone-issue"
+        assert isinstance(found, registry.get_plugin_class("clone-issue"))
 
     def test_plugin_registry_create_plugin_none_return(self):
         """Test registry.py line 113: create_plugin returns None for unknown command."""

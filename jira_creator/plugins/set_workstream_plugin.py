@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Set workstream plugin for jira-creator.
 
@@ -6,14 +5,19 @@ This plugin implements the set-workstream command, allowing users to
 change the workstream of Jira issues.
 """
 
-from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from argparse import SUPPRESS, ArgumentParser, Namespace
+from typing import Any
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_setter_base import SetterPlugin
+from jira_creator.exceptions.exceptions import MissingConfigVariable
 
 logger = get_logger("set_workstream")
+
+_MISSING_WORKSTREAM_MSG = (
+    "No workstream ID given: pass it positionally or with --workstream-id, or set JIRA_WORKSTREAM_ID"
+)
 
 
 class SetWorkstreamError(Exception):
@@ -38,6 +42,27 @@ class SetWorkstreamPlugin(SetterPlugin):
         """Return help text for the workstream argument."""
         return "The workstream ID (optional, uses default if not provided)"
 
+    def register_arguments(self, parser: ArgumentParser) -> None:
+        """
+        Register arguments, accepting the workstream ID positionally or via --workstream-id.
+
+        The positional is optional (nargs="?") and uses SUPPRESS as its default so that,
+        when omitted, it never overwrites a value supplied with --workstream-id.
+        """
+        parser.add_argument("issue_key", help="The Jira issue key (e.g., PROJ-123)")
+        parser.add_argument(
+            self.argument_name,
+            nargs="?",
+            default=SUPPRESS,
+            help=self.argument_help,
+        )
+        parser.add_argument(
+            "--workstream-id",
+            dest="workstream_id",
+            help=self.argument_help,
+            default=None,
+        )
+
     def register_additional_arguments(self, parser: ArgumentParser) -> None:
         """Override to make workstream_id optional."""
         # Remove the default positional argument
@@ -55,7 +80,7 @@ class SetWorkstreamPlugin(SetterPlugin):
             default=None,
         )
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation to set workstream.
 
@@ -64,7 +89,7 @@ class SetWorkstreamPlugin(SetterPlugin):
             **kwargs: Contains 'issue_key' and 'value'
 
         Returns:
-            Dict[str, Any]: API response
+            dict[str, Any]: API response
         """
         issue_key = kwargs["issue_key"]
         workstream_id = kwargs["value"]
@@ -74,7 +99,10 @@ class SetWorkstreamPlugin(SetterPlugin):
 
         # Use default if not provided
         if not workstream_id:
-            workstream_id = EnvFetcher.get("JIRA_WORKSTREAM_ID")
+            try:
+                workstream_id = EnvFetcher.get("JIRA_WORKSTREAM_ID")
+            except MissingConfigVariable as e:
+                raise SetWorkstreamError(_MISSING_WORKSTREAM_MSG) from e
 
         path = f"/rest/api/2/issue/{issue_key}"
         payload = {"fields": {workstream_field: [{"id": workstream_id}]}}
@@ -87,7 +115,7 @@ class SetWorkstreamPlugin(SetterPlugin):
             return f"✅ Workstream set to ID '{value}'"
         return "✅ Workstream set to default value"
 
-    def get_fix_capabilities(self) -> List[Dict[str, Any]]:
+    def get_fix_capabilities(self) -> list[dict[str, Any]]:
         """Register fix capabilities for automated issue fixing."""
         return [
             {
@@ -100,7 +128,7 @@ class SetWorkstreamPlugin(SetterPlugin):
             }
         ]
 
-    def execute_fix(self, client: Any, method_name: str, args: Dict[str, Any]) -> bool:
+    def execute_fix(self, client: Any, method_name: str, args: dict[str, Any]) -> bool:
         """
         Execute a fix method for automated issue fixing.
 
@@ -127,7 +155,7 @@ class SetWorkstreamPlugin(SetterPlugin):
                 ns = Namespace(issue_key=issue_key, workstream_id=None)  # Will use default
                 return self.execute(client, ns)
             except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Auto-fix failed for %s: %s", issue_key, e)
+                logger.warning("Auto-fix failed for %s: %s", issue_key, e, exc_info=True)
                 return False
 
         return False

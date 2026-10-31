@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Unit tests for AIExecutor class.
 
@@ -9,7 +8,38 @@ from various AI response formats.
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from jira_creator.core.ai_executor import AIExecutor
+from jira_creator.exceptions.exceptions import AiError, AiProviderError, JiraClientRequestError
+
+GENERATE_ERRORS = [
+    AiError("ai"),
+    AiProviderError("provider"),
+    AttributeError("a"),
+    KeyError("k"),
+    TypeError("t"),
+    ValueError("v"),
+]
+EXECUTE_ERRORS = [
+    JiraClientRequestError("jira"),
+    NotImplementedError("ni"),
+    AttributeError("a"),
+    KeyError("k"),
+    TypeError("t"),
+    ValueError("v"),
+]
+
+
+def run_generate(executor, commands, context, methods=None):
+    """Feed commands back as the AI response and return what generate_fixes keeps."""
+    executor.ai_provider.improve_text.return_value = json.dumps(commands)
+    with (
+        patch.object(executor, "get_available_methods_for_ai", return_value=methods or {"any": {}}),
+        patch("jira_creator.core.ai_executor.TemplateLoader"),
+        patch("builtins.print"),
+    ):
+        return executor.generate_fixes("TEST-1", ["problem"], context)
 
 
 class TestAIExecutorJsonExtraction:
@@ -201,7 +231,7 @@ class TestAIExecutorInit:
         assert executor.client == client
         assert executor.plugin_registry == plugin_registry
         assert executor.ai_provider == ai_provider
-        assert executor._fix_registry is None
+        plugin_registry.get_all_plugin_names.assert_not_called()
 
 
 class TestAIExecutorFixRegistry:
@@ -518,7 +548,8 @@ class TestAIExecutorGenerateFixes:
 
         assert isinstance(fixes, list) and not fixes
 
-    def test_generate_fixes_general_exception(self):
+    @pytest.mark.parametrize("error", GENERATE_ERRORS, ids=lambda e: type(e).__name__)
+    def test_generate_fixes_general_exception(self, error):
         """Test generate_fixes with general exception - covers lines 238-241."""
 
         client = MagicMock()
@@ -534,7 +565,7 @@ class TestAIExecutorGenerateFixes:
         plugin_registry.get_plugin.return_value = mock_plugin
 
         # AI provider raises exception
-        ai_provider.improve_text.side_effect = Exception("Test error")
+        ai_provider.improve_text.side_effect = error
 
         executor = AIExecutor(client, plugin_registry, ai_provider)
 
@@ -572,7 +603,10 @@ class TestAIExecutorGenerateFixes:
             mock_loader.get_template.return_value = "AI Helper Template"
             mock_template.return_value = mock_loader
 
-            prompt = executor._build_fix_prompt("TEST-123", problems, context, available_methods)
+            ai_provider.improve_text.return_value = "[]"
+            with patch.object(executor, "get_available_methods_for_ai", return_value=available_methods):
+                executor.generate_fixes("TEST-123", problems, context)
+            prompt = ai_provider.improve_text.call_args.args[1]
 
         # Verify prompt contains expected elements
         assert "AI Helper Template" in prompt
@@ -601,8 +635,7 @@ class TestAIExecutorValidateFixes:
         commands = [{"function": "unknown_method", "args": {}}]
         context = {}
 
-        with patch("builtins.print"):
-            validated = executor._validate_fix_commands(commands, context)
+        validated = run_generate(executor, commands, context)
 
         assert len(validated) == 0
 
@@ -631,8 +664,7 @@ class TestAIExecutorValidateFixes:
         commands = [{"function": "test_fix", "args": {}}]
         context = {"issue_status": "Open"}  # Different status
 
-        with patch("builtins.print"):
-            validated = executor._validate_fix_commands(commands, context)
+        validated = run_generate(executor, commands, context)
 
         assert len(validated) == 0
 
@@ -661,8 +693,7 @@ class TestAIExecutorValidateFixes:
         commands = [{"function": "test_fix", "args": {}}]
         context = {"issue_type": "Bug"}  # Different type
 
-        with patch("builtins.print"):
-            validated = executor._validate_fix_commands(commands, context)
+        validated = run_generate(executor, commands, context)
 
         assert len(validated) == 0
 
@@ -690,7 +721,7 @@ class TestAIExecutorValidateFixes:
         commands = [{"function": "test_fix", "args": {}}]
         context = {"issue_status": "Open", "issue_type": "Bug"}
 
-        validated = executor._validate_fix_commands(commands, context)
+        validated = run_generate(executor, commands, context)
 
         assert len(validated) == 1
 
@@ -775,7 +806,8 @@ class TestAIExecutorExecuteFixes:
         assert success == 0
         assert failure == 1
 
-    def test_execute_fixes_plugin_raises_exception(self):
+    @pytest.mark.parametrize("error", EXECUTE_ERRORS, ids=lambda e: type(e).__name__)
+    def test_execute_fixes_plugin_raises_exception(self, error):
         """Test execution when plugin raises exception - covers lines 415-419."""
 
         client = MagicMock()
@@ -786,7 +818,7 @@ class TestAIExecutorExecuteFixes:
         mock_plugin.get_fix_capabilities.return_value = [
             {"method_name": "set_priority", "description": "Set priority", "params": {}}
         ]
-        mock_plugin.execute_fix.side_effect = Exception("Test error")
+        mock_plugin.execute_fix.side_effect = error
 
         plugin_registry.get_all_plugin_names.return_value = ["test-plugin"]
         plugin_registry.get_plugin.return_value = mock_plugin
@@ -821,9 +853,8 @@ class TestAIExecutorExecuteFixes:
 
         commands = [{"function": "set_priority", "args": {}, "action": "Test"}]
 
-        with patch("builtins.print"):
-            with patch("builtins.input", return_value="y"):
-                success, failure = executor.execute_fixes(commands, interactive=True)
+        with patch("builtins.print"), patch("builtins.input", return_value="y"):
+            success, failure = executor.execute_fixes(commands, interactive=True)
 
         assert success == 1
         assert failure == 0
@@ -847,9 +878,8 @@ class TestAIExecutorExecuteFixes:
 
         commands = [{"function": "set_priority", "args": {}, "action": "Test"}]
 
-        with patch("builtins.print"):
-            with patch("builtins.input", return_value="n"):
-                success, failure = executor.execute_fixes(commands, interactive=True)
+        with patch("builtins.print"), patch("builtins.input", return_value="n"):
+            success, failure = executor.execute_fixes(commands, interactive=True)
 
         # Skipped, so 0 success and 0 failure
         assert success == 0
@@ -874,10 +904,37 @@ class TestAIExecutorExecuteFixes:
 
         commands = [{"function": "set_priority", "args": {}, "action": "Test"}]
 
-        with patch("builtins.print"):
-            with patch("builtins.input", side_effect=KeyboardInterrupt()):
-                success, failure = executor.execute_fixes(commands, interactive=True)
+        with patch("builtins.print"), patch("builtins.input", side_effect=KeyboardInterrupt()):
+            success, failure = executor.execute_fixes(commands, interactive=True)
 
         # Interrupted, so 0 success and 0 failure
         assert success == 0
         assert failure == 0
+
+
+class TestAIExecutorUnexpectedErrors:
+    """Errors outside the expected set are no longer swallowed."""
+
+    def test_generate_fixes_propagates_unexpected_error(self):
+        """An unexpected provider error propagates to the caller."""
+        ai_provider = MagicMock()
+        ai_provider.improve_text.side_effect = RuntimeError("boom")
+        executor = AIExecutor(MagicMock(), MagicMock(), ai_provider)
+        with (
+            patch.object(executor, "get_available_methods_for_ai", return_value={"any": {}}),
+            patch("jira_creator.core.ai_executor.TemplateLoader"),
+            pytest.raises(RuntimeError, match="boom"),
+        ):
+            executor.generate_fixes("TEST-1", ["problem"], {})
+
+    def test_execute_fixes_propagates_unexpected_error(self):
+        """An unexpected plugin error propagates to the caller."""
+        plugin = MagicMock()
+        plugin.get_fix_capabilities.return_value = [{"method_name": "set_priority", "description": "d", "params": {}}]
+        plugin.execute_fix.side_effect = RuntimeError("boom")
+        registry = MagicMock()
+        registry.get_all_plugin_names.return_value = ["p"]
+        registry.get_plugin.return_value = plugin
+        executor = AIExecutor(MagicMock(), registry, MagicMock())
+        with patch("builtins.print"), pytest.raises(RuntimeError, match="boom"):
+            executor.execute_fixes([{"function": "set_priority", "args": {}, "action": "a"}], interactive=False)

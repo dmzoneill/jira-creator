@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Lint plugin for jira-creator.
 
@@ -10,13 +9,18 @@ import hashlib
 import json
 import os
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from jira_creator.core.adf import ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import JiraClientRequestError
+from jira_creator.exceptions.exceptions import AiError, AiProviderError, JiraClientRequestError
 from jira_creator.providers import get_ai_provider
+
+# Errors from reading an unexpected issue payload.
+_PAYLOAD_ERRORS = (KeyError, TypeError, ValueError)
+# Errors the AI provider can raise while reviewing a field.
+_AI_REVIEW_ERRORS = (AiError, AiProviderError, AttributeError, TypeError)
 
 
 class LintError(Exception):
@@ -42,11 +46,11 @@ class LintPlugin(JiraPlugin):
         return "Quality & Validation"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["lint AAP-12345", "lint AAP-12345 --fix"]
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "LintError": LintError,
@@ -107,7 +111,7 @@ class LintPlugin(JiraPlugin):
             print(msg)
             raise LintError(msg) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation to get issue details.
 
@@ -127,12 +131,12 @@ class LintPlugin(JiraPlugin):
             return client.request("GET", path)
         except JiraClientRequestError as e:
             raise LintError(f"API request failed for {issue_key}: {e}") from e
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _PAYLOAD_ERRORS as e:
             raise LintError(f"Failed to fetch issue {issue_key}: {e}") from e
 
     def _validate_issue(  # pylint: disable=too-many-locals
-        self, fields: Dict[str, Any], ai_provider: Any, no_cache: bool
-    ) -> List[str]:
+        self, fields: dict[str, Any], ai_provider: Any, no_cache: bool
+    ) -> list[str]:
         """
         Validate an issue and return list of problems.
 
@@ -144,14 +148,14 @@ class LintPlugin(JiraPlugin):
         Returns:
             List[str]: List of validation problems
         """
-        problems = []
+        problems: list[str] = []
 
         # Extract basic fields
         extracted = self.extract_issue_fields(fields)
 
         # Load cache for the issue if needed
-        cache = {}
-        cached = {}
+        cache: dict[str, Any] = {}
+        cached: dict[str, str] = {}
         if not no_cache and ai_provider:
             cache, cached = self.load_and_cache_issue(extracted["issue_key"])
 
@@ -175,7 +179,7 @@ class LintPlugin(JiraPlugin):
         return problems
 
     @staticmethod
-    def extract_issue_fields(fields: Dict[str, Any]) -> Dict[str, Any]:
+    def extract_issue_fields(fields: dict[str, Any]) -> dict[str, Any]:
         """
         Extract common issue fields used for validation.
 
@@ -198,12 +202,12 @@ class LintPlugin(JiraPlugin):
             "issue_type": fields.get("issuetype", {}).get("name"),
         }
 
-    def _validate_progress(self, status: str, assignee: Any, problems: List[str]) -> None:
+    def _validate_progress(self, status: str, assignee: Any, problems: list[str]) -> None:
         """Validate if the issue is assigned when it's in progress."""
         if status == "In Progress" and not assignee:
             problems.append("❌ Issue is In Progress but unassigned")
 
-    def _validate_epic_link(self, issue_type: str, status: str, epic_link: Any, problems: List[str]) -> None:
+    def _validate_epic_link(self, issue_type: str, status: str, epic_link: Any, problems: list[str]) -> None:
         """Validate if an issue has an assigned epic link."""
         epic_exempt_types = ["Epic"]
         epic_exempt_statuses = ["New", "Refinement"]
@@ -215,28 +219,28 @@ class LintPlugin(JiraPlugin):
         ):
             problems.append("❌ Issue has no assigned Epic")
 
-    def _validate_sprint(self, status: str, sprint_field: Any, problems: List[str]) -> None:
+    def _validate_sprint(self, status: str, sprint_field: Any, problems: list[str]) -> None:
         """Validate if the issue is assigned to a sprint when in progress."""
         if status == "In Progress" and not sprint_field:
             problems.append("❌ Issue is In Progress but not assigned to a Sprint")
 
-    def _validate_priority(self, priority: Any, problems: List[str]) -> None:
+    def _validate_priority(self, priority: Any, problems: list[str]) -> None:
         """Validate if priority is set."""
         if not priority:
             problems.append("❌ Priority not set")
 
-    def _validate_story_points(self, story_points: Any, status: str, problems: List[str]) -> None:
+    def _validate_story_points(self, story_points: Any, status: str, problems: list[str]) -> None:
         """Validate if story points are assigned, unless the status is 'Refinement' or 'New'."""
         if story_points is None and status not in ["Refinement", "New"]:
             problems.append("❌ Story points not assigned")
 
-    def _validate_blocked(self, blocked_value: str, blocked_reason: str, problems: List[str]) -> None:
+    def _validate_blocked(self, blocked_value: str, blocked_reason: str, problems: list[str]) -> None:
         """Validate if blocked issues have a reason."""
         if blocked_value == "True" and not blocked_reason:
             problems.append("❌ Issue is blocked but has no blocked reason")
 
     def _validate_with_ai(
-        self, fields: Dict[str, Any], ai_provider: Any, cached: Dict[str, str], problems: List[str], no_cache: bool
+        self, fields: dict[str, Any], ai_provider: Any, cached: dict[str, str], problems: list[str], no_cache: bool
     ) -> None:
         """Validate fields using AI for quality checks."""
         # Validate summary
@@ -276,8 +280,8 @@ class LintPlugin(JiraPlugin):
         field_value: str,
         field_hash: str,
         ai_provider: Any,
-        cached: Dict[str, str],
-        problems: List[str],
+        cached: dict[str, str],
+        problems: list[str],
     ) -> None:
         """Validate a field using AI provider."""
         try:
@@ -294,7 +298,7 @@ class LintPlugin(JiraPlugin):
                 cache_key = f"{field_name.lower().replace(' ', '_')}_hash"
                 cached[cache_key] = field_hash
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _AI_REVIEW_ERRORS as e:
             problems.append(f"❌ Failed to validate {field_name} with AI: {e}")
 
     def _get_cache_path(self) -> str:
@@ -305,18 +309,18 @@ class LintPlugin(JiraPlugin):
         """Return the SHA-256 hash of the input text."""
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
-    def _load_cache(self) -> Dict[str, Any]:
+    def _load_cache(self) -> dict[str, Any]:
         """Load cached data from file if it exists, otherwise return empty dict."""
         cache_path = self._get_cache_path()
         if os.path.exists(cache_path):
             try:
                 with open(cache_path, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 return {}
         return {}
 
-    def save_cache(self, data: Dict[str, Any]) -> None:
+    def save_cache(self, data: dict[str, Any]) -> None:
         """Save data to cache file."""
         cache_path = self._get_cache_path()
         cache_dir = os.path.dirname(cache_path)
@@ -327,11 +331,11 @@ class LintPlugin(JiraPlugin):
         try:
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-        except IOError:
+        except OSError:
             # Silently fail if we can't write to cache
             pass
 
-    def load_and_cache_issue(self, issue_key: str) -> Tuple[Dict[str, Any], Dict[str, str]]:
+    def load_and_cache_issue(self, issue_key: str) -> tuple[dict[str, Any], dict[str, str]]:
         """Load cache and get the cached values for a given issue key."""
         cache = self._load_cache()
         cached = cache.get(issue_key, {})

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Lint-all plugin for jira-creator.
 
@@ -9,17 +8,24 @@ multiple Jira issues against quality standards and display a summary table.
 import textwrap
 from argparse import ArgumentParser, Namespace
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from jira_creator.core.adf import ensure_text
 from jira_creator.core.ai_executor import AIExecutor
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
+from jira_creator.exceptions.exceptions import AiError, AiProviderError, JiraClientRequestError
 from jira_creator.plugins.lint_plugin import LintPlugin
 from jira_creator.providers import get_ai_provider
 
 logger = get_logger("lint_all_plugin")
+
+
+# Errors from a Jira request or an unexpected response payload.
+_JIRA_ERRORS = (JiraClientRequestError, AttributeError, KeyError, TypeError, ValueError)
+# Errors from generating or applying AI fixes for one issue.
+_FIX_ERRORS = (AiError, AiProviderError, *_JIRA_ERRORS)
 
 
 class LintAllError(Exception):
@@ -45,11 +51,11 @@ class LintAllPlugin(JiraPlugin):
         return "Quality & Validation"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["lint-all --project AAP", "lint-all --project AAP --ai-fix"]
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "LintAllError": LintAllError,
@@ -142,7 +148,7 @@ class LintAllPlugin(JiraPlugin):
             print(msg)
             raise LintAllError(msg) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> List[Dict[str, Any]]:
+    def rest_operation(self, client: Any, **kwargs) -> list[dict[str, Any]]:
         """
         Perform the REST API operation to get issues to lint.
 
@@ -189,12 +195,12 @@ class LintAllPlugin(JiraPlugin):
             response = client.request("GET", path, timeout=30)
             return response.get("issues", [])
 
-        except Exception as e:
+        except _JIRA_ERRORS as e:
             raise LintAllError(f"Failed to fetch issues: {e}") from e
 
     def _lint_all_issues(  # pylint: disable=too-many-locals
-        self, client: Any, issues: List[Dict[str, Any]], ai_provider: Any, no_cache: bool
-    ) -> Tuple[Dict[str, Tuple[str, List[str]]], List[Dict[str, Any]]]:
+        self, client: Any, issues: list[dict[str, Any]], ai_provider: Any, no_cache: bool
+    ) -> tuple[dict[str, tuple[str, list[str]]], list[dict[str, Any]]]:
         """
         Lint all issues and return failures and status table data.
 
@@ -207,8 +213,8 @@ class LintAllPlugin(JiraPlugin):
         Returns:
             Tuple of (failures dict, status table data)
         """
-        failures = {}
-        failure_statuses = []
+        failures: dict[str, tuple[str, list[str]]] = {}
+        failure_statuses: list[dict[str, Any]] = []
         lint_plugin = LintPlugin()
 
         for issue in issues:
@@ -220,7 +226,7 @@ class LintAllPlugin(JiraPlugin):
                 full_issue = client.request("GET", f"/rest/api/2/issue/{key}")
                 fields = full_issue["fields"]
                 fields["key"] = key
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except _JIRA_ERRORS as e:
                 print(f"❌ Failed to fetch {key}: {e}")
                 continue
 
@@ -228,8 +234,8 @@ class LintAllPlugin(JiraPlugin):
             problems, statuses = self._validate_issue_with_status(fields, ai_provider, no_cache, lint_plugin)
 
             # Add issue key to status table
-            statuses = OrderedDict([("jira_issue_id", key)] + list(statuses.items()))
-            failure_statuses.append(statuses)
+            row: dict[str, Any] = OrderedDict([("jira_issue_id", key)] + list(statuses.items()))
+            failure_statuses.append(row)
 
             # Track failures
             if problems:
@@ -241,8 +247,8 @@ class LintAllPlugin(JiraPlugin):
         return failures, failure_statuses
 
     def _validate_issue_with_status(  # pylint: disable=too-many-locals
-        self, fields: Dict[str, Any], ai_provider: Any, no_cache: bool, lint_plugin: LintPlugin
-    ) -> Tuple[List[str], Dict[str, bool]]:
+        self, fields: dict[str, Any], ai_provider: Any, no_cache: bool, lint_plugin: LintPlugin
+    ) -> tuple[list[str], dict[str, bool]]:
         """
         Validate an issue and return both problems and status flags.
 
@@ -255,8 +261,8 @@ class LintAllPlugin(JiraPlugin):
         Returns:
             Tuple of (problems list, status dict)
         """
-        problems = []
-        status = {}
+        problems: list[str] = []
+        status: dict[str, bool] = {}
 
         # Extract basic fields
         extracted = LintPlugin.extract_issue_fields(fields)
@@ -284,7 +290,7 @@ class LintAllPlugin(JiraPlugin):
         return problems, status
 
     def _validate_progress_with_status(
-        self, status: str, assignee: Any, problems: List[str], status_dict: Dict[str, bool]
+        self, status: str, assignee: Any, problems: list[str], status_dict: dict[str, bool]
     ) -> None:
         """Validate progress and update status."""
         if status == "In Progress" and not assignee:
@@ -294,7 +300,7 @@ class LintAllPlugin(JiraPlugin):
             status_dict["Progress"] = True
 
     def _validate_epic_link_with_status(
-        self, issue_type: str, status: str, epic_link: Any, problems: List[str], status_dict: Dict[str, bool]
+        self, issue_type: str, status: str, epic_link: Any, problems: list[str], status_dict: dict[str, bool]
     ) -> None:
         """Validate epic link and update status."""
         epic_exempt_types = ["Epic"]
@@ -311,7 +317,7 @@ class LintAllPlugin(JiraPlugin):
             status_dict["Epic"] = True
 
     def _validate_sprint_with_status(
-        self, status: str, sprint_field: Any, problems: List[str], status_dict: Dict[str, bool]
+        self, status: str, sprint_field: Any, problems: list[str], status_dict: dict[str, bool]
     ) -> None:
         """Validate sprint and update status."""
         if status == "In Progress" and not sprint_field:
@@ -320,7 +326,7 @@ class LintAllPlugin(JiraPlugin):
         else:
             status_dict["Sprint"] = True
 
-    def _validate_priority_with_status(self, priority: Any, problems: List[str], status_dict: Dict[str, bool]) -> None:
+    def _validate_priority_with_status(self, priority: Any, problems: list[str], status_dict: dict[str, bool]) -> None:
         """Validate priority and update status."""
         if not priority:
             problems.append("❌ Priority not set")
@@ -329,7 +335,7 @@ class LintAllPlugin(JiraPlugin):
             status_dict["Priority"] = True
 
     def _validate_story_points_with_status(
-        self, story_points: Any, status: str, problems: List[str], status_dict: Dict[str, bool]
+        self, story_points: Any, status: str, problems: list[str], status_dict: dict[str, bool]
     ) -> None:
         """Validate story points and update status."""
         if story_points is None and status not in ["Refinement", "New"]:
@@ -339,7 +345,7 @@ class LintAllPlugin(JiraPlugin):
             status_dict["Story P."] = True
 
     def _validate_blocked_with_status(
-        self, blocked_value: str, blocked_reason: str, problems: List[str], status_dict: Dict[str, bool]
+        self, blocked_value: str, blocked_reason: str, problems: list[str], status_dict: dict[str, bool]
     ) -> None:
         """Validate blocked status and update status."""
         if blocked_value == "True" and not blocked_reason:
@@ -350,11 +356,11 @@ class LintAllPlugin(JiraPlugin):
 
     def _validate_ai_fields_with_status(
         self,
-        fields: Dict[str, Any],
+        fields: dict[str, Any],
         ai_provider: Any,
-        cached: Dict[str, str],
-        problems: List[str],
-        status_dict: Dict[str, bool],
+        cached: dict[str, str],
+        problems: list[str],
+        status_dict: dict[str, bool],
         no_cache: bool,
     ) -> None:
         """Validate AI fields and update status."""
@@ -378,7 +384,7 @@ class LintAllPlugin(JiraPlugin):
             status_dict["Acceptance Criteria"] = bool(acceptance_criteria and len(acceptance_criteria) > 10)
 
     def _display_results(
-        self, failures: Dict[str, Tuple[str, List[str]]], failure_statuses: List[Dict[str, Any]]
+        self, failures: dict[str, tuple[str, list[str]]], failure_statuses: list[dict[str, Any]]
     ) -> bool:
         """Display lint results and status table."""
         if not failures:
@@ -399,13 +405,13 @@ class LintAllPlugin(JiraPlugin):
             self._print_status_table(failure_statuses)
         return False
 
-    def _print_status_table(self, failure_statuses: List[Dict[str, Any]]) -> None:
+    def _print_status_table(self, failure_statuses: list[dict[str, Any]]) -> None:
         """Print a status table showing lint check results."""
         if not failure_statuses:
             return
 
         # Collect all unique keys from all rows
-        all_keys = set()
+        all_keys: set[str] = set()
         for row in failure_statuses:
             all_keys.update(row.keys())
 
@@ -457,7 +463,7 @@ class LintAllPlugin(JiraPlugin):
         print("-" + " - ".join("-" * column_widths[header] for header in headers) + " -")
 
     def _apply_ai_fixes(
-        self, client: Any, failures: Dict[str, Tuple[str, List[str]]], ai_executor: AIExecutor, interactive: bool
+        self, client: Any, failures: dict[str, tuple[str, list[str]]], ai_executor: AIExecutor, interactive: bool
     ) -> None:
         """
         Apply AI fixes to failed issues.
@@ -497,14 +503,14 @@ class LintAllPlugin(JiraPlugin):
                 total_success += success
                 total_failure += failure
 
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except _FIX_ERRORS as e:
                 logger.error("Failed to fix %s: %s", issue_key, e)
                 print(f"   ❌ Error: {e}")
                 total_failure += 1
 
         print(f"\n📊 Fix Summary: {total_success} succeeded, {total_failure} failed")
 
-    def _build_issue_context(self, client: Any, issue_key: str) -> Optional[Dict[str, Any]]:
+    def _build_issue_context(self, client: Any, issue_key: str) -> dict[str, Any] | None:
         """
         Build context for an issue to help AI generate appropriate fixes.
 
@@ -541,11 +547,11 @@ class LintAllPlugin(JiraPlugin):
 
             return context
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _JIRA_ERRORS as e:
             logger.error("Failed to build context for %s: %s", issue_key, e)
             return None
 
-    def _get_active_sprint(self, client: Any) -> Optional[Dict[str, Any]]:
+    def _get_active_sprint(self, client: Any) -> dict[str, Any] | None:
         """
         Get the active sprint for the configured board.
 
@@ -572,6 +578,6 @@ class LintAllPlugin(JiraPlugin):
 
             return None
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _JIRA_ERRORS as e:
             logger.error("Failed to get active sprint: %s", e)
             return None

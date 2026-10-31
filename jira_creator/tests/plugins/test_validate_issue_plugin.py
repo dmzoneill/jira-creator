@@ -1,12 +1,23 @@
-#!/usr/bin/env python
 """Tests for the validate issue plugin."""
 
 from argparse import Namespace
+from contextlib import redirect_stdout
+from io import StringIO
 from unittest.mock import Mock, patch
 
 import pytest
 
 from jira_creator.plugins.validate_issue_plugin import ValidateIssuePlugin
+
+
+def validation_issues(fields, no_ai=True):
+    """Issues reported by `validate-issue TEST-1` for an issue with these fields."""
+    client = Mock()
+    client.request.return_value = {"fields": fields}
+    out = StringIO()
+    with redirect_stdout(out):
+        ValidateIssuePlugin().execute(client, Namespace(issue_key="TEST-1", no_ai=no_ai, no_cache=False))
+    return [line.strip()[2:] for line in out.getvalue().splitlines() if line.strip().startswith("• ")]
 
 
 class TestValidateIssuePlugin:
@@ -140,355 +151,11 @@ class TestValidateIssuePlugin:
 
         args = Namespace(issue_key="TEST-123", no_ai=True, no_cache=False)
 
-        with patch("builtins.print") as mock_print:
-            with pytest.raises(Exception) as exc_info:
-                plugin.execute(mock_client, args)
+        with patch("builtins.print") as mock_print, pytest.raises(ValueError) as exc_info:
+            plugin.execute(mock_client, args)
 
         assert "Failed to validate issue: API failed" in str(exc_info.value)
         mock_print.assert_called_with("❌ Failed to validate issue: API failed")
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_in_progress_no_assignee(self, mock_env_fetcher):
-        """Test validation for In Progress issue without assignee."""
-        mock_env_fetcher.get.return_value = ""
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "In Progress"},
-            "assignee": None,
-            "priority": {"name": "High"},
-            "issuetype": {"name": "task"},
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Issue is 'In Progress' but not assigned to anyone" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_story_no_epic(self, mock_env_fetcher):
-        """Test validation for story without epic."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_EPIC_FIELD": "customfield_10001"}.get(
-            key, default
-        )
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "story"},
-            "customfield_10001": None,
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Story is not linked to an epic" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_in_progress_no_sprint(self, mock_env_fetcher):
-        """Test validation for In Progress issue without sprint."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_SPRINT_FIELD": "customfield_10002"}.get(
-            key, default
-        )
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "In Progress"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "task"},
-            "customfield_10002": None,
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Issue is 'In Progress' but not in a sprint" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_no_priority(self, mock_env_fetcher):
-        """Test validation for issue without priority."""
-        mock_env_fetcher.get.return_value = ""
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {},  # Empty dict instead of None
-            "issuetype": {"name": "task"},
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Issue has no priority set" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_priority_with_none_name(self, mock_env_fetcher):
-        """Test validation for issue with priority but None name."""
-        mock_env_fetcher.get.return_value = ""
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": None},  # Priority exists but name is None
-            "issuetype": {"name": "task"},
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Issue has no priority set" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_story_no_points(self, mock_env_fetcher):
-        """Test validation for story without story points."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_STORY_POINTS_FIELD": "customfield_10003"}.get(
-            key, default
-        )
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "story"},
-            "customfield_10003": None,
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Story has no story points" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_bug_no_points(self, mock_env_fetcher):
-        """Test validation for bug without story points."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_STORY_POINTS_FIELD": "customfield_10003"}.get(
-            key, default
-        )
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "bug"},
-            "customfield_10003": None,
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Bug has no story points" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_closed_story_no_points_ok(self, mock_env_fetcher):
-        """Test that closed stories don't need story points."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_STORY_POINTS_FIELD": "customfield_10003"}.get(
-            key, default
-        )
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "Closed"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "story"},
-            "customfield_10003": None,
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Story has no story points" not in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_blocked_no_reason(self, mock_env_fetcher):
-        """Test validation for blocked issue without reason."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {
-            "JIRA_BLOCKED_FIELD": "customfield_10004",
-            "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
-        }.get(key, default)
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "task"},
-            "customfield_10004": {"value": "True"},
-            "customfield_10005": "   ",  # Whitespace only
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Issue is blocked but has no reason" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_blocked_with_id(self, mock_env_fetcher):
-        """Test validation for blocked issue using ID format."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {
-            "JIRA_BLOCKED_FIELD": "customfield_10004",
-            "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
-        }.get(key, default)
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "task"},
-            "customfield_10004": {"id": "14656"},  # Blocked ID
-            "customfield_10005": None,
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Issue is blocked but has no reason" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_run_validations_with_ai(self, mock_env_fetcher):
-        """Test validation with AI checks enabled."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {
-            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_10006",
-            "JIRA_AI_PROVIDER": "openai",
-        }.get(key, default)
-
-        plugin = ValidateIssuePlugin()
-
-        # Mock AI provider
-        mock_ai_provider = Mock()
-        plugin._injected_deps = {"ai_provider": mock_ai_provider}
-
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "story"},
-            "description": "Short",  # Too short
-            "customfield_10006": "AC",  # Too short
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", False, False)
-
-        # Should include AI validation issues
-        assert "Description is too short (less than 50 characters)" in issues
-        assert "Story has missing or insufficient acceptance criteria" in issues
-
-    @patch("jira_creator.providers.get_ai_provider")
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_validate_with_ai_description_check(self, mock_env_fetcher, mock_get_ai_provider):
-        """Test AI validation for description quality."""
-        mock_env_fetcher.get.return_value = ""
-        mock_ai_provider = Mock()
-        mock_get_ai_provider.return_value = mock_ai_provider
-
-        plugin = ValidateIssuePlugin()
-
-        fields = {
-            "description": "Too short description",
-            "issuetype": {"name": "story"},
-        }
-
-        issues = plugin._validate_with_ai(fields, "TEST-1", "", False)
-        assert "Description is too short (less than 50 characters)" in issues
-
-    @patch("jira_creator.providers.get_ai_provider")
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_validate_with_ai_acceptance_criteria(self, mock_env_fetcher, mock_get_ai_provider):
-        """Test AI validation for acceptance criteria."""
-        mock_env_fetcher.get.return_value = ""
-        mock_ai_provider = Mock()
-        mock_get_ai_provider.return_value = mock_ai_provider
-
-        plugin = ValidateIssuePlugin()
-
-        fields = {
-            "description": "This is a very detailed description with more than 50 characters",
-            "issuetype": {"name": "story"},
-            "customfield_10006": "AC",  # Too short
-        }
-
-        issues = plugin._validate_with_ai(fields, "TEST-1", "customfield_10006", False)
-        assert "Story has missing or insufficient acceptance criteria" in issues
-
-    @patch("jira_creator.providers.get_ai_provider")
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_validate_with_ai_no_description(self, mock_env_fetcher, mock_get_ai_provider):
-        """Test AI validation with missing description."""
-        mock_env_fetcher.get.return_value = ""
-        mock_ai_provider = Mock()
-        mock_get_ai_provider.return_value = mock_ai_provider
-
-        plugin = ValidateIssuePlugin()
-
-        fields = {"description": "", "issuetype": {"name": "story"}}
-
-        issues = plugin._validate_with_ai(fields, "TEST-1", "", False)
-        # Should not add issue for empty description (handled elsewhere)
-        assert "Description is too short" not in issues
-
-    @patch("jira_creator.providers.get_ai_provider")
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_validate_with_ai_valid_content(self, mock_env_fetcher, mock_get_ai_provider):
-        """Test AI validation with valid content."""
-        mock_env_fetcher.get.return_value = ""
-        mock_ai_provider = Mock()
-        mock_get_ai_provider.return_value = mock_ai_provider
-
-        plugin = ValidateIssuePlugin()
-
-        fields = {
-            "description": "This is a very detailed description with more than 50 characters explaining the feature",
-            "issuetype": {"name": "story"},
-            "customfield_10006": "Given: User is logged in\nWhen: User clicks button\nThen: Action happens",
-        }
-
-        issues = plugin._validate_with_ai(fields, "TEST-1", "customfield_10006", False)
-        assert len(issues) == 0
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_edge_case_none_values(self, mock_env_fetcher):
-        """Test handling of None values in fields - demonstrates current implementation limitation."""
-        mock_env_fetcher.get.return_value = ""
-
-        plugin = ValidateIssuePlugin()
-        fields = {"status": None, "assignee": None, "priority": None, "issuetype": None}
-
-        # Current implementation doesn't handle None values gracefully
-        # This would raise AttributeError: 'NoneType' object has no attribute 'get'
-        with pytest.raises(AttributeError):
-            plugin._run_validations(fields, "TEST-1", True, False)
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_edge_case_missing_nested_fields(self, mock_env_fetcher):
-        """Test handling of missing nested fields."""
-        mock_env_fetcher.get.return_value = ""
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {},  # Missing 'name'
-            "assignee": {"displayName": "User"},
-            "priority": {},  # Missing 'name'
-            "issuetype": {},  # Missing 'name'
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Issue has no priority set" in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_all_validations_pass(self, mock_env_fetcher):
-        """Test when all validations pass."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {
-            "JIRA_EPIC_FIELD": "customfield_10001",
-            "JIRA_SPRINT_FIELD": "customfield_10002",
-            "JIRA_STORY_POINTS_FIELD": "customfield_10003",
-            "JIRA_BLOCKED_FIELD": "customfield_10004",
-            "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
-            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_10006",
-        }.get(key, default)
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "In Progress"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "story"},
-            "customfield_10001": "EPIC-123",  # Has epic
-            "customfield_10002": ["Sprint 1"],  # Has sprint
-            "customfield_10003": "5",  # Has story points
-            "customfield_10004": {"value": "False"},  # Not blocked
-            "customfield_10006": "Given/When/Then acceptance criteria with sufficient detail",
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert len(issues) == 0
 
     def test_get_dependency_injected(self):
         """Test getting an injected dependency."""
@@ -534,6 +201,249 @@ class TestValidateIssuePlugin:
         print_calls = [call[0][0] for call in mock_print.call_args_list]
         assert any("❌ Validation failed for TEST-123" in str(call) for call in print_calls)
 
+    def test_rest_operation_with_invalid_key(self):
+        """Test REST operation with missing issue key."""
+        plugin = ValidateIssuePlugin()
+        mock_client = Mock()
+
+        with pytest.raises(KeyError):
+            plugin.rest_operation(mock_client)  # Missing issue_key
+
+
+class TestValidationRules:
+    """Rule-based checks reported by validate-issue (--no-ai)."""
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_in_progress_no_assignee(self, mock_env_fetcher):
+        """Test validation for In Progress issue without assignee."""
+        mock_env_fetcher.get.return_value = ""
+
+        fields = {
+            "status": {"name": "In Progress"},
+            "assignee": None,
+            "priority": {"name": "High"},
+            "issuetype": {"name": "task"},
+        }
+
+        issues = validation_issues(fields)
+        assert "Issue is 'In Progress' but not assigned to anyone" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_story_no_epic(self, mock_env_fetcher):
+        """Test validation for story without epic."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_EPIC_FIELD": "customfield_10001"}.get(
+            key, default
+        )
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "story"},
+            "customfield_10001": None,
+        }
+
+        issues = validation_issues(fields)
+        assert "Story is not linked to an epic" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_in_progress_no_sprint(self, mock_env_fetcher):
+        """Test validation for In Progress issue without sprint."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_SPRINT_FIELD": "customfield_10002"}.get(
+            key, default
+        )
+
+        fields = {
+            "status": {"name": "In Progress"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "task"},
+            "customfield_10002": None,
+        }
+
+        issues = validation_issues(fields)
+        assert "Issue is 'In Progress' but not in a sprint" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_no_priority(self, mock_env_fetcher):
+        """Test validation for issue without priority."""
+        mock_env_fetcher.get.return_value = ""
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {},  # Empty dict instead of None
+            "issuetype": {"name": "task"},
+        }
+
+        issues = validation_issues(fields)
+        assert "Issue has no priority set" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_priority_with_none_name(self, mock_env_fetcher):
+        """Test validation for issue with priority but None name."""
+        mock_env_fetcher.get.return_value = ""
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": None},  # Priority exists but name is None
+            "issuetype": {"name": "task"},
+        }
+
+        issues = validation_issues(fields)
+        assert "Issue has no priority set" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_story_no_points(self, mock_env_fetcher):
+        """Test validation for story without story points."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_STORY_POINTS_FIELD": "customfield_10003"}.get(
+            key, default
+        )
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "story"},
+            "customfield_10003": None,
+        }
+
+        issues = validation_issues(fields)
+        assert "Story has no story points" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_bug_no_points(self, mock_env_fetcher):
+        """Test validation for bug without story points."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_STORY_POINTS_FIELD": "customfield_10003"}.get(
+            key, default
+        )
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "bug"},
+            "customfield_10003": None,
+        }
+
+        issues = validation_issues(fields)
+        assert "Bug has no story points" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_closed_story_no_points_ok(self, mock_env_fetcher):
+        """Test that closed stories don't need story points."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_STORY_POINTS_FIELD": "customfield_10003"}.get(
+            key, default
+        )
+
+        fields = {
+            "status": {"name": "Closed"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "story"},
+            "customfield_10003": None,
+        }
+
+        issues = validation_issues(fields)
+        assert "Story has no story points" not in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_blocked_no_reason(self, mock_env_fetcher):
+        """Test validation for blocked issue without reason."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {
+            "JIRA_BLOCKED_FIELD": "customfield_10004",
+            "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
+        }.get(key, default)
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "task"},
+            "customfield_10004": {"value": "True"},
+            "customfield_10005": "   ",  # Whitespace only
+        }
+
+        issues = validation_issues(fields)
+        assert "Issue is blocked but has no reason" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_blocked_with_id(self, mock_env_fetcher):
+        """Test validation for blocked issue using ID format."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {
+            "JIRA_BLOCKED_FIELD": "customfield_10004",
+            "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
+        }.get(key, default)
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "task"},
+            "customfield_10004": {"id": "14656"},  # Blocked ID
+            "customfield_10005": None,
+        }
+
+        issues = validation_issues(fields)
+        assert "Issue is blocked but has no reason" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_edge_case_none_values(self, mock_env_fetcher):
+        """Test handling of None values in fields - demonstrates current implementation limitation."""
+        mock_env_fetcher.get.return_value = ""
+
+        fields = {"status": None, "assignee": None, "priority": None, "issuetype": None}
+
+        # Current implementation doesn't handle None values gracefully: the
+        # AttributeError ('NoneType' object has no attribute 'get') is wrapped
+        # in the ValueError that execute() raises.
+        with pytest.raises(ValueError) as exc_info:
+            validation_issues(fields)
+        assert isinstance(exc_info.value.__cause__, AttributeError)
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_edge_case_missing_nested_fields(self, mock_env_fetcher):
+        """Test handling of missing nested fields."""
+        mock_env_fetcher.get.return_value = ""
+
+        fields = {
+            "status": {},  # Missing 'name'
+            "assignee": {"displayName": "User"},
+            "priority": {},  # Missing 'name'
+            "issuetype": {},  # Missing 'name'
+        }
+
+        issues = validation_issues(fields)
+        assert "Issue has no priority set" in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_all_validations_pass(self, mock_env_fetcher):
+        """Test when all validations pass."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {
+            "JIRA_EPIC_FIELD": "customfield_10001",
+            "JIRA_SPRINT_FIELD": "customfield_10002",
+            "JIRA_STORY_POINTS_FIELD": "customfield_10003",
+            "JIRA_BLOCKED_FIELD": "customfield_10004",
+            "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_10006",
+        }.get(key, default)
+
+        fields = {
+            "status": {"name": "In Progress"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "story"},
+            "customfield_10001": "EPIC-123",  # Has epic
+            "customfield_10002": ["Sprint 1"],  # Has sprint
+            "customfield_10003": "5",  # Has story points
+            "customfield_10004": {"value": "False"},  # Not blocked
+            "customfield_10006": "Given/When/Then acceptance criteria with sufficient detail",
+        }
+
+        issues = validation_issues(fields)
+        assert len(issues) == 0
+
     @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
     def test_blocked_with_valid_reason(self, mock_env_fetcher):
         """Test validation for blocked issue with valid reason."""
@@ -542,7 +452,6 @@ class TestValidateIssuePlugin:
             "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
         }.get(key, default)
 
-        plugin = ValidateIssuePlugin()
         fields = {
             "status": {"name": "To Do"},
             "assignee": {"displayName": "User"},
@@ -552,7 +461,7 @@ class TestValidateIssuePlugin:
             "customfield_10005": "Waiting for external dependency",
         }
 
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
+        issues = validation_issues(fields)
         assert "Issue is blocked but has no reason" not in issues
 
     @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
@@ -562,7 +471,6 @@ class TestValidateIssuePlugin:
             key, default
         )
 
-        plugin = ValidateIssuePlugin()
         fields = {
             "status": {"name": "To Do"},
             "assignee": {"displayName": "User"},
@@ -571,7 +479,7 @@ class TestValidateIssuePlugin:
             "customfield_10001": None,
         }
 
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
+        issues = validation_issues(fields)
         # Epics should not be validated for epic links
         assert "Story is not linked to an epic" not in issues
 
@@ -580,7 +488,6 @@ class TestValidateIssuePlugin:
         """Test validation when no custom fields are configured."""
         mock_env_fetcher.get.return_value = ""  # No custom fields configured
 
-        plugin = ValidateIssuePlugin()
         fields = {
             "status": {"name": "In Progress"},
             "assignee": {"displayName": "User"},
@@ -588,9 +495,143 @@ class TestValidateIssuePlugin:
             "issuetype": {"name": "story"},
         }
 
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
+        issues = validation_issues(fields)
         # Should only have basic validations, no custom field validations
         assert len(issues) == 0  # No issues since required fields are present
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_story_with_valid_story_points(self, mock_env_fetcher):
+        """Test that stories with valid story points pass validation."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_STORY_POINTS_FIELD": "customfield_10003"}.get(
+            key, default
+        )
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "story"},
+            "customfield_10003": "5",  # Has story points
+        }
+
+        issues = validation_issues(fields)
+        assert "Story has no story points" not in issues
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_blocked_false_value(self, mock_env_fetcher):
+        """Test validation for issue marked as not blocked."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {
+            "JIRA_BLOCKED_FIELD": "customfield_10004",
+            "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
+        }.get(key, default)
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "task"},
+            "customfield_10004": {"value": "False"},  # Not blocked
+            "customfield_10005": "",  # No reason needed
+        }
+
+        issues = validation_issues(fields)
+        assert "Issue is blocked but has no reason" not in issues
+
+
+class TestAiValidations:
+    """Quality checks added when AI validation is enabled."""
+
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_run_validations_with_ai(self, mock_env_fetcher):
+        """Test validation with AI checks enabled."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": {
+            "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_10006",
+            "JIRA_AI_PROVIDER": "openai",
+        }.get(key, default)
+
+        fields = {
+            "status": {"name": "To Do"},
+            "assignee": {"displayName": "User"},
+            "priority": {"name": "High"},
+            "issuetype": {"name": "story"},
+            "description": "Short",  # Too short
+            "customfield_10006": "AC",  # Too short
+        }
+
+        issues = validation_issues(fields, no_ai=False)
+
+        # Should include AI validation issues
+        assert "Description is too short (less than 50 characters)" in issues
+        assert "Story has missing or insufficient acceptance criteria" in issues
+
+    @patch("jira_creator.providers.get_ai_provider")
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_validate_with_ai_description_check(self, mock_env_fetcher, mock_get_ai_provider):
+        """Test AI validation for description quality."""
+        mock_env_fetcher.get.return_value = ""
+        mock_ai_provider = Mock()
+        mock_get_ai_provider.return_value = mock_ai_provider
+
+        fields = {
+            "description": "Too short description",
+            "issuetype": {"name": "story"},
+        }
+
+        issues = validation_issues(fields, no_ai=False)
+        assert "Description is too short (less than 50 characters)" in issues
+
+    @patch("jira_creator.providers.get_ai_provider")
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_validate_with_ai_acceptance_criteria(self, mock_env_fetcher, mock_get_ai_provider):
+        """Test AI validation for acceptance criteria."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": (
+            "customfield_10006" if key == "JIRA_ACCEPTANCE_CRITERIA_FIELD" else ""
+        )
+        mock_ai_provider = Mock()
+        mock_get_ai_provider.return_value = mock_ai_provider
+
+        fields = {
+            "description": "This is a very detailed description with more than 50 characters",
+            "issuetype": {"name": "story"},
+            "customfield_10006": "AC",  # Too short
+        }
+
+        issues = validation_issues(fields, no_ai=False)
+        assert "Story has missing or insufficient acceptance criteria" in issues
+
+    @patch("jira_creator.providers.get_ai_provider")
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_validate_with_ai_no_description(self, mock_env_fetcher, mock_get_ai_provider):
+        """Test AI validation with missing description."""
+        mock_env_fetcher.get.return_value = ""
+        mock_ai_provider = Mock()
+        mock_get_ai_provider.return_value = mock_ai_provider
+
+        fields = {"description": "", "issuetype": {"name": "story"}}
+
+        issues = validation_issues(fields, no_ai=False)
+        # Should not add issue for empty description (handled elsewhere)
+        assert "Description is too short" not in issues
+
+    @patch("jira_creator.providers.get_ai_provider")
+    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
+    def test_validate_with_ai_valid_content(self, mock_env_fetcher, mock_get_ai_provider):
+        """Test AI validation with valid content."""
+        mock_env_fetcher.get.side_effect = lambda key, default="": (
+            "customfield_10006" if key == "JIRA_ACCEPTANCE_CRITERIA_FIELD" else ""
+        )
+        mock_ai_provider = Mock()
+        mock_get_ai_provider.return_value = mock_ai_provider
+
+        fields = {
+            "description": "This is a very detailed description with more than 50 characters explaining the feature",
+            "priority": {"name": "High"},
+            "issuetype": {"name": "story"},
+            "customfield_10006": "Given: User is logged in\nWhen: User clicks button\nThen: Action happens",
+        }
+
+        issues = validation_issues(fields, no_ai=False)
+        assert len(issues) == 0
 
     @patch("jira_creator.providers.get_ai_provider")
     @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
@@ -600,11 +641,9 @@ class TestValidateIssuePlugin:
         mock_ai_provider = Mock()
         mock_get_ai_provider.return_value = mock_ai_provider
 
-        plugin = ValidateIssuePlugin()
-
         fields = {"description": "Short task desc", "issuetype": {"name": "task"}}
 
-        issues = plugin._validate_with_ai(fields, "TEST-1", "", False)
+        issues = validation_issues(fields, no_ai=False)
         # Tasks should also be validated
         assert "Description is too short (less than 50 characters)" in issues
 
@@ -616,14 +655,13 @@ class TestValidateIssuePlugin:
         mock_ai_provider = Mock()
         mock_get_ai_provider.return_value = mock_ai_provider
 
-        plugin = ValidateIssuePlugin()
-
         fields = {
             "description": "Bug with a very detailed description that is more than 50 characters long",
+            "priority": {"name": "High"},
             "issuetype": {"name": "bug"},
         }
 
-        issues = plugin._validate_with_ai(fields, "TEST-1", "", False)
+        issues = validation_issues(fields, no_ai=False)
         # Should pass validation
         assert len(issues) == 0
 
@@ -635,8 +673,6 @@ class TestValidateIssuePlugin:
         mock_ai_provider = Mock()
         mock_get_ai_provider.return_value = mock_ai_provider
 
-        plugin = ValidateIssuePlugin()
-
         fields = {
             "status": {"name": "To Do"},
             "assignee": {"displayName": "User"},
@@ -646,53 +682,5 @@ class TestValidateIssuePlugin:
         }
 
         # AI validation should be skipped for epics
-        issues = plugin._run_validations(fields, "TEST-1", False, False)
+        issues = validation_issues(fields, no_ai=False)
         assert "Description is too short" not in issues
-
-    def test_rest_operation_with_invalid_key(self):
-        """Test REST operation with missing issue key."""
-        plugin = ValidateIssuePlugin()
-        mock_client = Mock()
-
-        with pytest.raises(KeyError):
-            plugin.rest_operation(mock_client)  # Missing issue_key
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_story_with_valid_story_points(self, mock_env_fetcher):
-        """Test that stories with valid story points pass validation."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {"JIRA_STORY_POINTS_FIELD": "customfield_10003"}.get(
-            key, default
-        )
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "story"},
-            "customfield_10003": "5",  # Has story points
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Story has no story points" not in issues
-
-    @patch("jira_creator.plugins.validate_issue_plugin.EnvFetcher")
-    def test_blocked_false_value(self, mock_env_fetcher):
-        """Test validation for issue marked as not blocked."""
-        mock_env_fetcher.get.side_effect = lambda key, default="": {
-            "JIRA_BLOCKED_FIELD": "customfield_10004",
-            "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
-        }.get(key, default)
-
-        plugin = ValidateIssuePlugin()
-        fields = {
-            "status": {"name": "To Do"},
-            "assignee": {"displayName": "User"},
-            "priority": {"name": "High"},
-            "issuetype": {"name": "task"},
-            "customfield_10004": {"value": "False"},  # Not blocked
-            "customfield_10005": "",  # No reason needed
-        }
-
-        issues = plugin._run_validations(fields, "TEST-1", True, False)
-        assert "Issue is blocked but has no reason" not in issues

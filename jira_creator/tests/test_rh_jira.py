@@ -1,281 +1,166 @@
-#!/usr/bin/env python
-"""Tests for the plugin-based CLI entry point."""
+"""Tests for the plugin-based CLI entry point, driven through run() and main()."""
 
-from argparse import Namespace
 from unittest.mock import Mock, patch
 
 import pytest
 
 from jira_creator.rh_jira import PluginBasedJiraCLI, main
 
+MODULE = "jira_creator.rh_jira"
 
-class TestPluginBasedJiraCLI:
-    """Tests for the PluginBasedJiraCLI class."""
+
+class FakeRegistry:
+    """Plugin registry with a single 'test-command' plugin."""
+
+    def __init__(self, plugin=None):
+        self.plugin = plugin
+        self.discovered = False
+        self.injected = []
+
+    def discover_plugins(self):
+        """Record discovery."""
+        self.discovered = True
+
+    def register_all(self, subparsers):
+        """Register the one command."""
+        subparsers.add_parser("test-command", help="A test command")
+
+    def list_plugins(self):
+        """Names of the registered plugins."""
+        return ["test-command"]
+
+    def get_plugin(self, name):
+        """Return the plugin for test-command, else None."""
+        if self.plugin is not None:
+            self.plugin.set_dependency.side_effect = lambda key, value: self.injected.append((key, value))
+        return self.plugin if name == "test-command" else None
+
+
+@pytest.fixture(name="cli")
+def fixture_cli(monkeypatch):
+    """Run the CLI with argv and a plugin; return (registry, client class, exit code)."""
+    monkeypatch.delenv("CLI_NAME", raising=False)
+
+    def run(argv, plugin=None, registry=None):
+        registry = registry or FakeRegistry(plugin)
+        with (
+            patch(f"{MODULE}.PluginRegistry", return_value=registry),
+            patch(f"{MODULE}.JiraClient") as client_cls,
+            patch(f"{MODULE}.argcomplete.autocomplete") as autocomplete,
+            patch("sys.argv", argv),
+        ):
+            code = None
+            try:
+                PluginBasedJiraCLI().run()
+            except SystemExit as exc:
+                code = exc.code
+        return registry, client_cls, autocomplete, code
+
+    return run
+
+
+def plugin_returning(value=True, error=None):
+    """Plugin whose execute() returns value or raises error."""
+    plugin = Mock()
+    plugin.help_text = "A test command"
+    plugin.category = "ZZZ_Undefined"
+    plugin.example_commands = ["test-command --flag"]
+    plugin.execute.return_value = value
+    if error is not None:
+        plugin.execute.side_effect = error
+    return plugin
+
+
+class TestRun:
+    """Parsing, discovery and dispatch through run()."""
 
     def test_init(self):
-        """Test CLI initialization."""
+        """A new CLI has a registry and no client yet."""
         cli = PluginBasedJiraCLI()
         assert cli.registry is not None
         assert cli.client is None
 
-    @patch("jira_creator.rh_jira.JiraClient")
-    def test_get_client(self, mock_client_class):
-        """Test client creation and caching."""
-        mock_client_instance = Mock()
-        mock_client_class.return_value = mock_client_instance
+    def test_success(self, cli):
+        """A known command is executed with a client built from the registry."""
+        plugin = plugin_returning(True)
+        registry, client_cls, autocomplete, code = cli(["jira-cli", "test-command"], plugin)
+        assert code is None
+        assert registry.discovered
+        autocomplete.assert_called_once()
+        client_cls.assert_called_once_with(plugin_registry=registry)
+        assert plugin.execute.call_args.args[0] is client_cls.return_value
+        assert plugin.execute.call_args.args[1].command == "test-command"
+        assert registry.injected == [("plugin_registry", registry)]
 
-        cli = PluginBasedJiraCLI()
+    @pytest.mark.parametrize(("env", "prog"), [({"CLI_NAME": "test-cli"}, "test-cli"), ({}, "jira-cli")])
+    def test_prog_name(self, cli, monkeypatch, capsys, env, prog):
+        """The program name comes from CLI_NAME, else argv[0]."""
+        for key, value in env.items():
+            monkeypatch.setenv(key, value)
+        code = cli(["/usr/bin/jira-cli"], plugin_returning())[3]
+        assert code == 0
+        assert prog in capsys.readouterr().out
 
-        # First call should create client with registry
-        client1 = cli._get_client()
-        assert client1 is mock_client_instance
-        mock_client_class.assert_called_once_with(plugin_registry=cli.registry)
+    def test_no_command_shows_help(self, cli, capsys):
+        """Without a command the fancy help is printed and the CLI exits 0."""
+        code = cli(["jira-cli"], plugin_returning())[3]
+        assert code == 0
+        out = capsys.readouterr().out
+        assert "test-command" in out
+        assert "A test command" in out
+        assert "ZZZ_Undefined" in out
 
-        # Second call should return cached client
-        client2 = cli._get_client()
-        assert client2 is client1
-        assert mock_client_class.call_count == 1
+    def test_help_flag(self, cli, capsys):
+        """-h prints the fancy help listing the commands."""
+        code = cli(["jira-cli", "-h"], plugin_returning())[3]
+        assert code == 0
+        assert "test-command" in capsys.readouterr().out
 
-    @patch("jira_creator.rh_jira.argcomplete.autocomplete")
-    @patch("jira_creator.rh_jira.ArgumentParser")
-    @patch.dict("os.environ", {"CLI_NAME": "test-cli"})
-    def test_run_with_cli_name(self, mock_parser_class, mock_autocomplete):
-        """Test run method with custom CLI name."""
-        # Setup mock parser
-        mock_parser = Mock()
-        mock_subparsers = Mock()
-        mock_parser.add_subparsers.return_value = mock_subparsers
-        mock_parser_class.return_value = mock_parser
 
-        # Setup mock args
-        mock_args = Mock()
-        mock_args.command = "test-command"
-        mock_parser.parse_args.return_value = mock_args
+class TestDispatch:
+    """Exit codes and messages from dispatching a command."""
 
-        cli = PluginBasedJiraCLI()
+    def test_unknown_command(self, cli, capsys):
+        """A command with no plugin exits 1."""
+        code = cli(["jira-cli", "test-command"], plugin=None)[3]
+        assert code == 1
+        assert "❌ Unknown command: test-command" in capsys.readouterr().out
 
-        # Mock registry methods
-        cli.registry.discover_plugins = Mock()
-        cli.registry.register_all = Mock()
+    def test_plugin_failure(self, cli):
+        """A plugin returning False exits 1."""
+        assert cli(["jira-cli", "test-command"], plugin_returning(False))[3] == 1
 
-        # Mock dispatch
-        cli._dispatch_command = Mock()
+    def test_keyboard_interrupt(self, cli, capsys):
+        """Ctrl-C exits 130."""
+        code = cli(["jira-cli", "test-command"], plugin_returning(error=KeyboardInterrupt()))[3]
+        assert code == 130
+        assert "⚠️  Operation cancelled by user" in capsys.readouterr().out
 
-        cli.run()
+    def test_plugin_exception(self, cli, capsys):
+        """Any other plugin error exits 1 with its message."""
+        code = cli(["jira-cli", "test-command"], plugin_returning(error=ValueError("Test error")))[3]
+        assert code == 1
+        assert "❌ Command failed: Test error" in capsys.readouterr().out
 
-        # Verify parser was created with CLI_NAME
-        mock_parser_class.assert_called_once_with(
-            description="JIRA Issue Tool (Plugin-based)", prog="test-cli", add_help=False
-        )
+    def test_client_is_cached(self):
+        """The client is built once and reused across dispatches."""
+        plugin = plugin_returning(True)
+        registry = FakeRegistry(plugin)
+        with (
+            patch(f"{MODULE}.PluginRegistry", return_value=registry),
+            patch(f"{MODULE}.JiraClient") as client_cls,
+            patch(f"{MODULE}.argcomplete.autocomplete"),
+            patch("sys.argv", ["jira-cli", "test-command"]),
+        ):
+            app = PluginBasedJiraCLI()
+            app.run()
+            app.run()
+        client_cls.assert_called_once()
+        assert plugin.execute.call_args_list[0].args[0] is plugin.execute.call_args_list[1].args[0]
 
-        # Verify plugin discovery and registration
-        cli.registry.discover_plugins.assert_called_once()
-        cli.registry.register_all.assert_called_once_with(mock_subparsers)
 
-        # Verify autocomplete was enabled
-        mock_autocomplete.assert_called_once_with(mock_parser)
-
-        # Verify dispatch was called
-        cli._dispatch_command.assert_called_once_with(mock_args)
-
-    @patch("jira_creator.rh_jira.argcomplete.autocomplete")
-    @patch("jira_creator.rh_jira.ArgumentParser")
-    @patch("sys.argv", ["jira-cli"])
-    def test_run_without_cli_name(self, mock_parser_class, mock_autocomplete):
-        """Test run method without custom CLI name."""
-        # Setup mock parser
-        mock_parser = Mock()
-        mock_subparsers = Mock()
-        mock_parser.add_subparsers.return_value = mock_subparsers
-        mock_parser_class.return_value = mock_parser
-
-        # Setup mock args
-        mock_args = Mock()
-        mock_args.command = "test-command"
-        mock_parser.parse_args.return_value = mock_args
-
-        cli = PluginBasedJiraCLI()
-
-        # Mock registry methods
-        cli.registry.discover_plugins = Mock()
-        cli.registry.register_all = Mock()
-
-        # Mock dispatch
-        cli._dispatch_command = Mock()
-
-        cli.run()
-
-        # Verify parser was created with basename of argv[0]
-        mock_parser_class.assert_called_once_with(
-            description="JIRA Issue Tool (Plugin-based)", prog="jira-cli", add_help=False
-        )
-
-    def test_dispatch_command_success(self):
-        """Test successful command dispatch."""
-        cli = PluginBasedJiraCLI()
-
-        # Mock plugin
-        mock_plugin = Mock()
-        mock_plugin.execute.return_value = True
-
-        # Mock registry
-        cli.registry.get_plugin = Mock(return_value=mock_plugin)
-
-        # Mock client
-        cli._get_client = Mock(return_value=Mock())
-
-        # Create args
-        args = Namespace(command="test-command")
-
-        # Should not raise
-        cli._dispatch_command(args)
-
-        # Verify plugin was executed
-        mock_plugin.execute.assert_called_once()
-
-    def test_dispatch_command_unknown(self, capsys):
-        """Test dispatch with unknown command."""
-        cli = PluginBasedJiraCLI()
-
-        # Mock registry to return None
-        cli.registry.get_plugin = Mock(return_value=None)
-
-        # Create args
-        args = Namespace(command="unknown-command")
-
-        # Should exit with error
-        with pytest.raises(SystemExit) as exc_info:
-            cli._dispatch_command(args)
-
-        assert exc_info.value.code == 1
-
-        # Check error message
-        captured = capsys.readouterr()
-        assert "❌ Unknown command: unknown-command" in captured.out
-
-    def test_dispatch_command_failure(self):
-        """Test dispatch when plugin returns False."""
-        cli = PluginBasedJiraCLI()
-
-        # Mock plugin that returns False
-        mock_plugin = Mock()
-        mock_plugin.execute.return_value = False
-
-        # Mock registry
-        cli.registry.get_plugin = Mock(return_value=mock_plugin)
-
-        # Mock client
-        cli._get_client = Mock(return_value=Mock())
-
-        # Create args
-        args = Namespace(command="test-command")
-
-        # Should exit with error
-        with pytest.raises(SystemExit) as exc_info:
-            cli._dispatch_command(args)
-
-        assert exc_info.value.code == 1
-
-    def test_dispatch_command_keyboard_interrupt(self, capsys):
-        """Test dispatch with KeyboardInterrupt."""
-        cli = PluginBasedJiraCLI()
-
-        # Mock plugin that raises KeyboardInterrupt
-        mock_plugin = Mock()
-        mock_plugin.execute.side_effect = KeyboardInterrupt()
-
-        # Mock registry
-        cli.registry.get_plugin = Mock(return_value=mock_plugin)
-
-        # Mock client
-        cli._get_client = Mock(return_value=Mock())
-
-        # Create args
-        args = Namespace(command="test-command")
-
-        # Should exit with code 130
-        with pytest.raises(SystemExit) as exc_info:
-            cli._dispatch_command(args)
-
-        assert exc_info.value.code == 130
-
-        # Check message
-        captured = capsys.readouterr()
-        assert "⚠️  Operation cancelled by user" in captured.out
-
-    def test_dispatch_command_exception(self, capsys):
-        """Test dispatch with general exception."""
-        cli = PluginBasedJiraCLI()
-
-        # Mock plugin that raises exception
-        mock_plugin = Mock()
-        mock_plugin.execute.side_effect = Exception("Test error")
-
-        # Mock registry
-        cli.registry.get_plugin = Mock(return_value=mock_plugin)
-
-        # Mock client
-        cli._get_client = Mock(return_value=Mock())
-
-        # Create args
-        args = Namespace(command="test-command")
-
-        # Should exit with error
-        with pytest.raises(SystemExit) as exc_info:
-            cli._dispatch_command(args)
-
-        assert exc_info.value.code == 1
-
-        # Check error message
-        captured = capsys.readouterr()
-        assert "❌ Command failed: Test error" in captured.out
-
-    @patch("jira_creator.rh_jira.PluginBasedJiraCLI")
-    def test_main(self, mock_cli_class):
-        """Test main entry point."""
-        mock_cli = Mock()
-        mock_cli_class.return_value = mock_cli
-
+def test_main():
+    """main() builds the CLI and runs it."""
+    with patch(f"{MODULE}.PluginBasedJiraCLI") as cli_cls:
         main()
-
-        mock_cli_class.assert_called_once()
-        mock_cli.run.assert_called_once()
-
-    @patch("jira_creator.rh_jira.PluginBasedJiraCLI")
-    @patch("jira_creator.rh_jira.__name__", "__main__")
-    def test_if_name_main(self, mock_cli_class):
-        """Test if __name__ == '__main__' execution."""
-        # This tests the module-level check
-        mock_cli = Mock()
-        mock_cli_class.return_value = mock_cli
-
-        # Import the module to trigger the if __name__ check
-        import jira_creator.rh_jira
-
-        # The module is already imported, so we need to reload it
-        # But since we're testing, the __name__ won't actually be __main__
-        # So we'll just verify the main function works
-        jira_creator.rh_jira.main()
-
-        mock_cli.run.assert_called_once()
-
-    def test_category_sort_with_undefined_category(self):
-        """Test category sorting with a category not in CATEGORY_ORDER."""
-        # Create CLI
-        cli = PluginBasedJiraCLI()
-
-        # Create a mock plugin with an undefined category
-        mock_plugin = Mock()
-        mock_plugin.command_name = "undefined-test"
-        mock_plugin.help_text = "Test command"
-        mock_plugin.category = "ZZZ_Undefined"  # Not in CATEGORY_ORDER, will be sorted last
-        mock_plugin.register_arguments = Mock()
-        mock_plugin.rest_operation = Mock(return_value={})
-
-        # Add the mock plugin directly to the registry
-        cli.registry._plugins = {"undefined-test": mock_plugin}
-
-        # Run with the undefined category command
-        with patch("sys.argv", ["rh-issue", "undefined-test"]):
-            with patch.object(cli, "_dispatch_command"):
-                cli.run()  # This will sort categories including the undefined one
+    cli_cls.return_value.run.assert_called_once_with()

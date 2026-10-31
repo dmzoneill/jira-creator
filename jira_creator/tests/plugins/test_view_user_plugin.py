@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the view user plugin."""
 
 from argparse import Namespace
@@ -7,6 +6,13 @@ from unittest.mock import Mock, patch
 import pytest
 
 from jira_creator.plugins.view_user_plugin import GetUserError, ViewUserPlugin
+
+
+def _client_returning(user_data):
+    """Jira client whose user lookup returns user_data."""
+    client = Mock()
+    client.request.return_value = user_data
+    return client
 
 
 class TestViewUserPlugin:
@@ -113,9 +119,8 @@ class TestViewUserPlugin:
 
         args = Namespace(account_id="unknown-user")
 
-        with patch("builtins.print") as mock_print:
-            with pytest.raises(GetUserError):
-                plugin.execute(mock_client, args)
+        with patch("builtins.print") as mock_print, pytest.raises(GetUserError):
+            plugin.execute(mock_client, args)
 
         # Verify error message was printed
         mock_print.assert_called_with("❌ Failed to get user details: User not found")
@@ -138,7 +143,7 @@ class TestViewUserPlugin:
         }
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user_details(user_data)
+            plugin.execute(_client_returning(user_data), Namespace(account_id="12345"))
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
 
@@ -166,7 +171,7 @@ class TestViewUserPlugin:
         }
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user_details(user_data)
+            plugin.execute(_client_returning(user_data), Namespace(account_id="12345"))
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
 
@@ -185,7 +190,7 @@ class TestViewUserPlugin:
         }
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user_details(user_data)
+            plugin.execute(_client_returning(user_data), Namespace(account_id="12345"))
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
 
@@ -204,7 +209,7 @@ class TestViewUserPlugin:
         }
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user_details(user_data)
+            plugin.execute(_client_returning(user_data), Namespace(account_id="12345"))
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
 
@@ -224,7 +229,7 @@ class TestViewUserPlugin:
         }
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user_details(user_data)
+            plugin.execute(_client_returning(user_data), Namespace(account_id="12345"))
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
 
@@ -243,7 +248,7 @@ class TestViewUserPlugin:
         }
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user_details(user_data)
+            plugin.execute(_client_returning(user_data), Namespace(account_id="12345"))
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
 
@@ -262,7 +267,7 @@ class TestViewUserPlugin:
         }
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user_details(user_data)
+            plugin.execute(_client_returning(user_data), Namespace(account_id="12345"))
 
         print_calls = [call[0][0] for call in mock_print.call_args_list]
 
@@ -293,7 +298,7 @@ class TestViewUserPlugin:
         }
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user_details(user_data)
+            plugin.execute(_client_returning(user_data), Namespace(account_id="12345"))
 
         print_calls = [str(call) for call in mock_print.call_args_list]
         all_output = " ".join(print_calls).lower()

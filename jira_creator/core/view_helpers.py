@@ -309,23 +309,34 @@ def _format_epic_value(issue) -> str | None:
     return str(epic_value)
 
 
-def _build_row_value(col, issue, sprint) -> str | None:  # pylint: disable=too-many-return-statements
+def _assignee_value(issue) -> str:
+    """Return the assignee's display name, or "Unassigned" when unset."""
+    return issue["assignee"]["displayName"] if issue.get("assignee") else "Unassigned"
+
+
+def _reporter_value(issue) -> str | None:
+    """Return the reporter's display name, or a placeholder when unset."""
+    reporter = issue.get("reporter")
+    if reporter and isinstance(reporter, dict):
+        return reporter.get("displayName", reporter.get("name", "—"))
+    return str(reporter) if reporter else "—"
+
+
+_ROW_VALUE_GETTERS = {
+    "key": lambda issue: issue["key"],
+    "status": lambda issue: issue["status"]["name"],
+    "assignee": _assignee_value,
+    "reporter": _reporter_value,
+    "priority": lambda issue: issue.get("priority", {}).get("name", "—"),
+    "summary": lambda issue: issue["summary"],
+}
+
+
+def _build_row_value(col, issue, sprint) -> str | None:
     """Build a single row value for the given column."""
-    if col == "key":
-        return issue["key"]
-    if col == "status":
-        return issue["status"]["name"]
-    if col == "assignee":
-        return issue["assignee"]["displayName"] if issue.get("assignee") else "Unassigned"
-    if col == "reporter":
-        reporter = issue.get("reporter")
-        if reporter and isinstance(reporter, dict):
-            return reporter.get("displayName", reporter.get("name", "—"))
-        return str(reporter) if reporter else "—"
-    if col == "priority":
-        return issue.get("priority", {}).get("name", "—")
-    if col == "summary":
-        return issue["summary"]
+    getter = _ROW_VALUE_GETTERS.get(col)
+    if getter is not None:
+        return getter(issue)
     if col == "sprint":
         return sprint
     if col == "epic" or col == EnvFetcher.get("JIRA_EPIC_FIELD", ""):
@@ -333,7 +344,7 @@ def _build_row_value(col, issue, sprint) -> str | None:  # pylint: disable=too-m
     return issue.get(col, "—")
 
 
-def massage_issue_list(args: Namespace, issues: list[dict]):  # pylint: disable=too-many-branches
+def massage_issue_list(args: Namespace, issues: list[dict]):
     """
     Massage the provided issue list by flattening fields, applying view columns, and sorting rows.
 
@@ -405,7 +416,11 @@ def search_jira_issues(
         "components",
     ]
 
-    for env_name in ("JIRA_SPRINT_FIELD", "JIRA_STORY_POINTS_FIELD", "JIRA_BLOCKED_FIELD"):
+    for env_name in (
+        "JIRA_SPRINT_FIELD",
+        "JIRA_STORY_POINTS_FIELD",
+        "JIRA_BLOCKED_FIELD",
+    ):
         custom_field = get_env(env_name, "")
         if custom_field:
             fields_to_include.append(custom_field)

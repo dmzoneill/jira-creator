@@ -266,7 +266,8 @@ class TestListIssuesPlugin:
     @patch("jira_creator.plugins.list_issues_plugin.EnvFetcher")
     def test_build_jql_query_from_env(self, mock_env_fetcher):
         """Test building JQL query with project from environment."""
-        mock_env_fetcher.get.return_value = "ENV_PROJECT"
+        env = {"JIRA_PROJECT_KEY": "ENV_PROJECT", "JIRA_COMPONENT_NAME": ""}
+        mock_env_fetcher.get.side_effect = lambda key, default="": env.get(key, default)
 
         plugin = ListIssuesPlugin()
 
@@ -367,7 +368,8 @@ class TestListIssuesPlugin:
     @patch("jira_creator.plugins.list_issues_plugin.EnvFetcher")
     def test_build_jql_query_both_blocked_unblocked(self, mock_env_fetcher):
         """Test that specifying both blocked and unblocked results in no filter."""
-        mock_env_fetcher.get.return_value = "customfield_10001"
+        env = {"JIRA_BLOCKED_FIELD": "customfield_10001", "JIRA_COMPONENT_NAME": ""}
+        mock_env_fetcher.get.side_effect = lambda key, default="": env.get(key, default)
 
         plugin = ListIssuesPlugin()
 
@@ -401,10 +403,9 @@ class TestListIssuesPlugin:
 
         plugin = ListIssuesPlugin()
 
-        # Based on the code logic, args.component must be explicitly set to use env var
         args = Namespace(
             project="TEST",
-            component="Backend",  # Will match env var
+            component=None,  # Not specified: JIRA_COMPONENT_NAME applies
             assignee=None,
             reporter=None,
             status=None,

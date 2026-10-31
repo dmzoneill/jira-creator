@@ -17,6 +17,7 @@ import time
 import traceback
 from dataclasses import asdict, dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 import requests
 from requests.exceptions import RequestException
@@ -115,7 +116,8 @@ class JiraClient:
         self.fields_cache_path: str = os.path.expanduser("~/.config/rh-issue/fields.json")
         self.is_speaking: bool = False
         self.plugin_registry = plugin_registry  # For reloading plugins after AI fixes
-        self.is_cloud: bool = ".atlassian.net" in self.jira_url
+        jira_host = (urlparse(self.jira_url).hostname or "").lower()
+        self.is_cloud: bool = jira_host.endswith(".atlassian.net")
         api_version_override = EnvFetcher.get("JIRA_API_VERSION", default="")
         if api_version_override:
             self.api_version: str = api_version_override
@@ -169,7 +171,7 @@ class JiraClient:
         # Parse query string params from path if present
         merged_params = dict(params) if params else {}
         if "?" in path:
-            from urllib.parse import parse_qs, urlparse
+            from urllib.parse import parse_qs
 
             parsed = urlparse(path)
             for key, values in parse_qs(parsed.query).items():

@@ -21,7 +21,7 @@ count=$(grep -r "raise (" jira_creator/ | wc -l)
 
 # Check if the count is 1
 if [[ "$count" -gt 0 ]]; then
-	echo "Superflous brackets"
+	echo "Superfluous brackets"
 	exit 1
 fi
 

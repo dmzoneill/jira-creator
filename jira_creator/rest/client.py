@@ -171,7 +171,7 @@ class JiraClient:
         # Parse query string params from path if present
         merged_params = dict(params) if params else {}
         if "?" in path:
-            from urllib.parse import parse_qs, urlparse
+            from urllib.parse import parse_qs
 
             parsed = urlparse(path)
             for key, values in parse_qs(parsed.query).items():

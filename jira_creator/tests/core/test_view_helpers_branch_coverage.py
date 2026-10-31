@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for missing branch coverage in view_helpers.py."""
 
 from unittest.mock import Mock, patch
@@ -155,8 +154,7 @@ class TestViewHelpersBranchCoverage:
         assert "sprint" in headers
         assert rows[0][headers.index("sprint")] == "—"
 
-    @patch.object(EnvFetcher, "get")
-    def test_format_and_print_rows_get_field_name_none(self, mock_env_get, capsys):
+    def test_format_and_print_rows_get_field_name_none(self, capsys):
         """Test format_and_print_rows when get_field_name returns None - covers 172->175."""
         headers = ["key", "custom_field"]
         rows = [("TEST-1", "value")]

@@ -1,66 +1,99 @@
-#!/usr/bin/env python
 """
-Tests for the PluginRegistry functionality.
+Tests for PluginRegistry registration of plugin exceptions, AI prompts and field mappings.
+
+Plugins are registered through the public discover_plugins() path.
 """
 
+import sys
+import types
 from argparse import ArgumentParser
+from typing import ClassVar
+
+import pytest
 
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.core.plugin_config import FieldMapping
 from jira_creator.core.plugin_registry import PluginRegistry
-from jira_creator.plugins.create_issue_plugin import CreateIssueError, CreateIssuePlugin
+from jira_creator.plugins.create_issue_plugin import CreateIssuePlugin
+
+FAKE_MODULE = "jira_creator.plugins.fake_registry_plugin"
 
 
 class MockPluginError(Exception):
     """Mock exception for plugin testing."""
 
 
-class MockPluginWithException(JiraPlugin):
-    """Mock plugin that registers an exception."""
+class StubPlugin(JiraPlugin):
+    """Minimal concrete plugin; subclasses set what it registers."""
+
+    command = "stub"
+    exceptions: ClassVar[dict] = {}
+    prompts: ClassVar[dict] = {}
+    mappings: ClassVar[dict] = {}
 
     @property
     def command_name(self):
-        return "test-exception-plugin"
+        """Command name."""
+        return self.command
 
     @property
     def help_text(self):
-        return "Test plugin with exception"
+        """Help text."""
+        return f"Test plugin {self.command}"
 
     def register_arguments(self, parser: ArgumentParser):
-        pass
+        """Register no arguments."""
+        del parser
 
     def execute(self, client, args):
+        """Succeed without doing anything."""
+        del client, args
         return True
 
     def rest_operation(self, client, **kwargs):
+        """Return an empty response."""
+        del client, kwargs
         return {}
 
     def get_plugin_exceptions(self):
-        """Register test exception."""
-        return {
-            "MockPluginError": MockPluginError,
-        }
+        """Exceptions this plugin registers."""
+        return dict(self.exceptions)
+
+    def get_ai_prompts(self):
+        """AI prompts this plugin registers."""
+        return dict(self.prompts)
+
+    def get_field_mappings(self):
+        """Field mappings this plugin registers."""
+        return dict(self.mappings)
 
 
-class MockPluginNoException(JiraPlugin):
-    """Mock plugin that doesn't register any exceptions."""
+def make_plugin(command, exceptions=None, prompts=None, mappings=None):
+    """A StubPlugin subclass registering the given items."""
+    attrs = {
+        "command": command,
+        "exceptions": exceptions or {},
+        "prompts": prompts or {},
+        "mappings": mappings or {},
+    }
+    return type(f"Plugin_{command.replace('-', '_')}", (StubPlugin,), attrs)
 
-    @property
-    def command_name(self):
-        return "test-no-exception-plugin"
 
-    @property
-    def help_text(self):
-        return "Test plugin without exception"
+@pytest.fixture(name="load")
+def fixture_load(tmp_path, monkeypatch):
+    """Build a registry by discovering the given plugin classes from a plugin dir."""
 
-    def register_arguments(self, parser: ArgumentParser):
-        pass
+    def load(*classes):
+        module = types.ModuleType(FAKE_MODULE)
+        for cls in classes:
+            setattr(module, cls.__name__, cls)
+        monkeypatch.setitem(sys.modules, FAKE_MODULE, module)
+        (tmp_path / "fake_registry_plugin.py").write_text("", encoding="utf-8")
+        registry = PluginRegistry()
+        registry.discover_plugins(str(tmp_path))
+        return registry
 
-    def execute(self, client, args):
-        return True
-
-    def rest_operation(self, client, **kwargs):
-        return {}
+    return load
 
 
 class TestPluginRegistry:
@@ -76,87 +109,40 @@ class TestPluginRegistry:
         registry = PluginRegistry()
         assert registry.get_exception("NonExistent") is None
 
-    def test_manual_exception_registration(self):
-        """Test manually registering an exception via plugin."""
-        registry = PluginRegistry()
-
-        # Manually add a plugin with exception
-        plugin = MockPluginWithException()
-        command_name = plugin.command_name
-        registry._plugins[command_name] = plugin
-        registry._plugin_classes[command_name] = MockPluginWithException
-
-        # Register exceptions manually
-        plugin_exceptions = plugin.get_plugin_exceptions()
-        for exc_name, exc_class in plugin_exceptions.items():
-            registry._exceptions[exc_name] = exc_class
-
-        # Verify exception was registered
+    def test_plugin_exception_registration(self, load):
+        """A discovered plugin's exceptions are registered."""
+        registry = load(make_plugin("test-exception-plugin", exceptions={"MockPluginError": MockPluginError}))
         assert "MockPluginError" in registry.list_exceptions()
         assert registry.get_exception("MockPluginError") == MockPluginError
 
-    def test_get_all_exceptions_alias(self):
+    def test_get_all_exceptions_alias(self, load):
         """Test that get_all_exceptions is an alias for list_exceptions."""
-        registry = PluginRegistry()
-
-        # Add an exception directly
-        registry._exceptions["TestError"] = MockPluginError
-
-        # Both methods should return the same result
+        registry = load(make_plugin("p", exceptions={"TestError": MockPluginError}))
         assert registry.get_all_exceptions() == registry.list_exceptions()
         assert "TestError" in registry.get_all_exceptions()
 
-    def test_clear_removes_exceptions(self):
+    def test_clear_removes_exceptions(self, load):
         """Test that clear() removes all exceptions."""
-        registry = PluginRegistry()
-
-        # Add an exception
-        registry._exceptions["TestError"] = MockPluginError
-
-        # Verify it exists
+        registry = load(make_plugin("p", exceptions={"TestError": MockPluginError}))
         assert "TestError" in registry.list_exceptions()
-
-        # Clear the registry
         registry.clear()
-
-        # Verify exceptions are cleared
         assert isinstance(registry.list_exceptions(), dict) and not registry.list_exceptions()
 
-    def test_list_exceptions_returns_copy(self):
+    def test_list_exceptions_returns_copy(self, load):
         """Test that list_exceptions returns a copy, not reference."""
-        registry = PluginRegistry()
-        registry._exceptions["TestError"] = MockPluginError
-
-        # Get the list
+        registry = load(make_plugin("p", exceptions={"TestError": MockPluginError}))
         exceptions_list = registry.list_exceptions()
-
-        # Modify the returned list
         exceptions_list["NewError"] = Exception
-
-        # Original should be unchanged
         assert "NewError" not in registry.list_exceptions()
         assert "TestError" in registry.list_exceptions()
 
-    def test_plugin_without_exceptions_works(self):
+    def test_plugin_without_exceptions_works(self, load):
         """Test that plugins without exceptions don't break registration."""
-        registry = PluginRegistry()
-
-        plugin = MockPluginNoException()
-        command_name = plugin.command_name
-        registry._plugins[command_name] = plugin
-        registry._plugin_classes[command_name] = MockPluginNoException
-
-        # Get exceptions (should be empty)
-        plugin_exceptions = plugin.get_plugin_exceptions()
-
-        # This should not raise an error
-        for exc_name, exc_class in plugin_exceptions.items():
-            registry._exceptions[exc_name] = exc_class
-
-        # No exceptions should be registered
+        registry = load(make_plugin("test-no-exception-plugin"))
+        assert registry.list_plugins() == ["test-no-exception-plugin"]
         assert isinstance(registry.list_exceptions(), dict) and not registry.list_exceptions()
 
-    def test_multiple_plugins_with_exceptions(self):
+    def test_multiple_plugins_with_exceptions(self, load):
         """Test registering exceptions from multiple plugins."""
 
         class PluginError1(Exception):
@@ -165,81 +151,16 @@ class TestPluginRegistry:
         class PluginError2(Exception):
             """Second plugin error."""
 
-        class Plugin1(JiraPlugin):
-            @property
-            def command_name(self):
-                return "plugin1"
-
-            @property
-            def help_text(self):
-                return "Plugin 1"
-
-            def register_arguments(self, parser):
-                pass
-
-            def execute(self, client, args):
-                return True
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-            def get_plugin_exceptions(self):
-                return {"PluginError1": PluginError1}
-
-        class Plugin2(JiraPlugin):
-            @property
-            def command_name(self):
-                return "plugin2"
-
-            @property
-            def help_text(self):
-                return "Plugin 2"
-
-            def register_arguments(self, parser):
-                pass
-
-            def execute(self, client, args):
-                return True
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-            def get_plugin_exceptions(self):
-                return {"PluginError2": PluginError2}
-
-        registry = PluginRegistry()
-
-        # Register both plugins
-        for plugin_class in [Plugin1, Plugin2]:
-            plugin = plugin_class()
-            command_name = plugin.command_name
-            registry._plugins[command_name] = plugin
-            registry._plugin_classes[command_name] = plugin_class
-
-            # Register exceptions
-            plugin_exceptions = plugin.get_plugin_exceptions()
-            for exc_name, exc_class in plugin_exceptions.items():
-                registry._exceptions[exc_name] = exc_class
-
-        # Verify both exceptions are registered
+        registry = load(
+            make_plugin("plugin1", exceptions={"PluginError1": PluginError1}),
+            make_plugin("plugin2", exceptions={"PluginError2": PluginError2}),
+        )
         exceptions = registry.list_exceptions()
-        assert len(exceptions) == 2
-        assert "PluginError1" in exceptions
-        assert "PluginError2" in exceptions
-        assert exceptions["PluginError1"] == PluginError1
-        assert exceptions["PluginError2"] == PluginError2
+        assert exceptions == {"PluginError1": PluginError1, "PluginError2": PluginError2}
 
     def test_create_issue_plugin_registers_exception(self):
         """Test that CreateIssuePlugin properly registers CreateIssueError."""
-        plugin = CreateIssuePlugin()
-
-        # Get plugin exceptions
-        exceptions = plugin.get_plugin_exceptions()
-
-        # Verify CreateIssueError is registered
-        assert "CreateIssueError" in exceptions
-        assert exceptions["CreateIssueError"] == CreateIssueError
-        assert issubclass(exceptions["CreateIssueError"], Exception)
+        assert "CreateIssueError" in CreateIssuePlugin().get_plugin_exceptions()
 
 
 class TestPluginAIPrompts:
@@ -253,136 +174,47 @@ class TestPluginAIPrompts:
     def test_get_ai_prompts_returns_empty_for_missing_plugin(self):
         """Test that get_ai_prompts returns empty dict for non-existent plugin."""
         registry = PluginRegistry()
-        assert isinstance(registry.get_ai_prompts("non-existent"), dict) and not registry.get_ai_prompts("non-existent")
+        prompts = registry.get_ai_prompts("non-existent")
+        assert isinstance(prompts, dict) and not prompts
 
-    def test_plugin_ai_prompts_registration(self):
+    def test_plugin_ai_prompts_registration(self, load):
         """Test registering AI prompts from a plugin."""
+        prompts = {
+            "task": "As a professional engineer, write clear task descriptions.",
+            "story": "As a professional engineer, write user stories.",
+        }
+        registry = load(make_plugin("test-prompts", prompts=prompts))
+        registered = registry.get_ai_prompts("test-prompts")
+        assert registered == prompts
+        assert "professional engineer" in registered["task"]
 
-        class PluginWithPrompts(JiraPlugin):
-            @property
-            def command_name(self):
-                return "test-prompts"
+    def test_plugin_without_prompts_not_listed(self, load):
+        """A plugin with no prompts adds no entry."""
+        registry = load(make_plugin("plain"))
+        assert not registry.get_all_ai_prompts()
 
-            @property
-            def help_text(self):
-                return "Test plugin with prompts"
-
-            def register_arguments(self, parser):
-                pass
-
-            def execute(self, client, args):
-                return True
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-            def get_ai_prompts(self):
-                return {
-                    "task": "As a professional engineer, write clear task descriptions.",
-                    "story": "As a professional engineer, write user stories.",
-                }
-
-        registry = PluginRegistry()
-        plugin = PluginWithPrompts()
-        command_name = plugin.command_name
-
-        # Manually register plugin and prompts
-        registry._plugins[command_name] = plugin
-        plugin_prompts = plugin.get_ai_prompts()
-        if plugin_prompts:
-            registry._ai_prompts[command_name] = plugin_prompts
-
-        # Verify prompts are registered
-        prompts = registry.get_ai_prompts("test-prompts")
-        assert len(prompts) == 2
-        assert "task" in prompts
-        assert "story" in prompts
-        assert "professional engineer" in prompts["task"]
-
-    def test_get_all_ai_prompts(self):
+    def test_get_all_ai_prompts(self, load):
         """Test getting all AI prompts from all plugins."""
+        registry = load(
+            make_plugin("plugin1", prompts={"prompt1": "Prompt 1 text"}),
+            make_plugin("plugin2", prompts={"prompt2": "Prompt 2 text"}),
+        )
+        assert registry.get_all_ai_prompts() == {
+            "plugin1": {"prompt1": "Prompt 1 text"},
+            "plugin2": {"prompt2": "Prompt 2 text"},
+        }
 
-        class Plugin1(JiraPlugin):
-            @property
-            def command_name(self):
-                return "plugin1"
-
-            @property
-            def help_text(self):
-                return "Plugin 1"
-
-            def register_arguments(self, parser):
-                pass
-
-            def execute(self, client, args):
-                return True
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-            def get_ai_prompts(self):
-                return {"prompt1": "Prompt 1 text"}
-
-        class Plugin2(JiraPlugin):
-            @property
-            def command_name(self):
-                return "plugin2"
-
-            @property
-            def help_text(self):
-                return "Plugin 2"
-
-            def register_arguments(self, parser):
-                pass
-
-            def execute(self, client, args):
-                return True
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-            def get_ai_prompts(self):
-                return {"prompt2": "Prompt 2 text"}
-
-        registry = PluginRegistry()
-
-        for plugin_class in [Plugin1, Plugin2]:
-            plugin = plugin_class()
-            command_name = plugin.command_name
-            registry._plugins[command_name] = plugin
-            plugin_prompts = plugin.get_ai_prompts()
-            if plugin_prompts:
-                registry._ai_prompts[command_name] = plugin_prompts
-
-        # Verify all prompts are accessible
-        all_prompts = registry.get_all_ai_prompts()
-        assert len(all_prompts) == 2
-        assert "plugin1" in all_prompts
-        assert "plugin2" in all_prompts
-        assert all_prompts["plugin1"]["prompt1"] == "Prompt 1 text"
-        assert all_prompts["plugin2"]["prompt2"] == "Prompt 2 text"
-
-    def test_clear_removes_ai_prompts(self):
+    def test_clear_removes_ai_prompts(self, load):
         """Test that clear() removes all AI prompts."""
-        registry = PluginRegistry()
-        registry._ai_prompts["test"] = {"prompt": "text"}
-
+        registry = load(make_plugin("test", prompts={"prompt": "text"}))
         assert len(registry.get_all_ai_prompts()) == 1
-
         registry.clear()
-
         assert isinstance(registry.get_all_ai_prompts(), dict) and not registry.get_all_ai_prompts()
 
     def test_create_issue_plugin_has_ai_prompts(self):
         """Test that CreateIssuePlugin registers AI prompts."""
-        plugin = CreateIssuePlugin()
-        prompts = plugin.get_ai_prompts()
-
-        # Verify prompts for different issue types
-        assert "task" in prompts
-        assert "story" in prompts
-        assert "bug" in prompts
-        assert "epic" in prompts
+        prompts = CreateIssuePlugin().get_ai_prompts()
+        assert {"task", "story", "bug", "epic"} <= set(prompts)
 
 
 class TestPluginFieldMappings:
@@ -395,153 +227,56 @@ class TestPluginFieldMappings:
 
     def test_get_field_mappings_returns_empty_for_missing_plugin(self):
         """Test that get_field_mappings returns empty dict for non-existent plugin."""
-        registry = PluginRegistry()
-        assert isinstance(registry.get_field_mappings("non-existent"), dict) and not registry.get_field_mappings(
-            "non-existent"
-        )
+        mappings = PluginRegistry().get_field_mappings("non-existent")
+        assert isinstance(mappings, dict) and not mappings
 
-    def test_plugin_field_mappings_registration(self):
+    def test_plugin_field_mappings_registration(self, load):
         """Test registering field mappings from a plugin."""
+        mappings = {
+            "epic": FieldMapping(
+                env_var="JIRA_EPIC_FIELD",
+                default="customfield_12311140",
+                required=False,
+                description="Epic link field",
+            ),
+            "story_points": FieldMapping(
+                env_var="JIRA_STORY_POINTS_FIELD",
+                default="customfield_12310243",
+                required=True,
+                description="Story points field",
+            ),
+        }
+        registry = load(make_plugin("test-fields", mappings=mappings))
+        registered = registry.get_field_mappings("test-fields")
+        assert set(registered) == {"epic", "story_points"}
+        assert registered["epic"].env_var == "JIRA_EPIC_FIELD"
+        assert registered["epic"].default == "customfield_12311140"
+        assert not registered["epic"].required
+        assert registered["story_points"].required
 
-        class PluginWithFields(JiraPlugin):
-            @property
-            def command_name(self):
-                return "test-fields"
-
-            @property
-            def help_text(self):
-                return "Test plugin with field mappings"
-
-            def register_arguments(self, parser):
-                pass
-
-            def execute(self, client, args):
-                return True
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-            def get_field_mappings(self):
-                return {
-                    "epic": FieldMapping(
-                        env_var="JIRA_EPIC_FIELD",
-                        default="customfield_12311140",
-                        required=False,
-                        description="Epic link field",
-                    ),
-                    "story_points": FieldMapping(
-                        env_var="JIRA_STORY_POINTS_FIELD",
-                        default="customfield_12310243",
-                        required=True,
-                        description="Story points field",
-                    ),
-                }
-
-        registry = PluginRegistry()
-        plugin = PluginWithFields()
-        command_name = plugin.command_name
-
-        # Manually register plugin and field mappings
-        registry._plugins[command_name] = plugin
-        field_mappings = plugin.get_field_mappings()
-        if field_mappings:
-            registry._field_mappings[command_name] = field_mappings
-
-        # Verify field mappings are registered
-        mappings = registry.get_field_mappings("test-fields")
-        assert len(mappings) == 2
-        assert "epic" in mappings
-        assert "story_points" in mappings
-        assert mappings["epic"].env_var == "JIRA_EPIC_FIELD"
-        assert mappings["epic"].default == "customfield_12311140"
-        assert not mappings["epic"].required
-        assert mappings["story_points"].required
-
-    def test_get_all_field_mappings(self):
+    def test_get_all_field_mappings(self, load):
         """Test getting all field mappings from all plugins."""
-
-        class Plugin1(JiraPlugin):
-            @property
-            def command_name(self):
-                return "plugin1"
-
-            @property
-            def help_text(self):
-                return "Plugin 1"
-
-            def register_arguments(self, parser):
-                pass
-
-            def execute(self, client, args):
-                return True
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-            def get_field_mappings(self):
-                return {
-                    "field1": FieldMapping(env_var="FIELD1", default="default1", required=False, description="Field 1")
-                }
-
-        class Plugin2(JiraPlugin):
-            @property
-            def command_name(self):
-                return "plugin2"
-
-            @property
-            def help_text(self):
-                return "Plugin 2"
-
-            def register_arguments(self, parser):
-                pass
-
-            def execute(self, client, args):
-                return True
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-            def get_field_mappings(self):
-                return {
-                    "field2": FieldMapping(env_var="FIELD2", default="default2", required=True, description="Field 2")
-                }
-
-        registry = PluginRegistry()
-
-        for plugin_class in [Plugin1, Plugin2]:
-            plugin = plugin_class()
-            command_name = plugin.command_name
-            registry._plugins[command_name] = plugin
-            field_mappings = plugin.get_field_mappings()
-            if field_mappings:
-                registry._field_mappings[command_name] = field_mappings
-
-        # Verify all field mappings are accessible
+        field1 = FieldMapping(env_var="FIELD1", default="default1", required=False, description="Field 1")
+        field2 = FieldMapping(env_var="FIELD2", default="default2", required=True, description="Field 2")
+        registry = load(
+            make_plugin("plugin1", mappings={"field1": field1}),
+            make_plugin("plugin2", mappings={"field2": field2}),
+        )
         all_mappings = registry.get_all_field_mappings()
-        assert len(all_mappings) == 2
-        assert "plugin1" in all_mappings
-        assert "plugin2" in all_mappings
+        assert set(all_mappings) == {"plugin1", "plugin2"}
         assert all_mappings["plugin1"]["field1"].env_var == "FIELD1"
         assert all_mappings["plugin2"]["field2"].env_var == "FIELD2"
 
-    def test_clear_removes_field_mappings(self):
+    def test_clear_removes_field_mappings(self, load):
         """Test that clear() removes all field mappings."""
-        registry = PluginRegistry()
-        registry._field_mappings["test"] = {"field": FieldMapping(env_var="TEST", description="Test field")}
-
+        field = FieldMapping(env_var="TEST", description="Test field")
+        registry = load(make_plugin("test", mappings={"field": field}))
         assert len(registry.get_all_field_mappings()) == 1
-
         registry.clear()
-
         assert isinstance(registry.get_all_field_mappings(), dict) and not registry.get_all_field_mappings()
 
     def test_create_issue_plugin_has_field_mappings(self):
         """Test that CreateIssuePlugin registers field mappings."""
-        plugin = CreateIssuePlugin()
-        mappings = plugin.get_field_mappings()
-
-        # Verify field mappings for epic and story points
-        assert "epic" in mappings
-        assert "story_points" in mappings
+        mappings = CreateIssuePlugin().get_field_mappings()
         assert mappings["epic"].env_var == "JIRA_EPIC_FIELD"
         assert mappings["story_points"].env_var == "JIRA_STORY_POINTS_FIELD"

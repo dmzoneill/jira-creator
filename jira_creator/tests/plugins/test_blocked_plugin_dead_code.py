@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Test for blocked_plugin to cover the previously dead code."""
 
 from argparse import Namespace
@@ -130,7 +129,7 @@ class TestBlockedPluginDeadCode:
         assert "✅ No blocked issues found." in captured.out
 
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
-    def test_execute_with_test_issues(self, mock_env_get, capsys):
+    def test_execute_with_test_issues(self, mock_env_get):
         """Test execute method passing through test issues."""
         mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",

@@ -1,8 +1,8 @@
-#!/usr/bin/env python
 """Tests for the base plugin class."""
 
+import inspect
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -16,12 +16,17 @@ class MockPlugin(JiraPlugin):
     help_text = "Test command"
 
     def register_arguments(self, parser: ArgumentParser) -> None:
+        """Register one positional argument."""
         parser.add_argument("test_arg")
 
     def execute(self, client: Any, args: Namespace) -> bool:
+        """Succeed without doing anything."""
+        del client, args
         return True
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
+        """Return a fixed success response."""
+        del client, kwargs
         return {"status": "success"}
 
 
@@ -53,12 +58,19 @@ class TestJiraPlugin:
 
     def test_abstract_methods_required(self):
         """Test that abstract methods must be implemented."""
-        with pytest.raises(TypeError):
-            # This should fail because abstract methods aren't implemented
-            class IncompletePlugin(JiraPlugin):
-                pass
 
-            IncompletePlugin()
+        class IncompletePlugin(JiraPlugin):
+            """Plugin that implements none of the abstract methods."""
+
+        assert inspect.isabstract(IncompletePlugin)
+        assert IncompletePlugin.__abstractmethods__ == {
+            "command_name",
+            "help_text",
+            "register_arguments",
+            "execute",
+            "rest_operation",
+        }
+        assert not inspect.isabstract(MockPlugin)
 
     def test_mock_plugin_methods(self):
         """Test MockPlugin methods for coverage."""
@@ -68,7 +80,7 @@ class TestJiraPlugin:
         parser = ArgumentParser()
         plugin.register_arguments(parser)
         # Verify the argument was added
-        assert "test_arg" in [action.dest for action in parser._actions]
+        assert parser.parse_args(["value"]).test_arg == "value"
 
         # Test execute
         result = plugin.execute(None, None)

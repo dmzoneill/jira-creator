@@ -1,648 +1,305 @@
-#!/usr/bin/env python
 """
 Unit tests for lint plugin.
+
+Issues are linted through the public execute() entry point; the AI provider is
+injected through the plugin constructor and the AI hash cache lives under a
+temporary HOME.
 """
 
+import hashlib
 import json
-import os
-import tempfile
 from argparse import Namespace
 from unittest.mock import Mock, patch
 
 import pytest
 
+from jira_creator.exceptions.exceptions import JiraClientRequestError
 from jira_creator.plugins.lint_plugin import LintError, LintPlugin
 
+ENV = {
+    "JIRA_EPIC_FIELD": "customfield_epic",
+    "JIRA_SPRINT_FIELD": "customfield_sprint",
+    "JIRA_STORY_POINTS_FIELD": "customfield_points",
+    "JIRA_BLOCKED_FIELD": "customfield_blocked",
+    "JIRA_BLOCKED_REASON_FIELD": "customfield_reason",
+    "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_ac",
+    "JIRA_AI_PROVIDER": "test-provider",
+}
 
-class TestLintPlugin:
-    """Tests for the LintPlugin class."""
+CLEAN_FIELDS = {
+    "status": {"name": "In Progress"},
+    "assignee": {"name": "testuser"},
+    "priority": {"name": "High"},
+    "issuetype": {"name": "Story"},
+    "customfield_epic": "EPIC-1",
+    "customfield_sprint": [{"name": "Sprint 1"}],
+    "customfield_points": 5,
+    "customfield_blocked": {"value": "False"},
+}
 
-    def setup_method(self):
-        """Set up test fixtures."""
-        self.plugin = LintPlugin()
-        self.mock_client = Mock()
-        self.mock_ai_provider = Mock()
+
+def sha256(text):
+    """SHA-256 hex digest, as stored in the AI hash cache."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+@pytest.fixture(name="home", autouse=True)
+def fixture_home(tmp_path, monkeypatch):
+    """Use a temporary HOME and the custom field mapping in ENV."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    with patch(
+        "jira_creator.plugins.lint_plugin.EnvFetcher.get", side_effect=lambda key, default=None: ENV.get(key, default)
+    ):
+        yield tmp_path
+
+
+def cache_file(home):
+    """Path of the AI hash cache under the temporary HOME."""
+    return home / ".config" / "rh-issue" / "ai-hashes.json"
+
+
+def lint(capsys, fields, ai_provider=None, no_cache=False, **overrides):
+    """Run `lint TEST-1` on an issue; return (result, reported problems)."""
+    client = Mock()
+    client.request.return_value = {"fields": {**fields, **overrides}}
+    plugin = LintPlugin(ai_provider=ai_provider) if ai_provider else LintPlugin()
+    args = Namespace(issue_key="TEST-1", no_ai=ai_provider is None, no_cache=no_cache)
+    result = plugin.execute(client, args)
+    out = capsys.readouterr().out
+    return result, [line[3:] for line in out.splitlines() if line.startswith(" - ")]
+
+
+class TestLintPluginBasics:
+    """Plugin metadata, REST call and field extraction."""
 
     def test_command_name(self):
         """Test command name property."""
-        assert self.plugin.command_name == "lint"
+        assert LintPlugin().command_name == "lint"
 
     def test_help_text(self):
         """Test help text property."""
-        assert "Lint a single Jira issue" in self.plugin.help_text
+        assert "Lint a single Jira issue" in LintPlugin().help_text
 
     def test_register_arguments(self):
         """Test argument registration."""
         mock_parser = Mock()
-        self.plugin.register_arguments(mock_parser)
-
-        # Verify that add_argument was called with expected arguments
+        LintPlugin().register_arguments(mock_parser)
         assert mock_parser.add_argument.call_count >= 3  # issue_key, --no-ai, --no-cache
 
     def test_rest_operation_success(self):
         """Test successful REST operation."""
-        # Mock client response
-        expected_response = {
-            "fields": {"summary": "Test issue", "status": {"name": "In Progress"}, "assignee": {"name": "testuser"}}
-        }
-        self.mock_client.request.return_value = expected_response
+        client = Mock()
+        client.request.return_value = {"fields": {"summary": "Test issue"}}
 
-        # Call rest operation
-        result = self.plugin.rest_operation(self.mock_client, issue_key="TEST-123")
+        result = LintPlugin().rest_operation(client, issue_key="TEST-123")
 
-        # Verify client was called correctly
-        self.mock_client.request.assert_called_once_with("GET", "/rest/api/2/issue/TEST-123")
-        assert result == expected_response
+        client.request.assert_called_once_with("GET", "/rest/api/2/issue/TEST-123")
+        assert result == {"fields": {"summary": "Test issue"}}
+
+    def test_rest_operation_request_error(self):
+        """A Jira request error is wrapped in LintError."""
+        client = Mock()
+        client.request.side_effect = JiraClientRequestError("404")
+        with pytest.raises(LintError, match="API request failed for TEST-123"):
+            LintPlugin().rest_operation(client, issue_key="TEST-123")
 
     def test_rest_operation_failure(self):
-        """Test REST operation failure."""
-        # Mock client to raise exception
-        self.mock_client.request.side_effect = Exception("API Error")
-
-        # Test that LintError is raised
+        """Any other error is wrapped in LintError."""
+        client = Mock()
+        client.request.side_effect = Exception("API Error")
         with pytest.raises(LintError, match="Failed to fetch issue TEST-123"):
-            self.plugin.rest_operation(self.mock_client, issue_key="TEST-123")
+            LintPlugin().rest_operation(client, issue_key="TEST-123")
 
-    def test_validate_progress_success(self):
-        """Test progress validation - success case."""
-        problems = []
-        self.plugin._validate_progress("In Progress", {"name": "testuser"}, problems)
-        assert len(problems) == 0
-
-    def test_validate_progress_failure(self):
-        """Test progress validation - failure case."""
-        problems = []
-        self.plugin._validate_progress("In Progress", None, problems)
-        assert len(problems) == 1
-        assert "unassigned" in problems[0]
-
-    def test_validate_epic_link_success(self):
-        """Test epic link validation - success case."""
-        problems = []
-        self.plugin._validate_epic_link("Story", "In Progress", "EPIC-123", problems)
-        assert len(problems) == 0
-
-    def test_validate_epic_link_failure(self):
-        """Test epic link validation - failure case."""
-        problems = []
-        self.plugin._validate_epic_link("Story", "In Progress", None, problems)
-        assert len(problems) == 1
-        assert "no assigned Epic" in problems[0]
-
-    def test_validate_priority_success(self):
-        """Test priority validation - success case."""
-        problems = []
-        self.plugin._validate_priority({"name": "High"}, problems)
-        assert len(problems) == 0
-
-    def test_validate_priority_failure(self):
-        """Test priority validation - failure case."""
-        problems = []
-        self.plugin._validate_priority(None, problems)
-        assert len(problems) == 1
-        assert "Priority not set" in problems[0]
-
-    @patch("jira_creator.plugins.lint_plugin.get_ai_provider")
-    @patch("jira_creator.core.env_fetcher.EnvFetcher.get")
-    def test_execute_success_without_ai(self, mock_env_get, mock_get_ai_provider):
-        """Test successful execute without AI."""
-
-        # Mock environment variables
-        def env_side_effect(key, default=None):
-            env_map = {
-                "JIRA_EPIC_FIELD": "customfield_12345",
-                "JIRA_SPRINT_FIELD": "customfield_67890",
-                "JIRA_STORY_POINTS_FIELD": "customfield_11111",
-                "JIRA_BLOCKED_FIELD": "customfield_22222",
-                "JIRA_BLOCKED_REASON_FIELD": "customfield_33333",
-                "JIRA_ACCEPTANCE_CRITERIA_FIELD": "customfield_44444",
-            }
-            return env_map.get(key, default)
-
-        mock_env_get.side_effect = env_side_effect
-
-        # Mock arguments
-        args = Namespace(issue_key="TEST-123", no_ai=True, no_cache=False)
-
-        # Mock client response - Epic type issue (exempt from epic validation)
-        issue_response = {
-            "fields": {
-                "summary": "Test epic",
-                "status": {"name": "Done"},
-                "assignee": {"name": "testuser"},
-                "priority": {"name": "High"},
-                "issuetype": {"name": "Epic"},
-                "customfield_12345": "EPIC-456",  # Epic field
-                "customfield_67890": [{"name": "Sprint 1"}],  # Sprint field
-                "customfield_11111": 5,  # Story points
-                "customfield_22222": {"value": "False"},  # Not blocked
-                "customfield_33333": "",  # No blocked reason needed
-            }
-        }
-        self.mock_client.request.return_value = issue_response
-
-        # Mock dependency injection
-        self.plugin._injected_deps = {}
-
-        # Execute
-        result = self.plugin.execute(self.mock_client, args)
-
-        # Verify result
-        assert result is True
-        mock_get_ai_provider.assert_not_called()
-
-    def test_sha256(self):
-        """Test SHA256 hash function."""
-        text = "test text"
-        hash_result = self.plugin._sha256(text)
-        assert len(hash_result) == 64  # SHA256 produces 64-character hex string
-        assert hash_result == self.plugin._sha256(text)  # Should be consistent
-
-    @patch("os.path.exists")
-    @patch("builtins.open")
-    @patch("json.load")
-    def test_load_cache_success(self, mock_json_load, mock_open, mock_exists):
-        """Test successful cache loading."""
-        mock_exists.return_value = True
-        mock_json_load.return_value = {"TEST-123": {"summary_hash": "abc123"}}
-
-        result = self.plugin._load_cache()
-
-        assert result == {"TEST-123": {"summary_hash": "abc123"}}
-        mock_open.assert_called_once()
-        mock_json_load.assert_called_once()
-
-    @patch("os.path.exists")
-    def test_load_cache_no_file(self, mock_exists):
-        """Test cache loading when file doesn't exist."""
-        mock_exists.return_value = False
-
-        result = self.plugin._load_cache()
-
-        assert isinstance(result, dict) and not result
-
-    def test_load_and_cache_issue(self):
-        """Test loading cache for specific issue."""
-        # Mock _load_cache to return test data
-        with patch.object(self.plugin, "_load_cache") as mock_load_cache:
-            mock_load_cache.return_value = {"TEST-123": {"summary_hash": "abc123"}}
-
-            cache, cached = self.plugin.load_and_cache_issue("TEST-123")
-
-            assert cache == {"TEST-123": {"summary_hash": "abc123"}}
-            assert cached == {"summary_hash": "abc123"}
-
-    def test_load_and_cache_issue_new_issue(self):
-        """Test loading cache for new issue."""
-        # Mock _load_cache to return empty data
-        with patch.object(self.plugin, "_load_cache") as mock_load_cache:
-            mock_load_cache.return_value = {}
-
-            cache, cached = self.plugin.load_and_cache_issue("NEW-123")
-
-            assert isinstance(cache, dict) and not cache
-            assert isinstance(cached, dict) and not cached
-
-    @patch("jira_creator.plugins.lint_plugin.get_ai_provider")
-    @patch("jira_creator.plugins.lint_plugin.EnvFetcher.get")
-    def test_execute_with_ai_provider(self, mock_env_get, mock_get_ai_provider, capsys):
-        """Test execute method with AI provider."""
-        mock_env_get.return_value = "test_provider"
-        mock_ai_provider = Mock()
-        mock_get_ai_provider.return_value = mock_ai_provider
-
-        plugin = LintPlugin()
-        mock_client = Mock()
-
-        # Mock rest_operation and validation
-        with (
-            patch.object(plugin, "rest_operation", return_value={"fields": {"key": "TEST-1"}}),
-            patch.object(plugin, "_validate_issue", return_value=[]),
-        ):
-            args = Namespace(issue_key="TEST-1", no_ai=False, no_cache=False)
-            result = plugin.execute(mock_client, args)
-
-            assert result is True
-            captured = capsys.readouterr()
-            assert "✅ TEST-1 passed all lint checks" in captured.out
-
-    def test_execute_with_lint_problems(self, capsys):
-        """Test execute method when problems are found."""
-        plugin = LintPlugin()
-        mock_client = Mock()
-
-        # Mock rest_operation and validation to return problems
-        with (
-            patch.object(plugin, "rest_operation", return_value={"fields": {"key": "TEST-1"}}),
-            patch.object(plugin, "_validate_issue", return_value=["Missing assignee", "No epic link"]),
-        ):
-            args = Namespace(issue_key="TEST-1", no_ai=True, no_cache=False)
-            result = plugin.execute(mock_client, args)
-
-            assert result is False
-            captured = capsys.readouterr()
-            assert "⚠️ Lint issues found in TEST-1:" in captured.out
-            assert " - Missing assignee" in captured.out
-            assert " - No epic link" in captured.out
-
-    def test_execute_with_lint_error(self, capsys):
-        """Test execute method when LintError is raised."""
-        plugin = LintPlugin()
-        mock_client = Mock()
-
-        # Mock rest_operation to raise LintError
-        with patch.object(plugin, "rest_operation", side_effect=LintError("API failed")):
-            args = Namespace(issue_key="TEST-1", no_ai=True, no_cache=False)
-
-            with pytest.raises(LintError, match="❌ Failed to lint issue TEST-1: API failed"):
-                plugin.execute(mock_client, args)
-
-            captured = capsys.readouterr()
-            assert "❌ Failed to lint issue TEST-1: API failed" in captured.out
-
-    @patch("jira_creator.plugins.lint_plugin.EnvFetcher.get")
-    def test_validate_issue_with_ai_provider(self, mock_env_get):
-        """Test _validate_issue with AI provider."""
-        mock_env_get.return_value = "test_field"
-        mock_ai_provider = Mock()
-
-        plugin = LintPlugin()
-
-        # Mock cache operations
-        with (
-            patch.object(plugin, "load_and_cache_issue", return_value=({}, {"ai_quality": True})) as mock_load,
-            patch.object(plugin, "save_cache") as mock_save,
-            patch.object(plugin, "_validate_with_ai") as mock_ai_validate,
-        ):
-            fields = {
-                "key": "TEST-1",
-                "status": {"name": "In Progress"},
-                "assignee": {"displayName": "User"},
-                "issuetype": {"name": "Story"},
-                "priority": {"name": "High"},
-            }
-
-            plugin._validate_issue(fields, mock_ai_provider, False)
-
-            # Verify AI validation was called
-            mock_ai_validate.assert_called_once()
-            mock_load.assert_called_once_with("TEST-1")
-            mock_save.assert_called_once()
-
-    @patch("jira_creator.plugins.lint_plugin.EnvFetcher.get")
-    def test_validate_issue_with_ai_no_cache(self, mock_env_get):
-        """Test _validate_issue with AI provider and no_cache=True."""
-        mock_env_get.return_value = "test_field"
-        mock_ai_provider = Mock()
-
-        plugin = LintPlugin()
-
-        # Mock cache operations
-        with (
-            patch.object(plugin, "load_and_cache_issue", return_value=({}, {"ai_quality": True})) as mock_load,
-            patch.object(plugin, "save_cache") as mock_save,
-            patch.object(plugin, "_validate_with_ai") as mock_ai_validate,
-        ):
-            fields = {
-                "key": "TEST-1",
-                "status": {"name": "Done"},
-                "assignee": {"displayName": "User"},
-                "issuetype": {"name": "Bug"},
-                "priority": {"name": "Medium"},
-            }
-
-            plugin._validate_issue(fields, mock_ai_provider, True)
-
-            # With no_cache=True, load_and_cache_issue should NOT be called
-            mock_ai_validate.assert_called_once()
-            mock_load.assert_not_called()  # Because no_cache=True skips loading
-            mock_save.assert_not_called()  # Because no_cache=True skips saving
-
-    def test_rest_operation_api_error(self):
-        """Test rest_operation when API call fails."""
-        plugin = LintPlugin()
-        mock_client = Mock()
-        mock_client.request.side_effect = Exception("API Error")
-
-        with pytest.raises(LintError, match="Failed to fetch issue TEST-1: API Error"):
-            plugin.rest_operation(mock_client, issue_key="TEST-1")
-
-    def test_validate_with_ai_quality_checks(self):
-        """Test _validate_with_ai method."""
-        plugin = LintPlugin()
-        mock_ai_provider = Mock()
-
-        fields = {"key": "TEST-1", "summary": "Test issue", "description": "Test description"}
-        cached = {}
-        problems = []
-
-        # Mock the field validation method
-        with patch.object(plugin, "_validate_field_with_ai") as mock_validate_field:
-            plugin._validate_with_ai(fields, mock_ai_provider, cached, problems, False)
-
-            # Should call validation for both summary and description
-            assert mock_validate_field.call_count == 2
-
-    def test_validate_with_ai_poor_quality(self):
-        """Test _validate_with_ai when AI finds issues."""
-        plugin = LintPlugin()
-        mock_ai_provider = Mock()
-
-        fields = {"key": "TEST-1", "summary": "bad", "description": "poor desc"}
-        cached = {}
-        problems = []
-
-        # Mock the field validation to add problems
-        def mock_validate_field(field_name, content, hash_val, ai_provider, cached, problems):
-            problems.append(f"❌ {field_name} quality issue: Content needs improvement")
-
-        with patch.object(plugin, "_validate_field_with_ai", side_effect=mock_validate_field):
-            plugin._validate_with_ai(fields, mock_ai_provider, cached, problems, False)
-
-            # Should add problems for poor quality
-            assert len(problems) == 2
-            assert "Summary quality issue" in problems[0]
-            assert "Description quality issue" in problems[1]
-
-    def test_validate_with_ai_cached_results(self):
-        """Test _validate_with_ai using cached results."""
-        plugin = LintPlugin()
-        mock_ai_provider = Mock()
-
-        fields = {"key": "TEST-1", "summary": "Test", "description": "Test desc"}
-
-        # Pre-populate cache with matching hashes to avoid validation
-        cached = {"summary_hash": plugin._sha256("Test"), "description_hash": plugin._sha256("Test desc")}
-        problems = []
-
-        with patch.object(plugin, "_validate_field_with_ai") as mock_validate_field:
-            plugin._validate_with_ai(fields, mock_ai_provider, cached, problems, False)
-
-            # Should not call validation due to matching hashes
-            mock_validate_field.assert_not_called()
-
-    def test_load_and_cache_issue_file_operations(self):
-        """Test load_and_cache_issue file operations."""
-        plugin = LintPlugin()
-
-        # Test with non-existent cache file
-        with tempfile.TemporaryDirectory() as temp_dir:
-            cache_file = os.path.join(temp_dir, "non_existent_cache.json")
-
-            with patch.object(plugin, "_get_cache_path", return_value=cache_file):
-                cache, cached = plugin.load_and_cache_issue("TEST-1")
-
-                assert isinstance(cache, dict) and not cache
-                assert isinstance(cached, dict) and not cached
-
-        # Test with existing cache file
-        with tempfile.TemporaryDirectory() as temp_dir:
-            cache_file = os.path.join(temp_dir, "existing_cache.json")
-
-            # Create existing cache file
-            existing_cache = {"TEST-1": {"ai_quality": True, "ai_description": False}, "TEST-2": {"ai_quality": False}}
-            with open(cache_file, "w", encoding="utf-8") as f:
-                json.dump(existing_cache, f)
-
-            with patch.object(plugin, "_get_cache_path", return_value=cache_file):
-                cache, cached = plugin.load_and_cache_issue("TEST-1")
-
-                assert cache == existing_cache
-                assert cached == {"ai_quality": True, "ai_description": False}
-
-        # Test with malformed cache file (should handle gracefully)
-        with tempfile.TemporaryDirectory() as temp_dir:
-            cache_file = os.path.join(temp_dir, "malformed_cache.json")
-
-            # Create malformed cache file
-            with open(cache_file, "w", encoding="utf-8") as f:
-                f.write("invalid json")
-
-            with patch.object(plugin, "_get_cache_path", return_value=cache_file):
-                cache, cached = plugin.load_and_cache_issue("TEST-1")
-
-                assert isinstance(cache, dict) and not cache
-                assert isinstance(cached, dict) and not cached
-
-    def test_save_cache_file_operations(self):
-        """Test save_cache file operations."""
-        plugin = LintPlugin()
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            cache_file = os.path.join(temp_dir, "test_cache.json")
-
-            cache_data = {"TEST-1": {"ai_quality": True, "ai_description": True}, "TEST-2": {"ai_quality": False}}
-
-            with patch.object(plugin, "_get_cache_path", return_value=cache_file):
-                plugin.save_cache(cache_data)
-
-                # Verify file was written correctly
-                assert os.path.exists(cache_file)
-                with open(cache_file, "r", encoding="utf-8") as f:
-                    saved_data = json.load(f)
-                assert saved_data == cache_data
-
-    def test_comprehensive_field_extraction(self):
-        """Test extract_issue_fields with comprehensive field data."""
+    def test_extract_issue_fields(self):
+        """extract_issue_fields maps the configured custom fields."""
         fields = {
+            **CLEAN_FIELDS,
             "key": "TEST-123",
-            "status": {"name": "In Progress"},
-            "assignee": {"displayName": "John Doe"},
-            "issuetype": {"name": "Story"},
+            "customfield_blocked": {"value": "True"},
+            "customfield_reason": "Waiting for external dependency",
+        }
+        extracted = LintPlugin.extract_issue_fields(fields)
+        assert extracted == {
+            "issue_key": "TEST-123",
+            "status": "In Progress",
+            "assignee": {"name": "testuser"},
+            "epic_link": "EPIC-1",
+            "sprint_field": [{"name": "Sprint 1"}],
             "priority": {"name": "High"},
-            "summary": "Test issue summary",
-            "description": "Test issue description",
+            "story_points": 5,
+            "blocked_value": "True",
+            "blocked_reason": "Waiting for external dependency",
+            "issue_type": "Story",
         }
 
-        # Mock environment variables for custom fields
-        with patch("jira_creator.plugins.lint_plugin.EnvFetcher.get") as mock_env_get:
-            mock_env_get.side_effect = lambda key: {
-                "JIRA_EPIC_FIELD": "customfield_10001",
-                "JIRA_SPRINT_FIELD": "customfield_10002",
-                "JIRA_STORY_POINTS_FIELD": "customfield_10003",
-                "JIRA_BLOCKED_FIELD": "customfield_10004",
-                "JIRA_BLOCKED_REASON_FIELD": "customfield_10005",
-            }.get(key, "")
+    def test_execute_lint_error(self, capsys):
+        """A failed fetch prints and re-raises a LintError."""
+        client = Mock()
+        client.request.side_effect = Exception("API failed")
+        args = Namespace(issue_key="TEST-1", no_ai=True, no_cache=False)
+        with pytest.raises(LintError, match="❌ Failed to lint issue TEST-1: Failed to fetch issue TEST-1"):
+            LintPlugin().execute(client, args)
+        assert "❌ Failed to lint issue TEST-1" in capsys.readouterr().out
 
-            # Add custom field values to test
-            fields.update(
-                {
-                    "customfield_10001": "EPIC-1",
-                    "customfield_10002": "Sprint 1",
-                    "customfield_10003": 5,
-                    "customfield_10004": {"value": "True"},
-                    "customfield_10005": "Waiting for external dependency",
-                }
-            )
 
-            extracted = LintPlugin.extract_issue_fields(fields)
+class TestLintRules:
+    """Rule-based checks (no AI)."""
 
-            assert extracted["issue_key"] == "TEST-123"
-            assert extracted["status"] == "In Progress"
-            assert extracted["assignee"]["displayName"] == "John Doe"
-            assert extracted["epic_link"] == "EPIC-1"
-            assert extracted["sprint_field"] == "Sprint 1"
-            assert extracted["priority"]["name"] == "High"
-            assert extracted["story_points"] == 5
-            assert extracted["blocked_value"] == "True"
-            assert extracted["blocked_reason"] == "Waiting for external dependency"
-            assert extracted["issue_type"] == "Story"
+    def test_clean_issue_passes(self, capsys):
+        """An issue meeting every rule passes and AI is not used."""
+        with patch("jira_creator.plugins.lint_plugin.get_ai_provider") as mock_get_ai:
+            client = Mock()
+            client.request.return_value = {"fields": dict(CLEAN_FIELDS)}
+            result = LintPlugin().execute(client, Namespace(issue_key="TEST-1", no_ai=True, no_cache=False))
+        assert result is True
+        assert "✅ TEST-1 passed all lint checks" in capsys.readouterr().out
+        mock_get_ai.assert_not_called()
 
-    def test_validate_blocked_without_reason(self):
-        """Test _validate_blocked when blocked but no reason - covers line 213."""
-        plugin = LintPlugin()
-        problems = []
+    def test_problems_are_listed(self, capsys):
+        """Problems are printed under a header and execute returns False."""
+        client = Mock()
+        client.request.return_value = {"fields": {**CLEAN_FIELDS, "priority": None, "assignee": None}}
+        result = LintPlugin().execute(client, Namespace(issue_key="TEST-1", no_ai=True, no_cache=False))
+        out = capsys.readouterr().out
+        assert result is False
+        assert "⚠️ Lint issues found in TEST-1:" in out
+        assert " - ❌ Issue is In Progress but unassigned" in out
+        assert " - ❌ Priority not set" in out
 
-        # Test blocked=True without reason
-        plugin._validate_blocked("True", "", problems)
+    def test_in_progress_unassigned(self, capsys):
+        """In Progress issues need an assignee."""
+        assert lint(capsys, CLEAN_FIELDS, assignee=None)[1] == ["❌ Issue is In Progress but unassigned"]
 
-        assert len(problems) == 1
-        assert "Issue is blocked but has no blocked reason" in problems[0]
+    def test_missing_epic(self, capsys):
+        """Stories outside New/Refinement need an epic."""
+        assert lint(capsys, CLEAN_FIELDS, customfield_epic=None)[1] == ["❌ Issue has no assigned Epic"]
 
-    def test_validate_blocked_with_reason(self):
-        """Test _validate_blocked when blocked with reason."""
-        plugin = LintPlugin()
-        problems = []
+    def test_epic_not_needed_for_epics_or_new_stories(self, capsys):
+        """Epics, and stories in New, do not need an epic link."""
+        assert not lint(capsys, CLEAN_FIELDS, customfield_epic=None, issuetype={"name": "Epic"})[1]
+        assert not lint(capsys, CLEAN_FIELDS, customfield_epic=None, status={"name": "New"})[1]
 
-        # Test blocked=True with reason
-        plugin._validate_blocked("True", "Waiting for external team", problems)
+    def test_in_progress_without_sprint(self, capsys):
+        """In Progress issues need a sprint."""
+        problems = lint(capsys, CLEAN_FIELDS, customfield_sprint=None)[1]
+        assert problems == ["❌ Issue is In Progress but not assigned to a Sprint"]
 
-        assert len(problems) == 0
+    def test_missing_priority(self, capsys):
+        """Priority must be set."""
+        assert lint(capsys, CLEAN_FIELDS, priority=None)[1] == ["❌ Priority not set"]
 
-    def test_validate_blocked_not_blocked(self):
-        """Test _validate_blocked when not blocked."""
-        plugin = LintPlugin()
-        problems = []
+    def test_missing_story_points(self, capsys):
+        """Story points are required except in Refinement/New."""
+        assert lint(capsys, CLEAN_FIELDS, customfield_points=None)[1] == ["❌ Story points not assigned"]
+        assert not lint(capsys, CLEAN_FIELDS, customfield_points=None, status={"name": "Refinement"})[1]
 
-        # Test blocked=False (no validation needed)
-        plugin._validate_blocked("False", "", problems)
+    def test_blocked_without_reason(self, capsys):
+        """Blocked issues need a reason."""
+        problems = lint(capsys, CLEAN_FIELDS, customfield_blocked={"value": "True"})[1]
+        assert problems == ["❌ Issue is blocked but has no blocked reason"]
 
-        assert len(problems) == 0
+    def test_blocked_with_reason(self, capsys):
+        """A blocked issue with a reason passes."""
+        blocked = {"customfield_blocked": {"value": "True"}, "customfield_reason": "Waiting for external team"}
+        assert lint(capsys, CLEAN_FIELDS, **blocked) == (True, [])
 
-    @patch("jira_creator.plugins.lint_plugin.EnvFetcher.get")
-    def test_validate_with_ai_acceptance_criteria_no_cache(self, mock_env_get):
-        """Test _validate_with_ai for acceptance criteria without cache - covers lines 242-246."""
-        plugin = LintPlugin()
-        mock_ai_provider = Mock()
-        mock_ai_provider.improve_text.return_value = "OK"
 
-        mock_env_get.return_value = "customfield_10050"
+class TestAiChecks:
+    """AI quality checks and the AI hash cache they use."""
 
-        fields = {
-            "key": "TEST-1",
-            "customfield_10050": "User can login successfully",
+    def test_ai_provider_from_config_when_not_injected(self, capsys):
+        """Without an injected provider, get_ai_provider(JIRA_AI_PROVIDER) is used."""
+        provider = Mock()
+        provider.improve_text.return_value = "OK"
+        with patch("jira_creator.plugins.lint_plugin.get_ai_provider", return_value=provider) as mock_get_ai:
+            client = Mock()
+            client.request.return_value = {"fields": {**CLEAN_FIELDS, "summary": "Good"}}
+            assert LintPlugin().execute(client, Namespace(issue_key="TEST-1", no_ai=False, no_cache=True))
+        mock_get_ai.assert_called_once_with("test-provider")
+        provider.improve_text.assert_called_once()
+        assert "passed all lint checks" in capsys.readouterr().out
+
+    def test_field_not_ok_is_reported(self, capsys, home):
+        """A non-OK review becomes a problem and is not cached."""
+        provider = Mock()
+        provider.improve_text.return_value = "Summary is too vague and needs more details\n"
+        result, problems = lint(capsys, CLEAN_FIELDS, ai_provider=provider, summary="Bad summary")
+        assert result is False
+        assert problems == ["❌ Summary: Summary is too vague and needs more details"]
+        assert json.loads(cache_file(home).read_text(encoding="utf-8")) == {"TEST-1": {}}
+
+    def test_ok_fields_are_cached(self, capsys, home):
+        """OK reviews store each field's hash in the cache file."""
+        provider = Mock()
+        provider.improve_text.return_value = "OK - this is fine"
+        fields = {**CLEAN_FIELDS, "summary": "S", "description": "D", "customfield_ac": "AC"}
+        assert lint(capsys, fields, ai_provider=provider) == (True, [])
+        assert provider.improve_text.call_count == 3
+        assert json.loads(cache_file(home).read_text(encoding="utf-8")) == {
+            "TEST-1": {
+                "summary_hash": sha256("S"),
+                "description_hash": sha256("D"),
+                "acceptance_criteria_hash": sha256("AC"),
+            }
         }
-        cached = {}
-        problems = []
 
-        plugin._validate_with_ai(fields, mock_ai_provider, cached, problems, False)
+    def test_cached_fields_are_not_rechecked(self, capsys, home):
+        """Fields whose hash is cached are not sent to the AI again."""
+        cache_file(home).parent.mkdir(parents=True)
+        cached = {"summary_hash": sha256("S"), "acceptance_criteria_hash": sha256("AC")}
+        cache_file(home).write_text(json.dumps({"TEST-1": cached}), encoding="utf-8")
+        provider = Mock()
+        provider.improve_text.return_value = "OK"
+        fields = {**CLEAN_FIELDS, "summary": "S", "description": "D", "customfield_ac": "AC"}
+        assert lint(capsys, fields, ai_provider=provider) == (True, [])
+        provider.improve_text.assert_called_once()
+        assert "D" in provider.improve_text.call_args[0]
 
-        # Should have called AI validation for acceptance criteria
-        assert mock_ai_provider.improve_text.called
-        assert len(problems) == 0
-        assert "acceptance_criteria_hash" in cached
+    def test_no_cache_rechecks_and_does_not_write(self, capsys, home):
+        """With --no-cache every field is reviewed and nothing is written."""
+        provider = Mock()
+        provider.improve_text.return_value = "OK"
+        lint(capsys, CLEAN_FIELDS, ai_provider=provider, no_cache=True, summary="S", description="D")
+        assert provider.improve_text.call_count == 2
+        assert not cache_file(home).exists()
 
-    @patch("jira_creator.plugins.lint_plugin.EnvFetcher.get")
-    def test_validate_with_ai_acceptance_criteria_cached(self, mock_env_get):
-        """Test _validate_with_ai for acceptance criteria with cache hit - covers lines 242-246."""
-        plugin = LintPlugin()
-        mock_ai_provider = Mock()
+    def test_ai_failure_is_reported(self, capsys):
+        """An AI error becomes a problem for that field."""
+        provider = Mock()
+        provider.improve_text.side_effect = Exception("AI service unavailable")
+        problems = lint(capsys, CLEAN_FIELDS, ai_provider=provider, description="Test content")[1]
+        assert problems == ["❌ Failed to validate Description with AI: AI service unavailable"]
 
-        mock_env_get.return_value = "customfield_10050"
 
-        acceptance_criteria = "User can login successfully"
-        fields = {
-            "key": "TEST-1",
-            "customfield_10050": acceptance_criteria,
-        }
+class TestAiCache:
+    """load_and_cache_issue() and save_cache()."""
 
-        # Pre-populate cache with matching hash
-        cached = {"acceptance_criteria_hash": plugin._sha256(acceptance_criteria)}
-        problems = []
+    def test_load_missing_cache(self):
+        """No cache file gives empty results."""
+        assert LintPlugin().load_and_cache_issue("TEST-1") == ({}, {})
 
-        plugin._validate_with_ai(fields, mock_ai_provider, cached, problems, False)
+    def test_load_existing_cache(self, home):
+        """The whole cache and the issue's entry are returned."""
+        existing = {"TEST-1": {"summary_hash": "abc123"}, "TEST-2": {"summary_hash": "def"}}
+        cache_file(home).parent.mkdir(parents=True)
+        cache_file(home).write_text(json.dumps(existing), encoding="utf-8")
+        assert LintPlugin().load_and_cache_issue("TEST-1") == (existing, {"summary_hash": "abc123"})
+        assert LintPlugin().load_and_cache_issue("NEW-1") == (existing, {})
 
-        # Should NOT call AI validation due to cache hit
-        mock_ai_provider.improve_text.assert_not_called()
-        assert len(problems) == 0
+    def test_load_malformed_cache(self, home):
+        """A malformed cache file is treated as empty."""
+        cache_file(home).parent.mkdir(parents=True)
+        cache_file(home).write_text("invalid json", encoding="utf-8")
+        assert LintPlugin().load_and_cache_issue("TEST-1") == ({}, {})
 
-    def test_validate_field_with_ai_not_ok(self):
-        """Test _validate_field_with_ai when AI returns not OK - covers lines 267-268."""
-        plugin = LintPlugin()
-        mock_ai_provider = Mock()
-        mock_ai_provider.improve_text.return_value = "Summary is too vague and needs more details"
+    def test_save_cache_creates_directory(self, home):
+        """save_cache creates the cache directory and writes JSON."""
+        data = {"TEST-1": {"summary_hash": "abc"}}
+        LintPlugin().save_cache(data)
+        assert json.loads(cache_file(home).read_text(encoding="utf-8")) == data
 
-        cached = {}
-        problems = []
-
-        plugin._validate_field_with_ai("Summary", "Bad summary", "hash123", mock_ai_provider, cached, problems)
-
-        # Should add problem
-        assert len(problems) == 1
-        assert "Summary: Summary is too vague" in problems[0]
-
-    def test_validate_field_with_ai_ok(self):
-        """Test _validate_field_with_ai when AI returns OK - covers lines 270-272."""
-        plugin = LintPlugin()
-        mock_ai_provider = Mock()
-        mock_ai_provider.improve_text.return_value = "OK - this is fine"
-
-        cached = {}
-        problems = []
-
-        plugin._validate_field_with_ai("Summary", "Good summary", "hash123", mock_ai_provider, cached, problems)
-
-        # Should NOT add problem and should update cache
-        assert len(problems) == 0
-        assert cached["summary_hash"] == "hash123"
-
-    def test_validate_field_with_ai_exception(self):
-        """Test _validate_field_with_ai with exception - covers lines 274-275."""
-        plugin = LintPlugin()
-        mock_ai_provider = Mock()
-        mock_ai_provider.improve_text.side_effect = Exception("AI service unavailable")
-
-        cached = {}
-        problems = []
-
-        plugin._validate_field_with_ai("Description", "Test content", "hash456", mock_ai_provider, cached, problems)
-
-        # Should add problem about AI failure
-        assert len(problems) == 1
-        assert "Failed to validate Description with AI" in problems[0]
-        assert "AI service unavailable" in problems[0]
-
-    @patch("os.makedirs")
-    @patch("os.path.exists")
-    def test_save_cache_creates_directory(self, mock_exists, mock_makedirs):
-        """Test save_cache creates cache directory - covers line 302."""
-        plugin = LintPlugin()
-        mock_exists.return_value = False
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            cache_file = os.path.join(temp_dir, "subdir", "cache.json")
-
-            with patch.object(plugin, "_get_cache_path", return_value=cache_file):
-                plugin.save_cache({"TEST-1": {"ai_quality": True}})
-
-                # Should have checked if directory exists
-                assert mock_exists.called
-                # Should have created directory
-                mock_makedirs.assert_called_once()
-
-    @patch("builtins.open")
-    @patch("os.path.exists")
-    @patch("os.makedirs")
-    def test_save_cache_ioerror(self, mock_makedirs, mock_exists, mock_open):
-        """Test save_cache handles IOError - covers lines 307-309."""
-        plugin = LintPlugin()
-        mock_exists.return_value = True
-        mock_open.side_effect = IOError("Permission denied")
-
-        cache_data = {"TEST-1": {"ai_quality": True}}
-
-        # Should not raise exception, just silently fail
-        plugin.save_cache(cache_data)
-
-        # Verify open was attempted
-        assert mock_open.called
+    def test_save_cache_write_error_is_ignored(self, home):
+        """A cache that cannot be written is silently skipped."""
+        cache_file(home).mkdir(parents=True)
+        LintPlugin().save_cache({"TEST-1": {}})
+        assert cache_file(home).is_dir()

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the list issues plugin."""
 
 from argparse import Namespace
@@ -7,6 +6,14 @@ from unittest.mock import Mock, patch
 import pytest
 
 from jira_creator.plugins.list_issues_plugin import ListIssuesError, ListIssuesPlugin
+
+
+def build_jql(plugin, args):
+    """JQL that execute() searches with for these filters ("" if it refuses to search)."""
+    run_args = Namespace(**{"sort": "key", "max_results": 100, **vars(args)})
+    with patch.object(plugin, "rest_operation", return_value=[]) as search, patch("builtins.print"):
+        plugin.execute(Mock(), run_args)
+    return search.call_args.kwargs["jql"] if search.called else ""
 
 
 class TestListIssuesPlugin:
@@ -100,7 +107,10 @@ class TestListIssuesPlugin:
         expected_params = {
             "jql": "project = TEST",
             "maxResults": 50,
-            "fields": "key,summary,status,assignee,reporter,priority,issuetype,created,updated,components,customfield_12310940,customfield_12310243,customfield_12316543",
+            "fields": (
+                "key,summary,status,assignee,reporter,priority,issuetype,created,updated,components,"
+                "customfield_12310940,customfield_12310243,customfield_12316543"
+            ),
             "orderBy": "created",
         }
 
@@ -236,9 +246,8 @@ class TestListIssuesPlugin:
             max_results=100,
         )
 
-        with patch("builtins.print") as mock_print:
-            with pytest.raises(ListIssuesError):
-                plugin.execute(mock_client, args)
+        with patch("builtins.print") as mock_print, pytest.raises(ListIssuesError):
+            plugin.execute(mock_client, args)
 
         mock_print.assert_called_with("❌ Failed to list issues: API failed")
 
@@ -260,7 +269,7 @@ class TestListIssuesPlugin:
             unblocked=False,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = build_jql(plugin, args)
         assert jql == "project = TEST"
 
     @patch("jira_creator.plugins.list_issues_plugin.EnvFetcher")
@@ -282,7 +291,7 @@ class TestListIssuesPlugin:
             unblocked=False,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = build_jql(plugin, args)
         assert jql == "project = ENV_PROJECT"
 
     @patch("jira_creator.plugins.list_issues_plugin.EnvFetcher")
@@ -307,7 +316,7 @@ class TestListIssuesPlugin:
             unblocked=False,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = build_jql(plugin, args)
 
         expected_parts = [
             "project = TEST",
@@ -338,7 +347,7 @@ class TestListIssuesPlugin:
             unblocked=False,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = build_jql(plugin, args)
 
         assert "reporter = 'jane.smith'" in jql
         assert "assignee" not in jql
@@ -361,7 +370,7 @@ class TestListIssuesPlugin:
             unblocked=True,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = build_jql(plugin, args)
 
         assert "(customfield_10001 != 'True' OR customfield_10001 IS EMPTY)" in jql
 
@@ -384,7 +393,7 @@ class TestListIssuesPlugin:
             unblocked=True,  # Both are True
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = build_jql(plugin, args)
 
         # Should not contain any blocked field filter
         assert "customfield_10001" not in jql
@@ -414,7 +423,7 @@ class TestListIssuesPlugin:
             unblocked=False,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = build_jql(plugin, args)
 
         assert "component = 'Backend'" in jql
 
@@ -436,7 +445,7 @@ class TestListIssuesPlugin:
             unblocked=False,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = build_jql(plugin, args)
 
         # Should not include blocked filter if field not configured
         assert jql == "project = TEST"
@@ -505,6 +514,7 @@ class TestListIssuesPlugin:
             result = plugin.execute(mock_client, args)
 
         assert result is True
+        mock_format_print.assert_called_once()
 
         # Check final count message
         print_calls = [call[0][0] for call in mock_print.call_args_list]

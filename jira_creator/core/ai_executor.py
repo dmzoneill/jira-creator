@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 AI-powered command executor for translating natural language to plugin calls.
 
@@ -8,7 +7,7 @@ fix capabilities.
 """
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.logger import get_logger
 from jira_creator.templates.template_loader import TemplateLoader
@@ -31,7 +30,7 @@ class AIExecutor:
         self.client = client
         self.plugin_registry = plugin_registry
         self.ai_provider = ai_provider
-        self._fix_registry = None
+        self._fix_registry: dict[str, Any] | None = None
 
     @staticmethod
     def _extract_from_markdown_block(content: str, marker: str) -> str:
@@ -112,7 +111,7 @@ class AIExecutor:
         return content
 
     @property
-    def fix_registry(self) -> Dict[str, Dict[str, Any]]:
+    def fix_registry(self) -> dict[str, dict[str, Any]]:
         """
         Build fix method registry from all plugins.
 
@@ -156,7 +155,7 @@ class AIExecutor:
         self._fix_registry = registry
         return registry
 
-    def get_available_methods_for_ai(self) -> Dict[str, Any]:
+    def get_available_methods_for_ai(self) -> dict[str, Any]:
         """
         Get fix methods formatted for AI consumption.
 
@@ -174,7 +173,7 @@ class AIExecutor:
 
         return ai_methods
 
-    def generate_fixes(self, issue_key: str, problems: List[str], context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def generate_fixes(self, issue_key: str, problems: list[str], context: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Use AI to generate fix commands for lint problems.
 
@@ -242,7 +241,7 @@ class AIExecutor:
             return []
 
     def _build_fix_prompt(
-        self, issue_key: str, problems: List[str], context: Dict[str, Any], available_methods: Dict[str, Any]
+        self, issue_key: str, problems: list[str], context: dict[str, Any], available_methods: dict[str, Any]
     ) -> str:
         """
         Build the AI prompt for generating fix commands.
@@ -268,11 +267,11 @@ Available fix methods:
 
 Context:
 - Issue: {issue_key}
-- Status: {context.get('issue_status', 'Unknown')}
-- Type: {context.get('issue_type', 'Unknown')}
-- Active Sprint: {context.get('active_sprint_name', 'None')}
-- Active Sprint ID: {context.get('active_sprint_id', 'None')}
-- Current Assignee: {context.get('current_assignee', 'Unassigned')}
+- Status: {context.get("issue_status", "Unknown")}
+- Type: {context.get("issue_type", "Unknown")}
+- Active Sprint: {context.get("active_sprint_name", "None")}
+- Active Sprint ID: {context.get("active_sprint_id", "None")}
+- Current Assignee: {context.get("current_assignee", "Unassigned")}
 
 Problems to fix:
 {chr(10).join(f"- {p}" for p in problems)}
@@ -298,8 +297,8 @@ Return a JSON array of fix commands. Example:
         return prompt
 
     def _validate_fix_commands(
-        self, fix_commands: List[Dict[str, Any]], context: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, fix_commands: list[dict[str, Any]], context: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """
         Validate AI-generated commands against plugin conditions.
 
@@ -356,7 +355,7 @@ Return a JSON array of fix commands. Example:
 
         return valid_commands
 
-    def execute_fixes(self, fix_commands: List[Dict[str, Any]], interactive: bool = False) -> tuple[int, int]:
+    def execute_fixes(self, fix_commands: list[dict[str, Any]], interactive: bool = False) -> tuple[int, int]:
         """
         Execute AI-generated fix commands via plugins.
 

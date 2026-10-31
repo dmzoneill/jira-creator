@@ -1,423 +1,265 @@
-#!/usr/bin/env python
-"""Tests for the talk plugin."""
+"""Tests for the talk plugin, driven through its public execute() entry point."""
 
 import json
-from argparse import Namespace
-from unittest.mock import MagicMock, Mock, patch
+import os
+import queue
+import sys
+import types
+from argparse import ArgumentParser, Namespace
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from jira_creator.plugins.talk_plugin import TalkError, TalkPlugin, suppress_stderr
 
-
-class TestSuppressStderr:
-    """Test suppress_stderr context manager."""
-
-    def test_suppress_stderr(self):
-        """Test that stderr is suppressed."""
-        with suppress_stderr():
-            # This would normally write to stderr but should be suppressed
-            pass
+MODULE = "jira_creator.plugins.talk_plugin"
 
 
-class TestTalkPlugin:
-    """Test cases for TalkPlugin."""
+def fake_recognizer(model, rate):
+    """Vosk recogniser: empty audio is 'not a full phrase', otherwise echo it."""
+    heard = {"last": b"", "model": model, "rate": rate}
 
-    def test_plugin_properties(self):
-        """Test plugin properties are set correctly."""
+    def accept(data):
+        heard["last"] = data
+        return data != b""
+
+    def result():
+        return json.dumps({"text": heard["last"].decode()})
+
+    recognizer = MagicMock()
+    recognizer.AcceptWaveform.side_effect = accept
+    recognizer.Result.side_effect = result
+    return recognizer
+
+
+class ScriptedQueue:
+    """Audio queue that yields a fixed script of utterances."""
+
+    def __init__(self, script, leftovers=0):
+        self.script = list(script)
+        self.leftovers = leftovers
+        self.flushed = 0
+
+    def put(self, item):
+        """Queue an item first."""
+        self.script.insert(0, item)
+
+    def get(self):
+        """Next utterance."""
+        return self.script.pop(0)
+
+    def empty(self):
+        """True once leftovers are drained."""
+        return self.leftovers == 0
+
+    def get_nowait(self):
+        """Drain one leftover block."""
+        self.flushed += 1
+        if self.leftovers < 0:
+            self.leftovers = 0
+            raise queue.Empty
+        self.leftovers -= 1
+
+
+class FakeStream:
+    """Microphone stream that delivers one silent block on start."""
+
+    def __init__(self, callback, **kwargs):
+        self.callback = callback
+        self.kwargs = kwargs
+
+    def __enter__(self):
+        self.callback(b"", 0, None, None)
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+class FakeW2N:
+    """word2number stand-in that can be told to reject a word."""
+
+    WORDS = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
+
+    def __init__(self, rejects=()):
+        self.rejects = set(rejects)
+
+    def word_to_num(self, word):
+        """Digit word to int."""
+        if word in self.rejects:
+            raise ValueError(word)
+        return self.WORDS.index(word)
+
+
+@pytest.fixture(name="env")
+def env_fixture(tmp_path):
+    """EnvFetcher values with a Vosk model directory that exists."""
+    values = {"JIRA_VOSK_MODEL": str(tmp_path), "JIRA_PROJECT_KEY": "AAP"}
+    with patch(f"{MODULE}.EnvFetcher.get", side_effect=lambda k, default=None: values.get(k, default)):
+        yield values
+
+
+@pytest.fixture(name="audio")
+def audio_fixture(monkeypatch, env):
+    """Install fake audio/speech modules and return a runner for execute()."""
+    w2n = FakeW2N()
+    monkeypatch.setitem(sys.modules, "sounddevice", types.SimpleNamespace(RawInputStream=FakeStream))
+    monkeypatch.setitem(
+        sys.modules, "vosk", types.SimpleNamespace(Model=lambda path: path, KaldiRecognizer=fake_recognizer)
+    )
+    monkeypatch.setitem(sys.modules, "word2number", types.SimpleNamespace(w2n=w2n))
+
+    ai_helper = MagicMock()
+    registry = MagicMock()
+    registry.get_plugin.return_value = ai_helper
+
+    def run(script, voice=False, leftovers=0):
+        """Run execute() over a script of utterances ending in stop."""
+        q = ScriptedQueue(list(script) + [b"stop"], leftovers)
+        with (
+            patch(f"{MODULE}.queue.Queue", return_value=q),
+            patch("jira_creator.core.plugin_registry.PluginRegistry", return_value=registry),
+        ):
+            assert TalkPlugin().execute(MagicMock(), Namespace(voice=voice)) is True
+        return q
+
+    return types.SimpleNamespace(run=run, w2n=w2n, ai_helper=ai_helper, registry=registry, env=env)
+
+
+def prompts(audio):
+    """Prompts passed to the AI helper, in order."""
+    return [c.args[1].prompt for c in audio.ai_helper.execute.call_args_list]
+
+
+class TestPluginMetadata:
+    """Static plugin information."""
+
+    def test_properties(self):
+        """Command metadata is fixed."""
         plugin = TalkPlugin()
         assert plugin.command_name == "talk"
-        assert plugin.help_text == "Use voice commands to interact with Jira (requires microphone)"
+        assert "voice" in plugin.help_text.lower()
         assert plugin.category == "Utilities"
-        assert len(plugin.example_commands) == 2
-
-    def test_register_arguments(self):
-        """Test argument registration."""
-        plugin = TalkPlugin()
-        parser = Mock()
-        plugin.register_arguments(parser)
-        parser.add_argument.assert_called_once_with(
-            "--voice", action="store_true", help="Enable text-to-speech responses"
-        )
-
-    def test_rest_operation(self):
-        """Test rest_operation returns empty dict."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-        result = plugin.rest_operation(mock_client)
-        assert isinstance(result, dict) and not result
-
-    @patch("jira_creator.plugins.talk_plugin.os.path.exists")
-    @patch("jira_creator.plugins.talk_plugin.EnvFetcher")
-    def test_check_dependencies_success(self, mock_env, mock_exists):
-        """Test successful dependency check."""
-        plugin = TalkPlugin()
-        mock_env.get.return_value = "/path/to/model"
-        mock_exists.return_value = True
-
-        # Mock the imported modules
-        mock_sounddevice = Mock()
-        mock_vosk = Mock()
-        mock_w2n_module = Mock()
-
-        with patch.dict(
-            "sys.modules",
-            {"sounddevice": mock_sounddevice, "vosk": mock_vosk, "word2number": Mock(w2n=mock_w2n_module)},
-        ):
-            # Should not raise
-            plugin._check_dependencies()
-
-    @patch("jira_creator.plugins.talk_plugin.os.path.exists")
-    @patch("jira_creator.plugins.talk_plugin.EnvFetcher")
-    def test_check_dependencies_model_not_found(self, mock_env, mock_exists):
-        """Test dependency check when model not found."""
-        plugin = TalkPlugin()
-        mock_env.get.return_value = "/path/to/model"
-        mock_exists.return_value = False
-
-        mock_sounddevice = Mock()
-        mock_vosk = Mock()
-        mock_w2n_module = Mock()
-
-        with patch.dict(
-            "sys.modules",
-            {"sounddevice": mock_sounddevice, "vosk": mock_vosk, "word2number": Mock(w2n=mock_w2n_module)},
-        ):
-            with pytest.raises(TalkError, match="Vosk model not found"):
-                plugin._check_dependencies()
-
-    @patch("jira_creator.plugins.talk_plugin.os.path.exists")
-    @patch("jira_creator.plugins.talk_plugin.EnvFetcher")
-    def test_check_dependencies_model_empty(self, mock_env, mock_exists):
-        """Test dependency check when model path is empty."""
-        plugin = TalkPlugin()
-        mock_env.get.return_value = ""
-
-        mock_sounddevice = Mock()
-        mock_vosk = Mock()
-        mock_w2n_module = Mock()
-
-        with patch.dict(
-            "sys.modules",
-            {"sounddevice": mock_sounddevice, "vosk": mock_vosk, "word2number": Mock(w2n=mock_w2n_module)},
-        ):
-            with pytest.raises(TalkError, match="Vosk model not found"):
-                plugin._check_dependencies()
-
-    @patch("jira_creator.plugins.talk_plugin.EnvFetcher")
-    def test_initialize_recognizer(self, mock_env):
-        """Test recognizer initialization."""
-        plugin = TalkPlugin()
-        mock_env.get.return_value = "/path/to/model"
-
-        mock_model = Mock()
-        mock_recognizer = Mock()
-        mock_vosk = Mock()
-        mock_vosk.Model.return_value = mock_model
-        mock_vosk.KaldiRecognizer.return_value = mock_recognizer
-
-        with patch.dict("sys.modules", {"vosk": mock_vosk}):
-            rec = plugin._initialize_recognizer()
-            assert rec == mock_recognizer
-            mock_vosk.Model.assert_called_once_with("/path/to/model")
-
-    def test_execute_success(self):
-        """Test successful execution."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-        args = Namespace(voice=False)
-
-        with patch.object(plugin, "_check_dependencies"):
-            with patch.object(plugin, "_initialize_recognizer") as mock_init:
-                with patch.object(plugin, "_listen_and_process") as mock_listen:
-                    mock_rec = Mock()
-                    mock_init.return_value = mock_rec
-
-                    result = plugin.execute(mock_client, args)
-
-                    assert result is True
-                    mock_listen.assert_called_once_with(mock_client, mock_rec, False)
-
-    def test_execute_talk_error(self):
-        """Test execution when TalkError is raised."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-        args = Namespace(voice=False)
-
-        with patch.object(plugin, "_check_dependencies", side_effect=TalkError("Failed")):
-            with pytest.raises(TalkError):
-                plugin.execute(mock_client, args)
-
-    def test_listen_and_process_stop_command(self):
-        """Test listening stops on 'stop' command."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        mock_rec = Mock()
-        mock_rec.AcceptWaveform.return_value = True
-        mock_rec.Result.return_value = json.dumps({"text": "stop"})
-
-        mock_q = Mock()
-        mock_q.get.return_value = b"audio data"
-        mock_q.empty.return_value = True
-
-        mock_stream = MagicMock()
-        mock_sounddevice = MagicMock()
-        mock_sounddevice.RawInputStream.return_value.__enter__.return_value = mock_stream
-
-        with patch.dict("sys.modules", {"sounddevice": mock_sounddevice}):
-            with patch("jira_creator.plugins.talk_plugin.queue.Queue", return_value=mock_q):
-                plugin._listen_and_process(mock_client, mock_rec, False)
-                mock_rec.AcceptWaveform.assert_called()
-
-    def test_listen_and_process_empty_text(self):
-        """Test listening handles empty text."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        mock_rec = Mock()
-        results = [json.dumps({"text": ""}), json.dumps({"text": "stop"})]
-        mock_rec.AcceptWaveform.return_value = True
-        mock_rec.Result.side_effect = results
-
-        mock_q = Mock()
-        mock_q.get.return_value = b"audio data"
-        mock_q.empty.return_value = True
-
-        mock_stream = MagicMock()
-        mock_sounddevice = MagicMock()
-        mock_sounddevice.RawInputStream.return_value.__enter__.return_value = mock_stream
-
-        with patch.dict("sys.modules", {"sounddevice": mock_sounddevice}):
-            with patch("jira_creator.plugins.talk_plugin.queue.Queue", return_value=mock_q):
-                plugin._listen_and_process(mock_client, mock_rec, False)
-
-    def test_listen_and_process_short_command(self):
-        """Test listening handles short commands."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        mock_rec = Mock()
-        results = [json.dumps({"text": "hi"}), json.dumps({"text": "stop"})]
-        mock_rec.AcceptWaveform.return_value = True
-        mock_rec.Result.side_effect = results
-
-        mock_q = Mock()
-        mock_q.get.return_value = b"audio data"
-        mock_q.empty.return_value = True
-
-        mock_stream = MagicMock()
-        mock_sounddevice = MagicMock()
-        mock_sounddevice.RawInputStream.return_value.__enter__.return_value = mock_stream
-
-        with patch.dict("sys.modules", {"sounddevice": mock_sounddevice}):
-            with patch("jira_creator.plugins.talk_plugin.queue.Queue", return_value=mock_q):
-                plugin._listen_and_process(mock_client, mock_rec, False)
-
-    def test_listen_and_process_with_ai_helper(self):
-        """Test listening calls AI helper."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        mock_rec = Mock()
-        results = [json.dumps({"text": "add issue four three two one to sprint"}), json.dumps({"text": "stop"})]
-        mock_rec.AcceptWaveform.return_value = True
-        mock_rec.Result.side_effect = results
-
-        mock_q = Mock()
-        mock_q.get.return_value = b"audio data"
-        mock_q.empty.return_value = True
-
-        mock_stream = MagicMock()
-        mock_sounddevice = MagicMock()
-        mock_sounddevice.RawInputStream.return_value.__enter__.return_value = mock_stream
-
-        with patch.dict("sys.modules", {"sounddevice": mock_sounddevice}):
-            with patch("jira_creator.plugins.talk_plugin.queue.Queue", return_value=mock_q):
-                with patch.object(plugin, "_call_ai_helper") as mock_ai_helper:
-                    with patch.object(plugin, "_normalize_issue_references", return_value="normalized text"):
-                        plugin._listen_and_process(mock_client, mock_rec, False)
-                        mock_ai_helper.assert_called_once()
-
-    def test_listen_and_process_no_waveform(self):
-        """Test listening when AcceptWaveform returns False."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        mock_rec = Mock()
-        accept_returns = [False, False, True]
-        mock_rec.AcceptWaveform.side_effect = accept_returns
-        mock_rec.Result.return_value = json.dumps({"text": "stop"})
-
-        mock_q = Mock()
-        mock_q.get.return_value = b"audio data"
-        mock_q.empty.return_value = True
-
-        mock_stream = MagicMock()
-        mock_sounddevice = MagicMock()
-        mock_sounddevice.RawInputStream.return_value.__enter__.return_value = mock_stream
-
-        with patch.dict("sys.modules", {"sounddevice": mock_sounddevice}):
-            with patch("jira_creator.plugins.talk_plugin.queue.Queue", return_value=mock_q):
-                plugin._listen_and_process(mock_client, mock_rec, False)
-
-    def test_listen_and_process_queue_cleanup(self):
-        """Test queue cleanup during listening."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        mock_rec = Mock()
-        # First call processes a command, second call returns stop
-        mock_rec.AcceptWaveform.side_effect = [True, True]
-        mock_rec.Result.side_effect = [
-            json.dumps({"text": "add issue one to sprint"}),
-            json.dumps({"text": "stop"}),
-        ]
-
-        mock_q = Mock()
-        mock_q.get.return_value = b"audio data"
-        # First two empties are False (for queue cleanup), then True, False, True (for second iteration)
-        mock_q.empty.side_effect = [False, True, False, True]
-        mock_q.get_nowait.side_effect = [b"old data"]
-
-        mock_stream = MagicMock()
-        mock_sounddevice = MagicMock()
-        mock_sounddevice.RawInputStream.return_value.__enter__.return_value = mock_stream
-
-        with patch.dict("sys.modules", {"sounddevice": mock_sounddevice}):
-            with patch("jira_creator.plugins.talk_plugin.queue.Queue", return_value=mock_q):
-                with patch.object(plugin, "_call_ai_helper"):
-                    with patch.object(plugin, "_normalize_issue_references", return_value="normalized text"):
-                        plugin._listen_and_process(mock_client, mock_rec, False)
-                        assert mock_q.get_nowait.call_count >= 1
-
-    @patch("jira_creator.plugins.talk_plugin.EnvFetcher")
-    def test_normalize_issue_references(self, mock_env):
-        """Test issue reference normalization."""
-        plugin = TalkPlugin()
-        mock_env.get.return_value = "AAP"
-
-        mock_w2n = Mock()
-        mock_w2n.word_to_num.side_effect = lambda x: {"four": 4, "three": 3, "two": 2, "one": 1}.get(x, x)
-
-        with patch.dict("sys.modules", {"word2number": Mock(w2n=mock_w2n)}):
-            text = "add issue four three two one to sprint"
-            result = plugin._normalize_issue_references(text)
-
-            assert "AAP-4321" in result
-
-    @patch("jira_creator.plugins.talk_plugin.EnvFetcher")
-    def test_normalize_issue_references_no_digits(self, mock_env):
-        """Test normalization without digits."""
-        plugin = TalkPlugin()
-        mock_env.get.return_value = "AAP"
-
-        mock_w2n = Mock()
-
-        with patch.dict("sys.modules", {"word2number": Mock(w2n=mock_w2n)}):
-            text = "create a new issue"
-            result = plugin._normalize_issue_references(text)
-
-            assert "create a new issue" in result
-
-    def test_fuzzy_digit_cleanup(self):
-        """Test fuzzy digit cleanup."""
-        plugin = TalkPlugin()
-
-        text = "for free won to"
-        result = plugin._fuzzy_digit_cleanup(text)
-
-        assert "four" in result
-        assert "three" in result
-        assert "one" in result
-        assert "two" in result
-
-    def test_word_digits_to_numbers(self):
-        """Test word to number conversion."""
-        plugin = TalkPlugin()
-
-        mock_w2n = Mock()
-        mock_w2n.word_to_num.side_effect = lambda x: {"four": 4, "three": 3}.get(x, x)
-
-        text = "four three"
-        result = plugin._word_digits_to_numbers(text, mock_w2n)
-
-        assert "4" in result
-        assert "3" in result
-
-    def test_word_digits_to_numbers_value_error(self):
-        """Test word to number conversion with ValueError."""
-        plugin = TalkPlugin()
-
-        mock_w2n = Mock()
-        mock_w2n.word_to_num.side_effect = ValueError("Cannot convert")
-
-        text = "four"
-        result = plugin._word_digits_to_numbers(text, mock_w2n)
-
-        # Should handle error gracefully
-        assert "four" in result
-
-    def test_word_digits_to_numbers_non_digit_words(self):
-        """Test word to number with non-digit words."""
-        plugin = TalkPlugin()
-
-        mock_w2n = Mock()
-
-        text = "hello world"
-        result = plugin._word_digits_to_numbers(text, mock_w2n)
-
-        assert result == "hello world"
-
-    def test_call_ai_helper_success(self):
-        """Test calling AI helper successfully."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        mock_registry = Mock()
-        mock_ai_helper = Mock()
-        mock_ai_helper.execute.return_value = True
-        mock_registry.get_plugin.return_value = mock_ai_helper
-
-        mock_plugin_registry = Mock(return_value=mock_registry)
-
-        with patch.dict(
-            "sys.modules", {"jira_creator.core.plugin_registry": Mock(PluginRegistry=mock_plugin_registry)}
-        ):
-            plugin._call_ai_helper(mock_client, "test command", False)
-            mock_ai_helper.execute.assert_called_once()
-
-    def test_call_ai_helper_not_found(self):
-        """Test calling AI helper when not found."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        mock_registry = Mock()
-        mock_registry.get_plugin.return_value = None
-
-        mock_plugin_registry = Mock(return_value=mock_registry)
-
-        with patch.dict(
-            "sys.modules", {"jira_creator.core.plugin_registry": Mock(PluginRegistry=mock_plugin_registry)}
-        ):
-            plugin._call_ai_helper(mock_client, "test command", False)
-
-    def test_call_ai_helper_with_errors(self):
-        """Test calling AI helper with various errors."""
-        plugin = TalkPlugin()
-        mock_client = Mock()
-
-        errors = [ValueError("error"), KeyError("key"), AttributeError("attr")]
-
-        for error in errors:
-            mock_registry = Mock()
-            mock_ai_helper = Mock()
-            mock_ai_helper.execute.side_effect = error
-            mock_registry.get_plugin.return_value = mock_ai_helper
-
-            mock_plugin_registry = Mock(return_value=mock_registry)
-
-            with patch.dict(
-                "sys.modules", {"jira_creator.core.plugin_registry": Mock(PluginRegistry=mock_plugin_registry)}
-            ):
-                plugin._call_ai_helper(mock_client, "test command", False)
+        assert plugin.example_commands == ["talk", "talk --voice"]
+        assert plugin.get_plugin_exceptions() == {"TalkError": TalkError}
+        assert not plugin.rest_operation(MagicMock(), anything=1)
+
+    @pytest.mark.parametrize(("argv", "voice"), [([], False), (["--voice"], True)])
+    def test_register_arguments(self, argv, voice):
+        """--voice is an optional flag."""
+        parser = ArgumentParser()
+        TalkPlugin().register_arguments(parser)
+        assert parser.parse_args(argv).voice is voice
+
+    def test_suppress_stderr_restores_fd(self):
+        """stderr is restored after suppression."""
+        before = os.fstat(2)
+        with suppress_stderr():
+            os.write(2, b"hidden\n")
+        assert os.fstat(2).st_ino == before.st_ino
+
+
+class TestExecuteErrors:
+    """Dependency and configuration failures surface as TalkError."""
+
+    @pytest.mark.parametrize("missing", ["sounddevice", "vosk", "word2number"])
+    def test_missing_dependency(self, audio, monkeypatch, missing, capsys):
+        """Any missing speech module is reported."""
+        monkeypatch.setitem(sys.modules, missing, None)
+        with pytest.raises(TalkError, match="Missing required dependencies"):
+            TalkPlugin().execute(MagicMock(), Namespace(voice=False))
+        audio.ai_helper.execute.assert_not_called()
+        assert "❌ Talk command failed" in capsys.readouterr().out
+
+    @pytest.mark.parametrize("model", ["", "/does/not/exist"])
+    def test_model_not_found(self, audio, model):
+        """An unset or absent model path is reported."""
+        audio.env["JIRA_VOSK_MODEL"] = model
+        with pytest.raises(TalkError, match="Vosk model not found"):
+            TalkPlugin().execute(MagicMock(), Namespace(voice=False))
+
+
+class TestListening:
+    """Speech loop behaviour."""
+
+    def test_stop_ends_session(self, audio, capsys):
+        """Saying stop ends the session without AI calls."""
+        audio.run([])
+        out = capsys.readouterr().out
+        assert "🎤 Listening" in out
+        assert "📝 Heard: stop" in out
+        assert "👋 Goodbye!" in out
+        audio.ai_helper.execute.assert_not_called()
+
+    def test_short_command_rejected(self, audio, capsys):
+        """Phrases under four words are not sent."""
+        audio.run([b"hello there"])
+        assert "Command too short" in capsys.readouterr().out
+        audio.ai_helper.execute.assert_not_called()
+
+    def test_silence_and_blank_text_ignored(self, audio, capsys):
+        """Silence and blank results are skipped."""
+        audio.run([b"", b"   "])
+        out = capsys.readouterr().out
+        assert out.count("📝 Heard:") == 1
+        audio.ai_helper.execute.assert_not_called()
+
+    @pytest.mark.parametrize("voice", [False, True])
+    def test_command_sent_to_ai_helper(self, audio, voice, capsys):
+        """A full command reaches the AI helper normalised."""
+        audio.run([b"add issue four three two one in sprint"], voice=voice)
+        args = audio.ai_helper.execute.call_args.args[1]
+        assert args == Namespace(prompt="add AAP-4321 in sprint", voice=voice, no_ai=False)
+        assert "🔄 Normalized: add AAP-4321 in sprint" in capsys.readouterr().out
+        audio.registry.discover_plugins.assert_called_once()
+        audio.registry.get_plugin.assert_called_once_with("ai-helper")
+
+    @pytest.mark.parametrize("leftovers", [2, -1])
+    def test_queue_flushed_after_phrase(self, audio, leftovers):
+        """Leftover audio is drained after each phrase."""
+        q = audio.run([b"show me issue one two"], leftovers=leftovers)
+        assert q.flushed >= 1
+
+    def test_ai_helper_missing(self, audio, capsys):
+        """A missing AI helper is reported."""
+        audio.registry.get_plugin.return_value = None
+        audio.run([b"show me issue one two"])
+        assert "AI helper plugin not found" in capsys.readouterr().out
+
+    @pytest.mark.parametrize("error", [ValueError("bad"), KeyError("k"), AttributeError("a")])
+    def test_ai_helper_failure_reported(self, audio, error, capsys):
+        """AI helper errors are reported, not raised."""
+        audio.ai_helper.execute.side_effect = error
+        audio.run([b"show me issue one two"])
+        assert "❌ Failed to process command" in capsys.readouterr().out
+
+
+class TestNormalisation:
+    """Spoken issue references reach the AI helper normalised."""
+
+    @pytest.mark.parametrize(
+        ("spoken", "expected"),
+        [
+            ("assign issue for free to me", "assign AAP-432 me"),  # "to" is heard as "two"
+            ("close issue won too ate now", "close AAP-128 now"),
+            ("please look at the issue later", "please look at the issue later"),
+            ("issue nine tirty fifty and issue fife", "AAP-935 and AAP-5"),
+            ("set priority of issue to high", "set priority of AAP-2 high"),
+        ],
+    )
+    def test_issue_references(self, audio, spoken, expected):
+        """Spoken digits become issue keys."""
+        audio.run([spoken.encode()])
+        assert prompts(audio) == [expected]
+
+    def test_project_key_from_env(self, audio):
+        """The project key comes from the environment."""
+        audio.env["JIRA_PROJECT_KEY"] = "XYZ"
+        audio.run([b"show me issue seven seven"])
+        assert prompts(audio) == ["show me XYZ-77"]
+
+    def test_unconvertible_digit_word_kept(self, audio):
+        """Digit words w2n rejects are kept as words."""
+        audio.w2n.rejects.add("three")
+        audio.run([b"show me issue three one"])
+        assert prompts(audio) == ["show me issue three 1"]

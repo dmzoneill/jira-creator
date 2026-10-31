@@ -13,6 +13,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from jira_creator.exceptions.exceptions import AiError, JiraClientRequestError
 from jira_creator.plugins.lint_all_plugin import LintAllError, LintAllPlugin
 
 ENV = {
@@ -67,12 +68,12 @@ class FakeJira:
         if path.startswith("/rest/api/2/search"):
             return {"issues": [{"key": k, "fields": {"summary": f.get("summary", "")}} for k, f in self.issues.items()]}
         if path.startswith("/rest/agile/"):
-            if isinstance(self.sprints, Exception):
+            if isinstance(self.sprints, BaseException):
                 raise self.sprints
             return {"values": self.sprints or []}
         key = path.rsplit("/", 1)[1]
         if key in self.broken:
-            raise RuntimeError(f"cannot fetch {key}")
+            raise JiraClientRequestError(f"cannot fetch {key}")
         return {"fields": dict(self.issues[key])}
 
 
@@ -112,6 +113,9 @@ class TestLintAllBasics:
     def test_command_name(self):
         """Test command name property."""
         assert LintAllPlugin().command_name == "lint-all"
+        assert LintAllPlugin().category == "Quality & Validation"
+        assert LintAllPlugin().example_commands == ["lint-all --project AAP", "lint-all --project AAP --ai-fix"]
+        assert LintAllPlugin().get_plugin_exceptions() == {"LintAllError": LintAllError}
 
     def test_help_text(self):
         """Test help text property."""
@@ -157,10 +161,11 @@ class TestLintAllBasics:
         assert LintAllPlugin().rest_operation(client, **filters) == [{"key": "TEST-1"}]
         client.request.assert_called_once_with("GET", f"/rest/api/2/search?jql={jql}&maxResults=100", timeout=30)
 
-    def test_fetch_failure(self, capsys):
+    @pytest.mark.parametrize("error", [JiraClientRequestError("API Error"), TypeError("API Error")], ids=repr)
+    def test_fetch_failure(self, capsys, error):
         """A failed search raises LintAllError and prints it."""
         client = Mock(spec=["request"])
-        client.request.side_effect = RuntimeError("API Error")
+        client.request.side_effect = error
         with pytest.raises(LintAllError, match="❌ Failed to lint issues: Failed to fetch issues: API Error"):
             LintAllPlugin().execute(client, make_args())
         assert "❌ Failed to lint issues" in capsys.readouterr().out
@@ -306,7 +311,7 @@ class TestLintAllAiFix:
 
     @pytest.mark.parametrize(
         "sprints, board",
-        [(None, "42"), ([], "42"), (RuntimeError("agile down"), "42"), ([{"id": 1, "name": "S"}], "")],
+        [(None, "42"), ([], "42"), (JiraClientRequestError("agile down"), "42"), ([{"id": 1, "name": "S"}], "")],
     )
     def test_context_without_active_sprint(self, capsys, env, sprints, board):
         """No board, no active sprint or a sprint lookup error gives no sprint in the context."""
@@ -326,7 +331,7 @@ class TestLintAllAiFix:
     def test_fix_error_is_counted(self, capsys):
         """An error while fixing one issue is reported and counted as a failure."""
         with patch(EXECUTOR) as executor_cls:
-            executor_cls.return_value.generate_fixes.side_effect = RuntimeError("AI down")
+            executor_cls.return_value.generate_fixes.side_effect = AiError("AI down")
             plugin = LintAllPlugin(ai_provider=Mock(), plugin_registry=Mock())
             out = run(capsys, {"T-1": {**CLEAN, "priority": None}}, plugin=plugin, ai_fix=True)[1]
         assert "   ❌ Error: AI down" in out
@@ -341,7 +346,7 @@ class TestLintAllAiFix:
         def request(method, path, **kwargs):
             calls.append(path)
             if path.endswith("/T-1") and len(calls) == 3:
-                raise RuntimeError("gone")
+                raise JiraClientRequestError("gone")
             return original(method, path, **kwargs)
 
         client.request = request
@@ -351,3 +356,22 @@ class TestLintAllAiFix:
         assert "⚠️  Failed to fetch issue context, skipping" in out
         executor_cls.return_value.generate_fixes.assert_not_called()
         assert "📊 Fix Summary: 0 succeeded, 0 failed" in out
+
+
+class TestLintAllUnexpectedErrors:
+    """Errors outside the handled set are no longer swallowed."""
+
+    def test_search_error_propagates(self):
+        """An unexpected search error is not wrapped in LintAllError."""
+        client = Mock(spec=["request"])
+        client.request.side_effect = RuntimeError("boom")
+        with pytest.raises(RuntimeError, match="boom"):
+            LintAllPlugin().execute(client, make_args())
+
+    def test_fix_error_propagates(self, capsys):
+        """An unexpected error while fixing is not counted and swallowed."""
+        with patch(EXECUTOR) as executor_cls:
+            executor_cls.return_value.generate_fixes.side_effect = RuntimeError("boom")
+            plugin = LintAllPlugin(ai_provider=Mock(), plugin_registry=Mock())
+            with pytest.raises(RuntimeError, match="boom"):
+                run(capsys, {"T-1": {**CLEAN, "priority": None}}, plugin=plugin, ai_fix=True)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the list sprints plugin."""
 
 from argparse import Namespace
@@ -296,7 +295,7 @@ class TestListSprintsPlugin:
 
         assert isinstance(result, list) and not result
 
-    def test_rest_operation_with_missing_isLast(self):
+    def test_rest_operation_with_missing_is_last(self):
         """Test REST operation when response doesn't have isLast field."""
         plugin = ListSprintsPlugin()
         mock_client = Mock()

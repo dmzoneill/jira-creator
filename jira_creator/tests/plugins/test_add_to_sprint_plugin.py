@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the add to sprint plugin."""
 
 from argparse import Namespace
@@ -137,58 +136,66 @@ class TestAddToSprintPlugin:
 
         assert "Could not find sprint named 'Nonexistent Sprint'" in str(exc_info.value)
 
+    @staticmethod
+    def _add(sprint_pages, sprint_name="Sprint B"):
+        """Run rest_operation with the given sprint pages; return the client."""
+        client = Mock()
+        pages = iter(sprint_pages)
+
+        def request(method, path, **_kwargs):
+            if method == "GET" and "/sprint?" in path:
+                return next(pages)
+            return {}
+
+        client.request.side_effect = request
+        with patch("jira_creator.plugins.add_to_sprint_plugin.EnvFetcher.get", return_value="123"):
+            AddToSprintPlugin().rest_operation(client, issue_key="TEST-1", sprint_name=sprint_name, assignee="me")
+        return client
+
+    @staticmethod
+    def _sprint_get_paths(client):
+        return [c.args[1] for c in client.request.call_args_list if "/sprint?" in c.args[1]]
+
     def test_find_sprint_id_found(self):
-        """Test _find_sprint_id when sprint is found."""
-        plugin = AddToSprintPlugin()
-        mock_client = Mock()
-
-        mock_client.request.return_value = {
-            "values": [
-                {"id": 100, "name": "Sprint A"},
-                {"id": 200, "name": "Sprint B"},
-                {"id": 300, "name": "Sprint C"},
-            ],
-            "isLast": True,
-        }
-
-        sprint_id = plugin._find_sprint_id(mock_client, "123", "Sprint B")
-
-        assert sprint_id == 200
+        """The named sprint's ID is used when adding the issue."""
+        client = self._add(
+            [
+                {
+                    "values": [
+                        {"id": 100, "name": "Sprint A"},
+                        {"id": 200, "name": "Sprint B"},
+                        {"id": 300, "name": "Sprint C"},
+                    ],
+                    "isLast": True,
+                }
+            ]
+        )
+        client.request.assert_any_call("POST", "/rest/agile/1.0/sprint/200/issue", json_data={"issues": ["TEST-1"]})
+        assert self._sprint_get_paths(client) == ["/rest/agile/1.0/board/123/sprint?startAt=0&maxResults=50"]
 
     def test_find_sprint_id_pagination(self):
-        """Test _find_sprint_id with pagination."""
-        plugin = AddToSprintPlugin()
-        mock_client = Mock()
-
-        # Create sprints to fill pages (50 per page by default)
+        """Sprint lookup pages through the board until the sprint is found."""
         first_page_sprints = [{"id": i, "name": f"Sprint {i}"} for i in range(50)]
         second_page_sprints = [
             {"id": 200, "name": "Sprint B"},
             {"id": 201, "name": "Sprint C"},
         ]
-
-        # Create a list of responses for side_effect
-        responses = [
-            {"values": first_page_sprints, "isLast": False},
-            {"values": second_page_sprints, "isLast": True},
+        client = self._add(
+            [
+                {"values": first_page_sprints, "isLast": False},
+                {"values": second_page_sprints, "isLast": True},
+            ]
+        )
+        client.request.assert_any_call("POST", "/rest/agile/1.0/sprint/200/issue", json_data={"issues": ["TEST-1"]})
+        assert self._sprint_get_paths(client) == [
+            "/rest/agile/1.0/board/123/sprint?startAt=0&maxResults=50",
+            "/rest/agile/1.0/board/123/sprint?startAt=50&maxResults=50",
         ]
-        mock_client.request.side_effect = responses
-
-        sprint_id = plugin._find_sprint_id(mock_client, "123", "Sprint B")
-
-        assert sprint_id == 200
-        assert mock_client.request.call_count == 2
 
     def test_find_sprint_id_not_found(self):
-        """Test _find_sprint_id when sprint is not found."""
-        plugin = AddToSprintPlugin()
-        mock_client = Mock()
-
-        mock_client.request.return_value = {"values": [], "isLast": True}
-
-        sprint_id = plugin._find_sprint_id(mock_client, "123", "Nonexistent")
-
-        assert sprint_id is None
+        """An unknown sprint name raises AddSprintError."""
+        with pytest.raises(AddSprintError, match="Could not find sprint named 'Nonexistent'"):
+            self._add([{"values": [], "isLast": True}], sprint_name="Nonexistent")
 
     @patch("jira_creator.plugins.add_to_sprint_plugin.EnvFetcher.get")
     def test_execute_success(self, mock_env_get, capsys):

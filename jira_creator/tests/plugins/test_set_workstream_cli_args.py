@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """CLI argument parsing tests for set-workstream (issue #37)."""
 
 from argparse import ArgumentParser

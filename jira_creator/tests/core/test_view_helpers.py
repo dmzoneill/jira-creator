@@ -268,7 +268,7 @@ def test_clean_values_append_placeholders():
 # Test for truncating long summary field
 def test_format_and_print_rows_truncate_summary():
     """Long summaries are truncated."""
-    long_summary = "this is a very long summmary, will it get truncated is yet to be seen, lets try?"
+    long_summary = "this is a very long summary, will it get truncated is yet to be seen, lets try?"
     long_summary += long_summary
     long_summary += long_summary
     rows = [

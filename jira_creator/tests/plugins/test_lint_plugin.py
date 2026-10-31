@@ -13,7 +13,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from jira_creator.exceptions.exceptions import JiraClientRequestError
+from jira_creator.exceptions.exceptions import AiError, AiProviderError, JiraClientRequestError
 from jira_creator.plugins.lint_plugin import LintError, LintPlugin
 
 ENV = {
@@ -103,10 +103,11 @@ class TestLintPluginBasics:
         with pytest.raises(LintError, match="API request failed for TEST-123"):
             LintPlugin().rest_operation(client, issue_key="TEST-123")
 
-    def test_rest_operation_failure(self):
-        """Any other error is wrapped in LintError."""
+    @pytest.mark.parametrize("error", [KeyError("k"), TypeError("t"), ValueError("API Error")], ids=repr)
+    def test_rest_operation_failure(self, error):
+        """A malformed-payload error is wrapped in LintError."""
         client = Mock()
-        client.request.side_effect = Exception("API Error")
+        client.request.side_effect = error
         with pytest.raises(LintError, match="Failed to fetch issue TEST-123"):
             LintPlugin().rest_operation(client, issue_key="TEST-123")
 
@@ -135,7 +136,7 @@ class TestLintPluginBasics:
     def test_execute_lint_error(self, capsys):
         """A failed fetch prints and re-raises a LintError."""
         client = Mock()
-        client.request.side_effect = Exception("API failed")
+        client.request.side_effect = ValueError("API failed")
         args = Namespace(issue_key="TEST-1", no_ai=True, no_cache=False)
         with pytest.raises(LintError, match="❌ Failed to lint issue TEST-1: Failed to fetch issue TEST-1"):
             LintPlugin().execute(client, args)
@@ -263,12 +264,39 @@ class TestAiChecks:
         assert provider.improve_text.call_count == 2
         assert not cache_file(home).exists()
 
-    def test_ai_failure_is_reported(self, capsys):
+    @pytest.mark.parametrize(
+        "error",
+        [
+            AiError("AI service unavailable"),
+            AiProviderError("AI service unavailable"),
+            TypeError("AI service unavailable"),
+        ],
+        ids=lambda e: type(e).__name__,
+    )
+    def test_ai_failure_is_reported(self, capsys, error):
         """An AI error becomes a problem for that field."""
         provider = Mock()
-        provider.improve_text.side_effect = Exception("AI service unavailable")
+        provider.improve_text.side_effect = error
         problems = lint(capsys, CLEAN_FIELDS, ai_provider=provider, description="Test content")[1]
         assert problems == ["❌ Failed to validate Description with AI: AI service unavailable"]
+
+
+class TestUnexpectedErrors:
+    """Errors outside the handled set are no longer swallowed."""
+
+    def test_rest_operation_propagates(self):
+        """An unexpected fetch error is not wrapped."""
+        client = Mock()
+        client.request.side_effect = RuntimeError("boom")
+        with pytest.raises(RuntimeError, match="boom"):
+            LintPlugin().rest_operation(client, issue_key="TEST-1")
+
+    def test_ai_review_propagates(self, capsys):
+        """An unexpected AI error is not turned into a lint problem."""
+        provider = Mock()
+        provider.improve_text.side_effect = RuntimeError("boom")
+        with pytest.raises(RuntimeError, match="boom"):
+            lint(capsys, CLEAN_FIELDS, ai_provider=provider, description="Test content")
 
 
 class TestAiCache:

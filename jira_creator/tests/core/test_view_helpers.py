@@ -1,3 +1,5 @@
+"""Tests for the view helper functions that build and print issue tables."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -17,13 +19,15 @@ from jira_creator.core.view_helpers import (  # isort: skip
 
 
 # Mocking EnvFetcher for fetch_view_columns
-@pytest.fixture
-def mock_env_fetcher():
+@pytest.fixture(name="mock_env_fetcher")
+def fixture_mock_env_fetcher():
+    """Patch EnvFetcher.get for view column lookups."""
     with patch.object(EnvFetcher, "get") as mock_get:
         yield mock_get
 
 
 def test_fetch_view_columns(mock_env_fetcher):
+    """Configured view columns are read and JIRA_* names resolved."""
     # Test when JIRA_VIEW_COLUMNS is found and JIRA fields are replaced
     mock_env_fetcher.side_effect = lambda key, default=None: {
         "JIRA_VIEW_COLUMNS": "summary, JIRA_CUSTOM_FIELD",
@@ -44,6 +48,7 @@ def test_fetch_view_columns(mock_env_fetcher):
 
 
 def test_get_sorted_columns():
+    """Columns are ordered as requested."""
     sort_string = "column1=asc,column2=desc"
     result = get_sorted_columns(sort_string)
     assert result == [("column1", "asc"), ("column2", "desc")]
@@ -57,6 +62,7 @@ def test_get_sorted_columns():
 
 
 def test_filter_columns():
+    """Only the requested columns are kept."""
     issue = {"summary": "Test issue", "priority": "High"}
     view_columns = ["summary", "priority"]
     result = filter_columns(issue, view_columns)
@@ -74,6 +80,7 @@ def test_filter_columns():
 
 # Test for sort_rows
 def test_sort_rows():
+    """Rows are sorted by the given column."""
     # Rows with tuples: ('column_name', 'value')
     rows = [("summary", "Task 1"), ("summary", "Task 3"), ("summary", "Task 2")]
     headers = ["summary"]  # Column name in the header
@@ -93,6 +100,7 @@ def test_sort_rows():
 # Test for format_and_print_rows (this is more of a print/output test)
 @patch("builtins.print")
 def test_format_and_print_rows(mock_print):
+    """Rows are formatted and printed as a table."""
     # /* jscpd:ignore-start */
     rows = [
         {
@@ -141,6 +149,7 @@ def test_format_and_print_rows(mock_print):
 
 
 def test_clean_values():
+    """Cell values are cleaned for display."""
     rows = [(None, "data", 3.0), (None, "text", 4.5)]
     result = clean_values(rows)
     assert result == [("—", "data", "3"), ("—", "text", "4.5")]
@@ -152,6 +161,7 @@ def test_clean_values():
 
 
 def test_missing_jira_view_column(mock_env_fetcher):
+    """A missing JIRA_VIEW_COLUMNS setting is handled."""
     # Test the case where the JIRA_VIEW_COLUMNS is missing or invalid
     mock_env_fetcher.side_effect = lambda key, default=None: default
 
@@ -160,6 +170,7 @@ def test_missing_jira_view_column(mock_env_fetcher):
 
 
 def test_missing_environment_variable(mock_env_fetcher):
+    """A missing referenced environment variable is handled."""
     # Test when an environment variable for a column is missing
     mock_env_fetcher.side_effect = lambda key, default=None: {
         "JIRA_VIEW_COLUMNS": "summary,JIRA_CUSTOM_FIELD",
@@ -173,6 +184,7 @@ def test_missing_environment_variable(mock_env_fetcher):
 
 # Test for get_sorted_columns exception handling
 def test_get_sorted_columns_invalid():
+    """An unknown sort column is handled."""
     sort_string = "column1=asc,column2=invalid_order"
     result = get_sorted_columns(sort_string)
     assert result == [("column1", "asc"), ("column2", "asc")]
@@ -180,6 +192,7 @@ def test_get_sorted_columns_invalid():
 
 # Test for sort_rows exception handling
 def test_sort_rows_invalid_column():
+    """Sorting by an unknown column is handled."""
     rows = [("summary", "Task 1"), ("summary", "Task 3")]
     headers = ["summary"]
     sort_columns = [("invalid_column", "asc")]
@@ -191,6 +204,7 @@ def test_sort_rows_invalid_column():
 # Test for missing summary column handling
 @patch("builtins.print")
 def test_format_and_print_rows_missing_summary(mock_print):
+    """Rows without a summary still print."""
     # /* jscpd:ignore-start */
     rows = [
         {
@@ -241,6 +255,7 @@ def test_format_and_print_rows_missing_summary(mock_print):
 
 # Test for appending placeholders
 def test_clean_values_append_placeholders():
+    """Short rows are padded with placeholders."""
     rows = [
         (None, "data", 3.0),
         (None, "text", 4.5),
@@ -252,6 +267,7 @@ def test_clean_values_append_placeholders():
 
 # Test for truncating long summary field
 def test_format_and_print_rows_truncate_summary():
+    """Long summaries are truncated."""
     long_summary = "this is a very long summmary, will it get truncated is yet to be seen, lets try?"
     long_summary += long_summary
     long_summary += long_summary
@@ -286,6 +302,7 @@ def test_format_and_print_rows_truncate_summary():
 
 # Test for defaulting to first issue keys in massage_issue_list when view_columns is not present
 def test_massage_issue_list_default_view_columns():
+    """The default view columns are used when none are configured."""
     issues = [{"key": "TEST-1", "summary": "Issue summary", "status": {"name": "To Do"}}]
     args = MagicMock(sort=None)  # No sort argument
     headers, rows = massage_issue_list(args, issues)
@@ -311,6 +328,7 @@ def test_massage_issue_list_default_view_columns():
 
 # Test for sorting rows when 'sort' is provided in args
 def test_massage_issue_list_with_sort():
+    """massage_issue_list applies the requested sort."""
     issues = [
         {"key": "TEST-1", "summary": "Issue summary", "status": {"name": "To Do"}},
         {
@@ -338,6 +356,7 @@ def test_massage_issue_list_with_sort():
 
 # Test for flatten_fields
 def test_flatten_fields():
+    """Nested issue fields are flattened."""
     issue = {"fields": {"customfield_100": "value"}}
     result = flatten_fields(issue)
     assert result == {"customfield_100": "value"}

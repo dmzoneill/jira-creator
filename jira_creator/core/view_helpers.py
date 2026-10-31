@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 This module provides functionality to interact with JIRA issues, including fetching view columns, sorting, filtering,
 and formatting issue data for display.
@@ -27,7 +26,7 @@ This module is intended for use in a command-line interface or script that proce
 import re
 import traceback
 from argparse import Namespace
-from typing import Any, List, Tuple
+from typing import Any
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.rest.client import JiraClient
@@ -35,7 +34,7 @@ from jira_creator.rest.client import JiraClient
 DEFAULT_VIEW_COLUMNS = "key,issuetype,status,priority,summary,assignee,reporter,sprint"
 
 
-def fetch_view_columns() -> List[str] | None:
+def fetch_view_columns() -> list[str] | None:
     """
     Fetch view columns from EnvFetcher or use standard Jira columns.
     If any entry contains 'JIRA.......FIELD', fetch the corresponding environment variable.
@@ -64,7 +63,7 @@ def fetch_view_columns() -> List[str] | None:
     return None
 
 
-def get_sorted_columns(sort_string: str) -> List[Tuple[str, str]]:
+def get_sorted_columns(sort_string: str) -> list[tuple[str, str]]:
     """
     Parse the sort argument and return a list of tuples containing column names and corresponding order.
 
@@ -96,7 +95,7 @@ def get_sorted_columns(sort_string: str) -> List[Tuple[str, str]]:
     return sort_columns
 
 
-def filter_columns(issue: dict, view_columns: List[str]) -> List[str]:
+def filter_columns(issue: dict, view_columns: list[str]) -> list[str]:
     """
     Filter the columns based on view_columns.
 
@@ -114,7 +113,7 @@ def filter_columns(issue: dict, view_columns: List[str]) -> List[str]:
     return result
 
 
-def sort_rows(rows: List[Tuple], sort_columns: List[Tuple[str, str]], headers: List[str]) -> List[Tuple]:
+def sort_rows(rows: list[tuple], sort_columns: list[tuple[str, str]], headers: list[str]) -> list[tuple]:
     """
     Sort the rows based on the specified columns.
 
@@ -134,7 +133,7 @@ def sort_rows(rows: List[Tuple], sort_columns: List[Tuple[str, str]], headers: L
         for col, order in reversed(sort_columns):
             col_index = headers.index(col)  # Use headers passed as an argument
 
-            def row_key(row: Tuple, index: int = col_index):
+            def row_key(row: tuple, index: int = col_index):
                 return row[index]
 
             rows.sort(key=row_key, reverse=order == "desc")
@@ -145,7 +144,7 @@ def sort_rows(rows: List[Tuple], sort_columns: List[Tuple[str, str]], headers: L
     return rows
 
 
-def format_and_print_rows(rows: List[Tuple], headers: List[str], jira_client: JiraClient) -> None:
+def format_and_print_rows(rows: list[tuple], headers: list[str], jira_client: JiraClient) -> None:
     """
     Format the rows to match the columns and print.
 
@@ -193,15 +192,7 @@ def format_and_print_rows(rows: List[Tuple], headers: List[str], jira_client: Ji
             len(header),
             max(
                 (
-                    (
-                        len(str(r.get(header, "")))
-                        if isinstance(r, dict)
-                        else (
-                            len(str(r[i]))  # fmt: skip
-                            if i < len(r)
-                            else 0
-                        )
-                    )
+                    (len(str(r.get(header, ""))) if isinstance(r, dict) else (len(str(r[i])) if i < len(r) else 0))
                     for r in rows
                 ),
                 default=0,
@@ -249,7 +240,7 @@ def flatten_fields(issue: dict) -> dict:
     return issue
 
 
-def clean_values(rows: List[Tuple], placeholder: str = "—", max_length: int = 60) -> List[Tuple]:
+def clean_values(rows: list[tuple], placeholder: str = "—", max_length: int = 60) -> list[tuple]:
     """
     Replace None values with a placeholder, convert all values to strings,
     and truncate values longer than max_length.
@@ -306,7 +297,7 @@ def _extract_active_sprint(sprints) -> str:
     return "—"
 
 
-def _format_epic_value(issue) -> str:
+def _format_epic_value(issue) -> str | None:
     """Format epic field value for display."""
     epic_value = issue.get(EnvFetcher.get("JIRA_EPIC_FIELD", ""), None) or issue.get("epic", None)
     if not epic_value:
@@ -318,7 +309,7 @@ def _format_epic_value(issue) -> str:
     return str(epic_value)
 
 
-def _build_row_value(col, issue, sprint) -> str:  # pylint: disable=too-many-return-statements
+def _build_row_value(col, issue, sprint) -> str | None:  # pylint: disable=too-many-return-statements
     """Build a single row value for the given column."""
     if col == "key":
         return issue["key"]
@@ -361,7 +352,7 @@ def massage_issue_list(args: Namespace, issues: list[dict]):  # pylint: disable=
     view_columns = fetch_view_columns()
     headers = view_columns if view_columns else list(issues[0].keys())
 
-    rows: List[Tuple] = []
+    rows: list[tuple] = []
     for issue in issues:
         sprint_field = EnvFetcher.get("JIRA_SPRINT_FIELD", "")
         sprints = issue.get(sprint_field, []) if sprint_field else []
@@ -385,7 +376,7 @@ def search_jira_issues(
     order_by: str | None = None,
     include_epic: bool = False,
     env_get: Any = None,
-) -> List[dict]:
+) -> list[dict]:
     """
     Search Jira issues with the field set shared by list and search commands.
 

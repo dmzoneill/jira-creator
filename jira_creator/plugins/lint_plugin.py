@@ -14,8 +14,13 @@ from typing import Any
 from jira_creator.core.adf import ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
-from jira_creator.exceptions.exceptions import JiraClientRequestError
+from jira_creator.exceptions.exceptions import AiError, AiProviderError, JiraClientRequestError
 from jira_creator.providers import get_ai_provider
+
+# Errors from reading an unexpected issue payload.
+_PAYLOAD_ERRORS = (KeyError, TypeError, ValueError)
+# Errors the AI provider can raise while reviewing a field.
+_AI_REVIEW_ERRORS = (AiError, AiProviderError, AttributeError, TypeError)
 
 
 class LintError(Exception):
@@ -126,7 +131,7 @@ class LintPlugin(JiraPlugin):
             return client.request("GET", path)
         except JiraClientRequestError as e:
             raise LintError(f"API request failed for {issue_key}: {e}") from e
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _PAYLOAD_ERRORS as e:
             raise LintError(f"Failed to fetch issue {issue_key}: {e}") from e
 
     def _validate_issue(  # pylint: disable=too-many-locals
@@ -293,7 +298,7 @@ class LintPlugin(JiraPlugin):
                 cache_key = f"{field_name.lower().replace(' ', '_')}_hash"
                 cached[cache_key] = field_hash
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _AI_REVIEW_ERRORS as e:
             problems.append(f"❌ Failed to validate {field_name} with AI: {e}")
 
     def _get_cache_path(self) -> str:

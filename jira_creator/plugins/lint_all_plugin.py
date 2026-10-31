@@ -15,10 +15,17 @@ from jira_creator.core.ai_executor import AIExecutor
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
 from jira_creator.core.plugin_base import JiraPlugin
+from jira_creator.exceptions.exceptions import AiError, AiProviderError, JiraClientRequestError
 from jira_creator.plugins.lint_plugin import LintPlugin
 from jira_creator.providers import get_ai_provider
 
 logger = get_logger("lint_all_plugin")
+
+
+# Errors from a Jira request or an unexpected response payload.
+_JIRA_ERRORS = (JiraClientRequestError, AttributeError, KeyError, TypeError, ValueError)
+# Errors from generating or applying AI fixes for one issue.
+_FIX_ERRORS = (AiError, AiProviderError, *_JIRA_ERRORS)
 
 
 class LintAllError(Exception):
@@ -188,7 +195,7 @@ class LintAllPlugin(JiraPlugin):
             response = client.request("GET", path, timeout=30)
             return response.get("issues", [])
 
-        except Exception as e:
+        except _JIRA_ERRORS as e:
             raise LintAllError(f"Failed to fetch issues: {e}") from e
 
     def _lint_all_issues(  # pylint: disable=too-many-locals
@@ -219,7 +226,7 @@ class LintAllPlugin(JiraPlugin):
                 full_issue = client.request("GET", f"/rest/api/2/issue/{key}")
                 fields = full_issue["fields"]
                 fields["key"] = key
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except _JIRA_ERRORS as e:
                 print(f"❌ Failed to fetch {key}: {e}")
                 continue
 
@@ -496,7 +503,7 @@ class LintAllPlugin(JiraPlugin):
                 total_success += success
                 total_failure += failure
 
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except _FIX_ERRORS as e:
                 logger.error("Failed to fix %s: %s", issue_key, e)
                 print(f"   ❌ Error: {e}")
                 total_failure += 1
@@ -540,7 +547,7 @@ class LintAllPlugin(JiraPlugin):
 
             return context
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _JIRA_ERRORS as e:
             logger.error("Failed to build context for %s: %s", issue_key, e)
             return None
 
@@ -571,6 +578,6 @@ class LintAllPlugin(JiraPlugin):
 
             return None
 
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _JIRA_ERRORS as e:
             logger.error("Failed to get active sprint: %s", e)
             return None

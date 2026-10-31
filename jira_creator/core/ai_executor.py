@@ -10,9 +10,16 @@ import json
 from typing import Any
 
 from jira_creator.core.logger import get_logger
+from jira_creator.exceptions.exceptions import AiError, AiProviderError, JiraClientRequestError
 from jira_creator.templates.template_loader import TemplateLoader
 
 logger = get_logger("ai_executor")
+
+
+# Errors the AI provider or its response handling can raise while generating fixes.
+_GENERATE_ERRORS = (AiError, AiProviderError, AttributeError, KeyError, TypeError, ValueError)
+# Errors a plugin fix method can raise while it calls Jira.
+_EXECUTE_ERRORS = (JiraClientRequestError, NotImplementedError, AttributeError, KeyError, TypeError, ValueError)
 
 
 class AIExecutor:
@@ -235,7 +242,7 @@ class AIExecutor:
             print(f"⚠️  Failed to parse AI response as JSON: {e}")
             print(f"⚠️  Extracted content: {json_content[:200] if 'json_content' in locals() else 'N/A'}")
             return []
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except _GENERATE_ERRORS as e:
             logger.error("Failed to generate fixes for %s: %s", issue_key, e)
             print(f"⚠️  Failed to generate fixes: {e}")
             return []
@@ -412,7 +419,7 @@ Return a JSON array of fix commands. Example:
                     failure_count += 1
                     logger.warning("Failed to execute: %s", action)
 
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except _EXECUTE_ERRORS as e:
                 logger.error("Error executing %s: %s", method_name, e)
                 print(f"  ❌ Error executing {method_name}: {e}")
                 failure_count += 1

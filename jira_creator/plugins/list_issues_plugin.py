@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 List issues plugin for jira-creator.
 
@@ -7,7 +6,7 @@ and filter Jira issues with various criteria.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_base import JiraPlugin
@@ -36,14 +35,14 @@ class ListIssuesPlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Search & View"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "ListIssuesError": ListIssuesError,
         }
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["list-issues AAP", 'list-issues AAP --status "In Progress" --assignee jsmith']
 
@@ -109,7 +108,7 @@ class ListIssuesPlugin(JiraPlugin):
             print(msg)
             raise ListIssuesError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> List[Dict[str, Any]]:
+    def rest_operation(self, client: Any, **kwargs) -> list[dict[str, Any]]:
         """
         Perform the REST API operation to list issues.
 
@@ -118,7 +117,7 @@ class ListIssuesPlugin(JiraPlugin):
             **kwargs: Contains 'jql', 'max_results', and 'order_by'
 
         Returns:
-            List[Dict[str, Any]]: List of issue data
+            list[dict[str, Any]]: List of issue data
         """
         return search_jira_issues(
             client,
@@ -140,11 +139,10 @@ class ListIssuesPlugin(JiraPlugin):
         else:
             return ""  # No project specified
 
-        # Component filter
-        if args.component:
-            component = args.component or EnvFetcher.get("JIRA_COMPONENT_NAME", "")
-            if component:
-                conditions.append(f"component = '{component}'")
+        # Component filter: --component wins, otherwise fall back to JIRA_COMPONENT_NAME
+        component = args.component or EnvFetcher.get("JIRA_COMPONENT_NAME", "")
+        if component:
+            conditions.append(f"component = '{component}'")
 
         # Status filter
         if args.status:

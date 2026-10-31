@@ -1,12 +1,18 @@
-#!/usr/bin/env python
 """Tests for the plugin registry."""
 
+import sys
+import tempfile
+import types
 from argparse import ArgumentParser
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import pytest
+
 from jira_creator.core.plugin_base import JiraPlugin
 from jira_creator.core.plugin_registry import PluginRegistry
+
+FAKE_MODULE = "jira_creator.plugins.fake_test_plugin"
 
 
 class MockPlugin(JiraPlugin):
@@ -16,13 +22,40 @@ class MockPlugin(JiraPlugin):
     help_text = "Mock command for testing"
 
     def register_arguments(self, parser: ArgumentParser) -> None:
+        """Register one positional argument."""
         parser.add_argument("test_arg")
 
     def execute(self, client, args):
+        """Succeed without doing anything."""
+        del client, args
         return True
 
     def rest_operation(self, client, **kwargs):
+        """Return an empty response."""
+        del client, kwargs
         return {}
+
+
+def plugin_class(command):
+    """A concrete MockPlugin subclass for the given command name."""
+    return type(f"Plugin_{command.replace('-', '_')}", (MockPlugin,), {"command_name": command})
+
+
+@pytest.fixture(name="load")
+def fixture_load(tmp_path, monkeypatch):
+    """Build a registry by discovering the given plugin classes from a plugin dir."""
+
+    def load(*classes):
+        module = types.ModuleType(FAKE_MODULE)
+        for cls in classes:
+            setattr(module, cls.__name__, cls)
+        monkeypatch.setitem(sys.modules, FAKE_MODULE, module)
+        (tmp_path / "fake_test_plugin.py").write_text("", encoding="utf-8")
+        registry = PluginRegistry()
+        registry.discover_plugins(str(tmp_path))
+        return registry
+
+    return load
 
 
 class TestPluginRegistry:
@@ -31,17 +64,14 @@ class TestPluginRegistry:
     def test_init(self):
         """Test registry initialization."""
         registry = PluginRegistry()
-        assert isinstance(registry._plugins, dict) and not registry._plugins
-        assert isinstance(registry._plugin_classes, dict) and not registry._plugin_classes
+        assert registry.list_plugins() == []
+        assert not registry.list_exceptions()
 
-    def test_manual_plugin_registration(self):
-        """Test manually adding a plugin to the registry."""
-        registry = PluginRegistry()
-        plugin = MockPlugin()
-
-        # Manually add plugin
-        registry._plugins["mock-command"] = plugin
-        registry._plugin_classes["mock-command"] = MockPlugin
+    def test_manual_plugin_registration(self, load):
+        """A discovered plugin can be looked up by command name."""
+        registry = load(MockPlugin)
+        plugin = registry.get_plugin("mock-command")
+        assert isinstance(plugin, MockPlugin)
 
         # Test retrieval
         assert registry.get_plugin("mock-command") == plugin
@@ -50,33 +80,25 @@ class TestPluginRegistry:
         # Test with underscores (should convert to hyphens)
         assert registry.get_plugin("mock_command") == plugin
 
-    def test_create_plugin_with_dependencies(self):
+    def test_create_plugin_with_dependencies(self, load):
         """Test creating a plugin instance with dependency injection."""
-        registry = PluginRegistry()
-        registry._plugin_classes["mock-command"] = MockPlugin
+        registry = load(MockPlugin)
 
         # Create plugin with dependencies
         plugin = registry.create_plugin("mock-command", test_dep="injected")
         assert plugin is not None
         assert plugin.get_dependency("test_dep") == "injected"
 
-    def test_list_plugins(self):
+    def test_list_plugins(self, load):
         """Test listing all registered plugins."""
-        registry = PluginRegistry()
-
-        # Add multiple plugins
-        registry._plugins["cmd-a"] = Mock()
-        registry._plugins["cmd-b"] = Mock()
-        registry._plugins["cmd-c"] = Mock()
+        registry = load(plugin_class("cmd-c"), plugin_class("cmd-a"), plugin_class("cmd-b"))
 
         plugins = registry.list_plugins()
         assert plugins == ["cmd-a", "cmd-b", "cmd-c"]  # Should be sorted
 
-    def test_register_all_with_subparsers(self):
+    def test_register_all_with_subparsers(self, load):
         """Test registering all plugins with argument parser."""
-        registry = PluginRegistry()
-        plugin = MockPlugin()
-        registry._plugins["mock-command"] = plugin
+        registry = load(MockPlugin)
 
         # Mock subparsers
         mock_subparsers = Mock()
@@ -91,16 +113,15 @@ class TestPluginRegistry:
         # Verify register_arguments was called
         assert mock_parser.add_argument.called
 
-    def test_clear(self):
+    def test_clear(self, load):
         """Test clearing the registry."""
-        registry = PluginRegistry()
-        registry._plugins["test"] = Mock()
-        registry._plugin_classes["test"] = Mock
+        registry = load(MockPlugin)
+        assert registry.list_plugins() == ["mock-command"]
 
         registry.clear()
 
-        assert isinstance(registry._plugins, dict) and not registry._plugins
-        assert isinstance(registry._plugin_classes, dict) and not registry._plugin_classes
+        assert registry.list_plugins() == []
+        assert registry.get_plugin_class("mock-command") is None
 
     def test_mock_plugin_methods(self):
         """Test MockPlugin methods for coverage."""
@@ -132,7 +153,7 @@ class TestPluginRegistry:
         registry.discover_plugins()
 
         # Registry should still be empty but no exception raised
-        assert isinstance(registry._plugins, dict) and not registry._plugins
+        assert registry.list_plugins() == []
 
     def test_create_plugin_nonexistent(self):
         """Test create_plugin returns None for nonexistent command - covers line 112."""
@@ -142,13 +163,9 @@ class TestPluginRegistry:
 
         assert result is None
 
-    def test_get_all_plugin_names(self):
+    def test_get_all_plugin_names(self, load):
         """Test get_all_plugin_names method - covers line 132."""
-        registry = PluginRegistry()
-
-        # Add some plugins
-        registry._plugins["cmd-a"] = Mock()
-        registry._plugins["cmd-b"] = Mock()
+        registry = load(plugin_class("cmd-a"), plugin_class("cmd-b"))
 
         result = registry.get_all_plugin_names()
 
@@ -227,8 +244,6 @@ class TestPluginRegistry:
         mock_isabstract.return_value = False
 
         # Create a real temp file
-        import tempfile
-
         with tempfile.NamedTemporaryFile(suffix="_plugin.py", delete=False) as tmp:
             tmp_path = tmp.name
 
@@ -243,9 +258,6 @@ class TestPluginRegistry:
     @patch("jira_creator.core.plugin_registry.importlib.reload")
     def test_reload_plugin_from_file_module_already_loaded(self, mock_reload, mock_isabstract, mock_getmembers):
         """Test reload_plugin_from_file when module already in sys.modules - covers line 176."""
-        import sys
-        import tempfile
-
         registry = PluginRegistry()
 
         # Create a real temp file
@@ -300,8 +312,6 @@ class TestPluginRegistry:
 
     def test_reload_plugin_from_file_not_plugin_file(self):
         """Test reload_plugin_from_file with non-plugin file - covers line 169."""
-        import tempfile
-
         registry = PluginRegistry()
 
         # File exists but doesn't end with _plugin.py
@@ -317,8 +327,6 @@ class TestPluginRegistry:
     @patch("jira_creator.core.plugin_registry.importlib.import_module")
     def test_reload_plugin_from_file_exception(self, mock_import):
         """Test reload_plugin_from_file with exception - covers lines 193-195."""
-        import tempfile
-
         registry = PluginRegistry()
 
         # Create a real temp file with proper name

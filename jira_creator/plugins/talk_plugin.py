@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Talk plugin for jira-creator.
 
@@ -11,7 +10,7 @@ import json
 import os
 import queue
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.logger import get_logger
@@ -77,14 +76,14 @@ class TalkPlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Utilities"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "TalkError": TalkError,
         }
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["talk", "talk --voice"]
 
@@ -131,7 +130,7 @@ class TalkPlugin(JiraPlugin):
             _ = sounddevice, vosk, w2n
         except ImportError as e:
             raise TalkError(
-                f"Missing required dependencies: {e}. " "Install with: pipenv install sounddevice vosk word2number"
+                f"Missing required dependencies: {e}. Install with: pipenv install sounddevice vosk word2number"
             ) from e
 
         # Check if Vosk model is configured
@@ -167,7 +166,7 @@ class TalkPlugin(JiraPlugin):
         """
         import sounddevice
 
-        q = queue.Queue()
+        q: queue.Queue[bytes] = queue.Queue()
 
         def callback(indata, frames, time, status):  # pylint: disable=unused-argument
             """Audio callback."""
@@ -176,45 +175,45 @@ class TalkPlugin(JiraPlugin):
         print("🎤 Listening... (say 'stop' to exit)")
         print("   Example: 'Add issue four three two one to the current sprint'")
 
-        with suppress_stderr():
-            with sounddevice.RawInputStream(
-                samplerate=16000, blocksize=8000, dtype="int16", channels=1, callback=callback
-            ):
-                while True:
-                    # Get audio data
-                    data = q.get()
+        with (
+            suppress_stderr(),
+            sounddevice.RawInputStream(samplerate=16000, blocksize=8000, dtype="int16", channels=1, callback=callback),
+        ):
+            while True:
+                # Get audio data
+                data = q.get()
 
-                    # Process with Vosk
-                    if rec.AcceptWaveform(data):
-                        result = json.loads(rec.Result())
-                        text = result.get("text", "").strip()
+                # Process with Vosk
+                if rec.AcceptWaveform(data):
+                    result = json.loads(rec.Result())
+                    text = result.get("text", "").strip()
 
-                        if not text:
-                            continue
+                    if not text:
+                        continue
 
-                        print(f"\n📝 Heard: {text}")
+                    print(f"\n📝 Heard: {text}")
 
-                        # Check for stop command
-                        if "stop" in text.lower():
-                            print("👋 Goodbye!")
-                            break
+                    # Check for stop command
+                    if "stop" in text.lower():
+                        print("👋 Goodbye!")
+                        break
 
-                        # Process the text
-                        if len(text.split()) >= 4:  # Require at least 4 words
-                            normalized_text = self._normalize_issue_references(text)
-                            print(f"🔄 Normalized: {normalized_text}")
+                    # Process the text
+                    if len(text.split()) >= 4:  # Require at least 4 words
+                        normalized_text = self._normalize_issue_references(text)
+                        print(f"🔄 Normalized: {normalized_text}")
 
-                            # Call AI helper with the normalized text
-                            self._call_ai_helper(client, normalized_text, voice)
-                        else:
-                            print("   ⚠️  Command too short, please be more specific")
+                        # Call AI helper with the normalized text
+                        self._call_ai_helper(client, normalized_text, voice)
+                    else:
+                        print("   ⚠️  Command too short, please be more specific")
 
-                    # Flush queue
-                    while not q.empty():
-                        try:
-                            q.get_nowait()
-                        except queue.Empty:
-                            break
+                # Flush queue
+                while not q.empty():
+                    try:
+                        q.get_nowait()
+                    except queue.Empty:
+                        break
 
     def _normalize_issue_references(self, text: str) -> str:
         """
@@ -319,7 +318,7 @@ class TalkPlugin(JiraPlugin):
             logger.error("AI helper execution failed: %s", e)
             print(f"   ❌ Failed to process command: {e}")
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         This plugin doesn't use REST operations directly.
 

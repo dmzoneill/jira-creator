@@ -226,7 +226,7 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
             continue
 
         # Headings: h1. through h6.
-        heading_match = re.match(r"^h([1-6])\.\s+(.+)$", stripped)
+        heading_match = re.match(r"^h([1-6])\.\s+(\S.*)$", stripped)
         if heading_match:
             level = int(heading_match.group(1))
             text_content = heading_match.group(2)
@@ -266,7 +266,7 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
         if re.match(r"^[*\-]\s+", stripped):
             list_items: list[dict[str, Any]] = []
             while i < len(lines):
-                item_match = re.match(r"^[*\-]\s+(.+)$", lines[i].strip())
+                item_match = re.match(r"^[*\-]\s+(\S.*)$", lines[i].strip())
                 if not item_match:
                     break
                 list_items.append(
@@ -288,7 +288,7 @@ def text_to_adf(  # pylint: disable=too-many-locals,too-many-branches,too-many-s
         if re.match(r"^#\s+", stripped):
             list_items = []
             while i < len(lines):
-                item_match = re.match(r"^#\s+(.+)$", lines[i].strip())
+                item_match = re.match(r"^#\s+(\S.*)$", lines[i].strip())
                 if not item_match:
                     break
                 list_items.append(

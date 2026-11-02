@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the set workstream plugin."""
 
 from argparse import ArgumentParser, Namespace
@@ -172,8 +171,7 @@ class TestSetWorkstreamPlugin:
         captured = capsys.readouterr()
         assert "❌ Failed to set workstream: Invalid workstream ID" in captured.out
 
-    @patch("jira_creator.plugins.set_workstream_plugin.EnvFetcher")
-    def test_format_success_message(self, mock_env_fetcher):
+    def test_format_success_message(self):
         """Test format_success_message method for different cases."""
         plugin = SetWorkstreamPlugin()
 

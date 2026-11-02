@@ -63,23 +63,6 @@ class SetWorkstreamPlugin(SetterPlugin):
             default=None,
         )
 
-    def register_additional_arguments(self, parser: ArgumentParser) -> None:
-        """Override to make workstream_id optional."""
-        # Remove the default positional argument
-        # pylint: disable=protected-access
-        parser._positionals._actions = [
-            action for action in parser._positionals._actions if action.dest != self.argument_name
-        ]
-        # pylint: enable=protected-access
-
-        # Add as optional argument
-        parser.add_argument(
-            "--workstream-id",
-            dest="workstream_id",
-            help=self.argument_help,
-            default=None,
-        )
-
     def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation to set workstream.

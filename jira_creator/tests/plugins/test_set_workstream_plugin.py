@@ -26,11 +26,6 @@ class TestSetWorkstreamPlugin:
         plugin = SetWorkstreamPlugin()
         mock_parser = Mock(spec=ArgumentParser)
 
-        # Create mock for _positionals
-        mock_positionals = Mock()
-        mock_positionals._actions = []
-        mock_parser._positionals = mock_positionals
-
         plugin.register_arguments(mock_parser)
 
         # Verify add_argument was called with correct parameters
@@ -41,7 +36,7 @@ class TestSetWorkstreamPlugin:
         assert calls[0][0] == ("issue_key",)
         assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
 
-        # Second argument: workstream_id (positional, will be filtered out later)
+        # Second argument: workstream_id (optional positional)
         assert calls[1][0] == ("workstream_id",)
 
         # Third argument: --workstream-id (optional)
@@ -49,31 +44,6 @@ class TestSetWorkstreamPlugin:
         assert calls[2][1]["dest"] == "workstream_id"
         assert calls[2][1]["help"] == "The workstream ID (optional, uses default if not provided)"
         assert calls[2][1]["default"] is None
-
-    def test_register_additional_arguments(self):
-        """Test register_additional_arguments modifies parser correctly."""
-        plugin = SetWorkstreamPlugin()
-        mock_parser = Mock(spec=ArgumentParser)
-
-        # Create mock for _positionals with an action for 'workstream_id'
-        mock_action = Mock()
-        mock_action.dest = "workstream_id"
-        mock_positionals = Mock()
-        mock_positionals._actions = [mock_action]
-        mock_parser._positionals = mock_positionals
-
-        plugin.register_additional_arguments(mock_parser)
-
-        # Verify the action was removed
-        assert len(mock_parser._positionals._actions) == 0
-
-        # Verify add_argument was called for --workstream-id
-        mock_parser.add_argument.assert_called_once_with(
-            "--workstream-id",
-            dest="workstream_id",
-            help="The workstream ID (optional, uses default if not provided)",
-            default=None,
-        )
 
     @patch("jira_creator.plugins.set_workstream_plugin.EnvFetcher")
     def test_rest_operation(self, mock_env_fetcher):

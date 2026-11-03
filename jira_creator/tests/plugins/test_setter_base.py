@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Tests for the setter base plugin."""
 
+import inspect
 from argparse import ArgumentParser, Namespace
 from typing import Any, Dict
 from unittest.mock import Mock
@@ -16,8 +17,8 @@ class TestSetterPlugin:
 
     def test_abstract_class_cannot_be_instantiated(self):
         """Test that SetterPlugin cannot be instantiated directly."""
-        with pytest.raises(TypeError):
-            SetterPlugin()
+        assert inspect.isabstract(SetterPlugin)
+        assert SetterPlugin.__abstractmethods__ == {"field_name", "argument_name", "rest_operation"}
 
     def test_abstract_methods_coverage(self):
         """Test to cover the abstract method pass statements."""
@@ -32,7 +33,7 @@ class TestSetterPlugin:
     def test_concrete_implementation(self):
         """Test a concrete implementation of SetterPlugin."""
 
-        class TestSetterPlugin(SetterPlugin):
+        class ConcreteSetterPlugin(SetterPlugin):
             """Test implementation of SetterPlugin."""
 
             @property
@@ -47,7 +48,7 @@ class TestSetterPlugin:
                 return {"success": True}
 
         # Test the concrete implementation
-        plugin = TestSetterPlugin()
+        plugin = ConcreteSetterPlugin()
 
         # Test properties
         assert plugin.field_name == "test field"
@@ -63,6 +64,8 @@ class TestSetterPlugin:
         """Test the argument_help property default implementation."""
 
         class TestPlugin(SetterPlugin):
+            """Setter plugin stub for the argument_help default."""
+
             @property
             def field_name(self) -> str:
                 return "priority"
@@ -81,6 +84,8 @@ class TestSetterPlugin:
         """Test argument registration."""
 
         class TestPlugin(SetterPlugin):
+            """Status setter plugin stub for argument registration."""
+
             @property
             def field_name(self) -> str:
                 return "status"
@@ -113,6 +118,8 @@ class TestSetterPlugin:
         """Test successful execution."""
 
         class TestPlugin(SetterPlugin):
+            """Component setter plugin stub for a successful execute."""
+
             @property
             def field_name(self) -> str:
                 return "component"
@@ -137,6 +144,8 @@ class TestSetterPlugin:
         """Test execution with custom exception class."""
 
         class TestPlugin(SetterPlugin):
+            """Priority setter plugin stub raising SetPriorityError."""
+
             @property
             def field_name(self) -> str:
                 return "priority"
@@ -163,6 +172,8 @@ class TestSetterPlugin:
         """Test custom success message formatting."""
 
         class TestPlugin(SetterPlugin):
+            """Story points setter plugin stub with a custom success message."""
+
             @property
             def field_name(self) -> str:
                 return "story points"
@@ -200,6 +211,8 @@ class TestSetterPlugin:
         """Test that register_additional_arguments is called."""
 
         class TestPlugin(SetterPlugin):
+            """Custom setter plugin stub with additional arguments."""
+
             @property
             def field_name(self) -> str:
                 return "custom"
@@ -230,6 +243,8 @@ class TestSetterPlugin:
 
         # Test the first TestSetterPlugin for line 47
         class TestSetterPlugin1(SetterPlugin):
+            """Setter plugin stub returning a success payload."""
+
             @property
             def field_name(self) -> str:
                 return "test field"
@@ -247,6 +262,8 @@ class TestSetterPlugin:
 
         # Test the second TestPlugin for line 75
         class TestPlugin2(SetterPlugin):
+            """Priority setter plugin stub returning an empty payload."""
+
             @property
             def field_name(self) -> str:
                 return "priority"
@@ -264,6 +281,8 @@ class TestSetterPlugin:
 
         # Test the third TestPlugin for line 215
         class TestPlugin3(SetterPlugin):
+            """Component setter plugin stub with an extra argument."""
+
             @property
             def field_name(self) -> str:
                 return "component"
@@ -284,6 +303,8 @@ class TestSetterPlugin:
 
         # Test for line 72 (property return)
         class TestPlugin4(SetterPlugin):
+            """Priority setter plugin stub for the argument_name property."""
+
             @property
             def field_name(self) -> str:
                 return "priority"
@@ -300,6 +321,8 @@ class TestSetterPlugin:
 
         # Test for line 93 (rest_operation return)
         class TestPlugin5(SetterPlugin):
+            """Status setter plugin stub for rest_operation."""
+
             @property
             def field_name(self) -> str:
                 return "status"

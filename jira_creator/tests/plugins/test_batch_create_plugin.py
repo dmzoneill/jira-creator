@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Tests for the batch create plugin."""
 
+import json
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 from unittest.mock import Mock, mock_open, patch
@@ -459,7 +460,16 @@ class TestBatchCreatePlugin:
         # Create test file
         test_file = tmp_path / "test.json"
         test_file.write_text(
-            '{"summary": "Test", "description": "Desc", "User Story": "As a user...", "Acceptance Criteria": "* [ ] Test", "Supporting Documentation": "Docs", "Definition of Done": "Done"}'
+            json.dumps(
+                {
+                    "summary": "Test",
+                    "description": "Desc",
+                    "User Story": "As a user...",
+                    "Acceptance Criteria": "* [ ] Test",
+                    "Supporting Documentation": "Docs",
+                    "Definition of Done": "Done",
+                }
+            )
         )
 
         # Mock successful response
@@ -494,7 +504,16 @@ class TestBatchCreatePlugin:
         # Create test files - one good, one bad
         good_file = tmp_path / "good.json"
         good_file.write_text(
-            '{"summary": "Good", "description": "Desc", "User Story": "As a user...", "Acceptance Criteria": "* [ ] Test", "Supporting Documentation": "Docs", "Definition of Done": "Done"}'
+            json.dumps(
+                {
+                    "summary": "Good",
+                    "description": "Desc",
+                    "User Story": "As a user...",
+                    "Acceptance Criteria": "* [ ] Test",
+                    "Supporting Documentation": "Docs",
+                    "Definition of Done": "Done",
+                }
+            )
         )
 
         bad_file = tmp_path / "bad.json"

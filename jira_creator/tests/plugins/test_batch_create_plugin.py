@@ -2,8 +2,9 @@
 
 import json
 from argparse import ArgumentParser, Namespace
+from contextlib import ExitStack
 from pathlib import Path
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -17,6 +18,65 @@ if not hasattr(EnvFetcher, "vars"):
 for var in ["JIRA_LOG_LEVEL", "JIRA_LOG_FILE", "JIRA_LOG_FORMAT"]:
     if var not in EnvFetcher.vars:
         EnvFetcher.vars[var] = ""
+
+
+MODULE = "jira_creator.plugins.batch_create_plugin"
+ENV = {
+    "JIRA_PROJECT_KEY": "TEST",
+    "JIRA_PRIORITY": "Normal",
+    "JIRA_EPIC_FIELD": "customfield_12311140",
+    "JIRA_URL": "https://jira.example.com",
+}
+
+
+def _write(path, content):
+    """Write a test input file."""
+    path.write_text(content, encoding="utf-8")
+
+
+def _batch_args(input_dir, **overrides):
+    """Build batch-create arguments for an input directory."""
+    values = {
+        "issue_type": "story",
+        "input_dir": str(input_dir),
+        "pattern": "*",
+        "epic": None,
+        "no_ai": True,
+        "dry_run": False,
+        "output": "text",
+        "continue_on_error": False,
+    }
+    values.update(overrides)
+    return Namespace(**values)
+
+
+def _loader(fields=None, description="Description"):
+    """Build a TemplateLoader instance mock."""
+    loader = Mock()
+    loader.get_fields.return_value = fields or []
+    loader.render_description.return_value = description
+    return loader
+
+
+def _client():
+    """Build a Jira client mock that returns a created issue."""
+    client = Mock(api_version="2")
+    client.request.return_value = {"key": "TEST-123", "id": "10001"}
+    return client
+
+
+def _patched(loader):
+    """Patch the template loader and environment used by the plugin."""
+    stack = ExitStack()
+    stack.enter_context(patch(f"{MODULE}.TemplateLoader", return_value=loader))
+    env = stack.enter_context(patch(f"{MODULE}.EnvFetcher"))
+    env.get.side_effect = lambda key, default=None: ENV.get(key, default)
+    return stack
+
+
+def _sent_payload(client):
+    """Return the JSON payload sent to the Jira client."""
+    return client.request.call_args[1]["json_data"]
 
 
 class TestBatchCreatePlugin:
@@ -108,86 +168,6 @@ class TestBatchCreatePlugin:
 
         with pytest.raises(BatchCreateError, match="No files matching pattern"):
             plugin.execute(mock_client, args)
-
-    def test_load_file_json(self):
-        """Test loading JSON file."""
-        plugin = BatchCreatePlugin()
-
-        json_content = '{"field1": "value1", "field2": "value2"}'
-        mock_file = mock_open(read_data=json_content)
-
-        with patch("builtins.open", mock_file):
-            result = plugin._load_file(Path("test.json"))  # pylint: disable=protected-access
-
-        assert result == {"field1": "value1", "field2": "value2"}
-
-    def test_load_file_yaml(self):
-        """Test loading YAML file."""
-        plugin = BatchCreatePlugin()
-
-        yaml_content = "field1: value1\nfield2: value2\n"
-        mock_file = mock_open(read_data=yaml_content)
-
-        with patch("builtins.open", mock_file):
-            result = plugin._load_file(Path("test.yaml"))  # pylint: disable=protected-access
-
-        assert result == {"field1": "value1", "field2": "value2"}
-
-    def test_load_file_parse_error(self):
-        """Test loading file with parse errors."""
-        plugin = BatchCreatePlugin()
-
-        invalid_content = "invalid: yaml: content: [unclosed"
-        mock_file = mock_open(read_data=invalid_content)
-
-        with patch("builtins.open", mock_file), pytest.raises(BatchCreateError, match="Failed to parse"):
-            plugin._load_file(Path("test.yaml"))  # pylint: disable=protected-access
-
-    def test_load_file_io_error(self):
-        """Test loading file with IO error."""
-        plugin = BatchCreatePlugin()
-
-        with (
-            patch("builtins.open", side_effect=OSError("Permission denied")),
-            pytest.raises(BatchCreateError, match="Failed to read"),
-        ):
-            plugin._load_file(Path("test.json"))  # pylint: disable=protected-access
-
-    @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
-    def test_build_payload_basic(self, mock_env_fetcher):
-        """Test building basic payload."""
-        plugin = BatchCreatePlugin()
-        mock_env_fetcher.get.side_effect = lambda key, default=None: {
-            "JIRA_PROJECT_KEY": "TEST",
-            "JIRA_PRIORITY": "Normal",
-        }.get(key, default)
-
-        payload = plugin._build_payload(  # pylint: disable=protected-access
-            "Test Summary", "Test Description", "story", {}
-        )
-
-        assert payload["fields"]["summary"] == "Test Summary"
-        assert payload["fields"]["description"] == "Test Description"
-        assert payload["fields"]["project"]["key"] == "TEST"
-        assert payload["fields"]["issuetype"]["name"] == "Story"
-        assert payload["fields"]["priority"]["name"] == "Normal"
-
-    @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
-    def test_build_payload_bug_with_version(self, mock_env_fetcher):
-        """Test building payload for bug with affects version."""
-        plugin = BatchCreatePlugin()
-        mock_env_fetcher.get.side_effect = lambda key, default=None: {
-            "JIRA_PROJECT_KEY": "TEST",
-            "JIRA_PRIORITY": "Normal",
-        }.get(key, default)
-
-        field_values = {"Affects Version": "1.0.0"}
-        payload = plugin._build_payload(  # pylint: disable=protected-access
-            "Bug Summary", "Bug Description", "bug", field_values
-        )
-
-        assert payload["fields"]["issuetype"]["name"] == "Bug"
-        assert payload["fields"]["versions"] == [{"name": "1.0.0"}]
 
     @patch("builtins.print", Mock())
     @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
@@ -294,75 +274,96 @@ class TestBatchCreatePlugin:
         assert result is True
         mock_client.request.assert_called_once()
 
-    @patch("builtins.print")
-    @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
-    def test_output_results_json(self, mock_env_fetcher, mock_print):
-        """Test JSON output format."""
-        plugin = BatchCreatePlugin()
-        mock_env_fetcher.get.return_value = "https://jira.example.com"
+    def test_load_file_json(self, tmp_path):
+        """A JSON input file is parsed and its fields reach the template."""
+        _write(tmp_path / "test.json", json.dumps({"title": "T", "field1": "value1", "field2": "value2"}))
+        loader = _loader()
+        client = _client()
+        with _patched(loader), patch("builtins.print"):
+            assert BatchCreatePlugin().execute(client, _batch_args(tmp_path)) is True
+        loader.render_description.assert_called_once_with({"field1": "value1", "field2": "value2"})
 
-        args = Namespace(output="json")
-        results = [{"key": "TEST-123", "id": "10001", "title": "Test Issue", "file": "test.json"}]
-        errors = []
+    def test_load_file_yaml(self, tmp_path):
+        """A YAML input file is parsed and its fields reach the template."""
+        _write(tmp_path / "test.yaml", "title: T\nfield1: value1\nfield2: value2\n")
+        loader = _loader()
+        client = _client()
+        with _patched(loader), patch("builtins.print"):
+            assert BatchCreatePlugin().execute(client, _batch_args(tmp_path)) is True
+        loader.render_description.assert_called_once_with({"field1": "value1", "field2": "value2"})
 
-        plugin._output_results(args, results, errors)  # pylint: disable=protected-access
+    def test_load_file_parse_error(self, tmp_path):
+        """An unparseable input file makes the batch fail with a parse error."""
+        _write(tmp_path / "test.yaml", "invalid: yaml: content: [unclosed")
+        with (
+            _patched(_loader()),
+            patch("builtins.print"),
+            pytest.raises(BatchCreateError, match="Failed to parse"),
+        ):
+            BatchCreatePlugin().execute(_client(), _batch_args(tmp_path))
 
-        # Verify JSON was printed
-        assert mock_print.called
-        output_str = str(mock_print.call_args[0][0])
-        assert "TEST-123" in output_str
+    def test_load_file_io_error(self, tmp_path):
+        """An unreadable input file makes the batch fail with a read error."""
+        _write(tmp_path / "test.json", "{}")
+        with (
+            _patched(_loader()),
+            patch("builtins.print"),
+            patch(f"{MODULE}.open", side_effect=OSError("Permission denied"), create=True),
+            pytest.raises(BatchCreateError, match="Failed to read"),
+        ):
+            BatchCreatePlugin().execute(_client(), _batch_args(tmp_path))
 
-    @patch("builtins.print")
-    @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
-    def test_output_results_text_with_errors(self, mock_env_fetcher, mock_print):
-        """Test text output format with errors."""
-        plugin = BatchCreatePlugin()
-        mock_env_fetcher.get.return_value = "https://jira.example.com"
+    def test_build_payload_basic(self, tmp_path):
+        """The created issue payload carries summary, project, type and priority."""
+        _write(tmp_path / "story.json", json.dumps({"title": "Test Summary"}))
+        loader = _loader(description="Test Description")
+        client = _client()
+        with _patched(loader), patch("builtins.print"):
+            BatchCreatePlugin().execute(client, _batch_args(tmp_path))
+        fields = _sent_payload(client)["fields"]
+        assert fields["summary"] == "Test Summary"
+        assert fields["description"] == "Test Description"
+        assert fields["project"]["key"] == "TEST"
+        assert fields["issuetype"]["name"] == "Story"
+        assert fields["priority"]["name"] == "Normal"
 
-        args = Namespace(output="text")
-        results = [{"key": "TEST-123", "id": "10001", "title": "Test Issue", "file": "test.json"}]
-        errors = [{"file": "error.json", "error": "Missing fields"}]
+    def test_build_payload_bug_with_version(self, tmp_path):
+        """A bug payload includes the affects version from the input file."""
+        _write(tmp_path / "bug.json", json.dumps({"title": "Bug Summary", "Affects Version": "1.0.0"}))
+        client = _client()
+        with _patched(_loader()), patch("builtins.print"):
+            BatchCreatePlugin().execute(client, _batch_args(tmp_path, issue_type="bug"))
+        fields = _sent_payload(client)["fields"]
+        assert fields["issuetype"]["name"] == "Bug"
+        assert fields["versions"] == [{"name": "1.0.0"}]
 
-        plugin._output_results(args, results, errors)  # pylint: disable=protected-access
+    def test_output_results_json(self, tmp_path):
+        """JSON output reports the created issue."""
+        _write(tmp_path / "test.json", json.dumps({"title": "Test Issue"}))
+        with _patched(_loader()), patch("builtins.print") as mock_print:
+            BatchCreatePlugin().execute(_client(), _batch_args(tmp_path, output="json"))
+        report = json.loads(mock_print.call_args[0][0])
+        assert report["success"] == 1
+        assert report["issues"][0]["key"] == "TEST-123"
 
-        # Verify text output was printed
-        assert mock_print.called
+    def test_output_results_text_with_errors(self, tmp_path):
+        """Text output reports successes and failures when continuing on error."""
+        _write(tmp_path / "good.json", json.dumps({"title": "Good", "User Story": "As a user"}))
+        _write(tmp_path / "bad.json", json.dumps({"title": "Bad"}))
+        args = _batch_args(tmp_path, continue_on_error=True)
+        with _patched(_loader(fields=["User Story"])), patch("builtins.print") as mock_print:
+            assert BatchCreatePlugin().execute(_client(), args) is False
         print_calls = [str(call) for call in mock_print.call_args_list]
         assert any("Successfully created: 1" in call for call in print_calls)
         assert any("Failed: 1" in call for call in print_calls)
 
-    @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
-    @patch("jira_creator.plugins.batch_create_plugin.TemplateLoader")
-    def test_process_file_with_epic(self, mock_template_loader, mock_env_fetcher):
-        """Test processing file with epic link."""
-        plugin = BatchCreatePlugin()
-        mock_client = Mock()
-        mock_client.request.return_value = {"key": "TEST-123", "id": "10001"}
-
-        # Setup template loader
-        mock_loader_instance = Mock()
-        mock_loader_instance.get_fields.return_value = ["User Story"]
-        mock_loader_instance.render_description.return_value = "Description"
-        mock_template_loader.return_value = mock_loader_instance
-
-        # Setup env fetcher
-        mock_env_fetcher.get.side_effect = lambda key, default=None: {
-            "JIRA_PROJECT_KEY": "TEST",
-            "JIRA_PRIORITY": "Normal",
-            "JIRA_EPIC_FIELD": "customfield_12311140",
-        }.get(key, default)
-
-        file_content = {"title": "Test Story", "User Story": "As a user"}
-        with patch.object(plugin, "_load_file", return_value=file_content), patch("builtins.print"):
-            args = Namespace(issue_type="story", epic="EPIC-123", no_ai=True, dry_run=False, continue_on_error=False)
-
-            result = plugin._process_file(mock_client, Path("test.json"), args)  # pylint: disable=protected-access
-
-        assert result["key"] == "TEST-123"
-        # Verify epic was added to payload
-        call_args = mock_client.request.call_args
-        payload = call_args[1]["json_data"]
-        assert payload["fields"]["customfield_12311140"] == "EPIC-123"
+    def test_process_file_with_epic(self, tmp_path):
+        """A story created with --epic is linked to the epic field."""
+        _write(tmp_path / "test.json", json.dumps({"title": "Test Story", "User Story": "As a user"}))
+        client = _client()
+        with _patched(_loader(fields=["User Story"])), patch("builtins.print"):
+            BatchCreatePlugin().execute(client, _batch_args(tmp_path, epic="EPIC-123"))
+        assert _sent_payload(client)["fields"]["customfield_12311140"] == "EPIC-123"
 
     def test_execute_with_continue_on_error(self, tmp_path):
         """Test batch create with continue-on-error flag."""

@@ -293,7 +293,7 @@ class TestBatchCreatePlugin:
         loader.render_description.assert_called_once_with({"field1": "value1", "field2": "value2"})
 
     def test_load_file_parse_error(self, tmp_path):
-        """An unparseable input file makes the batch fail with a parse error."""
+        """An unparsable input file makes the batch fail with a parse error."""
         _write(tmp_path / "test.yaml", "invalid: yaml: content: [unclosed")
         with (
             _patched(_loader()),

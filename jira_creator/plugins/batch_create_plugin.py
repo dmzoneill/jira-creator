@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Batch create plugin for jira-creator.
 
@@ -9,7 +8,7 @@ multiple Jira issues from a directory of JSON/YAML files.
 import json
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 
@@ -45,14 +44,14 @@ class BatchCreatePlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Issue Creation & Management"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "BatchCreateError": BatchCreateError,
         }
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["batch-create /path/to/issues/", "batch-create ./issue-templates/ --dry-run"]
 
@@ -135,7 +134,7 @@ class BatchCreatePlugin(JiraPlugin):
             print(f"❌ Batch create failed: {e}")
             raise
 
-    def _process_file(self, client: Any, file_path: Path, args: Namespace) -> Dict[str, Any]:
+    def _process_file(self, client: Any, file_path: Path, args: Namespace) -> dict[str, Any]:
         """
         Process a single file and create an issue.
 
@@ -194,7 +193,7 @@ class BatchCreatePlugin(JiraPlugin):
             "title": title,
         }
 
-    def _load_file(self, file_path: Path) -> Dict[str, Any]:
+    def _load_file(self, file_path: Path) -> dict[str, Any]:
         """
         Load and parse a JSON or YAML file.
 
@@ -220,12 +219,12 @@ class BatchCreatePlugin(JiraPlugin):
                 except yaml.YAMLError as e:
                     raise BatchCreateError(f"Failed to parse {file_path.name}: {e}") from e
 
-        except (OSError, IOError) as e:
+        except OSError as e:
             raise BatchCreateError(f"Failed to read {file_path.name}: {e}") from e
 
     def _build_payload(
-        self, summary: str, description: str, issue_type: str, field_values: Dict[str, str]
-    ) -> Dict[str, Any]:
+        self, summary: str, description: str, issue_type: str, field_values: dict[str, str]
+    ) -> dict[str, Any]:
         """
         Build the JIRA API payload for creating an issue.
 
@@ -240,14 +239,13 @@ class BatchCreatePlugin(JiraPlugin):
         """
         project_key = EnvFetcher.get("JIRA_PROJECT_KEY", default="AAP")
 
-        payload = {
-            "fields": {
-                "project": {"key": project_key},
-                "summary": summary,
-                "description": description,
-                "issuetype": {"name": issue_type.capitalize()},
-            }
+        fields: dict[str, Any] = {
+            "project": {"key": project_key},
+            "summary": summary,
+            "description": description,
+            "issuetype": {"name": issue_type.capitalize()},
         }
+        payload: dict[str, Any] = {"fields": fields}
 
         # Add component if specified in environment
         component = EnvFetcher.get("JIRA_COMPONENT")
@@ -266,7 +264,7 @@ class BatchCreatePlugin(JiraPlugin):
 
         return payload
 
-    def _output_results(self, args: Namespace, results: List[Dict], errors: List[Dict]) -> None:
+    def _output_results(self, args: Namespace, results: list[dict], errors: list[dict]) -> None:
         """
         Output the batch creation results.
 
@@ -298,7 +296,7 @@ class BatchCreatePlugin(JiraPlugin):
                     print(f"   {result['key']}: {result['title']}")
                     print(f"      {jira_url}/browse/{result['key']}")
 
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation to create an issue.
 

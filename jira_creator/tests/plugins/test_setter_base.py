@@ -1,15 +1,69 @@
-#!/usr/bin/env python
 """Tests for the setter base plugin."""
 
 import inspect
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
 
 from jira_creator.core.plugin_setter_base import SetterPlugin
 from jira_creator.plugins.set_priority_plugin import SetPriorityError
+
+
+class StubSetter(SetterPlugin):
+    """Configurable SetterPlugin stub that records every REST call it receives."""
+
+    def __init__(self, field: str, argument: str, result: dict[str, Any] | None = None) -> None:
+        super().__init__()
+        self._field = field
+        self._argument = argument
+        self._result = {} if result is None else result
+        self.calls: list[tuple[Any, dict[str, Any]]] = []
+
+    @property
+    def field_name(self) -> str:
+        """Return the configured field name."""
+        return self._field
+
+    @property
+    def argument_name(self) -> str:
+        """Return the configured argument name."""
+        return self._argument
+
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
+        """Record the call and return the configured result."""
+        self.calls.append((client, kwargs))
+        return self._result
+
+
+class FailingPrioritySetter(StubSetter):
+    """Priority setter stub whose REST operation raises SetPriorityError."""
+
+    def get_exception_class(self):
+        """Return the priority-specific exception class."""
+        return SetPriorityError
+
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
+        """Record the call, then fail like an invalid priority would."""
+        self.calls.append((client, kwargs))
+        raise SetPriorityError("Invalid priority")
+
+
+class StoryPointsSetter(StubSetter):
+    """Story points setter stub with a custom success message."""
+
+    def format_success_message(self, issue_key: str, value: Any) -> str:
+        """Return a story-points specific success message."""
+        return f"✅ Story points for {issue_key} set to '{value}'"
+
+
+class ExtraArgumentSetter(StubSetter):
+    """Setter stub that registers one additional CLI argument."""
+
+    def register_additional_arguments(self, parser: ArgumentParser) -> None:
+        """Register the --extra argument."""
+        parser.add_argument("--extra", help="Extra argument")
 
 
 class TestSetterPlugin:
@@ -32,23 +86,7 @@ class TestSetterPlugin:
 
     def test_concrete_implementation(self):
         """Test a concrete implementation of SetterPlugin."""
-
-        class ConcreteSetterPlugin(SetterPlugin):
-            """Test implementation of SetterPlugin."""
-
-            @property
-            def field_name(self) -> str:
-                return "test field"
-
-            @property
-            def argument_name(self) -> str:
-                return "test_value"
-
-            def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-                return {"success": True}
-
-        # Test the concrete implementation
-        plugin = ConcreteSetterPlugin()
+        plugin = StubSetter("test field", "test_value", {"success": True})
 
         # Test properties
         assert plugin.field_name == "test field"
@@ -62,42 +100,12 @@ class TestSetterPlugin:
 
     def test_argument_help_property(self):
         """Test the argument_help property default implementation."""
-
-        class TestPlugin(SetterPlugin):
-            """Setter plugin stub for the argument_help default."""
-
-            @property
-            def field_name(self) -> str:
-                return "priority"
-
-            @property
-            def argument_name(self) -> str:
-                return "priority"
-
-            def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-                return {}
-
-        plugin = TestPlugin()
+        plugin = StubSetter("priority", "priority")
         assert plugin.argument_help == "The priority to set"
 
     def test_register_arguments(self):
         """Test argument registration."""
-
-        class TestPlugin(SetterPlugin):
-            """Status setter plugin stub for argument registration."""
-
-            @property
-            def field_name(self) -> str:
-                return "status"
-
-            @property
-            def argument_name(self) -> str:
-                return "status"
-
-            def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-                return {}
-
-        plugin = TestPlugin()
+        plugin = StubSetter("status", "status")
         mock_parser = Mock(spec=ArgumentParser)
 
         plugin.register_arguments(mock_parser)
@@ -116,22 +124,7 @@ class TestSetterPlugin:
 
     def test_execute_success(self):
         """Test successful execution."""
-
-        class TestPlugin(SetterPlugin):
-            """Component setter plugin stub for a successful execute."""
-
-            @property
-            def field_name(self) -> str:
-                return "component"
-
-            @property
-            def argument_name(self) -> str:
-                return "component"
-
-            def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-                return {"key": kwargs["issue_key"]}
-
-        plugin = TestPlugin()
+        plugin = StubSetter("component", "component")
         mock_client = Mock()
 
         args = Namespace(issue_key="TEST-123", component="Backend")
@@ -139,28 +132,11 @@ class TestSetterPlugin:
         result = plugin.execute(mock_client, args)
 
         assert result is True
+        assert plugin.calls == [(mock_client, {"issue_key": "TEST-123", "value": "Backend", "args": args})]
 
     def test_execute_with_custom_exception(self):
         """Test execution with custom exception class."""
-
-        class TestPlugin(SetterPlugin):
-            """Priority setter plugin stub raising SetPriorityError."""
-
-            @property
-            def field_name(self) -> str:
-                return "priority"
-
-            @property
-            def argument_name(self) -> str:
-                return "priority"
-
-            def get_exception_class(self):
-                return SetPriorityError
-
-            def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-                raise SetPriorityError("Invalid priority")
-
-        plugin = TestPlugin()
+        plugin = FailingPrioritySetter("priority", "priority")
         mock_client = Mock()
 
         args = Namespace(issue_key="TEST-123", priority="Invalid")
@@ -168,66 +144,19 @@ class TestSetterPlugin:
         with pytest.raises(SetPriorityError):
             plugin.execute(mock_client, args)
 
-    def test_format_success_message(self):
+    def test_format_success_message(self, capsys):
         """Test custom success message formatting."""
-
-        class TestPlugin(SetterPlugin):
-            """Story points setter plugin stub with a custom success message."""
-
-            @property
-            def field_name(self) -> str:
-                return "story points"
-
-            @property
-            def argument_name(self) -> str:
-                return "points"
-
-            def format_success_message(self, issue_key: str, value: Any) -> str:
-                return f"✅ Story points set to '{value}'"
-
-            def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-                return {}
-
-        plugin = TestPlugin()
+        plugin = StoryPointsSetter("story points", "points")
         mock_client = Mock()
 
         args = Namespace(issue_key="TEST-123", points=5)
 
-        # Capture print output
-        import io
-        import sys
-
-        captured_output = io.StringIO()
-        sys.stdout = captured_output
-
-        try:
-            plugin.execute(mock_client, args)
-            output = captured_output.getvalue()
-            assert "✅ Story points set to '5'" in output
-        finally:
-            sys.stdout = sys.__stdout__
+        plugin.execute(mock_client, args)
+        assert "✅ Story points for TEST-123 set to '5'" in capsys.readouterr().out
 
     def test_register_additional_arguments(self):
         """Test that register_additional_arguments is called."""
-
-        class TestPlugin(SetterPlugin):
-            """Custom setter plugin stub with additional arguments."""
-
-            @property
-            def field_name(self) -> str:
-                return "custom"
-
-            @property
-            def argument_name(self) -> str:
-                return "custom_value"
-
-            def register_additional_arguments(self, parser: ArgumentParser) -> None:
-                parser.add_argument("--extra", help="Extra argument")
-
-            def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
-                return {}
-
-        plugin = TestPlugin()
+        plugin = ExtraArgumentSetter("custom", "custom_value")
         mock_parser = Mock(spec=ArgumentParser)
 
         plugin.register_arguments(mock_parser)
@@ -240,100 +169,18 @@ class TestSetterPlugin:
 
     def test_stub_methods_coverage(self):
         """Test stub methods to improve coverage."""
+        plugin1 = StubSetter("test field", "test_value", {"success": True})
+        assert plugin1.rest_operation(None) == {"success": True}
 
-        # Test the first TestSetterPlugin for line 47
-        class TestSetterPlugin1(SetterPlugin):
-            """Setter plugin stub returning a success payload."""
-
-            @property
-            def field_name(self) -> str:
-                return "test field"
-
-            @property
-            def argument_name(self) -> str:
-                return "test_value"
-
-            def rest_operation(self, client, **kwargs):
-                return {"success": True}
-
-        plugin1 = TestSetterPlugin1()
-        result = plugin1.rest_operation(None)
-        assert result == {"success": True}
-
-        # Test the second TestPlugin for line 75
-        class TestPlugin2(SetterPlugin):
-            """Priority setter plugin stub returning an empty payload."""
-
-            @property
-            def field_name(self) -> str:
-                return "priority"
-
-            @property
-            def argument_name(self) -> str:
-                return "priority"
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-        plugin2 = TestPlugin2()
+        plugin2 = StubSetter("priority", "priority")
         result = plugin2.rest_operation(None)
         assert isinstance(result, dict) and not result
+        assert plugin2.argument_name == "priority"
 
-        # Test the third TestPlugin for line 215
-        class TestPlugin3(SetterPlugin):
-            """Component setter plugin stub with an extra argument."""
-
-            @property
-            def field_name(self) -> str:
-                return "component"
-
-            @property
-            def argument_name(self) -> str:
-                return "component"
-
-            def register_additional_arguments(self, parser):
-                parser.add_argument("--extra", help="Extra argument")
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-        plugin3 = TestPlugin3()
+        plugin3 = ExtraArgumentSetter("component", "component")
         result = plugin3.rest_operation(None)
         assert isinstance(result, dict) and not result
 
-        # Test for line 72 (property return)
-        class TestPlugin4(SetterPlugin):
-            """Priority setter plugin stub for the argument_name property."""
-
-            @property
-            def field_name(self) -> str:
-                return "priority"
-
-            @property
-            def argument_name(self) -> str:
-                return "priority"
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-        plugin4 = TestPlugin4()
-        assert plugin4.argument_name == "priority"
-
-        # Test for line 93 (rest_operation return)
-        class TestPlugin5(SetterPlugin):
-            """Status setter plugin stub for rest_operation."""
-
-            @property
-            def field_name(self) -> str:
-                return "status"
-
-            @property
-            def argument_name(self) -> str:
-                return "status"
-
-            def rest_operation(self, client, **kwargs):
-                return {}
-
-        plugin5 = TestPlugin5()
+        plugin5 = StubSetter("status", "status")
         result = plugin5.rest_operation(None)
         assert isinstance(result, dict) and not result

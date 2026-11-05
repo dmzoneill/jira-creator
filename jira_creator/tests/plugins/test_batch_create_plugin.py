@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Tests for the batch create plugin."""
 
 import json
@@ -141,17 +140,18 @@ class TestBatchCreatePlugin:
         invalid_content = "invalid: yaml: content: [unclosed"
         mock_file = mock_open(read_data=invalid_content)
 
-        with patch("builtins.open", mock_file):
-            with pytest.raises(BatchCreateError, match="Failed to parse"):
-                plugin._load_file(Path("test.yaml"))  # pylint: disable=protected-access
+        with patch("builtins.open", mock_file), pytest.raises(BatchCreateError, match="Failed to parse"):
+            plugin._load_file(Path("test.yaml"))  # pylint: disable=protected-access
 
     def test_load_file_io_error(self):
         """Test loading file with IO error."""
         plugin = BatchCreatePlugin()
 
-        with patch("builtins.open", side_effect=OSError("Permission denied")):
-            with pytest.raises(BatchCreateError, match="Failed to read"):
-                plugin._load_file(Path("test.json"))  # pylint: disable=protected-access
+        with (
+            patch("builtins.open", side_effect=OSError("Permission denied")),
+            pytest.raises(BatchCreateError, match="Failed to read"),
+        ):
+            plugin._load_file(Path("test.json"))  # pylint: disable=protected-access
 
     @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
     def test_build_payload_basic(self, mock_env_fetcher):
@@ -189,13 +189,11 @@ class TestBatchCreatePlugin:
         assert payload["fields"]["issuetype"]["name"] == "Bug"
         assert payload["fields"]["versions"] == [{"name": "1.0.0"}]
 
-    @patch("builtins.print")
+    @patch("builtins.print", Mock())
     @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
     @patch("jira_creator.plugins.batch_create_plugin.TemplateLoader")
     @patch("jira_creator.plugins.batch_create_plugin.Path")
-    def test_execute_dry_run(
-        self, mock_path_cls, mock_template_loader, mock_env_fetcher, mock_print
-    ):  # pylint: disable=unused-argument
+    def test_execute_dry_run(self, mock_path_cls, mock_template_loader, mock_env_fetcher):
         """Test execution in dry-run mode."""
         plugin = BatchCreatePlugin()
         mock_client = Mock()
@@ -243,13 +241,11 @@ class TestBatchCreatePlugin:
         # Verify client was not called (dry run)
         mock_client.request.assert_not_called()
 
-    @patch("builtins.print")
+    @patch("builtins.print", Mock())
     @patch("jira_creator.plugins.batch_create_plugin.EnvFetcher")
     @patch("jira_creator.plugins.batch_create_plugin.TemplateLoader")
     @patch("jira_creator.plugins.batch_create_plugin.Path")
-    def test_execute_success(
-        self, mock_path_cls, mock_template_loader, mock_env_fetcher, mock_print
-    ):  # pylint: disable=unused-argument
+    def test_execute_success(self, mock_path_cls, mock_template_loader, mock_env_fetcher):
         """Test successful batch creation."""
         plugin = BatchCreatePlugin()
         mock_client = Mock()
@@ -357,13 +353,10 @@ class TestBatchCreatePlugin:
         }.get(key, default)
 
         file_content = {"title": "Test Story", "User Story": "As a user"}
-        with patch.object(plugin, "_load_file", return_value=file_content):
-            with patch("builtins.print"):
-                args = Namespace(
-                    issue_type="story", epic="EPIC-123", no_ai=True, dry_run=False, continue_on_error=False
-                )
+        with patch.object(plugin, "_load_file", return_value=file_content), patch("builtins.print"):
+            args = Namespace(issue_type="story", epic="EPIC-123", no_ai=True, dry_run=False, continue_on_error=False)
 
-                result = plugin._process_file(mock_client, Path("test.json"), args)  # pylint: disable=protected-access
+            result = plugin._process_file(mock_client, Path("test.json"), args)  # pylint: disable=protected-access
 
         assert result["key"] == "TEST-123"
         # Verify epic was added to payload

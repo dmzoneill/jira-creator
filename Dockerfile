@@ -1,6 +1,6 @@
 # hadolint global ignore=DL3041,DL3013,DL3059,DL3040
 # Stage 1: Build Environment
-FROM fedora:44
+FROM fedora:45
 
 # Install necessary packages
 RUN dnf update -y

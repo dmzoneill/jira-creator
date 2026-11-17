@@ -263,7 +263,7 @@ class TestQuarterlyConnectionPlugin:
 
         # Setup mocks
         mock_env_fetcher.get.return_value = "openai"
-        mock_get_ai_provider.side_effect = Exception("AI provider not available")
+        mock_get_ai_provider.side_effect = ValueError("AI provider not available")
 
         mock_client.request.side_effect = [
             {"name": "test.user"},
@@ -323,14 +323,16 @@ class TestQuarterlyConnectionPlugin:
         mock_client = Mock()
 
         # Mock rest_operation to raise error
-        with patch.object(plugin, "rest_operation", side_effect=QuarterlyConnectionError("Test error")):
-            with patch("builtins.print") as mock_print:
-                args = Namespace()
+        with (
+            patch.object(plugin, "rest_operation", side_effect=QuarterlyConnectionError("Test error")),
+            patch("builtins.print") as mock_print,
+        ):
+            args = Namespace()
 
-                with pytest.raises(QuarterlyConnectionError):
-                    plugin.execute(mock_client, args)
+            with pytest.raises(QuarterlyConnectionError):
+                plugin.execute(mock_client, args)
 
-                mock_print.assert_called_with("❌ Failed to generate quarterly connection report: Test error")
+            mock_print.assert_called_with("❌ Failed to generate quarterly connection report: Test error")
 
     def test_time_calculation(self):
         """Test that time calculation for 90 days is correct."""
@@ -358,7 +360,7 @@ class TestQuarterlyConnectionPlugin:
         """Test that issue types and statuses are counted correctly."""
         # Mock AI provider to trigger fallback mode
         mock_env_get.return_value = None  # No AI provider configured
-        mock_get_ai_provider.side_effect = Exception("AI not configured")
+        mock_get_ai_provider.side_effect = ValueError("AI not configured")
 
         plugin = QuarterlyConnectionPlugin()
         mock_client = Mock()
@@ -414,7 +416,7 @@ class TestQuarterlyConnectionPlugin:
         """Test that long summaries are truncated in output."""
         # Mock AI provider to trigger fallback mode
         mock_env_get.return_value = None  # No AI provider configured
-        mock_get_ai_provider.side_effect = Exception("AI not configured")
+        mock_get_ai_provider.side_effect = ValueError("AI not configured")
 
         plugin = QuarterlyConnectionPlugin()
         mock_client = Mock()
@@ -448,9 +450,7 @@ class TestQuarterlyConnectionPlugin:
 
     @patch("jira_creator.plugins.quarterly_connection_plugin.get_ai_provider")
     @patch("jira_creator.plugins.quarterly_connection_plugin.EnvFetcher.get")
-    def test_case_insensitive_cve_filtering(
-        self, mock_env_get, mock_get_ai_provider
-    ):  # pylint: disable=unused-argument
+    def test_case_insensitive_cve_filtering(self, mock_env_get, _mock_get_ai_provider):
         """Test that CVE filtering is case-insensitive."""
         # Mock AI provider to prevent actual API calls
         mock_env_get.return_value = None  # No AI provider configured

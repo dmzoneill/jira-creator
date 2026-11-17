@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Test to achieve full coverage of blocked_plugin by testing the unreachable code."""
 
-from typing import Any, Dict, List, Union
+from typing import Any
 from unittest.mock import Mock, patch
 
 from jira_creator.core.env_fetcher import EnvFetcher
@@ -17,8 +17,8 @@ class TestableBlockedPlugin(BlockedPlugin):
 
     def rest_operation(self, client: Any, **kwargs) -> Any:
         """Override to use test issues instead of empty list."""
-        # project = kwargs.get("project")  # noqa: F841
-        # component = kwargs.get("component")  # noqa: F841
+        # project = kwargs.get("project")
+        # component = kwargs.get("component")
         user = kwargs.get("user")
 
         # Get current user if no user specified
@@ -34,7 +34,7 @@ class TestableBlockedPlugin(BlockedPlugin):
             print("✅ No issues found.")
             return True
 
-        blocked_issues: List[Dict[str, Union[str, None]]] = []
+        blocked_issues: list[dict[str, str | None]] = []
         for issue in issues:
             fields = issue["fields"]
             is_blocked = fields.get(EnvFetcher.get("JIRA_BLOCKED_FIELD"), {}).get("value") == "True"

@@ -76,9 +76,11 @@ class TestBlockedPlugin:
         args = Namespace()
 
         # Mock rest_operation to raise error
-        with patch.object(plugin, "rest_operation", side_effect=ListBlockedError("API Error")):
-            with pytest.raises(ListBlockedError) as exc_info:
-                plugin.execute(mock_client, args)
+        with (
+            patch.object(plugin, "rest_operation", side_effect=ListBlockedError("API Error")),
+            pytest.raises(ListBlockedError) as exc_info,
+        ):
+            plugin.execute(mock_client, args)
 
         assert "API Error" in str(exc_info.value)
 
@@ -89,9 +91,11 @@ class TestBlockedPlugin:
 
         args = Namespace()
 
-        with patch.object(plugin, "rest_operation", side_effect=ListBlockedError("Network error")):
-            with pytest.raises(ListBlockedError):
-                plugin.execute(mock_client, args)
+        with (
+            patch.object(plugin, "rest_operation", side_effect=ListBlockedError("Network error")),
+            pytest.raises(ListBlockedError),
+        ):
+            plugin.execute(mock_client, args)
 
         captured = capsys.readouterr()
         assert "❌ Failed to list blocked issues: Network error" in captured.out
@@ -139,7 +143,7 @@ class TestBlockedPlugin:
     def test_rest_operation_with_blocked_issues(self, mock_env_get):
         """Test REST operation with blocked issues found."""
         plugin = BlockedPlugin()
-        # mock_client = Mock()  # noqa: F841
+        # mock_client = Mock()
 
         # Mock environment variables
         mock_env_get.side_effect = {
@@ -190,8 +194,8 @@ class TestBlockedPlugin:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_rest_operation_blocked_issue_no_assignee(self, mock_env_get):
         """Test blocked issue with no assignee."""
-        # plugin = BlockedPlugin()  # noqa: F841
-        # mock_client = Mock()  # noqa: F841
+        # plugin = BlockedPlugin()
+        # mock_client = Mock()
 
         mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",
@@ -339,8 +343,8 @@ class TestBlockedPlugin:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_rest_operation_no_blocked_issues_in_results(self, mock_env_get, capsys):
         """Test when issues exist but none are blocked."""
-        # plugin = BlockedPlugin()  # noqa: F841
-        # mock_client = Mock()  # noqa: F841
+        # plugin = BlockedPlugin()
+        # mock_client = Mock()
 
         # Mock environment variables
         mock_env_get.side_effect = {
@@ -393,7 +397,7 @@ class TestBlockedPlugin:
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
     def test_code_coverage_for_blocked_issue_processing(self, mock_env_get):
         """Special test to cover the unreachable blocked issue processing code."""
-        # plugin = BlockedPlugin()  # noqa: F841
+        # plugin = BlockedPlugin()
 
         # Mock environment variables
         mock_env_get.side_effect = {

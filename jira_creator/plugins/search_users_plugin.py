@@ -7,7 +7,7 @@ for Jira users by name or email.
 """
 
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.plugin_base import JiraPlugin
 
@@ -34,14 +34,14 @@ class SearchUsersPlugin(JiraPlugin):
         """Return the category for help organization."""
         return "Search & View"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "SearchUsersError": SearchUsersError,
         }
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ['search-users "John Smith"', "search-users jsmith@example.com"]
 
@@ -89,7 +89,7 @@ class SearchUsersPlugin(JiraPlugin):
             print(msg)
             raise SearchUsersError(e) from e
 
-    def rest_operation(self, client: Any, **kwargs) -> List[Dict[str, Any]]:
+    def rest_operation(self, client: Any, **kwargs) -> list[dict[str, Any]]:
         """
         Perform the REST API operation to search for users.
 
@@ -98,7 +98,7 @@ class SearchUsersPlugin(JiraPlugin):
             **kwargs: Contains 'query' and 'max_results'
 
         Returns:
-            List[Dict[str, Any]]: List of user data
+            list[dict[str, Any]]: List of user data
         """
         query = kwargs["query"]
         max_results = kwargs.get("max_results", 50)
@@ -112,7 +112,7 @@ class SearchUsersPlugin(JiraPlugin):
 
         return client.request("GET", path, params=params)
 
-    def display_user(self, user: Dict[str, Any]) -> None:
+    def display_user(self, user: dict[str, Any]) -> None:
         """Display user information."""
         name = user.get("name", "N/A")
         display_name = user.get("displayName", "N/A")

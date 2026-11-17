@@ -8,7 +8,7 @@ a quarterly employee report based on Jira activity.
 
 import time
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.adf import ensure_text
 from jira_creator.core.env_fetcher import EnvFetcher
@@ -40,11 +40,11 @@ class QuarterlyConnectionPlugin(JiraPlugin):
         return "Reporting"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands."""
         return ["quarterly-connection --quarter Q1"]
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "QuarterlyConnectionError": QuarterlyConnectionError,
@@ -166,7 +166,15 @@ class QuarterlyConnectionPlugin(JiraPlugin):
             issues_text = "\n\n".join(issue_list)
             enhanced_summary = ai_provider.improve_text(prompt, issues_text)
             print(f"\n{enhanced_summary}")
-        except Exception as ai_error:  # pylint: disable=broad-exception-caught
+        except (
+            OSError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+            AttributeError,
+            KeyError,
+            ImportError,
+        ) as ai_error:
             self._print_basic_summary(filtered_issues, ai_error)
 
     def _print_basic_summary(self, filtered_issues: list, ai_error: Exception) -> None:

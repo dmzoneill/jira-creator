@@ -8,7 +8,7 @@ the pattern of setting a single field value on a Jira issue.
 
 from abc import abstractmethod
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.plugin_base import JiraPlugin
 
@@ -57,7 +57,7 @@ class SetterPlugin(JiraPlugin):
         return "Issue Modification"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands for setter plugins."""
         # Provide sensible default examples based on field name
         examples_map = {
@@ -146,7 +146,7 @@ class SetterPlugin(JiraPlugin):
         return f"✅ {self.field_name.capitalize()} for {issue_key} set to '{value}'"
 
     @abstractmethod
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation.
 

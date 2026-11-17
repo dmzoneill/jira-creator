@@ -136,7 +136,7 @@ class TestBlockedPlugin:
         assert result == {"blocked_issues": [], "message": "No issues found"}
 
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
-    def test_rest_operation_with_blocked_issues(self, mock_env_get, capsys):
+    def test_rest_operation_with_blocked_issues(self, mock_env_get):
         """Test REST operation with blocked issues found."""
         plugin = BlockedPlugin()
         # mock_client = Mock()  # noqa: F841

@@ -175,8 +175,8 @@ class QuarterlyConnectionPlugin(JiraPlugin):
         print("\n📋 Issue Summary:")
         print("-" * 60)
 
-        issue_types = {}
-        status_counts = {}
+        issue_types: dict[str, int] = {}
+        status_counts: dict[str, int] = {}
 
         for issue in filtered_issues:
             issue_type = issue["type"]

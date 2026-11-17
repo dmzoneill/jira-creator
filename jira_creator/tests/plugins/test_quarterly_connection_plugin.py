@@ -30,7 +30,7 @@ class TestQuarterlyConnectionPlugin:
 
     @patch("jira_creator.plugins.quarterly_connection_plugin.get_ai_provider")
     @patch("jira_creator.plugins.quarterly_connection_plugin.EnvFetcher.get")
-    def test_rest_operation_successful(self, mock_env_get, mock_get_ai_provider):
+    def test_rest_operation_successful(self, mock_env_get, _mock_get_ai_provider):
         """Test successful REST operation with issues found."""
         # Mock AI provider to prevent actual API calls
         mock_env_get.return_value = None  # No AI provider configured
@@ -173,7 +173,7 @@ class TestQuarterlyConnectionPlugin:
 
     @patch("jira_creator.plugins.quarterly_connection_plugin.get_ai_provider")
     @patch("jira_creator.plugins.quarterly_connection_plugin.EnvFetcher.get")
-    def test_rest_operation_with_missing_issue_fields(self, mock_env_get, mock_get_ai_provider):
+    def test_rest_operation_with_missing_issue_fields(self, mock_env_get, _mock_get_ai_provider):
         """Test REST operation with issues missing some fields."""
         # Mock AI provider to prevent actual API calls
         mock_env_get.return_value = None  # No AI provider configured

@@ -15,7 +15,7 @@ class TestableBlockedPlugin(BlockedPlugin):
         super().__init__()
         self.test_issues = test_issues or []
 
-    def rest_operation(self, client: Any, **kwargs) -> Union[List[Dict[str, Any]], bool]:
+    def rest_operation(self, client: Any, **kwargs) -> Any:
         """Override to use test issues instead of empty list."""
         # project = kwargs.get("project")  # noqa: F841
         # component = kwargs.get("component")  # noqa: F841
@@ -146,7 +146,7 @@ class TestBlockedFullCoverage:
         assert "✅ No blocked issues found." in captured.out
 
     @patch("jira_creator.plugins.blocked_plugin.EnvFetcher.get")
-    def test_blocked_issue_missing_reason_field(self, mock_env_get, capsys):
+    def test_blocked_issue_missing_reason_field(self, mock_env_get):
         """Test blocked issue where reason field doesn't exist."""
         mock_env_get.side_effect = {
             "JIRA_BLOCKED_FIELD": "customfield_10001",

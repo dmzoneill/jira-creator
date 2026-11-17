@@ -56,7 +56,7 @@ class TestBlockedPluginFullCoverage:
         # Patch the rest_operation method to return issues instead of empty list
         original_rest_operation = blocked_module.BlockedPlugin.rest_operation
 
-        def patched_rest_operation(self, client, **kwargs):
+        def patched_rest_operation(_self, client, **kwargs):
             # Get user as normal
             user = kwargs.get("user")
             if not user:
@@ -157,7 +157,7 @@ class TestBlockedPluginFullCoverage:
 
         original_rest_operation = blocked_module.BlockedPlugin.rest_operation
 
-        def patched_rest_operation(self, client, **kwargs):
+        def patched_rest_operation(_self, _client, **_kwargs):
             # Process with no blocked issues to test lines 103-105
             issues = test_issues
 
@@ -199,8 +199,8 @@ class TestBlockedPluginFullCoverage:
             blocked_module.BlockedPlugin.rest_operation = original_rest_operation
 
 
-def mock_env_get(key):
-    """Mock function for environment variable access."""
+def blocked_field_env(key):
+    """Return blocked-field env values for plugin tests."""
     return {
         "JIRA_BLOCKED_FIELD": "customfield_10001",
         "JIRA_BLOCKED_REASON_FIELD": "customfield_10002",
@@ -211,7 +211,7 @@ def test_no_issues_path(capsys):
     """Test the path when no issues are found (lines 82-84)."""
     import jira_creator.plugins.blocked_plugin as blocked_module
 
-    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=mock_env_get):
+    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=blocked_field_env):
         plugin = blocked_module.BlockedPlugin()
         mock_client = Mock()
 
@@ -226,11 +226,11 @@ def test_no_issues_path(capsys):
         assert "✅ No issues found." in captured.out
 
 
-def test_no_blocked_issues_path(capsys):
+def test_no_blocked_issues_path():
     """Test the path when no blocked issues are found (lines 101-103)."""
     import jira_creator.plugins.blocked_plugin as blocked_module
 
-    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=mock_env_get):
+    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=blocked_field_env):
         plugin = blocked_module.BlockedPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"name": "testuser"}
@@ -258,7 +258,7 @@ def test_blocked_issues_return_path(capsys):
     """Test the path that returns blocked issues (lines 105-113)."""
     import jira_creator.plugins.blocked_plugin as blocked_module
 
-    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=mock_env_get):
+    with patch("jira_creator.core.env_fetcher.EnvFetcher.get", side_effect=blocked_field_env):
         plugin = blocked_module.BlockedPlugin()
         mock_client = Mock()
         mock_client.request.return_value = {"name": "testuser"}

@@ -6,7 +6,6 @@ This plugin implements the set-story-points command, allowing users to
 change the story points of Jira issues.
 """
 
-from argparse import ArgumentParser
 from typing import Any, Dict
 
 from jira_creator.core.env_fetcher import EnvFetcher
@@ -53,17 +52,10 @@ class SetStoryPointsPlugin(SetterPlugin):
             ),
         }
 
-    def register_additional_arguments(self, parser: ArgumentParser) -> None:
-        """Override to add type validation for points."""
-        # pylint: disable=protected-access
-        # Remove the default positional argument - necessary to override parent class behavior
-        parser._positionals._actions = [
-            action for action in parser._positionals._actions if action.dest != self.argument_name
-        ]
-        # pylint: enable=protected-access
-
-        # Add with type validation
-        parser.add_argument("points", type=int, help=self.argument_help)
+    @property
+    def argument_type(self):
+        """Validate story points as an integer."""
+        return int
 
     def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
         """

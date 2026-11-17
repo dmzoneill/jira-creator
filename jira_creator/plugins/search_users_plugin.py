@@ -80,7 +80,7 @@ class SearchUsersPlugin(JiraPlugin):
             print("=" * 60)
 
             for user in users:
-                self._display_user(user)
+                self.display_user(user)
 
             return True
 
@@ -112,7 +112,7 @@ class SearchUsersPlugin(JiraPlugin):
 
         return client.request("GET", path, params=params)
 
-    def _display_user(self, user: Dict[str, Any]) -> None:
+    def display_user(self, user: Dict[str, Any]) -> None:
         """Display user information."""
         name = user.get("name", "N/A")
         display_name = user.get("displayName", "N/A")

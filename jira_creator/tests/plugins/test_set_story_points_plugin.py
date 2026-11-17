@@ -22,52 +22,22 @@ class TestSetStoryPointsPlugin:
         assert plugin.argument_help == "The story points value (integer)"
 
     def test_register_arguments(self):
-        """Test argument registration."""
+        """Test argument registration, including integer validation for points."""
         plugin = SetStoryPointsPlugin()
-        mock_parser = Mock(spec=ArgumentParser)
+        parser = ArgumentParser()
+        plugin.register_arguments(parser)
 
-        # Create mock for _positionals
-        mock_positionals = Mock()
-        mock_positionals._actions = []
-        mock_parser._positionals = mock_positionals
+        args = parser.parse_args(["PROJ-123", "5"])
+        assert args.issue_key == "PROJ-123"
+        assert args.points == 5
 
-        plugin.register_arguments(mock_parser)
+        with pytest.raises(SystemExit):
+            parser.parse_args(["PROJ-123", "not-a-number"])
 
-        # Verify add_argument was called with correct parameters
-        assert mock_parser.add_argument.call_count == 3
-        calls = mock_parser.add_argument.call_args_list
-
-        # First argument: issue_key
-        assert calls[0][0] == ("issue_key",)
-        assert calls[0][1]["help"] == "The Jira issue key (e.g., PROJ-123)"
-
-        # Second argument: points (positional, will be removed)
-        assert calls[1][0] == ("points",)
-
-        # Third argument: points (with type=int)
-        assert calls[2][0] == ("points",)
-        assert calls[2][1]["type"] == int
-        assert calls[2][1]["help"] == "The story points value (integer)"
-
-    def test_register_additional_arguments(self):
-        """Test register_additional_arguments modifies parser correctly."""
+    def test_argument_type_is_int(self):
+        """Story points are registered as integers."""
         plugin = SetStoryPointsPlugin()
-        mock_parser = Mock(spec=ArgumentParser)
-
-        # Create mock for _positionals with an action for 'points'
-        mock_action = Mock()
-        mock_action.dest = "points"
-        mock_positionals = Mock()
-        mock_positionals._actions = [mock_action]
-        mock_parser._positionals = mock_positionals
-
-        plugin.register_additional_arguments(mock_parser)
-
-        # Verify the action was removed
-        assert len(mock_parser._positionals._actions) == 0
-
-        # Verify add_argument was called for points with type=int
-        mock_parser.add_argument.assert_called_once_with("points", type=int, help="The story points value (integer)")
+        assert plugin.argument_type is int
 
     @patch("jira_creator.plugins.set_story_points_plugin.EnvFetcher")
     def test_rest_operation(self, mock_env_fetcher):

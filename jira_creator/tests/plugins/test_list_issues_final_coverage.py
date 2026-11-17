@@ -34,7 +34,7 @@ class TestListIssuesFinalCoverage:
         )
 
         # Build JQL - should not include component condition due to empty result
-        jql = plugin._build_jql_query(args)
+        jql = plugin.build_jql_query(args)
 
         assert jql == "project = TEST"
         assert "component" not in jql
@@ -63,7 +63,7 @@ class TestListIssuesFinalCoverage:
         )
 
         # Build JQL - should not include unblocked condition due to empty blocked field
-        jql = plugin._build_jql_query(args)
+        jql = plugin.build_jql_query(args)
 
         assert jql == "project = TEST"
         assert "!=" not in jql

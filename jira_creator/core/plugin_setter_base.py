@@ -8,7 +8,7 @@ the pattern of setting a single field value on a Jira issue.
 
 from abc import abstractmethod
 from argparse import ArgumentParser, Namespace
-from typing import Any, Dict, List
+from typing import Any
 
 from jira_creator.core.plugin_base import JiraPlugin
 
@@ -37,6 +37,11 @@ class SetterPlugin(JiraPlugin):
         return f"The {self.field_name} to set"
 
     @property
+    def argument_type(self):
+        """Return a type converter for the value argument, or None."""
+        return None
+
+    @property
     def command_name(self) -> str:
         """Return the command name based on field name."""
         return f"set-{self.field_name.lower().replace(' ', '-')}"
@@ -52,7 +57,7 @@ class SetterPlugin(JiraPlugin):
         return "Issue Modification"
 
     @property
-    def example_commands(self) -> List[str]:
+    def example_commands(self) -> list[str]:
         """Return example commands for setter plugins."""
         # Provide sensible default examples based on field name
         examples_map = {
@@ -91,7 +96,10 @@ class SetterPlugin(JiraPlugin):
     def register_arguments(self, parser: ArgumentParser) -> None:
         """Register command-specific arguments."""
         parser.add_argument("issue_key", help="The Jira issue key (e.g., PROJ-123)")
-        parser.add_argument(self.argument_name, help=self.argument_help)
+        value_kwargs = {}
+        if self.argument_type is not None:
+            value_kwargs["type"] = self.argument_type
+        parser.add_argument(self.argument_name, help=self.argument_help, **value_kwargs)
         # Allow subclasses to add more arguments
         self.register_additional_arguments(parser)
 
@@ -138,7 +146,7 @@ class SetterPlugin(JiraPlugin):
         return f"✅ {self.field_name.capitalize()} for {issue_key} set to '{value}'"
 
     @abstractmethod
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation.
 

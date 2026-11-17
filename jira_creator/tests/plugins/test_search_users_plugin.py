@@ -114,7 +114,7 @@ class TestSearchUsersPlugin:
 
         # Capture print output
         with patch("builtins.print") as mock_print:
-            plugin._display_user(user)
+            plugin.display_user(user)
 
             # Verify all fields were printed
             calls = [call.args[0] for call in mock_print.call_args_list]
@@ -132,7 +132,7 @@ class TestSearchUsersPlugin:
         user = {"active": False}  # Minimal user data
 
         with patch("builtins.print") as mock_print:
-            plugin._display_user(user)
+            plugin.display_user(user)
 
             # Verify N/A values were used
             calls = [call.args[0] for call in mock_print.call_args_list]
@@ -226,7 +226,7 @@ class TestSearchUsersPlugin:
         mock_client.request.return_value = [{"name": "test"}]
 
         # Mock _display_user to raise an error
-        with patch.object(plugin, "_display_user", side_effect=Exception("Display error")):
+        with patch.object(plugin, "display_user", side_effect=Exception("Display error")):
             args = Namespace(query="test", max_results=50)
 
             # The plugin doesn't catch generic exceptions from _display_user

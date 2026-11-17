@@ -83,7 +83,7 @@ class ListIssuesPlugin(JiraPlugin):
         """
         try:
             # Build JQL query from arguments
-            jql = self._build_jql_query(args)
+            jql = self.build_jql_query(args)
 
             if not jql:
                 print("❌ No project specified. Use --project or set JIRA_PROJECT_KEY")
@@ -127,7 +127,7 @@ class ListIssuesPlugin(JiraPlugin):
             env_get=EnvFetcher.get,
         )
 
-    def _build_jql_query(self, args: Namespace) -> str:
+    def build_jql_query(self, args: Namespace) -> str:
         """Build JQL query from command arguments."""
         # pylint: disable=too-many-branches
         conditions = []

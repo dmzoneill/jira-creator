@@ -11,17 +11,17 @@ class FalsyButTruthy:
     """A class that is truthy but becomes falsy when used in boolean context after assignment."""
 
     def __init__(self):
-        self._used = False
+        self.used = False
 
     def __bool__(self):
-        if not self._used:
-            self._used = True
+        if not self.used:
+            self.used = True
             return True  # First check (line 153) returns True
         return False  # Subsequent checks (line 155) return False
 
     def __or__(self, other):
         # When used in 'or' operation, return self but mark as used
-        self._used = True
+        self.used = True
         return self
 
 
@@ -52,7 +52,7 @@ class TestListIssuesFinalBranch:
             unblocked=False,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = plugin.build_jql_query(args)
 
         # Should not include component condition if component becomes falsy at line 155
         assert jql == "project = TEST"
@@ -70,6 +70,8 @@ class TestListIssuesFinalBranch:
 
         # Try with a component that might behave unexpectedly
         class EmptyStringLike:
+            """Truthy component whose string form is empty."""
+
             def __bool__(self):
                 return True  # Truthy for if check
 
@@ -90,7 +92,7 @@ class TestListIssuesFinalBranch:
             unblocked=False,
         )
 
-        jql = plugin._build_jql_query(args)
+        jql = plugin.build_jql_query(args)
         # This test actually adds the component because the __or__ returns empty string
         # which is truthy enough to be included
         assert "project = TEST" in jql
@@ -102,10 +104,12 @@ class TestListIssuesFinalBranch:
         # Line 24-25: __or__ method
         result_or = obj1 | "something"
         assert result_or == obj1
-        assert obj1._used is True
+        assert obj1.used is True
 
         # Test the EmptyStringLike class
         class EmptyStringLike:
+            """Falsy component used to cover the helper __or__ path."""
+
             def __bool__(self):
                 return False  # Subsequent checks (line 155) return False
 

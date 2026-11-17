@@ -6,8 +6,7 @@ This plugin implements the set-story-points command, allowing users to
 change the story points of Jira issues.
 """
 
-from argparse import ArgumentParser
-from typing import Any, Dict
+from typing import Any
 
 from jira_creator.core.env_fetcher import EnvFetcher
 from jira_creator.core.plugin_config import FieldMapping
@@ -36,13 +35,13 @@ class SetStoryPointsPlugin(SetterPlugin):
         """Return help text for the points argument."""
         return "The story points value (integer)"
 
-    def get_plugin_exceptions(self) -> Dict[str, type[Exception]]:
+    def get_plugin_exceptions(self) -> dict[str, type[Exception]]:
         """Register this plugin's custom exceptions."""
         return {
             "SetStoryPointsError": SetStoryPointsError,
         }
 
-    def get_field_mappings(self) -> Dict[str, FieldMapping]:
+    def get_field_mappings(self) -> dict[str, FieldMapping]:
         """Register JIRA field mappings for story points."""
         return {
             "story_points": FieldMapping(
@@ -53,19 +52,12 @@ class SetStoryPointsPlugin(SetterPlugin):
             ),
         }
 
-    def register_additional_arguments(self, parser: ArgumentParser) -> None:
-        """Override to add type validation for points."""
-        # pylint: disable=protected-access
-        # Remove the default positional argument - necessary to override parent class behavior
-        parser._positionals._actions = [
-            action for action in parser._positionals._actions if action.dest != self.argument_name
-        ]
-        # pylint: enable=protected-access
+    @property
+    def argument_type(self):
+        """Validate story points as an integer."""
+        return int
 
-        # Add with type validation
-        parser.add_argument("points", type=int, help=self.argument_help)
-
-    def rest_operation(self, client: Any, **kwargs) -> Dict[str, Any]:
+    def rest_operation(self, client: Any, **kwargs) -> dict[str, Any]:
         """
         Perform the REST API operation to set story points.
 
@@ -74,7 +66,7 @@ class SetStoryPointsPlugin(SetterPlugin):
             **kwargs: Contains 'issue_key' and 'value'
 
         Returns:
-            Dict[str, Any]: API response
+            dict[str, Any]: API response
         """
         issue_key = kwargs["issue_key"]
         points = kwargs["value"]
